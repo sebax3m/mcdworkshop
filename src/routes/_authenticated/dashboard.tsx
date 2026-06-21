@@ -39,7 +39,7 @@ function Dashboard() {
     queryFn: async () => {
       const startOfDay = new Date();
       startOfDay.setHours(0, 0, 0, 0);
-      const [todayJobs, inShop, waitingParts, ready, activeClocks] = await Promise.all([
+      const [todayJobs, inShop, waitingParts, ready] = await Promise.all([
         supabase.from("jobs").select("id", { count: "exact", head: true }).gte("created_at", startOfDay.toISOString()),
         supabase.from("jobs").select("id", { count: "exact", head: true }).in("status", ["new","assigned","in_progress","waiting_parts","ready_for_pickup"]),
         supabase.from("jobs").select("id", { count: "exact", head: true }).eq("status", "waiting_parts"),
