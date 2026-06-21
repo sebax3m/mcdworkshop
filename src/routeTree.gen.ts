@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthenticatedMotorcyclesRouteImport } from './routes/_authenticated/motorcycles'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedCustomersRouteImport } from './routes/_authenticated/customers'
 import { Route as AuthenticatedClockRouteImport } from './routes/_authenticated/clock'
@@ -33,6 +34,12 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedMotorcyclesRoute =
+  AuthenticatedMotorcyclesRouteImport.update({
+    id: '/motorcycles',
+    path: '/motorcycles',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
@@ -70,6 +77,7 @@ export interface FileRoutesByFullPath {
   '/clock': typeof AuthenticatedClockRoute
   '/customers': typeof AuthenticatedCustomersRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/motorcycles': typeof AuthenticatedMotorcyclesRoute
   '/jobs/$jobId': typeof AuthenticatedJobsJobIdRoute
   '/jobs/new': typeof AuthenticatedJobsNewRoute
   '/jobs/': typeof AuthenticatedJobsIndexRoute
@@ -80,6 +88,7 @@ export interface FileRoutesByTo {
   '/clock': typeof AuthenticatedClockRoute
   '/customers': typeof AuthenticatedCustomersRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/motorcycles': typeof AuthenticatedMotorcyclesRoute
   '/jobs/$jobId': typeof AuthenticatedJobsJobIdRoute
   '/jobs/new': typeof AuthenticatedJobsNewRoute
   '/jobs': typeof AuthenticatedJobsIndexRoute
@@ -92,6 +101,7 @@ export interface FileRoutesById {
   '/_authenticated/clock': typeof AuthenticatedClockRoute
   '/_authenticated/customers': typeof AuthenticatedCustomersRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/motorcycles': typeof AuthenticatedMotorcyclesRoute
   '/_authenticated/jobs/$jobId': typeof AuthenticatedJobsJobIdRoute
   '/_authenticated/jobs/new': typeof AuthenticatedJobsNewRoute
   '/_authenticated/jobs/': typeof AuthenticatedJobsIndexRoute
@@ -104,6 +114,7 @@ export interface FileRouteTypes {
     | '/clock'
     | '/customers'
     | '/dashboard'
+    | '/motorcycles'
     | '/jobs/$jobId'
     | '/jobs/new'
     | '/jobs/'
@@ -114,6 +125,7 @@ export interface FileRouteTypes {
     | '/clock'
     | '/customers'
     | '/dashboard'
+    | '/motorcycles'
     | '/jobs/$jobId'
     | '/jobs/new'
     | '/jobs'
@@ -125,6 +137,7 @@ export interface FileRouteTypes {
     | '/_authenticated/clock'
     | '/_authenticated/customers'
     | '/_authenticated/dashboard'
+    | '/_authenticated/motorcycles'
     | '/_authenticated/jobs/$jobId'
     | '/_authenticated/jobs/new'
     | '/_authenticated/jobs/'
@@ -158,6 +171,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/motorcycles': {
+      id: '/_authenticated/motorcycles'
+      path: '/motorcycles'
+      fullPath: '/motorcycles'
+      preLoaderRoute: typeof AuthenticatedMotorcyclesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/dashboard': {
       id: '/_authenticated/dashboard'
@@ -208,6 +228,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedClockRoute: typeof AuthenticatedClockRoute
   AuthenticatedCustomersRoute: typeof AuthenticatedCustomersRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedMotorcyclesRoute: typeof AuthenticatedMotorcyclesRoute
   AuthenticatedJobsJobIdRoute: typeof AuthenticatedJobsJobIdRoute
   AuthenticatedJobsNewRoute: typeof AuthenticatedJobsNewRoute
   AuthenticatedJobsIndexRoute: typeof AuthenticatedJobsIndexRoute
@@ -217,6 +238,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedClockRoute: AuthenticatedClockRoute,
   AuthenticatedCustomersRoute: AuthenticatedCustomersRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedMotorcyclesRoute: AuthenticatedMotorcyclesRoute,
   AuthenticatedJobsJobIdRoute: AuthenticatedJobsJobIdRoute,
   AuthenticatedJobsNewRoute: AuthenticatedJobsNewRoute,
   AuthenticatedJobsIndexRoute: AuthenticatedJobsIndexRoute,
