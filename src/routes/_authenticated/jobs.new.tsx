@@ -130,7 +130,7 @@ function NewJob() {
         <CustomerPicker
           customers={customers.data ?? []}
           loading={customers.isLoading}
-          onPick={(c) => { setCustomerId(c.id); setBikeId(null); setStep("bike"); }}
+          onPick={(c: any) => { setCustomerId(c.id); setBikeId(null); setStep("bike"); }}
           onRefetch={customers.refetch}
         />
       )}
@@ -139,7 +139,7 @@ function NewJob() {
           customer={customer}
           bikes={bikes.data ?? []}
           loading={bikes.isLoading}
-          onPick={(b) => { setBikeId(b.id); setStep("template"); }}
+          onPick={(b: any) => { setBikeId(b.id); setStep("template"); }}
           onRefetch={bikes.refetch}
           onBack={() => setStep("customer")}
         />
@@ -148,7 +148,7 @@ function NewJob() {
         <TemplatePicker
           templates={templates.data ?? []}
           selectedId={templateId}
-          onPick={(t) => { setTemplateId(t.id); setStep("tech"); }}
+          onPick={(t: any) => { setTemplateId(t.id); setStep("tech"); }}
           onBack={() => setStep("bike")}
         />
       )}
