@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { STATUS_META, STATUS_ORDER, formatMinutes, fullBike, initials } from "@/lib/format";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { toast } from "sonner";
-import { ArrowLeft, Phone, Play, Square, User, Camera, Bike as BikeIcon, ChevronDown, Check } from "lucide-react";
+import { ArrowLeft, Play, Square, User, Bike as BikeIcon, ChevronDown, Check } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/jobs/$jobId")({
   component: JobDetail,
