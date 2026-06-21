@@ -16,11 +16,21 @@ function Dashboard() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("jobs")
-        .select("id, job_number, title, status, technician_id, customers(first_name,last_name), motorcycles(year,make,model), profiles!jobs_technician_id_fkey(full_name)")
+        .select("id, job_number, title, status, technician_id, customers(first_name,last_name), motorcycles(year,make,model)")
         .order("created_at", { ascending: false })
         .limit(20);
       if (error) throw error;
-      return data ?? [];
+      const rows = data ?? [];
+      const techIds = [...new Set(rows.map((r: any) => r.technician_id).filter(Boolean))];
+      let techMap = new Map<string, string>();
+      if (techIds.length) {
+        const { data: profs } = await supabase
+          .from("profiles")
+          .select("id, full_name")
+          .in("id", techIds);
+        (profs ?? []).forEach((p) => techMap.set(p.id, p.full_name));
+      }
+      return rows.map((r: any) => ({ ...r, technician_name: r.technician_id ? techMap.get(r.technician_id) : null }));
     },
   });
 
@@ -34,7 +44,6 @@ function Dashboard() {
         supabase.from("jobs").select("id", { count: "exact", head: true }).in("status", ["new","assigned","in_progress","waiting_parts","ready_for_pickup"]),
         supabase.from("jobs").select("id", { count: "exact", head: true }).eq("status", "waiting_parts"),
         supabase.from("jobs").select("id", { count: "exact", head: true }).eq("status", "ready_for_pickup"),
-        supabase.rpc as any, // placeholder, computed via separate query below
       ]);
       const { data: clockData } = await supabase
         .from("clock_events")
@@ -130,7 +139,7 @@ function JobCard({ job }: { job: any }) {
   const meta = STATUS_META[job.status];
   const customer = job.customers ? `${job.customers.first_name} ${job.customers.last_name}`.trim() : "—";
   const bike = job.motorcycles ? fullBike(job.motorcycles) : "—";
-  const tech = job.profiles?.full_name;
+  const tech = job.technician_name;
   return (
     <Link
       to="/jobs/$jobId"
