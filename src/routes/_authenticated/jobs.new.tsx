@@ -52,10 +52,10 @@ function NewJob() {
     },
   });
 
-  const customer = customers.data?.find((c: any) => c.id === customerId);
-  const bike = bikes.data?.find((b: any) => b.id === bikeId);
-  const template = templates.data?.find((t: any) => t.id === templateId);
-  const tech = techs.data?.find((t: any) => t.id === techId);
+  const customer = (customers.data as any[] | undefined)?.find((c) => c.id === customerId);
+  const bike = (bikes.data as any[] | undefined)?.find((b) => b.id === bikeId);
+  const template = (templates.data as any[] | undefined)?.find((t) => t.id === templateId);
+  const tech = (techs.data as any[] | undefined)?.find((t) => t.id === techId);
 
   if (!isAdmin) {
     return (
