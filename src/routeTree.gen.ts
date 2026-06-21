@@ -9,38 +9,174 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthenticatedTemplatesRouteImport } from './routes/_authenticated/templates'
+import { Route as AuthenticatedMotorcyclesRouteImport } from './routes/_authenticated/motorcycles'
+import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedCustomersRouteImport } from './routes/_authenticated/customers'
+import { Route as AuthenticatedClockRouteImport } from './routes/_authenticated/clock'
+import { Route as AuthenticatedJobsIndexRouteImport } from './routes/_authenticated/jobs.index'
+import { Route as AuthenticatedJobsNewRouteImport } from './routes/_authenticated/jobs.new'
+import { Route as AuthenticatedJobsJobIdRouteImport } from './routes/_authenticated/jobs.$jobId'
 
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
+  id: '/_authenticated',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedTemplatesRoute = AuthenticatedTemplatesRouteImport.update({
+  id: '/templates',
+  path: '/templates',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedMotorcyclesRoute =
+  AuthenticatedMotorcyclesRouteImport.update({
+    id: '/motorcycles',
+    path: '/motorcycles',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedCustomersRoute = AuthenticatedCustomersRouteImport.update({
+  id: '/customers',
+  path: '/customers',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedClockRoute = AuthenticatedClockRouteImport.update({
+  id: '/clock',
+  path: '/clock',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedJobsIndexRoute = AuthenticatedJobsIndexRouteImport.update({
+  id: '/jobs/',
+  path: '/jobs/',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedJobsNewRoute = AuthenticatedJobsNewRouteImport.update({
+  id: '/jobs/new',
+  path: '/jobs/new',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedJobsJobIdRoute = AuthenticatedJobsJobIdRouteImport.update({
+  id: '/jobs/$jobId',
+  path: '/jobs/$jobId',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
+  '/clock': typeof AuthenticatedClockRoute
+  '/customers': typeof AuthenticatedCustomersRoute
+  '/dashboard': typeof AuthenticatedDashboardRoute
+  '/motorcycles': typeof AuthenticatedMotorcyclesRoute
+  '/templates': typeof AuthenticatedTemplatesRoute
+  '/jobs/$jobId': typeof AuthenticatedJobsJobIdRoute
+  '/jobs/new': typeof AuthenticatedJobsNewRoute
+  '/jobs/': typeof AuthenticatedJobsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
+  '/clock': typeof AuthenticatedClockRoute
+  '/customers': typeof AuthenticatedCustomersRoute
+  '/dashboard': typeof AuthenticatedDashboardRoute
+  '/motorcycles': typeof AuthenticatedMotorcyclesRoute
+  '/templates': typeof AuthenticatedTemplatesRoute
+  '/jobs/$jobId': typeof AuthenticatedJobsJobIdRoute
+  '/jobs/new': typeof AuthenticatedJobsNewRoute
+  '/jobs': typeof AuthenticatedJobsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/auth': typeof AuthRoute
+  '/_authenticated/clock': typeof AuthenticatedClockRoute
+  '/_authenticated/customers': typeof AuthenticatedCustomersRoute
+  '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/motorcycles': typeof AuthenticatedMotorcyclesRoute
+  '/_authenticated/templates': typeof AuthenticatedTemplatesRoute
+  '/_authenticated/jobs/$jobId': typeof AuthenticatedJobsJobIdRoute
+  '/_authenticated/jobs/new': typeof AuthenticatedJobsNewRoute
+  '/_authenticated/jobs/': typeof AuthenticatedJobsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/auth'
+    | '/clock'
+    | '/customers'
+    | '/dashboard'
+    | '/motorcycles'
+    | '/templates'
+    | '/jobs/$jobId'
+    | '/jobs/new'
+    | '/jobs/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/auth'
+    | '/clock'
+    | '/customers'
+    | '/dashboard'
+    | '/motorcycles'
+    | '/templates'
+    | '/jobs/$jobId'
+    | '/jobs/new'
+    | '/jobs'
+  id:
+    | '__root__'
+    | '/'
+    | '/_authenticated'
+    | '/auth'
+    | '/_authenticated/clock'
+    | '/_authenticated/customers'
+    | '/_authenticated/dashboard'
+    | '/_authenticated/motorcycles'
+    | '/_authenticated/templates'
+    | '/_authenticated/jobs/$jobId'
+    | '/_authenticated/jobs/new'
+    | '/_authenticated/jobs/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  AuthRoute: typeof AuthRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -48,22 +184,95 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/templates': {
+      id: '/_authenticated/templates'
+      path: '/templates'
+      fullPath: '/templates'
+      preLoaderRoute: typeof AuthenticatedTemplatesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/motorcycles': {
+      id: '/_authenticated/motorcycles'
+      path: '/motorcycles'
+      fullPath: '/motorcycles'
+      preLoaderRoute: typeof AuthenticatedMotorcyclesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/dashboard': {
+      id: '/_authenticated/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof AuthenticatedDashboardRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/customers': {
+      id: '/_authenticated/customers'
+      path: '/customers'
+      fullPath: '/customers'
+      preLoaderRoute: typeof AuthenticatedCustomersRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/clock': {
+      id: '/_authenticated/clock'
+      path: '/clock'
+      fullPath: '/clock'
+      preLoaderRoute: typeof AuthenticatedClockRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/jobs/': {
+      id: '/_authenticated/jobs/'
+      path: '/jobs'
+      fullPath: '/jobs/'
+      preLoaderRoute: typeof AuthenticatedJobsIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/jobs/new': {
+      id: '/_authenticated/jobs/new'
+      path: '/jobs/new'
+      fullPath: '/jobs/new'
+      preLoaderRoute: typeof AuthenticatedJobsNewRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/jobs/$jobId': {
+      id: '/_authenticated/jobs/$jobId'
+      path: '/jobs/$jobId'
+      fullPath: '/jobs/$jobId'
+      preLoaderRoute: typeof AuthenticatedJobsJobIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
+interface AuthenticatedRouteRouteChildren {
+  AuthenticatedClockRoute: typeof AuthenticatedClockRoute
+  AuthenticatedCustomersRoute: typeof AuthenticatedCustomersRoute
+  AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedMotorcyclesRoute: typeof AuthenticatedMotorcyclesRoute
+  AuthenticatedTemplatesRoute: typeof AuthenticatedTemplatesRoute
+  AuthenticatedJobsJobIdRoute: typeof AuthenticatedJobsJobIdRoute
+  AuthenticatedJobsNewRoute: typeof AuthenticatedJobsNewRoute
+  AuthenticatedJobsIndexRoute: typeof AuthenticatedJobsIndexRoute
+}
+
+const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedClockRoute: AuthenticatedClockRoute,
+  AuthenticatedCustomersRoute: AuthenticatedCustomersRoute,
+  AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedMotorcyclesRoute: AuthenticatedMotorcyclesRoute,
+  AuthenticatedTemplatesRoute: AuthenticatedTemplatesRoute,
+  AuthenticatedJobsJobIdRoute: AuthenticatedJobsJobIdRoute,
+  AuthenticatedJobsNewRoute: AuthenticatedJobsNewRoute,
+  AuthenticatedJobsIndexRoute: AuthenticatedJobsIndexRoute,
+}
+
+const AuthenticatedRouteRouteWithChildren =
+  AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  AuthRoute: AuthRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
