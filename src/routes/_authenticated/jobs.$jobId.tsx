@@ -405,7 +405,7 @@ function ServiceTemplateSection({
   async function pickTemplate(tmpl: any) {
     if (!canEdit) return;
     if (tmpl.id === currentTemplateId) return;
-    if (tasks.length > 0 && !confirm(`Switch template to "${tmpl.name}"? This will replace the checklist.`)) return;
+    if (tasks.length > 0 && !confirm(`Switch template to "${tmpl.name}"? This will replace the task list.`)) return;
     setSwitching(tmpl.id);
     try {
       await supabase.from("job_tasks").delete().eq("job_id", jobId);
@@ -428,16 +428,12 @@ function ServiceTemplateSection({
     }
   }
 
-  return (
-    <section className="card-surface p-4">
-      <div className="flex items-center justify-between mb-3">
-        <h2 className="font-display text-lg font-semibold">Service Template</h2>
-        <span className="text-xs text-muted-foreground">
-          {tasks.filter((t) => t.is_done).length}/{tasks.length} · {completion}%
-        </span>
-      </div>
+  const currentTmpl = (templates.data ?? []).find((t: any) => t.id === currentTemplateId);
+  const currentKindLabel = currentTmpl ? currentTmpl.name.replace(" Service", "").toUpperCase() : currentTitle.toUpperCase();
 
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4">
+  return (
+    <section className="card-surface p-5">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-5">
         {(templates.data ?? []).map((tmpl: any) => {
           const active = tmpl.id === currentTemplateId;
           return (
@@ -445,30 +441,37 @@ function ServiceTemplateSection({
               key={tmpl.id}
               onClick={() => pickTemplate(tmpl)}
               disabled={!canEdit || switching === tmpl.id}
-              className={`rounded-xl border p-3 text-left transition-all ${
+              className={`rounded-xl border p-2.5 text-center transition-all ${
                 active
                   ? "border-primary bg-primary/10 shadow-[0_0_18px_-6px_oklch(0.81_0.13_82/0.6)]"
                   : "border-border hover:border-primary/40"
               } disabled:opacity-60`}
             >
-              <div className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground">
+              <div className="text-[10px] uppercase tracking-wider font-bold">
                 {tmpl.name.replace(" Service", "")}
               </div>
-              <div className="text-xs font-semibold mt-1">
-                {(tmpl.tasks as any[])?.length ?? 0} tasks · {tmpl.estimated_hours ?? "—"}h
-              </div>
-              {active && <div className="mt-1 text-[10px] text-primary font-bold uppercase">Selected</div>}
-              {switching === tmpl.id && <div className="mt-1 text-[10px] text-muted-foreground">Switching…</div>}
+              <div className="text-[10px] text-muted-foreground mt-0.5">{tmpl.estimated_hours ?? "—"}h</div>
+              {switching === tmpl.id && <div className="text-[10px] text-muted-foreground">Switching…</div>}
             </button>
           );
         })}
       </div>
 
-      <div className="h-1.5 rounded-full bg-muted overflow-hidden mb-3">
+      <div className="flex items-baseline justify-between mb-1">
+        <h2 className="font-display text-xl font-bold tracking-wide">{currentKindLabel}</h2>
+        <span className="text-xs text-muted-foreground">
+          {tasks.filter((t) => t.is_done).length}/{tasks.length} done · {completion}%
+        </span>
+      </div>
+      {currentTmpl?.description && (
+        <p className="text-sm text-primary mb-3">{currentTmpl.description}</p>
+      )}
+
+      <div className="h-1 rounded-full bg-muted overflow-hidden mb-4">
         <div className="h-full gold-surface transition-all" style={{ width: `${completion}%` }} />
       </div>
 
-      <div className="space-y-1.5">
+      <div className="space-y-0.5">
         {tasks.map((t) => (
           <TaskRow
             key={t.id}
