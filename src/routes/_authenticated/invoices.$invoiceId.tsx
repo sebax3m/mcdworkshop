@@ -632,3 +632,49 @@ function ServiceChecks({
     </div>
   );
 }
+function NotesBox({
+  invoiceId,
+  initial,
+  onSaved,
+}: {
+  invoiceId: string;
+  initial: string;
+  onSaved: () => void;
+}) {
+  const [value, setValue] = useState(initial);
+  const [saving, setSaving] = useState(false);
+  const [savedAt, setSavedAt] = useState<number | null>(null);
+  useEffect(() => { setValue(initial); }, [initial]);
+
+  async function save() {
+    if (value === initial) return;
+    setSaving(true);
+    const { error } = await supabase
+      .from("invoices")
+      .update({ notes: value })
+      .eq("id", invoiceId);
+    setSaving(false);
+    if (error) { toast.error(error.message); return; }
+    setSavedAt(Date.now());
+    onSaved();
+  }
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-2">
+        <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Notes</div>
+        <div className="text-[10px] text-muted-foreground no-print">
+          {saving ? "Saving…" : savedAt ? "Saved" : "Auto-saves on blur"}
+        </div>
+      </div>
+      <textarea
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+        onBlur={save}
+        placeholder="Add notes for the customer — recommendations, follow-ups, parts to order next service…"
+        rows={6}
+        className="w-full rounded-lg border border-border bg-background/50 p-3 text-sm leading-relaxed outline-none focus:border-primary resize-y print:border-border print:bg-transparent print:resize-none"
+      />
+    </div>
+  );
+}
