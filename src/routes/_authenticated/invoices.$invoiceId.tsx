@@ -403,7 +403,6 @@ function InvoiceDetail() {
 
           {/* Line items */}
           <div className="pt-5 border-t border-border">
-            <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-3">Line Items</div>
             <table className="w-full text-sm">
               <thead>
                 <tr className="text-left text-[10px] uppercase tracking-wider text-muted-foreground border-b border-border">
