@@ -300,18 +300,39 @@ function InvoiceDetail() {
                 </tr>
               </thead>
               <tbody>
-                {Number(inv.labour_total) > 0 && (() => {
-                  const rateEx = 130 / 1.15;
+                {(() => {
+                  const rateEx = LABOUR_RATE_EX;
                   const hours = Number(inv.labour_total) / rateEx;
+                  const delta = hours - defaultHours;
+                  const deltaLabel =
+                    Math.abs(delta) < 0.01
+                      ? null
+                      : `${delta > 0 ? "+" : ""}${delta.toFixed(2)}h vs tracked`;
                   return (
                     <tr className="border-b border-border/40">
                       <td className="py-3">
                         <div className="font-medium">Workshop labour</div>
-                        <div className="text-xs text-muted-foreground">Diagnostics, service & repair · $130/hr (incl. GST)</div>
+                        <div className="text-xs text-muted-foreground">
+                          Diagnostics, service & repair · $130/hr (incl. GST)
+                          {defaultHours > 0 && (
+                            <> · tracked {defaultHours.toFixed(2)}h</>
+                          )}
+                        </div>
                       </td>
-                      <td className="py-3 text-right tabular-nums">{hours.toFixed(2)}</td>
-                      <td className="py-3 text-right tabular-nums">${rateEx.toFixed(2)}</td>
-                      <td className="py-3 text-right tabular-nums font-semibold">${Number(inv.labour_total).toFixed(2)}</td>
+                      <td className="py-3 text-right">
+                        <EditableNumber value={hours} onCommit={(n) => updateLabour({ qty: n })} suffix="h" />
+                        {deltaLabel && (
+                          <div className={`text-[10px] mt-0.5 no-print ${delta > 0 ? "text-amber-500" : "text-emerald-500"}`}>
+                            {deltaLabel}
+                          </div>
+                        )}
+                      </td>
+                      <td className="py-3 text-right">
+                        <EditableNumber value={rateEx} onCommit={(n) => updateLabour({ unit: n })} prefix="$" />
+                      </td>
+                      <td className="py-3 text-right font-semibold">
+                        <EditableNumber value={Number(inv.labour_total)} onCommit={(n) => updateLabour({ amount: n })} prefix="$" />
+                      </td>
                     </tr>
                   );
                 })()}
@@ -324,9 +345,19 @@ function InvoiceDetail() {
                         <div className="font-medium">{p.name}</div>
                         {p.supplier && <div className="text-xs text-muted-foreground">{p.supplier}</div>}
                       </td>
-                      <td className="py-3 text-right tabular-nums">{qty}</td>
-                      <td className="py-3 text-right tabular-nums">${unit.toFixed(2)}</td>
-                      <td className="py-3 text-right tabular-nums font-semibold">${(unit * qty).toFixed(2)}</td>
+                      <td className="py-3 text-right">
+                        <EditableNumber value={qty} decimals={0} onCommit={(n) => updatePart(p.id, { quantity: n })} />
+                      </td>
+                      <td className="py-3 text-right">
+                        <EditableNumber value={unit} prefix="$" onCommit={(n) => updatePart(p.id, { retail: n })} />
+                      </td>
+                      <td className="py-3 text-right font-semibold">
+                        <EditableNumber
+                          value={unit * qty}
+                          prefix="$"
+                          onCommit={(n) => updatePart(p.id, { retail: qty > 0 ? n / qty : n })}
+                        />
+                      </td>
                     </tr>
                   );
                 })}
