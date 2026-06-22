@@ -137,9 +137,21 @@ function JobDetail() {
     const subtotal = labour + parts;
     const gst = Math.round(subtotal * 0.1 * 100) / 100;
     const total = Math.round((subtotal + gst) * 100) / 100;
+    const year = new Date().getFullYear();
+    const { data: last } = await supabase
+      .from("invoices")
+      .select("invoice_number")
+      .like("invoice_number", `APX-${year}-%`)
+      .order("invoice_number", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    const nextSeq = last?.invoice_number
+      ? Number(last.invoice_number.split("-").pop()) + 1
+      : 1;
+    const invoice_number = `APX-${year}-${String(nextSeq).padStart(5, "0")}`;
     const { data, error } = await supabase.from("invoices").insert({
       job_id: jobId,
-      invoice_number: "",
+      invoice_number,
       customer_id: j.customer_id,
       motorcycle_id: j.motorcycle_id,
       labour_total: labour,
