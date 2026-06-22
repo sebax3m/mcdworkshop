@@ -338,6 +338,12 @@ function JobDetail() {
           </div>
         </section>
       )}
+
+      <div className="flex justify-end pt-2 no-print">
+        <Button onClick={() => window.print()} variant="outline" size="sm" className="gap-2">
+          <Printer className="h-4 w-4" /> Print Job Card
+        </Button>
+      </div>
     </div>
   );
 }
@@ -576,7 +582,7 @@ function ServiceTemplateSection({
         <div className="h-full gold-surface transition-all" style={{ width: `${completion}%` }} />
       </div>
 
-      <div className="space-y-0.5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-0.5">
         {tasks.map((t) => (
           <TaskRow
             key={t.id}
