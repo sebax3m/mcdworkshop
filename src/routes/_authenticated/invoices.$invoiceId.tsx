@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { ArrowLeft, Printer, Mail, FileDown, Pencil } from "lucide-react";
+import { ArrowLeft, Printer, Mail, FileDown, Pencil, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { fullBike } from "@/lib/format";
 import logo from "@/assets/apex-logo.png";
@@ -83,7 +83,7 @@ function InvoiceDetail() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("invoices")
-        .select("*, customers(*), motorcycles(*), jobs(job_number, title, description)")
+        .select("*, customers(*), motorcycles(*), jobs(job_number, title, description, odometer)")
         .eq("id", invoiceId)
         .maybeSingle();
       if (error) throw error;
@@ -102,6 +102,17 @@ function InvoiceDetail() {
     enabled: !!invoice.data?.job_id,
     queryFn: async () =>
       (await supabase.from("time_entries").select("minutes").eq("job_id", invoice.data!.job_id!)).data ?? [],
+  });
+
+  const checks = useQuery({
+    queryKey: ["invoice-checks", invoiceId, invoice.data?.job_id],
+    enabled: !!invoice.data?.job_id,
+    queryFn: async () =>
+      (await supabase
+        .from("job_tasks")
+        .select("id,label,is_done,note,sort_order")
+        .eq("job_id", invoice.data!.job_id!)
+        .order("sort_order")).data ?? [],
   });
 
   // Ensure every invoice carries a default $30 shop consumables line. Auto-insert
