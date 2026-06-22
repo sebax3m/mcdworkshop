@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { z } from "zod";
@@ -13,7 +13,6 @@ import { ArrowLeft, Plus, Search, Bike as BikeIcon, Camera, X } from "lucide-rea
 import { toast } from "sonner";
 import { fullBike, initials } from "@/lib/format";
 import { uploadPhoto } from "@/lib/photos";
-import { useQueryClient } from "@tanstack/react-query";
 
 const searchSchema = z.object({ date: z.string().optional() });
 
