@@ -503,6 +503,14 @@ function ServiceChecks({
     onChanged();
   }
 
+  async function renameItem(id: string, label: string) {
+    const trimmed = label.trim();
+    if (!trimmed) return;
+    const { error } = await supabase.from("job_tasks").update({ label: trimmed }).eq("id", id);
+    if (error) return toast.error(error.message);
+    onChanged();
+  }
+
   if (!jobId) return null;
   if (items.length === 0 && !title) return null;
 
@@ -530,15 +538,15 @@ function ServiceChecks({
                 {t.is_done && <Check className="h-3 w-3" strokeWidth={3} />}
               </span>
               <div className="min-w-0 flex-1">
-                <div
+                <EditableText
+                  value={t.label}
+                  onCommit={(v) => renameItem(t.id, v)}
                   className={
                     t.is_done
                       ? ""
                       : "text-muted-foreground line-through decoration-muted-foreground/40"
                   }
-                >
-                  {t.label}
-                </div>
+                />
                 {t.note && <div className="text-xs text-muted-foreground">{t.note}</div>}
               </div>
               <button
