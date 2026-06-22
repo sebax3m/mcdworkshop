@@ -125,7 +125,7 @@ function JobDetail() {
   async function createInvoice() {
     if (!user) return;
     if (existingInvoice.data) {
-      toast.info(`Invoice ${existingInvoice.data.invoice_number} already exists`);
+      window.open(`/invoices/${existingInvoice.data.id}`, "_blank");
       return;
     }
     const hours = totalMinutes / 60;
@@ -160,10 +160,11 @@ function JobDetail() {
       total,
       status: "draft",
       created_by: user.id,
-    }).select("invoice_number").maybeSingle();
+    }).select("id, invoice_number").maybeSingle();
     if (error) return toast.error(error.message);
     toast.success(`Invoice ${data?.invoice_number} created`);
     qc.invalidateQueries({ queryKey: ["job-invoice", jobId] });
+    if (data?.id) window.open(`/invoices/${data.id}`, "_blank");
   }
 
   return (
@@ -300,11 +301,10 @@ function JobDetail() {
             </div>
             <Button
               onClick={createInvoice}
-              disabled={!!existingInvoice.data}
               className="gold-surface h-11 px-4 font-bold gap-2"
             >
               <FileText className="h-4 w-4" />
-              {existingInvoice.data ? "Invoice created" : "Create Invoice"}
+              {existingInvoice.data ? "Open Invoice" : "Create Invoice"}
             </Button>
           </div>
         </section>
