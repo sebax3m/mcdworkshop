@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { STATUS_META, STATUS_ORDER, formatMinutes, fullBike, initials } from "@/lib/format";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { toast } from "sonner";
-import { ArrowLeft, Play, Square, User, Bike as BikeIcon, ChevronDown, Check, Droplet, Wrench, Package, Plus, X } from "lucide-react";
+import { ArrowLeft, Play, Square, User, Bike as BikeIcon, ChevronDown, Check, Droplet, Wrench, Package, Plus, X, FileText } from "lucide-react";
 import { detectServiceKind, KIND_META, SERVICE_PARTS } from "@/lib/service-kinds";
 
 export const Route = createFileRoute("/_authenticated/jobs/$jobId")({
@@ -59,6 +59,10 @@ function JobDetail() {
   const partsUsed = useQuery({
     queryKey: ["job-parts", jobId],
     queryFn: async () => (await supabase.from("parts").select("*").eq("job_id", jobId).order("created_at")).data ?? [],
+  });
+  const existingInvoice = useQuery({
+    queryKey: ["job-invoice", jobId],
+    queryFn: async () => (await supabase.from("invoices").select("id, invoice_number, status, total").eq("job_id", jobId).maybeSingle()).data,
   });
 
   const activeTimer = useMemo(() => (time.data ?? []).find((t) => !t.ended_at && t.technician_id === user?.id), [time.data, user]);
@@ -116,6 +120,38 @@ function JobDetail() {
   }
 
   const completion = tasks.data && tasks.data.length ? Math.round((tasks.data.filter((t) => t.is_done).length / tasks.data.length) * 100) : 0;
+
+  const LABOUR_RATE = 120;
+  async function createInvoice() {
+    if (!user) return;
+    if (existingInvoice.data) {
+      toast.info(`Invoice ${existingInvoice.data.invoice_number} already exists`);
+      return;
+    }
+    const hours = totalMinutes / 60;
+    const labour = Math.round(hours * LABOUR_RATE * 100) / 100;
+    const parts = (partsUsed.data ?? []).reduce(
+      (s, p: any) => s + Number(p.retail ?? 0) * Number(p.quantity ?? 1),
+      0,
+    );
+    const subtotal = labour + parts;
+    const gst = Math.round(subtotal * 0.1 * 100) / 100;
+    const total = Math.round((subtotal + gst) * 100) / 100;
+    const { data, error } = await supabase.from("invoices").insert({
+      job_id: jobId,
+      customer_id: j.customer_id,
+      motorcycle_id: j.motorcycle_id,
+      labour_total: labour,
+      parts_total: parts,
+      gst,
+      total,
+      status: "draft",
+      created_by: user.id,
+    }).select("invoice_number").maybeSingle();
+    if (error) return toast.error(error.message);
+    toast.success(`Invoice ${data?.invoice_number} created`);
+    qc.invalidateQueries({ queryKey: ["job-invoice", jobId] });
+  }
 
   return (
     <div className="space-y-5 max-w-3xl mx-auto">
@@ -231,6 +267,33 @@ function JobDetail() {
         <section className="card-surface p-4">
           <div className="text-xs uppercase tracking-wider text-muted-foreground mb-1">Customer Complaint</div>
           <p className="text-sm whitespace-pre-wrap">{j.complaint}</p>
+        </section>
+      )}
+
+      {canEdit && (
+        <section className="card-surface p-4">
+          <div className="flex items-center justify-between gap-3 flex-wrap">
+            <div>
+              <h2 className="font-display text-lg font-semibold">Invoice</h2>
+              {existingInvoice.data ? (
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  {existingInvoice.data.invoice_number} · {existingInvoice.data.status} · ${Number(existingInvoice.data.total).toFixed(2)}
+                </p>
+              ) : (
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Generate an invoice from logged labour and parts used.
+                </p>
+              )}
+            </div>
+            <Button
+              onClick={createInvoice}
+              disabled={!!existingInvoice.data}
+              className="gold-surface h-11 px-4 font-bold gap-2"
+            >
+              <FileText className="h-4 w-4" />
+              {existingInvoice.data ? "Invoice created" : "Create Invoice"}
+            </Button>
+          </div>
         </section>
       )}
     </div>
