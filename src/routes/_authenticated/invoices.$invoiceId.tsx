@@ -660,6 +660,14 @@ function NotesBox({
   const [savedAt, setSavedAt] = useState<number | null>(null);
   useEffect(() => { setValue(initial); }, [initial]);
 
+  // If the invoice has no notes yet, seed the editor with notes from the job card.
+  useEffect(() => {
+    if (initial.trim() === "" && jobNotes.length > 0 && value === "") {
+      setValue(jobNotes.map((n) => n.body).join("\n\n"));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [jobNotes.length]);
+
   async function save() {
     if (value === initial) return;
     setSaving(true);
@@ -681,19 +689,6 @@ function NotesBox({
           {saving ? "Saving…" : savedAt ? "Saved" : "Auto-saves on blur"}
         </div>
       </div>
-      {jobNotes.length > 0 && (
-        <div className="mb-3 rounded-lg border border-border bg-muted/30 p-3 space-y-2">
-          <div className="text-[10px] uppercase tracking-wider text-muted-foreground">From job card</div>
-          {jobNotes.map((n) => (
-            <div key={n.id} className="text-xs whitespace-pre-wrap leading-relaxed">
-              <span className="text-muted-foreground mr-2">
-                {new Date(n.created_at).toLocaleDateString()}
-              </span>
-              {n.body}
-            </div>
-          ))}
-        </div>
-      )}
       <textarea
         value={value}
         onChange={(e) => setValue(e.target.value)}
