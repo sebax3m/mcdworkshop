@@ -647,10 +647,12 @@ function ServiceChecks({
 function NotesBox({
   invoiceId,
   initial,
+  jobNotes,
   onSaved,
 }: {
   invoiceId: string;
   initial: string;
+  jobNotes: { id: string; body: string; created_at: string }[];
   onSaved: () => void;
 }) {
   const [value, setValue] = useState(initial);
@@ -679,6 +681,19 @@ function NotesBox({
           {saving ? "Saving…" : savedAt ? "Saved" : "Auto-saves on blur"}
         </div>
       </div>
+      {jobNotes.length > 0 && (
+        <div className="mb-3 rounded-lg border border-border bg-muted/30 p-3 space-y-2">
+          <div className="text-[10px] uppercase tracking-wider text-muted-foreground">From job card</div>
+          {jobNotes.map((n) => (
+            <div key={n.id} className="text-xs whitespace-pre-wrap leading-relaxed">
+              <span className="text-muted-foreground mr-2">
+                {new Date(n.created_at).toLocaleDateString()}
+              </span>
+              {n.body}
+            </div>
+          ))}
+        </div>
+      )}
       <textarea
         value={value}
         onChange={(e) => setValue(e.target.value)}
