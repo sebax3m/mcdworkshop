@@ -338,6 +338,12 @@ function JobDetail() {
           </div>
         </section>
       )}
+
+      <div className="flex justify-end pt-2 no-print">
+        <Button onClick={() => window.print()} variant="outline" size="sm" className="gap-2">
+          <Printer className="h-4 w-4" /> Print Job Card
+        </Button>
+      </div>
     </div>
   );
 }
