@@ -554,11 +554,11 @@ function ServiceChecks({
     onChanged();
   }
 
-  async function renameItem(id: string, label: string) {
+  async function renameItem(id: string, label: string): Promise<void> {
     const trimmed = label.trim();
     if (!trimmed) return;
     const { error } = await supabase.from("job_tasks").update({ label: trimmed }).eq("id", id);
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     onChanged();
   }
 
