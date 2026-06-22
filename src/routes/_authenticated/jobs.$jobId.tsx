@@ -421,24 +421,24 @@ function TaskRow({ task, canEdit, onToggle, onNoteSaved }: { task: any; canEdit:
   }
 
   return (
-    <div className="py-1">
+    <div className="py-0.5">
       <button
         onClick={onToggle}
         disabled={!canEdit}
-        className="w-full flex items-start gap-2.5 text-left group"
+        className="w-full flex items-start gap-2 text-left group"
       >
         <Check
-          className={`h-4 w-4 mt-0.5 shrink-0 transition-colors ${
-            task.is_done ? "text-status-ready" : "text-status-ready/80 group-hover:text-status-ready"
+          className={`h-3 w-3 mt-0.5 shrink-0 transition-colors ${
+            task.is_done ? "text-status-ready" : "text-status-ready/70 group-hover:text-status-ready"
           }`}
           strokeWidth={3}
         />
-        <span className={`text-sm leading-snug ${task.is_done ? "text-muted-foreground line-through" : "text-foreground"}`}>
+        <span className={`text-xs leading-snug ${task.is_done ? "text-muted-foreground line-through" : "text-foreground"}`}>
           {task.label}
         </span>
       </button>
       {canEdit && (
-        <div className="mt-0.5 pl-6">
+        <div className="mt-0 pl-5 no-print">
           <input
             value={note}
             onChange={(e) => { setNote(e.target.value); setDirty(true); }}
@@ -446,11 +446,11 @@ function TaskRow({ task, canEdit, onToggle, onNoteSaved }: { task: any; canEdit:
             onKeyDown={(e) => { if (e.key === "Enter") (e.currentTarget as HTMLInputElement).blur(); }}
             placeholder="Quick note…"
             maxLength={140}
-            className="w-full bg-transparent border-0 border-b border-border/40 text-xs py-0.5 focus:outline-none focus:border-primary placeholder:text-muted-foreground/50"
+            className="w-full bg-transparent border-0 border-b border-border/30 text-[11px] py-0 focus:outline-none focus:border-primary placeholder:text-muted-foreground/40"
           />
         </div>
       )}
-      {!canEdit && note && <p className="mt-0.5 pl-6 text-xs text-muted-foreground italic">{note}</p>}
+      {note && <p className="mt-0 pl-5 text-[11px] text-muted-foreground italic print:block">{note}</p>}
     </div>
   );
 }
