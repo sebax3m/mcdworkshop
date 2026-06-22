@@ -125,7 +125,7 @@ function JobDetail() {
   async function createInvoice() {
     if (!user) return;
     if (existingInvoice.data) {
-      window.open(`/invoices/${existingInvoice.data.id}`, "_blank");
+      nav({ to: "/invoices/$invoiceId", params: { invoiceId: existingInvoice.data.id } });
       return;
     }
     const hours = totalMinutes / 60;
@@ -164,7 +164,7 @@ function JobDetail() {
     if (error) return toast.error(error.message);
     toast.success(`Invoice ${data?.invoice_number} created`);
     qc.invalidateQueries({ queryKey: ["job-invoice", jobId] });
-    if (data?.id) window.open(`/invoices/${data.id}`, "_blank");
+    if (data?.id) nav({ to: "/invoices/$invoiceId", params: { invoiceId: data.id } });
   }
 
   return (
