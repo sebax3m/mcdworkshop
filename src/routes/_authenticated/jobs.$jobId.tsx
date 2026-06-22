@@ -66,7 +66,7 @@ function JobDetail() {
   });
   const booking = useQuery({
     queryKey: ["job-booking", jobId],
-    queryFn: async () => (await supabase.from("bookings").select("notes, complaints").eq("job_id", jobId).maybeSingle()).data,
+    queryFn: async () => (await supabase.from("bookings").select("notes, complaints, instructions").eq("job_id", jobId).maybeSingle()).data,
   });
 
   const activeTimer = useMemo(() => (time.data ?? []).find((t) => !t.ended_at && t.technician_id === user?.id), [time.data, user]);
@@ -343,10 +343,21 @@ function JobDetail() {
       )}
 
       {/* Notes */}
-      {booking.data?.notes && (
-        <section className="card-surface p-4">
-          <div className="text-xs uppercase tracking-wider text-muted-foreground mb-1">Booking Instructions</div>
-          <p className="text-sm whitespace-pre-wrap">{booking.data.notes}</p>
+      {(booking.data?.instructions || booking.data?.notes) && (
+        <section className="card-surface p-4 border-l-4 border-primary/60">
+          <div className="flex items-center gap-2 mb-2">
+            <h2 className="font-display text-lg font-semibold">Instructions</h2>
+            <span className="text-[10px] uppercase tracking-wider text-muted-foreground">from book-in</span>
+          </div>
+          {booking.data?.instructions && (
+            <p className="text-sm whitespace-pre-wrap">{booking.data.instructions}</p>
+          )}
+          {booking.data?.notes && (
+            <div className="mt-2 pt-2 border-t border-border/40">
+              <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-0.5">Internal notes</div>
+              <p className="text-sm whitespace-pre-wrap">{booking.data.notes}</p>
+            </div>
+          )}
         </section>
       )}
 

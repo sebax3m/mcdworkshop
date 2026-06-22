@@ -27,6 +27,7 @@ export type Database = {
           drop_off_time: string | null
           estimated_hours: number | null
           id: string
+          instructions: string | null
           job_id: string | null
           mileage: number | null
           motorcycle_id: string
@@ -52,6 +53,7 @@ export type Database = {
           drop_off_time?: string | null
           estimated_hours?: number | null
           id?: string
+          instructions?: string | null
           job_id?: string | null
           mileage?: number | null
           motorcycle_id: string
@@ -77,6 +79,7 @@ export type Database = {
           drop_off_time?: string | null
           estimated_hours?: number | null
           id?: string
+          instructions?: string | null
           job_id?: string | null
           mileage?: number | null
           motorcycle_id?: string
