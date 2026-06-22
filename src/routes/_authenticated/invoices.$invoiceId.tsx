@@ -694,7 +694,7 @@ function NotesBox({
         onChange={(e) => setValue(e.target.value)}
         onBlur={save}
         placeholder="Add notes for the customer — recommendations, follow-ups, parts to order next service…"
-        rows={6}
+        rows={4}
         className="w-full rounded-lg border border-border bg-background/50 p-3 text-sm leading-relaxed outline-none focus:border-primary resize-y print:border-border print:bg-transparent print:resize-none"
       />
     </div>
