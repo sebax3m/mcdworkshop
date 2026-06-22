@@ -338,19 +338,24 @@ function TaskRow({ task, canEdit, onToggle, onNoteSaved }: { task: any; canEdit:
   }
 
   return (
-    <div className={`rounded-lg border p-2.5 transition-colors ${task.is_done ? "border-status-ready/30 bg-status-ready/5" : "border-border"}`}>
+    <div className="py-1">
       <button
         onClick={onToggle}
         disabled={!canEdit}
-        className="w-full flex items-center gap-3 text-left"
+        className="w-full flex items-start gap-2.5 text-left group"
       >
-        <span className={`grid h-6 w-6 shrink-0 place-items-center rounded-md border ${task.is_done ? "bg-status-ready border-status-ready text-background" : "border-border"}`}>
-          {task.is_done && <Check className="h-3.5 w-3.5" />}
+        <Check
+          className={`h-4 w-4 mt-0.5 shrink-0 transition-colors ${
+            task.is_done ? "text-status-ready" : "text-status-ready/80 group-hover:text-status-ready"
+          }`}
+          strokeWidth={3}
+        />
+        <span className={`text-sm leading-snug ${task.is_done ? "text-muted-foreground line-through" : "text-foreground"}`}>
+          {task.label}
         </span>
-        <span className={`text-sm font-medium ${task.is_done ? "text-muted-foreground line-through" : ""}`}>{task.label}</span>
       </button>
       {canEdit && (
-        <div className="mt-1.5 pl-9 flex items-center gap-2">
+        <div className="mt-0.5 pl-6">
           <input
             value={note}
             onChange={(e) => { setNote(e.target.value); setDirty(true); }}
@@ -358,12 +363,11 @@ function TaskRow({ task, canEdit, onToggle, onNoteSaved }: { task: any; canEdit:
             onKeyDown={(e) => { if (e.key === "Enter") (e.currentTarget as HTMLInputElement).blur(); }}
             placeholder="Quick note…"
             maxLength={140}
-            className="flex-1 bg-transparent border-0 border-b border-border/50 text-xs py-1 focus:outline-none focus:border-primary placeholder:text-muted-foreground/60"
+            className="w-full bg-transparent border-0 border-b border-border/40 text-xs py-0.5 focus:outline-none focus:border-primary placeholder:text-muted-foreground/50"
           />
-          {dirty && <span className="text-[10px] text-primary">unsaved</span>}
         </div>
       )}
-      {!canEdit && note && <p className="mt-1 pl-9 text-xs text-muted-foreground italic">{note}</p>}
+      {!canEdit && note && <p className="mt-0.5 pl-6 text-xs text-muted-foreground italic">{note}</p>}
     </div>
   );
 }
