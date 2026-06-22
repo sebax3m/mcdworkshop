@@ -9,8 +9,8 @@ import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
 const GST_RATE = 0.15;
-const LABOUR_RATE_INC = 130;
-const LABOUR_RATE_EX = LABOUR_RATE_INC / (1 + GST_RATE);
+// Amounts on the invoice are GST-inclusive. The GST line shows the embedded portion.
+const LABOUR_RATE = 130;
 
 function EditableNumber({
   value,
@@ -117,9 +117,9 @@ function InvoiceDetail() {
       (s: number, p: any) => s + Number(p.retail ?? 0) * Number(p.quantity ?? 1),
       0,
     );
-    const subtotal = labour + partsSum;
-    const gst = Math.round(subtotal * GST_RATE * 100) / 100;
-    const total = Math.round((subtotal + gst) * 100) / 100;
+    const subtotal = labour + partsSum; // inc GST
+    const gst = Math.round((subtotal * GST_RATE / (1 + GST_RATE)) * 100) / 100;
+    const total = Math.round(subtotal * 100) / 100;
     const { error } = await supabase
       .from("invoices")
       .update({ labour_total: labour, parts_total: partsSum, gst, total })
@@ -130,7 +130,7 @@ function InvoiceDetail() {
 
   async function updateLabour({ qty, unit, amount }: { qty?: number; unit?: number; amount?: number }) {
     const currentLabour = Number(inv.labour_total);
-    const currentUnit = LABOUR_RATE_EX;
+    const currentUnit = LABOUR_RATE;
     const currentQty = currentLabour / currentUnit;
     let nextAmount = currentLabour;
     if (amount !== undefined) nextAmount = amount;
@@ -151,8 +151,8 @@ function InvoiceDetail() {
       0,
     );
     const subtotal = Number(inv.labour_total) + partsSum;
-    const gst = Math.round(subtotal * GST_RATE * 100) / 100;
-    const total = Math.round((subtotal + gst) * 100) / 100;
+    const gst = Math.round((subtotal * GST_RATE / (1 + GST_RATE)) * 100) / 100;
+    const total = Math.round(subtotal * 100) / 100;
     await supabase.from("invoices").update({ parts_total: partsSum, gst, total }).eq("id", invoiceId);
     qc.invalidateQueries({ queryKey: ["invoice", invoiceId] });
   }
@@ -301,8 +301,8 @@ function InvoiceDetail() {
               </thead>
               <tbody>
                 {(() => {
-                  const rateEx = LABOUR_RATE_EX;
-                  const hours = Number(inv.labour_total) / rateEx;
+                  const rate = LABOUR_RATE;
+                  const hours = Number(inv.labour_total) / rate;
                   const delta = hours - defaultHours;
                   const deltaLabel =
                     Math.abs(delta) < 0.01
@@ -328,7 +328,7 @@ function InvoiceDetail() {
                         )}
                       </td>
                       <td className="py-3 text-right">
-                        <EditableNumber value={rateEx} onCommit={(n) => updateLabour({ unit: n })} prefix="$" />
+                        <EditableNumber value={rate} onCommit={(n) => updateLabour({ unit: n })} prefix="$" />
                       </td>
                       <td className="py-3 text-right font-semibold">
                         <EditableNumber value={Number(inv.labour_total)} onCommit={(n) => updateLabour({ amount: n })} prefix="$" />
