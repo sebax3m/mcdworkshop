@@ -166,6 +166,17 @@ function InvoiceDetail() {
         .order("sort_order")).data ?? [],
   });
 
+  const jobNotes = useQuery({
+    queryKey: ["invoice-job-notes", invoiceId, invoice.data?.job_id],
+    enabled: !!invoice.data?.job_id,
+    queryFn: async () =>
+      (await supabase
+        .from("job_notes")
+        .select("id, body, created_at")
+        .eq("job_id", invoice.data!.job_id!)
+        .order("created_at")).data ?? [],
+  });
+
   // Ensure every invoice carries a default $30 shop consumables line. Auto-insert
   // once per job if missing, then it behaves like any other editable part line.
   useEffect(() => {
@@ -476,6 +487,7 @@ function InvoiceDetail() {
             <NotesBox
               invoiceId={invoiceId}
               initial={inv.notes ?? ""}
+              jobNotes={jobNotes.data ?? []}
               onSaved={() => qc.invalidateQueries({ queryKey: ["invoice", invoiceId] })}
             />
             <div className="space-y-2 text-sm">
@@ -635,10 +647,12 @@ function ServiceChecks({
 function NotesBox({
   invoiceId,
   initial,
+  jobNotes,
   onSaved,
 }: {
   invoiceId: string;
   initial: string;
+  jobNotes: { id: string; body: string; created_at: string }[];
   onSaved: () => void;
 }) {
   const [value, setValue] = useState(initial);
@@ -667,6 +681,19 @@ function NotesBox({
           {saving ? "Saving…" : savedAt ? "Saved" : "Auto-saves on blur"}
         </div>
       </div>
+      {jobNotes.length > 0 && (
+        <div className="mb-3 rounded-lg border border-border bg-muted/30 p-3 space-y-2">
+          <div className="text-[10px] uppercase tracking-wider text-muted-foreground">From job card</div>
+          {jobNotes.map((n) => (
+            <div key={n.id} className="text-xs whitespace-pre-wrap leading-relaxed">
+              <span className="text-muted-foreground mr-2">
+                {new Date(n.created_at).toLocaleDateString()}
+              </span>
+              {n.body}
+            </div>
+          ))}
+        </div>
+      )}
       <textarea
         value={value}
         onChange={(e) => setValue(e.target.value)}
