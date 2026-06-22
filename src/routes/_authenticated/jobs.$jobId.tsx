@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { STATUS_META, STATUS_ORDER, formatMinutes, fullBike, initials } from "@/lib/format";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { toast } from "sonner";
-import { ArrowLeft, Play, Square, User, Bike as BikeIcon, ChevronDown, Check, Droplet, Wrench, Package, Plus, X, FileText } from "lucide-react";
+import { ArrowLeft, Play, Square, User, Bike as BikeIcon, ChevronDown, Check, Droplet, Wrench, Package, Plus, X, FileText, Printer } from "lucide-react";
 import { detectServiceKind, KIND_META, SERVICE_PARTS } from "@/lib/service-kinds";
 
 export const Route = createFileRoute("/_authenticated/jobs/$jobId")({
@@ -175,8 +175,19 @@ function JobDetail() {
   }
 
   return (
-    <div className="space-y-5 max-w-3xl mx-auto">
-      <header className="flex items-center gap-3">
+    <div className="space-y-5 max-w-3xl mx-auto jobcard-print">
+      <style>{`
+        @media print {
+          @page { size: A4; margin: 14mm; }
+          html, body { background: #fff !important; color: #000 !important; }
+          body * { visibility: hidden !important; }
+          .jobcard-print, .jobcard-print * { visibility: visible !important; }
+          .jobcard-print { position: absolute; left: 0; top: 0; width: 100%; max-width: none; margin: 0; padding: 0; }
+          .jobcard-print .card-surface { box-shadow: none !important; border-color: #d1d5db !important; background: #fff !important; }
+          .no-print, .no-print * { display: none !important; }
+        }
+      `}</style>
+      <header className="flex items-center gap-3 no-print">
         <button onClick={() => nav({ to: "/jobs" })} className="grid h-9 w-9 place-items-center rounded-lg border border-border">
           <ArrowLeft className="h-4 w-4" />
         </button>
@@ -189,8 +200,19 @@ function JobDetail() {
           </div>
           <h1 className="font-display text-xl sm:text-2xl font-bold truncate">{j.title}</h1>
         </div>
+        <Button onClick={() => window.print()} variant="outline" size="sm" className="gap-2">
+          <Printer className="h-4 w-4" /> Print
+        </Button>
         <StatusDropdown current={j.status} onChange={setStatus} disabled={!canEdit} />
       </header>
+
+      {/* Print-only header */}
+      <div className="hidden print:block border-b border-gray-300 pb-3 mb-3">
+        <div className="text-[10px] uppercase tracking-[0.25em] text-gray-500">
+          Job Card · Job #{j.job_number} · {kindMeta.label}
+        </div>
+        <h1 className="font-display text-2xl font-bold">{j.title}</h1>
+      </div>
 
       <div className="card-surface p-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
         <InfoRow icon={User} label="Customer" value={`${j.customers?.first_name ?? ""} ${j.customers?.last_name ?? ""}`} hint={j.customers?.phone} />
@@ -421,24 +443,24 @@ function TaskRow({ task, canEdit, onToggle, onNoteSaved }: { task: any; canEdit:
   }
 
   return (
-    <div className="py-1">
+    <div className="py-0.5">
       <button
         onClick={onToggle}
         disabled={!canEdit}
-        className="w-full flex items-start gap-2.5 text-left group"
+        className="w-full flex items-start gap-2 text-left group"
       >
         <Check
-          className={`h-4 w-4 mt-0.5 shrink-0 transition-colors ${
-            task.is_done ? "text-status-ready" : "text-status-ready/80 group-hover:text-status-ready"
+          className={`h-3 w-3 mt-0.5 shrink-0 transition-colors ${
+            task.is_done ? "text-status-ready" : "text-status-ready/70 group-hover:text-status-ready"
           }`}
           strokeWidth={3}
         />
-        <span className={`text-sm leading-snug ${task.is_done ? "text-muted-foreground line-through" : "text-foreground"}`}>
+        <span className={`text-xs leading-snug ${task.is_done ? "text-muted-foreground line-through" : "text-foreground"}`}>
           {task.label}
         </span>
       </button>
       {canEdit && (
-        <div className="mt-0.5 pl-6">
+        <div className="mt-0 pl-5 no-print">
           <input
             value={note}
             onChange={(e) => { setNote(e.target.value); setDirty(true); }}
@@ -446,11 +468,11 @@ function TaskRow({ task, canEdit, onToggle, onNoteSaved }: { task: any; canEdit:
             onKeyDown={(e) => { if (e.key === "Enter") (e.currentTarget as HTMLInputElement).blur(); }}
             placeholder="Quick note…"
             maxLength={140}
-            className="w-full bg-transparent border-0 border-b border-border/40 text-xs py-0.5 focus:outline-none focus:border-primary placeholder:text-muted-foreground/50"
+            className="w-full bg-transparent border-0 border-b border-border/30 text-[11px] py-0 focus:outline-none focus:border-primary placeholder:text-muted-foreground/40"
           />
         </div>
       )}
-      {!canEdit && note && <p className="mt-0.5 pl-6 text-xs text-muted-foreground italic">{note}</p>}
+      {!canEdit && note && <p className="mt-0 pl-5 text-[11px] text-muted-foreground italic">{note}</p>}
     </div>
   );
 }
