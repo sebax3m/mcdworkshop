@@ -123,6 +123,7 @@ function NewBooking() {
           vin: bike.vin ?? null,
           complaints,
           notes,
+          instructions,
           arrival_photos: arrivalPhotos,
           status: "booked",
         })
@@ -316,6 +317,8 @@ function NewBooking() {
             <Textarea value={complaints} onChange={(e) => setComplaints(e.target.value)} placeholder="e.g. Engine miss above 6k rpm" rows={2} />
             <Label className="text-xs uppercase tracking-wider text-muted-foreground">Internal notes</Label>
             <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Drop-off arrangement, customer prefs…" rows={2} />
+            <Label className="text-xs uppercase tracking-wider text-muted-foreground">Instructions</Label>
+            <Textarea value={instructions} onChange={(e) => setInstructions(e.target.value)} placeholder="Step-by-step instructions for the technician — shown on the Job Card" rows={3} />
           </section>
 
           <section className="card-surface p-4 space-y-3">
