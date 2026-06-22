@@ -1,10 +1,73 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { ArrowLeft, Printer, Mail, FileDown } from "lucide-react";
+import { ArrowLeft, Printer, Mail, FileDown, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { fullBike } from "@/lib/format";
 import logo from "@/assets/apex-logo.png";
+import { useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
+
+const GST_RATE = 0.15;
+const LABOUR_RATE_INC = 130;
+const LABOUR_RATE_EX = LABOUR_RATE_INC / (1 + GST_RATE);
+
+function EditableNumber({
+  value,
+  onCommit,
+  prefix = "",
+  suffix = "",
+  decimals = 2,
+  className = "",
+}: {
+  value: number;
+  onCommit: (n: number) => void | Promise<void>;
+  prefix?: string;
+  suffix?: string;
+  decimals?: number;
+  className?: string;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(value.toFixed(decimals));
+  const inputRef = useRef<HTMLInputElement>(null);
+  useEffect(() => { if (!editing) setDraft(value.toFixed(decimals)); }, [value, editing, decimals]);
+  useEffect(() => { if (editing) inputRef.current?.select(); }, [editing]);
+
+  function commit() {
+    setEditing(false);
+    const n = Number(draft);
+    if (!isNaN(n) && Math.abs(n - value) > 1e-6) onCommit(n);
+  }
+
+  if (editing) {
+    return (
+      <input
+        ref={inputRef}
+        type="number"
+        step="0.01"
+        value={draft}
+        onChange={(e) => setDraft(e.target.value)}
+        onBlur={commit}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") { e.preventDefault(); commit(); }
+          if (e.key === "Escape") { setDraft(value.toFixed(decimals)); setEditing(false); }
+        }}
+        className={`w-24 rounded-md border border-primary/60 bg-background px-2 py-1 text-right tabular-nums outline-none ${className}`}
+      />
+    );
+  }
+  return (
+    <button
+      type="button"
+      onClick={() => setEditing(true)}
+      className={`group inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 hover:bg-primary/10 hover:text-foreground transition-colors tabular-nums ${className}`}
+      title="Click to edit"
+    >
+      <span>{prefix}{value.toFixed(decimals)}{suffix}</span>
+      <Pencil className="h-3 w-3 opacity-0 group-hover:opacity-60 no-print" />
+    </button>
+  );
+}
 
 export const Route = createFileRoute("/_authenticated/invoices/$invoiceId")({
   component: InvoiceDetail,
@@ -13,6 +76,7 @@ export const Route = createFileRoute("/_authenticated/invoices/$invoiceId")({
 function InvoiceDetail() {
   const { invoiceId } = Route.useParams();
   const nav = useNavigate();
+  const qc = useQueryClient();
 
   const invoice = useQuery({
     queryKey: ["invoice", invoiceId],
@@ -33,10 +97,65 @@ function InvoiceDetail() {
     queryFn: async () => (await supabase.from("parts").select("*").eq("job_id", invoice.data!.job_id!).order("created_at")).data ?? [],
   });
 
+  const timeEntries = useQuery({
+    queryKey: ["invoice-time", invoiceId, invoice.data?.job_id],
+    enabled: !!invoice.data?.job_id,
+    queryFn: async () =>
+      (await supabase.from("time_entries").select("minutes").eq("job_id", invoice.data!.job_id!)).data ?? [],
+  });
+
   if (invoice.isLoading) return <div className="card-surface p-8 text-center text-sm text-muted-foreground">Loading…</div>;
   if (!invoice.data) return <div className="card-surface p-8 text-center text-sm text-muted-foreground">Invoice not found.</div>;
 
   const inv = invoice.data;
+  const defaultHours =
+    (timeEntries.data ?? []).reduce((s: number, t: any) => s + Number(t.minutes ?? 0), 0) / 60;
+
+  async function recomputeInvoiceTotals(nextLabour?: number) {
+    const labour = Number(nextLabour ?? inv.labour_total);
+    const partsSum = (parts.data ?? []).reduce(
+      (s: number, p: any) => s + Number(p.retail ?? 0) * Number(p.quantity ?? 1),
+      0,
+    );
+    const subtotal = labour + partsSum;
+    const gst = Math.round(subtotal * GST_RATE * 100) / 100;
+    const total = Math.round((subtotal + gst) * 100) / 100;
+    const { error } = await supabase
+      .from("invoices")
+      .update({ labour_total: labour, parts_total: partsSum, gst, total })
+      .eq("id", invoiceId);
+    if (error) { toast.error(error.message); return; }
+    qc.invalidateQueries({ queryKey: ["invoice", invoiceId] });
+  }
+
+  async function updateLabour({ qty, unit, amount }: { qty?: number; unit?: number; amount?: number }) {
+    const currentLabour = Number(inv.labour_total);
+    const currentUnit = LABOUR_RATE_EX;
+    const currentQty = currentLabour / currentUnit;
+    let nextAmount = currentLabour;
+    if (amount !== undefined) nextAmount = amount;
+    else if (qty !== undefined) nextAmount = qty * (unit ?? currentUnit);
+    else if (unit !== undefined) nextAmount = currentQty * unit;
+    nextAmount = Math.round(nextAmount * 100) / 100;
+    await recomputeInvoiceTotals(nextAmount);
+  }
+
+  async function updatePart(id: string, patch: { quantity?: number; retail?: number }) {
+    const { error } = await supabase.from("parts").update(patch).eq("id", id);
+    if (error) { toast.error(error.message); return; }
+    await qc.invalidateQueries({ queryKey: ["invoice-parts", invoiceId, inv.job_id] });
+    // Re-fetch then recompute via fresh parts list
+    const fresh = await supabase.from("parts").select("*").eq("job_id", inv.job_id!);
+    const partsSum = (fresh.data ?? []).reduce(
+      (s: number, p: any) => s + Number(p.retail ?? 0) * Number(p.quantity ?? 1),
+      0,
+    );
+    const subtotal = Number(inv.labour_total) + partsSum;
+    const gst = Math.round(subtotal * GST_RATE * 100) / 100;
+    const total = Math.round((subtotal + gst) * 100) / 100;
+    await supabase.from("invoices").update({ parts_total: partsSum, gst, total }).eq("id", invoiceId);
+    qc.invalidateQueries({ queryKey: ["invoice", invoiceId] });
+  }
   const customer = inv.customers;
   const bike = inv.motorcycles;
   const issuedAt = new Date(inv.created_at);
