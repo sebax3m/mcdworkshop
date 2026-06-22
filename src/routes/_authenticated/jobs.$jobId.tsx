@@ -121,9 +121,9 @@ function JobDetail() {
 
   const completion = tasks.data && tasks.data.length ? Math.round((tasks.data.filter((t) => t.is_done).length / tasks.data.length) * 100) : 0;
 
-  // $130/hr GST-inclusive → ex-GST rate used for subtotal so GST line adds back to $130/hr
+  // $130/hr GST-inclusive (15% NZ GST) → ex-GST rate so GST line adds back to $130/hr
   const LABOUR_RATE_INC = 130;
-  const LABOUR_RATE = LABOUR_RATE_INC / 1.1;
+  const LABOUR_RATE = LABOUR_RATE_INC / 1.15;
   async function createInvoice() {
     if (!user) return;
     if (existingInvoice.data) {
@@ -137,7 +137,7 @@ function JobDetail() {
       0,
     );
     const subtotal = labour + parts;
-    const gst = Math.round(subtotal * 0.1 * 100) / 100;
+    const gst = Math.round(subtotal * 0.15 * 100) / 100;
     const total = Math.round((subtotal + gst) * 100) / 100;
     const year = new Date().getFullYear();
     const { data: last } = await supabase
