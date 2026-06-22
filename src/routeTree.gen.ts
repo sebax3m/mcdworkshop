@@ -13,11 +13,11 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedTemplatesRouteImport } from './routes/_authenticated/templates'
-import { Route as AuthenticatedMotorcyclesRouteImport } from './routes/_authenticated/motorcycles'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedCustomersRouteImport } from './routes/_authenticated/customers'
 import { Route as AuthenticatedClockRouteImport } from './routes/_authenticated/clock'
 import { Route as AuthenticatedCalendarRouteImport } from './routes/_authenticated/calendar'
+import { Route as AuthenticatedMotorcyclesIndexRouteImport } from './routes/_authenticated/motorcycles.index'
 import { Route as AuthenticatedJobsIndexRouteImport } from './routes/_authenticated/jobs.index'
 import { Route as AuthenticatedBookingsIndexRouteImport } from './routes/_authenticated/bookings.index'
 import { Route as AuthenticatedJobsNewRouteImport } from './routes/_authenticated/jobs.new'
@@ -44,12 +44,6 @@ const AuthenticatedTemplatesRoute = AuthenticatedTemplatesRouteImport.update({
   path: '/templates',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedMotorcyclesRoute =
-  AuthenticatedMotorcyclesRouteImport.update({
-    id: '/motorcycles',
-    path: '/motorcycles',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
@@ -70,6 +64,12 @@ const AuthenticatedCalendarRoute = AuthenticatedCalendarRouteImport.update({
   path: '/calendar',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedMotorcyclesIndexRoute =
+  AuthenticatedMotorcyclesIndexRouteImport.update({
+    id: '/motorcycles/',
+    path: '/motorcycles/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedJobsIndexRoute = AuthenticatedJobsIndexRouteImport.update({
   id: '/jobs/',
   path: '/jobs/',
@@ -111,7 +111,6 @@ export interface FileRoutesByFullPath {
   '/clock': typeof AuthenticatedClockRoute
   '/customers': typeof AuthenticatedCustomersRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
-  '/motorcycles': typeof AuthenticatedMotorcyclesRoute
   '/templates': typeof AuthenticatedTemplatesRoute
   '/bookings/$bookingId': typeof AuthenticatedBookingsBookingIdRoute
   '/bookings/new': typeof AuthenticatedBookingsNewRoute
@@ -119,6 +118,7 @@ export interface FileRoutesByFullPath {
   '/jobs/new': typeof AuthenticatedJobsNewRoute
   '/bookings/': typeof AuthenticatedBookingsIndexRoute
   '/jobs/': typeof AuthenticatedJobsIndexRoute
+  '/motorcycles/': typeof AuthenticatedMotorcyclesIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -127,7 +127,6 @@ export interface FileRoutesByTo {
   '/clock': typeof AuthenticatedClockRoute
   '/customers': typeof AuthenticatedCustomersRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
-  '/motorcycles': typeof AuthenticatedMotorcyclesRoute
   '/templates': typeof AuthenticatedTemplatesRoute
   '/bookings/$bookingId': typeof AuthenticatedBookingsBookingIdRoute
   '/bookings/new': typeof AuthenticatedBookingsNewRoute
@@ -135,6 +134,7 @@ export interface FileRoutesByTo {
   '/jobs/new': typeof AuthenticatedJobsNewRoute
   '/bookings': typeof AuthenticatedBookingsIndexRoute
   '/jobs': typeof AuthenticatedJobsIndexRoute
+  '/motorcycles': typeof AuthenticatedMotorcyclesIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -145,7 +145,6 @@ export interface FileRoutesById {
   '/_authenticated/clock': typeof AuthenticatedClockRoute
   '/_authenticated/customers': typeof AuthenticatedCustomersRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
-  '/_authenticated/motorcycles': typeof AuthenticatedMotorcyclesRoute
   '/_authenticated/templates': typeof AuthenticatedTemplatesRoute
   '/_authenticated/bookings/$bookingId': typeof AuthenticatedBookingsBookingIdRoute
   '/_authenticated/bookings/new': typeof AuthenticatedBookingsNewRoute
@@ -153,6 +152,7 @@ export interface FileRoutesById {
   '/_authenticated/jobs/new': typeof AuthenticatedJobsNewRoute
   '/_authenticated/bookings/': typeof AuthenticatedBookingsIndexRoute
   '/_authenticated/jobs/': typeof AuthenticatedJobsIndexRoute
+  '/_authenticated/motorcycles/': typeof AuthenticatedMotorcyclesIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -163,7 +163,6 @@ export interface FileRouteTypes {
     | '/clock'
     | '/customers'
     | '/dashboard'
-    | '/motorcycles'
     | '/templates'
     | '/bookings/$bookingId'
     | '/bookings/new'
@@ -171,6 +170,7 @@ export interface FileRouteTypes {
     | '/jobs/new'
     | '/bookings/'
     | '/jobs/'
+    | '/motorcycles/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -179,7 +179,6 @@ export interface FileRouteTypes {
     | '/clock'
     | '/customers'
     | '/dashboard'
-    | '/motorcycles'
     | '/templates'
     | '/bookings/$bookingId'
     | '/bookings/new'
@@ -187,6 +186,7 @@ export interface FileRouteTypes {
     | '/jobs/new'
     | '/bookings'
     | '/jobs'
+    | '/motorcycles'
   id:
     | '__root__'
     | '/'
@@ -196,7 +196,6 @@ export interface FileRouteTypes {
     | '/_authenticated/clock'
     | '/_authenticated/customers'
     | '/_authenticated/dashboard'
-    | '/_authenticated/motorcycles'
     | '/_authenticated/templates'
     | '/_authenticated/bookings/$bookingId'
     | '/_authenticated/bookings/new'
@@ -204,6 +203,7 @@ export interface FileRouteTypes {
     | '/_authenticated/jobs/new'
     | '/_authenticated/bookings/'
     | '/_authenticated/jobs/'
+    | '/_authenticated/motorcycles/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -242,13 +242,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedTemplatesRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/motorcycles': {
-      id: '/_authenticated/motorcycles'
-      path: '/motorcycles'
-      fullPath: '/motorcycles'
-      preLoaderRoute: typeof AuthenticatedMotorcyclesRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
     '/_authenticated/dashboard': {
       id: '/_authenticated/dashboard'
       path: '/dashboard'
@@ -275,6 +268,13 @@ declare module '@tanstack/react-router' {
       path: '/calendar'
       fullPath: '/calendar'
       preLoaderRoute: typeof AuthenticatedCalendarRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/motorcycles/': {
+      id: '/_authenticated/motorcycles/'
+      path: '/motorcycles'
+      fullPath: '/motorcycles/'
+      preLoaderRoute: typeof AuthenticatedMotorcyclesIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/jobs/': {
@@ -327,7 +327,6 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedClockRoute: typeof AuthenticatedClockRoute
   AuthenticatedCustomersRoute: typeof AuthenticatedCustomersRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
-  AuthenticatedMotorcyclesRoute: typeof AuthenticatedMotorcyclesRoute
   AuthenticatedTemplatesRoute: typeof AuthenticatedTemplatesRoute
   AuthenticatedBookingsBookingIdRoute: typeof AuthenticatedBookingsBookingIdRoute
   AuthenticatedBookingsNewRoute: typeof AuthenticatedBookingsNewRoute
@@ -335,6 +334,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedJobsNewRoute: typeof AuthenticatedJobsNewRoute
   AuthenticatedBookingsIndexRoute: typeof AuthenticatedBookingsIndexRoute
   AuthenticatedJobsIndexRoute: typeof AuthenticatedJobsIndexRoute
+  AuthenticatedMotorcyclesIndexRoute: typeof AuthenticatedMotorcyclesIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -342,7 +342,6 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedClockRoute: AuthenticatedClockRoute,
   AuthenticatedCustomersRoute: AuthenticatedCustomersRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
-  AuthenticatedMotorcyclesRoute: AuthenticatedMotorcyclesRoute,
   AuthenticatedTemplatesRoute: AuthenticatedTemplatesRoute,
   AuthenticatedBookingsBookingIdRoute: AuthenticatedBookingsBookingIdRoute,
   AuthenticatedBookingsNewRoute: AuthenticatedBookingsNewRoute,
@@ -350,6 +349,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedJobsNewRoute: AuthenticatedJobsNewRoute,
   AuthenticatedBookingsIndexRoute: AuthenticatedBookingsIndexRoute,
   AuthenticatedJobsIndexRoute: AuthenticatedJobsIndexRoute,
+  AuthenticatedMotorcyclesIndexRoute: AuthenticatedMotorcyclesIndexRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =

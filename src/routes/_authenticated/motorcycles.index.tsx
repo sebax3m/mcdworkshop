@@ -9,7 +9,7 @@ import { Bike as BikeIcon, Plus, Search } from "lucide-react";
 import { toast } from "sonner";
 import { fullBike } from "@/lib/format";
 
-export const Route = createFileRoute("/_authenticated/motorcycles")({
+export const Route = createFileRoute("/_authenticated/motorcycles/")({
   component: Bikes,
 });
 
