@@ -576,7 +576,7 @@ function ServiceTemplateSection({
         <div className="h-full gold-surface transition-all" style={{ width: `${completion}%` }} />
       </div>
 
-      <div className="space-y-0.5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-0.5">
         {tasks.map((t) => (
           <TaskRow
             key={t.id}
