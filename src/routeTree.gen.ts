@@ -14,6 +14,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as InvoicesIndexRouteImport } from './routes/invoices.index'
+import { Route as InvoicesInvoiceIdRouteImport } from './routes/invoices.$invoiceId'
 import { Route as AuthenticatedTemplatesRouteImport } from './routes/_authenticated/templates'
 import { Route as AuthenticatedInventoryRouteImport } from './routes/_authenticated/inventory'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
@@ -26,7 +27,6 @@ import { Route as AuthenticatedBookingsIndexRouteImport } from './routes/_authen
 import { Route as AuthenticatedMotorcyclesBikeIdRouteImport } from './routes/_authenticated/motorcycles.$bikeId'
 import { Route as AuthenticatedJobsNewRouteImport } from './routes/_authenticated/jobs.new'
 import { Route as AuthenticatedJobsJobIdRouteImport } from './routes/_authenticated/jobs.$jobId'
-import { Route as AuthenticatedInvoicesInvoiceIdRouteImport } from './routes/_authenticated/invoices.$invoiceId'
 import { Route as AuthenticatedBookingsNewRouteImport } from './routes/_authenticated/bookings.new'
 import { Route as AuthenticatedBookingsBookingIdRouteImport } from './routes/_authenticated/bookings.$bookingId'
 
@@ -52,6 +52,11 @@ const IndexRoute = IndexRouteImport.update({
 const InvoicesIndexRoute = InvoicesIndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => InvoicesRoute,
+} as any)
+const InvoicesInvoiceIdRoute = InvoicesInvoiceIdRouteImport.update({
+  id: '/$invoiceId',
+  path: '/$invoiceId',
   getParentRoute: () => InvoicesRoute,
 } as any)
 const AuthenticatedTemplatesRoute = AuthenticatedTemplatesRouteImport.update({
@@ -117,12 +122,6 @@ const AuthenticatedJobsJobIdRoute = AuthenticatedJobsJobIdRouteImport.update({
   path: '/jobs/$jobId',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedInvoicesInvoiceIdRoute =
-  AuthenticatedInvoicesInvoiceIdRouteImport.update({
-    id: '/invoices/$invoiceId',
-    path: '/invoices/$invoiceId',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
 const AuthenticatedBookingsNewRoute =
   AuthenticatedBookingsNewRouteImport.update({
     id: '/bookings/new',
@@ -146,10 +145,10 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/inventory': typeof AuthenticatedInventoryRoute
   '/templates': typeof AuthenticatedTemplatesRoute
+  '/invoices/$invoiceId': typeof InvoicesInvoiceIdRoute
   '/invoices/': typeof InvoicesIndexRoute
   '/bookings/$bookingId': typeof AuthenticatedBookingsBookingIdRoute
   '/bookings/new': typeof AuthenticatedBookingsNewRoute
-  '/invoices/$invoiceId': typeof AuthenticatedInvoicesInvoiceIdRoute
   '/jobs/$jobId': typeof AuthenticatedJobsJobIdRoute
   '/jobs/new': typeof AuthenticatedJobsNewRoute
   '/motorcycles/$bikeId': typeof AuthenticatedMotorcyclesBikeIdRoute
@@ -166,10 +165,10 @@ export interface FileRoutesByTo {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/inventory': typeof AuthenticatedInventoryRoute
   '/templates': typeof AuthenticatedTemplatesRoute
+  '/invoices/$invoiceId': typeof InvoicesInvoiceIdRoute
   '/invoices': typeof InvoicesIndexRoute
   '/bookings/$bookingId': typeof AuthenticatedBookingsBookingIdRoute
   '/bookings/new': typeof AuthenticatedBookingsNewRoute
-  '/invoices/$invoiceId': typeof AuthenticatedInvoicesInvoiceIdRoute
   '/jobs/$jobId': typeof AuthenticatedJobsJobIdRoute
   '/jobs/new': typeof AuthenticatedJobsNewRoute
   '/motorcycles/$bikeId': typeof AuthenticatedMotorcyclesBikeIdRoute
@@ -189,10 +188,10 @@ export interface FileRoutesById {
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/inventory': typeof AuthenticatedInventoryRoute
   '/_authenticated/templates': typeof AuthenticatedTemplatesRoute
+  '/invoices/$invoiceId': typeof InvoicesInvoiceIdRoute
   '/invoices/': typeof InvoicesIndexRoute
   '/_authenticated/bookings/$bookingId': typeof AuthenticatedBookingsBookingIdRoute
   '/_authenticated/bookings/new': typeof AuthenticatedBookingsNewRoute
-  '/_authenticated/invoices/$invoiceId': typeof AuthenticatedInvoicesInvoiceIdRoute
   '/_authenticated/jobs/$jobId': typeof AuthenticatedJobsJobIdRoute
   '/_authenticated/jobs/new': typeof AuthenticatedJobsNewRoute
   '/_authenticated/motorcycles/$bikeId': typeof AuthenticatedMotorcyclesBikeIdRoute
@@ -212,10 +211,10 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/inventory'
     | '/templates'
+    | '/invoices/$invoiceId'
     | '/invoices/'
     | '/bookings/$bookingId'
     | '/bookings/new'
-    | '/invoices/$invoiceId'
     | '/jobs/$jobId'
     | '/jobs/new'
     | '/motorcycles/$bikeId'
@@ -232,10 +231,10 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/inventory'
     | '/templates'
+    | '/invoices/$invoiceId'
     | '/invoices'
     | '/bookings/$bookingId'
     | '/bookings/new'
-    | '/invoices/$invoiceId'
     | '/jobs/$jobId'
     | '/jobs/new'
     | '/motorcycles/$bikeId'
@@ -254,10 +253,10 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard'
     | '/_authenticated/inventory'
     | '/_authenticated/templates'
+    | '/invoices/$invoiceId'
     | '/invoices/'
     | '/_authenticated/bookings/$bookingId'
     | '/_authenticated/bookings/new'
-    | '/_authenticated/invoices/$invoiceId'
     | '/_authenticated/jobs/$jobId'
     | '/_authenticated/jobs/new'
     | '/_authenticated/motorcycles/$bikeId'
@@ -308,6 +307,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/invoices/'
       preLoaderRoute: typeof InvoicesIndexRouteImport
+      parentRoute: typeof InvoicesRoute
+    }
+    '/invoices/$invoiceId': {
+      id: '/invoices/$invoiceId'
+      path: '/$invoiceId'
+      fullPath: '/invoices/$invoiceId'
+      preLoaderRoute: typeof InvoicesInvoiceIdRouteImport
       parentRoute: typeof InvoicesRoute
     }
     '/_authenticated/templates': {
@@ -394,13 +400,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedJobsJobIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/invoices/$invoiceId': {
-      id: '/_authenticated/invoices/$invoiceId'
-      path: '/invoices/$invoiceId'
-      fullPath: '/invoices/$invoiceId'
-      preLoaderRoute: typeof AuthenticatedInvoicesInvoiceIdRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
     '/_authenticated/bookings/new': {
       id: '/_authenticated/bookings/new'
       path: '/bookings/new'
@@ -427,7 +426,6 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedTemplatesRoute: typeof AuthenticatedTemplatesRoute
   AuthenticatedBookingsBookingIdRoute: typeof AuthenticatedBookingsBookingIdRoute
   AuthenticatedBookingsNewRoute: typeof AuthenticatedBookingsNewRoute
-  AuthenticatedInvoicesInvoiceIdRoute: typeof AuthenticatedInvoicesInvoiceIdRoute
   AuthenticatedJobsJobIdRoute: typeof AuthenticatedJobsJobIdRoute
   AuthenticatedJobsNewRoute: typeof AuthenticatedJobsNewRoute
   AuthenticatedMotorcyclesBikeIdRoute: typeof AuthenticatedMotorcyclesBikeIdRoute
@@ -445,7 +443,6 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedTemplatesRoute: AuthenticatedTemplatesRoute,
   AuthenticatedBookingsBookingIdRoute: AuthenticatedBookingsBookingIdRoute,
   AuthenticatedBookingsNewRoute: AuthenticatedBookingsNewRoute,
-  AuthenticatedInvoicesInvoiceIdRoute: AuthenticatedInvoicesInvoiceIdRoute,
   AuthenticatedJobsJobIdRoute: AuthenticatedJobsJobIdRoute,
   AuthenticatedJobsNewRoute: AuthenticatedJobsNewRoute,
   AuthenticatedMotorcyclesBikeIdRoute: AuthenticatedMotorcyclesBikeIdRoute,
@@ -458,10 +455,12 @@ const AuthenticatedRouteRouteWithChildren =
   AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
 
 interface InvoicesRouteChildren {
+  InvoicesInvoiceIdRoute: typeof InvoicesInvoiceIdRoute
   InvoicesIndexRoute: typeof InvoicesIndexRoute
 }
 
 const InvoicesRouteChildren: InvoicesRouteChildren = {
+  InvoicesInvoiceIdRoute: InvoicesInvoiceIdRoute,
   InvoicesIndexRoute: InvoicesIndexRoute,
 }
 
