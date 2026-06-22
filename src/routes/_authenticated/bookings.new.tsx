@@ -13,6 +13,7 @@ import { ArrowLeft, Plus, Search, Bike as BikeIcon, Camera, X } from "lucide-rea
 import { toast } from "sonner";
 import { fullBike, initials } from "@/lib/format";
 import { uploadPhoto } from "@/lib/photos";
+import { useQueryClient } from "@tanstack/react-query";
 
 const searchSchema = z.object({ date: z.string().optional() });
 
@@ -37,6 +38,7 @@ const SERVICE_TYPES = [
 function NewBooking() {
   const search = Route.useSearch();
   const nav = useNavigate();
+  const qc = useQueryClient();
   const today = new Date().toISOString().slice(0, 10);
   const [customerId, setCustomerId] = useState<string | null>(null);
   const [bikeId, setBikeId] = useState<string | null>(null);
@@ -52,6 +54,12 @@ function NewBooking() {
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [search$, setSearch$] = useState("");
+  const [showNewCustomer, setShowNewCustomer] = useState(false);
+  const [ncFirst, setNcFirst] = useState("");
+  const [ncLast, setNcLast] = useState("");
+  const [ncPhone, setNcPhone] = useState("");
+  const [ncEmail, setNcEmail] = useState("");
+  const [creatingCustomer, setCreatingCustomer] = useState(false);
 
   const customers = useQuery({
     queryKey: ["bk-customers"],
@@ -80,6 +88,33 @@ function NewBooking() {
       `${c.first_name} ${c.last_name} ${c.phone ?? ""}`.toLowerCase().includes(s),
     );
   }, [customers.data, search$]);
+
+  async function createCustomer() {
+    if (!ncFirst.trim() || !ncLast.trim()) return toast.error("First and last name required");
+    setCreatingCustomer(true);
+    try {
+      const { data, error } = await supabase
+        .from("customers")
+        .insert({
+          first_name: ncFirst.trim(),
+          last_name: ncLast.trim(),
+          phone: ncPhone.trim() || null,
+          email: ncEmail.trim() || null,
+        })
+        .select("id")
+        .single();
+      if (error) throw error;
+      await qc.invalidateQueries({ queryKey: ["bk-customers"] });
+      setCustomerId(data.id);
+      setShowNewCustomer(false);
+      setNcFirst(""); setNcLast(""); setNcPhone(""); setNcEmail("");
+      toast.success("Customer created");
+    } catch (err: any) {
+      toast.error(err.message ?? "Failed to create customer");
+    } finally {
+      setCreatingCustomer(false);
+    }
+  }
 
   async function handlePhotos(files: FileList | null) {
     if (!files?.length) return;
@@ -172,15 +207,42 @@ function NewBooking() {
           </div>
         ) : (
           <>
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <input
-                value={search$}
-                onChange={(e) => setSearch$(e.target.value)}
-                placeholder="Search customer"
-                className="w-full rounded-xl bg-input border border-border pl-10 pr-3 py-2.5 text-sm focus:outline-none focus:border-primary/50"
-              />
+            <div className="flex items-center gap-2">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <input
+                  value={search$}
+                  onChange={(e) => setSearch$(e.target.value)}
+                  placeholder="Search customer"
+                  className="w-full rounded-xl bg-input border border-border pl-10 pr-3 py-2.5 text-sm focus:outline-none focus:border-primary/50"
+                />
+              </div>
+              <button
+                onClick={() => setShowNewCustomer((v) => !v)}
+                className="inline-flex items-center gap-1.5 rounded-xl border border-border px-3 py-2.5 text-xs font-semibold hover:border-primary/50"
+              >
+                <Plus className="h-3.5 w-3.5" /> New
+              </button>
             </div>
+
+            {showNewCustomer && (
+              <div className="rounded-xl border border-primary/40 bg-primary/5 p-3 space-y-2">
+                <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Add new customer</div>
+                <div className="grid grid-cols-2 gap-2">
+                  <Input placeholder="First name" value={ncFirst} onChange={(e) => setNcFirst(e.target.value)} />
+                  <Input placeholder="Last name" value={ncLast} onChange={(e) => setNcLast(e.target.value)} />
+                  <Input placeholder="Phone" value={ncPhone} onChange={(e) => setNcPhone(e.target.value)} />
+                  <Input placeholder="Email" type="email" value={ncEmail} onChange={(e) => setNcEmail(e.target.value)} />
+                </div>
+                <div className="flex justify-end gap-2 pt-1">
+                  <button onClick={() => setShowNewCustomer(false)} className="text-xs px-3 py-1.5 rounded-lg text-muted-foreground hover:text-foreground">Cancel</button>
+                  <Button onClick={createCustomer} disabled={creatingCustomer} size="sm" className="gold-surface font-bold">
+                    {creatingCustomer ? "Saving…" : "Add Customer"}
+                  </Button>
+                </div>
+              </div>
+            )}
+
             <div className="max-h-52 overflow-y-auto space-y-1.5">
               {filteredCustomers.slice(0, 20).map((c: any) => (
                 <button
@@ -198,7 +260,7 @@ function NewBooking() {
                 </button>
               ))}
               {filteredCustomers.length === 0 && (
-                <Link to="/customers" className="block text-center text-sm text-primary py-3">+ Add new customer</Link>
+                <button onClick={() => setShowNewCustomer(true)} className="block w-full text-center text-sm text-primary py-3">+ Add new customer</button>
               )}
             </div>
           </>
