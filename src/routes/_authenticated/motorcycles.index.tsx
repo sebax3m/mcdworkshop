@@ -5,9 +5,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Bike as BikeIcon, Plus, Search } from "lucide-react";
+import { Bike as BikeIcon, Plus, Search, Camera, X } from "lucide-react";
 import { toast } from "sonner";
 import { fullBike } from "@/lib/format";
+import { uploadPhoto } from "@/lib/photos";
 
 export const Route = createFileRoute("/_authenticated/motorcycles/")({
   component: Bikes,
@@ -18,6 +19,8 @@ function Bikes() {
   const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
   const [f, setF] = useState({ customer_id: "", make: "", model: "", year: "", vin: "", rego: "", mileage: "", ecu_info: "", modifications: "" });
+  const [photos, setPhotos] = useState<string[]>([]);
+  const [uploading, setUploading] = useState(false);
 
   const customers = useQuery({ queryKey: ["customers-options"], queryFn: async () => (await supabase.from("customers").select("id, first_name, last_name").order("first_name")).data ?? [] });
   const bikes = useQuery({
@@ -33,13 +36,32 @@ function Bikes() {
   async function save() {
     if (!f.customer_id) return toast.error("Pick a customer");
     if (!f.make || !f.model) return toast.error("Make and model required");
-    const payload: any = { ...f, year: f.year ? parseInt(f.year) : null, mileage: f.mileage ? parseInt(f.mileage) : null };
+    const payload: any = { ...f, year: f.year ? parseInt(f.year) : null, mileage: f.mileage ? parseInt(f.mileage) : null, photos };
     const { error } = await supabase.from("motorcycles").insert(payload);
     if (error) return toast.error(error.message);
     setF({ customer_id: "", make: "", model: "", year: "", vin: "", rego: "", mileage: "", ecu_info: "", modifications: "" });
+    setPhotos([]);
     setOpen(false);
     toast.success("Bike added");
     qc.invalidateQueries({ queryKey: ["bikes-list"] });
+  }
+
+  async function handleBikePhotos(files: FileList | null) {
+    if (!files?.length) return;
+    setUploading(true);
+    try {
+      const uploaded: string[] = [];
+      for (const file of Array.from(files).slice(0, 4)) {
+        const path = await uploadPhoto(file, "bikes");
+        uploaded.push(path);
+      }
+      setPhotos((p) => [...p, ...uploaded]);
+      toast.success(`${uploaded.length} photo${uploaded.length === 1 ? "" : "s"} uploaded`);
+    } catch (err: any) {
+      toast.error(err.message ?? "Photo upload failed");
+    } finally {
+      setUploading(false);
+    }
   }
 
   return (
@@ -72,11 +94,47 @@ function Bikes() {
           <div className="grid grid-cols-3 gap-2">
             <Input placeholder="Year" inputMode="numeric" value={f.year} onChange={(e) => setF({ ...f, year: e.target.value })} />
             <Input placeholder="Rego" value={f.rego} onChange={(e) => setF({ ...f, rego: e.target.value.toUpperCase() })} />
-            <Input placeholder="km" inputMode="numeric" value={f.mileage} onChange={(e) => setF({ ...f, mileage: e.target.value })} />
+            <div className="relative">
+              <Input
+                placeholder="Mileage"
+                inputMode="numeric"
+                value={f.mileage ? Number(f.mileage.replace(/\D/g, "")).toLocaleString() : ""}
+                onChange={(e) => setF({ ...f, mileage: e.target.value.replace(/\D/g, "") })}
+                className="pr-12"
+              />
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground font-semibold pointer-events-none">km</span>
+            </div>
           </div>
           <Input placeholder="VIN" value={f.vin} onChange={(e) => setF({ ...f, vin: e.target.value })} />
           <Input placeholder="ECU info" value={f.ecu_info} onChange={(e) => setF({ ...f, ecu_info: e.target.value })} />
           <Textarea placeholder="Modifications" rows={2} value={f.modifications} onChange={(e) => setF({ ...f, modifications: e.target.value })} />
+
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-xs uppercase tracking-wider text-muted-foreground">Photos</span>
+              <label className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-xs font-semibold hover:border-primary/50 cursor-pointer">
+                <Camera className="h-3.5 w-3.5" /> {uploading ? "Uploading…" : "Add photo"}
+                <input type="file" accept="image/*" multiple capture="environment" className="hidden" onChange={(e) => handleBikePhotos(e.target.files)} />
+              </label>
+            </div>
+            {photos.length > 0 && (
+              <div className="grid grid-cols-4 gap-2">
+                {photos.map((p) => (
+                  <div key={p} className="relative aspect-square rounded-lg overflow-hidden bg-muted">
+                    <BikePhotoThumb path={p} />
+                    <button
+                      onClick={() => setPhotos((arr) => arr.filter((x) => x !== p))}
+                      className="absolute top-1 right-1 grid h-5 w-5 place-items-center rounded-full bg-background/80 text-foreground"
+                      aria-label="Remove"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
           <Button onClick={save} className="gold-surface w-full">Save bike</Button>
         </div>
       )}
@@ -101,7 +159,7 @@ function Bikes() {
               <div className="text-xs text-muted-foreground truncate">
                 {b.customers ? `${b.customers.first_name} ${b.customers.last_name}` : "—"}
                 {b.rego ? ` · ${b.rego}` : ""}
-                {b.mileage ? ` · ${b.mileage} km` : ""}
+            {b.mileage ? ` · ${Number(b.mileage).toLocaleString()} km` : ""}
               </div>
             </div>
           </Link>
@@ -110,4 +168,14 @@ function Bikes() {
       </div>
     </div>
   );
+}
+
+function BikePhotoThumb({ path }: { path: string }) {
+  const [url, setUrl] = useState("");
+  useState(() => {
+    import("@/lib/photos").then(({ getSignedUrl }) => getSignedUrl(path).then(setUrl));
+    return undefined as any;
+  });
+  if (!url) return <div className="h-full w-full animate-pulse bg-muted" />;
+  return <img src={url} alt="" className="h-full w-full object-cover" />;
 }
