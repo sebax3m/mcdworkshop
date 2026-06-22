@@ -139,6 +139,7 @@ function JobDetail() {
     const total = Math.round((subtotal + gst) * 100) / 100;
     const { data, error } = await supabase.from("invoices").insert({
       job_id: jobId,
+      invoice_number: "",
       customer_id: j.customer_id,
       motorcycle_id: j.motorcycle_id,
       labour_total: labour,
