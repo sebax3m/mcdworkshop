@@ -121,7 +121,9 @@ function JobDetail() {
 
   const completion = tasks.data && tasks.data.length ? Math.round((tasks.data.filter((t) => t.is_done).length / tasks.data.length) * 100) : 0;
 
-  const LABOUR_RATE = 120;
+  // $130/hr GST-inclusive → ex-GST rate used for subtotal so GST line adds back to $130/hr
+  const LABOUR_RATE_INC = 130;
+  const LABOUR_RATE = LABOUR_RATE_INC / 1.1;
   async function createInvoice() {
     if (!user) return;
     if (existingInvoice.data) {

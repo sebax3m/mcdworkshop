@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { ArrowLeft, Printer, Mail, FileDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { fullBike } from "@/lib/format";
+import logo from "@/assets/apex-logo.png";
 
 export const Route = createFileRoute("/_authenticated/invoices/$invoiceId")({
   component: InvoiceDetail,
@@ -177,17 +178,21 @@ function InvoiceDetail() {
                 </tr>
               </thead>
               <tbody>
-                {Number(inv.labour_total) > 0 && (
-                  <tr className="border-b border-border/40">
-                    <td className="py-3">
-                      <div className="font-medium">Workshop labour</div>
-                      <div className="text-xs text-muted-foreground">Diagnostics, service & repair time</div>
-                    </td>
-                    <td className="py-3 text-right tabular-nums">—</td>
-                    <td className="py-3 text-right tabular-nums">—</td>
-                    <td className="py-3 text-right tabular-nums font-semibold">${Number(inv.labour_total).toFixed(2)}</td>
-                  </tr>
-                )}
+                {Number(inv.labour_total) > 0 && (() => {
+                  const rateEx = 130 / 1.1;
+                  const hours = Number(inv.labour_total) / rateEx;
+                  return (
+                    <tr className="border-b border-border/40">
+                      <td className="py-3">
+                        <div className="font-medium">Workshop labour</div>
+                        <div className="text-xs text-muted-foreground">Diagnostics, service & repair · $130/hr (incl. GST)</div>
+                      </td>
+                      <td className="py-3 text-right tabular-nums">{hours.toFixed(2)}</td>
+                      <td className="py-3 text-right tabular-nums">${rateEx.toFixed(2)}</td>
+                      <td className="py-3 text-right tabular-nums font-semibold">${Number(inv.labour_total).toFixed(2)}</td>
+                    </tr>
+                  );
+                })()}
                 {(parts.data ?? []).map((p: any) => {
                   const unit = Number(p.retail ?? 0);
                   const qty = Number(p.quantity ?? 1);
