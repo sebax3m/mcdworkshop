@@ -163,30 +163,21 @@ function JobDetail() {
         </div>
       </div>
 
-      {/* Checklist */}
-      <section className="card-surface p-4">
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="font-display text-lg font-semibold">Checklist</h2>
-          <span className="text-xs text-muted-foreground">{tasks.data?.filter((t) => t.is_done).length ?? 0}/{tasks.data?.length ?? 0} · {completion}%</span>
-        </div>
-        <div className="h-1.5 rounded-full bg-muted overflow-hidden mb-3">
-          <div className="h-full gold-surface transition-all" style={{ width: `${completion}%` }} />
-        </div>
-        <div className="space-y-1.5">
-          {(tasks.data ?? []).map((t) => (
-            <TaskRow
-              key={t.id}
-              task={t}
-              canEdit={canEdit}
-              onToggle={() => toggleTask(t.id, t.is_done)}
-              onNoteSaved={() => qc.invalidateQueries({ queryKey: ["job-tasks", jobId] })}
-            />
-          ))}
-          {(!tasks.data || tasks.data.length === 0) && (
-            <p className="text-sm text-muted-foreground text-center py-4">No checklist items.</p>
-          )}
-        </div>
-      </section>
+      {/* Service Template */}
+      <ServiceTemplateSection
+        jobId={jobId}
+        currentTemplateId={j.template_id}
+        currentTitle={j.title}
+        tasks={tasks.data ?? []}
+        canEdit={canEdit}
+        completion={completion}
+        onToggleTask={(id, done) => toggleTask(id, done)}
+        onNoteSaved={() => qc.invalidateQueries({ queryKey: ["job-tasks", jobId] })}
+        onTemplateChanged={() => {
+          qc.invalidateQueries({ queryKey: ["job", jobId] });
+          qc.invalidateQueries({ queryKey: ["job-tasks", jobId] });
+        }}
+      />
 
       {/* Parts used (service-kind aware) */}
       {SERVICE_PARTS[kind].length > 0 && (
