@@ -118,9 +118,12 @@ function InvoiceDetail() {
       <div className="card-surface invoice-sheet overflow-hidden">
         {/* Gold banner */}
         <div className="gold-surface px-8 py-6 flex items-start justify-between gap-4 flex-wrap">
-          <div>
-            <div className="font-display text-3xl font-black tracking-tight">APEX MOTO LAB</div>
-            <div className="text-xs uppercase tracking-[0.3em] opacity-80 mt-1">Premium Motorcycle Workshop</div>
+          <div className="flex items-center gap-4">
+            <img src={logo} alt="APEX MOTO LAB" className="h-14 w-14 rounded-md object-contain bg-black/10 p-1" />
+            <div>
+              <div className="font-display text-3xl font-black tracking-tight">APEX MOTO LAB</div>
+              <div className="text-xs uppercase tracking-[0.3em] opacity-80 mt-1">Premium Motorcycle Workshop</div>
+            </div>
           </div>
           <div className="text-right">
             <div className="text-[10px] uppercase tracking-[0.25em] opacity-80">Tax Invoice</div>
