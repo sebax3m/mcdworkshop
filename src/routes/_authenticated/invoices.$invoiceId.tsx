@@ -69,6 +69,57 @@ function EditableNumber({
   );
 }
 
+function EditableText({
+  value,
+  onCommit,
+  className = "",
+}: {
+  value: string;
+  onCommit: (v: string) => void | Promise<void>;
+  className?: string;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(value);
+  const inputRef = useRef<HTMLInputElement>(null);
+  useEffect(() => { if (!editing) setDraft(value); }, [value, editing]);
+  useEffect(() => { if (editing) inputRef.current?.select(); }, [editing]);
+
+  function commit() {
+    setEditing(false);
+    const v = draft.trim();
+    if (v && v !== value) onCommit(v);
+    else setDraft(value);
+  }
+
+  if (editing) {
+    return (
+      <input
+        ref={inputRef}
+        type="text"
+        value={draft}
+        onChange={(e) => setDraft(e.target.value)}
+        onBlur={commit}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") { e.preventDefault(); commit(); }
+          if (e.key === "Escape") { setDraft(value); setEditing(false); }
+        }}
+        className="w-full rounded-md border border-primary/60 bg-background px-2 py-0.5 text-sm outline-none"
+      />
+    );
+  }
+  return (
+    <button
+      type="button"
+      onClick={() => setEditing(true)}
+      className={`group inline-flex items-start gap-1 text-left rounded-md px-1 -mx-1 hover:bg-primary/10 transition-colors ${className}`}
+      title="Click to edit"
+    >
+      <span>{value}</span>
+      <Pencil className="h-3 w-3 mt-1 opacity-0 group-hover:opacity-60 no-print flex-none" />
+    </button>
+  );
+}
+
 export const Route = createFileRoute("/_authenticated/invoices/$invoiceId")({
   component: InvoiceDetail,
 });
