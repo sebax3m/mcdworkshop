@@ -9,8 +9,8 @@ import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
 const GST_RATE = 0.15;
-const LABOUR_RATE_INC = 130;
-const LABOUR_RATE_EX = LABOUR_RATE_INC / (1 + GST_RATE);
+// Amounts on the invoice are GST-inclusive. The GST line shows the embedded portion.
+const LABOUR_RATE = 130;
 
 function EditableNumber({
   value,
@@ -117,9 +117,9 @@ function InvoiceDetail() {
       (s: number, p: any) => s + Number(p.retail ?? 0) * Number(p.quantity ?? 1),
       0,
     );
-    const subtotal = labour + partsSum;
-    const gst = Math.round(subtotal * GST_RATE * 100) / 100;
-    const total = Math.round((subtotal + gst) * 100) / 100;
+    const subtotal = labour + partsSum; // inc GST
+    const gst = Math.round((subtotal * GST_RATE / (1 + GST_RATE)) * 100) / 100;
+    const total = Math.round(subtotal * 100) / 100;
     const { error } = await supabase
       .from("invoices")
       .update({ labour_total: labour, parts_total: partsSum, gst, total })
@@ -130,7 +130,7 @@ function InvoiceDetail() {
 
   async function updateLabour({ qty, unit, amount }: { qty?: number; unit?: number; amount?: number }) {
     const currentLabour = Number(inv.labour_total);
-    const currentUnit = LABOUR_RATE_EX;
+    const currentUnit = LABOUR_RATE;
     const currentQty = currentLabour / currentUnit;
     let nextAmount = currentLabour;
     if (amount !== undefined) nextAmount = amount;
@@ -151,8 +151,8 @@ function InvoiceDetail() {
       0,
     );
     const subtotal = Number(inv.labour_total) + partsSum;
-    const gst = Math.round(subtotal * GST_RATE * 100) / 100;
-    const total = Math.round((subtotal + gst) * 100) / 100;
+    const gst = Math.round((subtotal * GST_RATE / (1 + GST_RATE)) * 100) / 100;
+    const total = Math.round(subtotal * 100) / 100;
     await supabase.from("invoices").update({ parts_total: partsSum, gst, total }).eq("id", invoiceId);
     qc.invalidateQueries({ queryKey: ["invoice", invoiceId] });
   }
@@ -160,7 +160,8 @@ function InvoiceDetail() {
   const bike = inv.motorcycles;
   const issuedAt = new Date(inv.created_at);
   const dueAt = new Date(issuedAt); dueAt.setDate(dueAt.getDate() + 14);
-  const subtotal = Number(inv.labour_total) + Number(inv.parts_total);
+  const subtotalInc = Number(inv.labour_total) + Number(inv.parts_total);
+  const subtotalEx = subtotalInc / (1 + GST_RATE);
 
   function emailInvoice() {
     const to = customer?.email ?? "";
@@ -301,8 +302,8 @@ function InvoiceDetail() {
               </thead>
               <tbody>
                 {(() => {
-                  const rateEx = LABOUR_RATE_EX;
-                  const hours = Number(inv.labour_total) / rateEx;
+                  const rate = LABOUR_RATE;
+                  const hours = Number(inv.labour_total) / rate;
                   const delta = hours - defaultHours;
                   const deltaLabel =
                     Math.abs(delta) < 0.01
@@ -328,7 +329,7 @@ function InvoiceDetail() {
                         )}
                       </td>
                       <td className="py-3 text-right">
-                        <EditableNumber value={rateEx} onCommit={(n) => updateLabour({ unit: n })} prefix="$" />
+                        <EditableNumber value={rate} onCommit={(n) => updateLabour({ unit: n })} prefix="$" />
                       </td>
                       <td className="py-3 text-right font-semibold">
                         <EditableNumber value={Number(inv.labour_total)} onCommit={(n) => updateLabour({ amount: n })} prefix="$" />
@@ -371,10 +372,10 @@ function InvoiceDetail() {
           {/* Totals */}
           <div className="pt-5 border-t border-border flex justify-end">
             <div className="w-full sm:w-72 space-y-2 text-sm">
-              <div className="flex justify-between"><span className="text-muted-foreground">Labour</span><span className="tabular-nums">${Number(inv.labour_total).toFixed(2)}</span></div>
-              <div className="flex justify-between"><span className="text-muted-foreground">Parts</span><span className="tabular-nums">${Number(inv.parts_total).toFixed(2)}</span></div>
-              <div className="flex justify-between pb-2 border-b border-border"><span className="text-muted-foreground">Subtotal</span><span className="tabular-nums">${subtotal.toFixed(2)}</span></div>
-              <div className="flex justify-between"><span className="text-muted-foreground">GST (15%)</span><span className="tabular-nums">${Number(inv.gst).toFixed(2)}</span></div>
+              <div className="flex justify-between"><span className="text-muted-foreground">Labour (incl GST)</span><span className="tabular-nums">${Number(inv.labour_total).toFixed(2)}</span></div>
+              <div className="flex justify-between"><span className="text-muted-foreground">Parts (incl GST)</span><span className="tabular-nums">${Number(inv.parts_total).toFixed(2)}</span></div>
+              <div className="flex justify-between pb-2 border-b border-border"><span className="text-muted-foreground">Subtotal (excl GST)</span><span className="tabular-nums">${subtotalEx.toFixed(2)}</span></div>
+              <div className="flex justify-between"><span className="text-muted-foreground">GST 15% (incl. in above)</span><span className="tabular-nums">${Number(inv.gst).toFixed(2)}</span></div>
               <div className="flex justify-between pt-3 mt-1 border-t-2 border-foreground/80 font-display text-xl font-black">
                 <span>TOTAL</span>
                 <span className="gold-gradient-text tabular-nums">${Number(inv.total).toFixed(2)}</span>
