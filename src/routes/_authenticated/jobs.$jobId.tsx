@@ -171,7 +171,7 @@ function JobDetail() {
         tasks={tasks.data ?? []}
         canEdit={canEdit}
         completion={completion}
-        onToggleTask={(id, done) => toggleTask(id, done)}
+          onToggleTask={(id: string, done: boolean) => toggleTask(id, done)}
         onNoteSaved={() => qc.invalidateQueries({ queryKey: ["job-tasks", jobId] })}
         onTemplateChanged={() => {
           qc.invalidateQueries({ queryKey: ["job", jobId] });
