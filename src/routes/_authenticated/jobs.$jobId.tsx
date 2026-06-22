@@ -313,7 +313,7 @@ function JobDetail() {
 
       {/* Parts used (service-kind aware) */}
       {SERVICE_PARTS[kind].length > 0 && (
-        <PartsSection
+        <div className="print:hidden"><PartsSection
           jobId={jobId}
           canEdit={canEdit}
           serviceData={(j.service_data as any) ?? {}}
@@ -324,18 +324,18 @@ function JobDetail() {
             qc.invalidateQueries({ queryKey: ["job-parts", jobId] });
             qc.invalidateQueries({ queryKey: ["inventory"] });
           }}
-        />
+        /></div>
       )}
 
       {/* Valve clearance diagram for Full service */}
       {kind === "full" && (
-        <ValveClearanceSection
+        <div className="print:hidden"><ValveClearanceSection
           jobId={jobId}
           cylinders={cylinders}
           canEdit={canEdit}
           data={((j.service_data as any) ?? {}).valves ?? {}}
           onChanged={() => qc.invalidateQueries({ queryKey: ["job", jobId] })}
-        />
+        /></div>
       )}
 
       {/* Notes */}
