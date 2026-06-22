@@ -471,9 +471,14 @@ function InvoiceDetail() {
             </table>
           </div>
 
-          {/* Totals */}
-          <div className="pt-5 border-t border-border flex justify-end">
-            <div className="w-full sm:w-72 space-y-2 text-sm">
+          {/* Notes + Totals */}
+          <div className="pt-5 border-t border-border grid grid-cols-1 sm:grid-cols-[1fr_18rem] gap-6">
+            <NotesBox
+              invoiceId={invoiceId}
+              initial={inv.notes ?? ""}
+              onSaved={() => qc.invalidateQueries({ queryKey: ["invoice", invoiceId] })}
+            />
+            <div className="space-y-2 text-sm">
               <div className="flex justify-between"><span className="text-muted-foreground">Labour (incl GST)</span><span className="tabular-nums">${Number(inv.labour_total).toFixed(2)}</span></div>
               <div className="flex justify-between"><span className="text-muted-foreground">Parts (incl GST)</span><span className="tabular-nums">${Number(inv.parts_total).toFixed(2)}</span></div>
               <div className="flex justify-between pb-2 border-b border-border"><span className="text-muted-foreground">Subtotal (excl GST)</span><span className="tabular-nums">${subtotalEx.toFixed(2)}</span></div>
@@ -486,7 +491,7 @@ function InvoiceDetail() {
           </div>
 
           {/* Payment info */}
-          <div className="pt-5 border-t border-border grid grid-cols-1 sm:grid-cols-2 gap-6 text-sm">
+          <div className="pt-5 border-t border-border text-sm">
             <div>
               <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-2">Payment Details</div>
               <div className="space-y-0.5 text-xs">
@@ -495,12 +500,6 @@ function InvoiceDetail() {
                 <div><span className="text-muted-foreground">Account #:</span> 0000 0000</div>
                 <div><span className="text-muted-foreground">Reference:</span> {inv.invoice_number}</div>
               </div>
-            </div>
-            <div>
-              <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-2">Notes</div>
-              <p className="text-xs whitespace-pre-wrap text-muted-foreground">
-                {inv.notes || "Payment due within 14 days. Thank you for choosing APEX MOTO LAB."}
-              </p>
             </div>
           </div>
 
@@ -630,6 +629,52 @@ function ServiceChecks({
           <Plus className="h-4 w-4" />
         </button>
       </div>
+    </div>
+  );
+}
+function NotesBox({
+  invoiceId,
+  initial,
+  onSaved,
+}: {
+  invoiceId: string;
+  initial: string;
+  onSaved: () => void;
+}) {
+  const [value, setValue] = useState(initial);
+  const [saving, setSaving] = useState(false);
+  const [savedAt, setSavedAt] = useState<number | null>(null);
+  useEffect(() => { setValue(initial); }, [initial]);
+
+  async function save() {
+    if (value === initial) return;
+    setSaving(true);
+    const { error } = await supabase
+      .from("invoices")
+      .update({ notes: value })
+      .eq("id", invoiceId);
+    setSaving(false);
+    if (error) { toast.error(error.message); return; }
+    setSavedAt(Date.now());
+    onSaved();
+  }
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-2">
+        <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Notes</div>
+        <div className="text-[10px] text-muted-foreground no-print">
+          {saving ? "Saving…" : savedAt ? "Saved" : "Auto-saves on blur"}
+        </div>
+      </div>
+      <textarea
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+        onBlur={save}
+        placeholder="Add notes for the customer — recommendations, follow-ups, parts to order next service…"
+        rows={6}
+        className="w-full rounded-lg border border-border bg-background/50 p-3 text-sm leading-relaxed outline-none focus:border-primary resize-y print:border-border print:bg-transparent print:resize-none"
+      />
     </div>
   );
 }
