@@ -1,61 +1,46 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
+import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Check, ChevronRight, Plus, Search, Bike as BikeIcon } from "lucide-react";
+import { ArrowLeft, ChevronRight, Search, Bike as BikeIcon, Calendar as CalendarIcon, Clock, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { fullBike, initials } from "@/lib/format";
+import { format } from "date-fns";
 import { useCurrentUser } from "@/hooks/use-current-user";
 
 export const Route = createFileRoute("/_authenticated/jobs/new")({
   component: NewJob,
 });
 
-type Step = "customer" | "bike" | "template" | "tech";
-
 function NewJob() {
   const nav = useNavigate();
   const { isAdmin, loading: userLoading } = useCurrentUser();
-  const [step, setStep] = useState<Step>("customer");
-  const [customerId, setCustomerId] = useState<string | null>(null);
-  const [bikeId, setBikeId] = useState<string | null>(null);
-  const [templateId, setTemplateId] = useState<string | null>(null);
-  const [techId, setTechId] = useState<string | null>(null);
-  const [complaint, setComplaint] = useState("");
-  const [creating, setCreating] = useState(false);
+  const [search, setSearch] = useState("");
+  const [busyId, setBusyId] = useState<string | null>(null);
 
-  const customers = useQuery({
-    queryKey: ["customers-all"],
-    queryFn: async () => (await supabase.from("customers").select("*").order("first_name")).data ?? [],
-  });
-  const bikes = useQuery({
-    queryKey: ["bikes-for", customerId],
-    enabled: !!customerId,
-    queryFn: async () => (await supabase.from("motorcycles").select("*").eq("customer_id", customerId!)).data ?? [],
-  });
-  const templates = useQuery({
-    queryKey: ["templates"],
-    queryFn: async () => (await supabase.from("service_templates").select("*").eq("is_active", true).order("sort_order")).data ?? [],
-  });
-  const techs = useQuery({
-    queryKey: ["techs"],
+  const bookings = useQuery({
+    queryKey: ["bookings-pending"],
     queryFn: async () => {
-      const { data: roles } = await supabase.from("user_roles").select("user_id");
-      const ids = [...new Set((roles ?? []).map((r) => r.user_id))];
-      if (!ids.length) return [];
-      const { data } = await supabase.from("profiles").select("id, full_name").in("id", ids);
-      return data ?? [];
+      const { data, error } = await supabase
+        .from("bookings")
+        .select("*, customers(first_name,last_name,phone), motorcycles(year,make,model,rego)")
+        .is("job_id", null)
+        .order("scheduled_date", { ascending: true });
+      if (error) throw error;
+      return (data ?? []) as any[];
     },
   });
 
-  const customer = (customers.data as any[] | undefined)?.find((c) => c.id === customerId);
-  const bike = (bikes.data as any[] | undefined)?.find((b) => b.id === bikeId);
-  const template = (templates.data as any[] | undefined)?.find((t) => t.id === templateId);
-  const tech = (techs.data as any[] | undefined)?.find((t) => t.id === techId);
+  const filtered = useMemo(() => {
+    const s = search.toLowerCase().trim();
+    if (!s) return bookings.data ?? [];
+    return (bookings.data ?? []).filter((b) => {
+      const cust = b.customers ? `${b.customers.first_name} ${b.customers.last_name}` : "";
+      const bike = b.motorcycles ? `${b.motorcycles.make} ${b.motorcycles.model} ${b.motorcycles.rego ?? ""}` : "";
+      return `${cust} ${bike} ${b.service_type}`.toLowerCase().includes(s);
+    });
+  }, [bookings.data, search]);
 
   if (userLoading) {
     return <div className="card-surface p-8 text-center text-muted-foreground">Loading…</div>;
@@ -70,297 +55,125 @@ function NewJob() {
     );
   }
 
-  async function createJob() {
-    if (!customer || !bike || !template) return;
-    setCreating(true);
+  async function allocate(b: any) {
+    setBusyId(b.id);
     try {
+      const { data: tmpl } = await supabase
+        .from("service_templates")
+        .select("*")
+        .ilike("name", `%${(b.service_type ?? "").split(" ")[0]}%`)
+        .limit(1)
+        .maybeSingle();
       const { data: job, error } = await supabase
         .from("jobs")
         .insert({
-          customer_id: customer.id,
-          motorcycle_id: bike.id,
-          template_id: template.id,
-          technician_id: techId,
-          title: template.name,
-          description: template.description,
-          complaint,
-          estimated_hours: template.estimated_hours,
-          status: techId ? "assigned" : "new",
+          customer_id: b.customer_id,
+          motorcycle_id: b.motorcycle_id,
+          template_id: tmpl?.id ?? null,
+          technician_id: b.assigned_tech_id,
+          assigned_tech_id: b.assigned_tech_id,
+          title: b.service_type,
+          description: tmpl?.description ?? null,
+          complaint: b.complaints,
+          estimated_hours: b.estimated_hours,
+          status: b.assigned_tech_id ? "assigned" : "new",
+          scheduled_at: b.scheduled_date,
         })
         .select("id")
         .single();
       if (error) throw error;
-
-      const tasks = (template.tasks as { label: string }[]).map((t, i) => ({
-        job_id: job.id,
-        label: t.label,
-        sort_order: i,
-      }));
-      if (tasks.length) await supabase.from("job_tasks").insert(tasks);
-
-      toast.success(`Job #created`);
+      if (tmpl?.tasks) {
+        const tasks = (tmpl.tasks as any[]).map((t: any, i: number) => ({ job_id: job.id, label: t.label, sort_order: i }));
+        if (tasks.length) await supabase.from("job_tasks").insert(tasks);
+      }
+      await supabase.from("bookings").update({ job_id: job.id, status: "checked_in" }).eq("id", b.id);
+      toast.success("Job card allocated");
       nav({ to: "/jobs/$jobId", params: { jobId: job.id } });
     } catch (err: any) {
-      toast.error(err.message ?? "Failed to create job");
+      toast.error(err.message ?? "Failed to allocate job");
     } finally {
-      setCreating(false);
+      setBusyId(null);
     }
   }
 
   return (
-    <div className="space-y-5 max-w-2xl mx-auto">
+    <div className="space-y-5 max-w-3xl mx-auto">
       <header className="flex items-center gap-3">
         <Link to="/jobs" className="grid h-9 w-9 place-items-center rounded-lg border border-border">
           <ArrowLeft className="h-4 w-4" />
         </Link>
-        <div>
-          <div className="text-xs uppercase tracking-[0.25em] text-muted-foreground">Quick Create</div>
-          <h1 className="font-display text-2xl font-bold">New Job</h1>
+        <div className="min-w-0 flex-1">
+          <div className="text-xs uppercase tracking-[0.25em] text-muted-foreground">Allocate Job Card</div>
+          <h1 className="font-display text-2xl font-bold">Pick a Booking</h1>
         </div>
+        <Link
+          to="/bookings/new"
+          className="hidden sm:inline-flex items-center gap-2 rounded-xl border border-border px-3 h-9 text-xs font-semibold hover:border-primary/50"
+        >
+          <Plus className="h-3.5 w-3.5" /> New booking
+        </Link>
       </header>
 
-      {/* Progress chips */}
-      <div className="flex items-center gap-1.5 text-xs">
-        <Chip active={step === "customer"} done={!!customer} onClick={() => setStep("customer")} label="Customer" value={customer ? `${customer.first_name} ${customer.last_name}` : undefined} />
-        <ChevronRight className="h-3 w-3 text-muted-foreground" />
-        <Chip active={step === "bike"} done={!!bike} onClick={() => customer && setStep("bike")} label="Bike" value={bike ? fullBike(bike) : undefined} />
-        <ChevronRight className="h-3 w-3 text-muted-foreground" />
-        <Chip active={step === "template"} done={!!template} onClick={() => bike && setStep("template")} label="Service" value={template?.name} />
-        <ChevronRight className="h-3 w-3 text-muted-foreground" />
-        <Chip active={step === "tech"} done={!!tech} onClick={() => template && setStep("tech")} label="Tech" value={tech?.full_name ?? (template ? "Skip" : undefined)} />
-      </div>
-
-      {step === "customer" && (
-        <CustomerPicker
-          customers={customers.data ?? []}
-          loading={customers.isLoading}
-          onPick={(c: any) => { setCustomerId(c.id); setBikeId(null); setStep("bike"); }}
-          onRefetch={customers.refetch}
-        />
-      )}
-      {step === "bike" && customer && (
-        <BikePicker
-          customer={customer}
-          bikes={bikes.data ?? []}
-          loading={bikes.isLoading}
-          onPick={(b: any) => { setBikeId(b.id); setStep("template"); }}
-          onRefetch={bikes.refetch}
-          onBack={() => setStep("customer")}
-        />
-      )}
-      {step === "template" && (
-        <TemplatePicker
-          templates={templates.data ?? []}
-          selectedId={templateId}
-          onPick={(t: any) => { setTemplateId(t.id); setStep("tech"); }}
-          onBack={() => setStep("bike")}
-        />
-      )}
-      {step === "tech" && (
-        <div className="space-y-4">
-          <div className="card-surface p-4">
-            <Label className="text-xs uppercase tracking-wider text-muted-foreground">Assign technician (optional)</Label>
-            <div className="grid grid-cols-2 gap-2 mt-3">
-              <button
-                onClick={() => setTechId(null)}
-                className={`rounded-xl border p-3 text-left transition-colors ${techId === null ? "border-primary bg-primary/10" : "border-border"}`}
-              >
-                <div className="text-sm font-semibold">Unassigned</div>
-                <div className="text-xs text-muted-foreground">Leave on board</div>
-              </button>
-              {(techs.data ?? []).map((t: any) => (
-                <button
-                  key={t.id}
-                  onClick={() => setTechId(t.id)}
-                  className={`rounded-xl border p-3 text-left transition-colors flex items-center gap-3 ${techId === t.id ? "border-primary bg-primary/10" : "border-border"}`}
-                >
-                  <span className="grid h-8 w-8 place-items-center rounded-full bg-muted text-xs font-semibold">
-                    {initials(t.full_name || "?")}
-                  </span>
-                  <span className="text-sm font-semibold truncate">{t.full_name || "Unnamed"}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-          <div className="card-surface p-4">
-            <Label htmlFor="complaint" className="text-xs uppercase tracking-wider text-muted-foreground">Customer complaint / notes</Label>
-            <Textarea
-              id="complaint"
-              value={complaint}
-              onChange={(e) => setComplaint(e.target.value)}
-              placeholder="e.g. Front brakes spongy under heavy use"
-              className="mt-2"
-              rows={3}
-            />
-          </div>
-          <Button onClick={createJob} disabled={creating} className="w-full h-14 gold-surface text-base font-bold">
-            {creating ? "Creating…" : "Create Job"}
-          </Button>
-        </div>
-      )}
-    </div>
-  );
-}
-
-function Chip({ active, done, onClick, label, value }: { active: boolean; done: boolean; onClick: () => void; label: string; value?: string }) {
-  return (
-    <button
-      onClick={onClick}
-      className={`rounded-full border px-2.5 py-1 text-xs font-semibold transition-colors ${
-        active ? "border-primary bg-primary/10 text-primary" : done ? "border-status-ready/40 bg-status-ready/10 text-status-ready" : "border-border text-muted-foreground"
-      }`}
-    >
-      {done && !active ? <Check className="inline h-3 w-3 mr-1" /> : null}
-      {value ? <span className="max-w-[110px] truncate inline-block align-middle">{value}</span> : label}
-    </button>
-  );
-}
-
-function CustomerPicker({ customers, loading, onPick, onRefetch }: any) {
-  const [search, setSearch] = useState("");
-  const [open, setOpen] = useState(false);
-  const [first, setFirst] = useState(""); const [last, setLast] = useState("");
-  const [phone, setPhone] = useState(""); const [email, setEmail] = useState("");
-  const filtered = useMemo(() => {
-    const s = search.toLowerCase();
-    return (customers ?? []).filter((c: any) => `${c.first_name} ${c.last_name} ${c.phone ?? ""} ${c.email ?? ""}`.toLowerCase().includes(s));
-  }, [customers, search]);
-
-  async function add() {
-    if (!first.trim()) return toast.error("First name required");
-    const { data, error } = await supabase.from("customers").insert({ first_name: first, last_name: last, phone, email }).select("*").single();
-    if (error) return toast.error(error.message);
-    toast.success("Customer added");
-    setOpen(false); setFirst(""); setLast(""); setPhone(""); setEmail("");
-    await onRefetch();
-    onPick(data);
-  }
-
-  return (
-    <div className="space-y-3">
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search customers" className="w-full rounded-xl bg-card border border-border pl-10 pr-3 py-3 text-sm" />
+        <input
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search by customer, bike, or service"
+          className="w-full rounded-xl bg-card border border-border pl-10 pr-3 py-3 text-sm"
+        />
       </div>
-      <button onClick={() => setOpen((o) => !o)} className="w-full card-surface p-4 flex items-center gap-3 hover:border-primary/40">
-        <span className="grid h-9 w-9 place-items-center rounded-lg gold-surface"><Plus className="h-4 w-4" /></span>
-        <span className="font-semibold">New customer</span>
-      </button>
-      {open && (
-        <div className="card-surface p-4 space-y-3">
-          <div className="grid grid-cols-2 gap-2">
-            <Input placeholder="First name *" value={first} onChange={(e) => setFirst(e.target.value)} />
-            <Input placeholder="Last name" value={last} onChange={(e) => setLast(e.target.value)} />
-          </div>
-          <Input placeholder="Phone" value={phone} onChange={(e) => setPhone(e.target.value)} />
-          <Input placeholder="Email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
-          <Button onClick={add} className="w-full gold-surface">Add & continue</Button>
+
+      {bookings.isLoading ? (
+        <div className="card-surface p-8 text-center text-sm text-muted-foreground">Loading bookings…</div>
+      ) : filtered.length === 0 ? (
+        <div className="card-surface p-8 text-center space-y-3">
+          <div className="text-sm text-muted-foreground">No pending bookings to allocate.</div>
+          <Link to="/bookings/new" className="inline-flex items-center gap-2 rounded-xl gold-surface px-4 h-10 text-sm font-bold">
+            <Plus className="h-4 w-4" /> Create booking
+          </Link>
         </div>
-      )}
-      {loading ? (
-        <div className="text-sm text-muted-foreground">Loading…</div>
       ) : (
         <div className="space-y-2">
-          {filtered.map((c: any) => (
-            <button key={c.id} onClick={() => onPick(c)} className="w-full card-surface p-3 flex items-center gap-3 hover:border-primary/40 text-left">
-              <span className="grid h-10 w-10 place-items-center rounded-full bg-muted font-semibold text-sm">{initials(`${c.first_name} ${c.last_name}`)}</span>
-              <span className="min-w-0 flex-1">
-                <span className="block font-semibold truncate">{c.first_name} {c.last_name}</span>
-                <span className="block text-xs text-muted-foreground truncate">{c.phone || c.email || "—"}</span>
-              </span>
-              <ChevronRight className="h-4 w-4 text-muted-foreground" />
-            </button>
-          ))}
+          {filtered.map((b, i) => {
+            const cust = b.customers ? `${b.customers.first_name} ${b.customers.last_name}` : "—";
+            const busy = busyId === b.id;
+            return (
+              <motion.button
+                key={b.id}
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.03 }}
+                onClick={() => allocate(b)}
+                disabled={busy}
+                className="w-full card-surface p-4 text-left hover:border-primary/50 transition-colors flex items-center gap-3 disabled:opacity-60"
+              >
+                <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-muted font-semibold text-sm">
+                  {initials(cust)}
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <CalendarIcon className="h-3 w-3" />
+                    {format(new Date(b.scheduled_date), "EEE d MMM")}
+                    {b.drop_off_time && (<><Clock className="h-3 w-3 ml-1" />{b.drop_off_time.slice(0, 5)}</>)}
+                    <span className="ml-1 rounded-full bg-primary/10 text-primary px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider">
+                      {b.service_type}
+                    </span>
+                  </span>
+                  <span className="block font-semibold truncate mt-0.5">{cust}</span>
+                  <span className="block text-xs text-muted-foreground truncate flex items-center gap-1.5">
+                    <BikeIcon className="h-3 w-3" /> {fullBike(b.motorcycles)}
+                    {b.motorcycles?.rego ? ` · ${b.motorcycles.rego}` : ""}
+                  </span>
+                </span>
+                <span className="text-xs font-bold text-primary whitespace-nowrap flex items-center gap-1">
+                  {busy ? "Allocating…" : "Allocate"} <ChevronRight className="h-4 w-4" />
+                </span>
+              </motion.button>
+            );
+          })}
         </div>
       )}
-    </div>
-  );
-}
-
-function BikePicker({ customer, bikes, loading, onPick, onRefetch, onBack }: any) {
-  const [open, setOpen] = useState(false);
-  const [make, setMake] = useState(""); const [model, setModel] = useState(""); const [year, setYear] = useState(""); const [rego, setRego] = useState("");
-
-  async function add() {
-    if (!make || !model) return toast.error("Make and model required");
-    const { data, error } = await supabase.from("motorcycles").insert({
-      customer_id: customer.id,
-      make, model, year: year ? parseInt(year) : null, rego,
-    }).select("*").single();
-    if (error) return toast.error(error.message);
-    toast.success("Bike added");
-    setOpen(false); setMake(""); setModel(""); setYear(""); setRego("");
-    await onRefetch();
-    onPick(data);
-  }
-
-  return (
-    <div className="space-y-3">
-      <div className="text-sm text-muted-foreground">Bikes for <span className="text-foreground font-semibold">{customer.first_name} {customer.last_name}</span></div>
-      <button onClick={() => setOpen((o) => !o)} className="w-full card-surface p-4 flex items-center gap-3 hover:border-primary/40">
-        <span className="grid h-9 w-9 place-items-center rounded-lg gold-surface"><Plus className="h-4 w-4" /></span>
-        <span className="font-semibold">New motorcycle</span>
-      </button>
-      {open && (
-        <div className="card-surface p-4 space-y-3">
-          <div className="grid grid-cols-2 gap-2">
-            <Input placeholder="Make *" value={make} onChange={(e) => setMake(e.target.value)} />
-            <Input placeholder="Model *" value={model} onChange={(e) => setModel(e.target.value)} />
-          </div>
-          <div className="grid grid-cols-2 gap-2">
-            <Input placeholder="Year" inputMode="numeric" value={year} onChange={(e) => setYear(e.target.value)} />
-            <Input placeholder="Rego" value={rego} onChange={(e) => setRego(e.target.value.toUpperCase())} />
-          </div>
-          <Button onClick={add} className="w-full gold-surface">Add & continue</Button>
-        </div>
-      )}
-      {loading ? (
-        <div className="text-sm text-muted-foreground">Loading…</div>
-      ) : bikes.length === 0 && !open ? (
-        <div className="card-surface p-6 text-center text-sm text-muted-foreground">No bikes yet — add one above.</div>
-      ) : (
-        <div className="space-y-2">
-          {bikes.map((b: any) => (
-            <button key={b.id} onClick={() => onPick(b)} className="w-full card-surface p-3 flex items-center gap-3 hover:border-primary/40 text-left">
-              <span className="grid h-10 w-10 place-items-center rounded-lg bg-muted"><BikeIcon className="h-5 w-5 text-primary" /></span>
-              <span className="min-w-0 flex-1">
-                <span className="block font-semibold truncate">{fullBike(b)}</span>
-                <span className="block text-xs text-muted-foreground truncate">{b.rego || "—"}{b.mileage ? ` · ${b.mileage} km` : ""}</span>
-              </span>
-              <ChevronRight className="h-4 w-4 text-muted-foreground" />
-            </button>
-          ))}
-        </div>
-      )}
-      <button onClick={onBack} className="text-xs text-muted-foreground">← Change customer</button>
-    </div>
-  );
-}
-
-function TemplatePicker({ templates, selectedId, onPick, onBack }: any) {
-  return (
-    <div className="space-y-3">
-      <div className="grid sm:grid-cols-2 gap-2">
-        {templates.map((t: any) => (
-          <button
-            key={t.id}
-            onClick={() => onPick(t)}
-            className={`card-surface p-4 text-left hover:border-primary/40 transition-colors ${selectedId === t.id ? "border-primary" : ""}`}
-          >
-            <div className="flex items-start justify-between">
-              <div>
-                <div className="text-[10px] uppercase tracking-wider text-primary">{t.estimated_hours}h est.</div>
-                <div className="font-display text-lg font-bold mt-0.5">{t.name}</div>
-              </div>
-              <span className="grid h-7 w-7 place-items-center rounded-full bg-muted text-xs font-semibold">
-                {Array.isArray(t.tasks) ? t.tasks.length : 0}
-              </span>
-            </div>
-            <p className="text-xs text-muted-foreground mt-2 line-clamp-2">{t.description}</p>
-          </button>
-        ))}
-      </div>
-      <button onClick={onBack} className="text-xs text-muted-foreground">← Change bike</button>
     </div>
   );
 }
