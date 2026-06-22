@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -9,7 +9,7 @@ import { Bike as BikeIcon, Plus, Search } from "lucide-react";
 import { toast } from "sonner";
 import { fullBike } from "@/lib/format";
 
-export const Route = createFileRoute("/_authenticated/motorcycles")({
+export const Route = createFileRoute("/_authenticated/motorcycles/")({
   component: Bikes,
 });
 
@@ -83,8 +83,19 @@ function Bikes() {
 
       <div className="space-y-2">
         {filtered.map((b: any) => (
-          <div key={b.id} className="card-surface p-3 flex items-center gap-3">
-            <span className="grid h-11 w-11 place-items-center rounded-lg bg-muted"><BikeIcon className="h-5 w-5 text-primary" /></span>
+          <Link
+            key={b.id}
+            to="/motorcycles/$bikeId"
+            params={{ bikeId: b.id }}
+            className="card-surface p-3 flex items-center gap-3 transition hover:border-primary/40 hover:bg-card/80 active:scale-[0.99]"
+          >
+            {Array.isArray(b.photos) && b.photos[0] ? (
+              <img src={b.photos[0]} alt={fullBike(b)} loading="lazy" className="h-14 w-20 rounded-lg object-cover border border-border" />
+            ) : (
+              <span className="grid h-14 w-20 place-items-center rounded-lg bg-muted">
+                <BikeIcon className="h-5 w-5 text-primary" />
+              </span>
+            )}
             <div className="min-w-0 flex-1">
               <div className="font-semibold truncate">{fullBike(b)}</div>
               <div className="text-xs text-muted-foreground truncate">
@@ -93,7 +104,7 @@ function Bikes() {
                 {b.mileage ? ` · ${b.mileage} km` : ""}
               </div>
             </div>
-          </div>
+          </Link>
         ))}
         {filtered.length === 0 && <div className="card-surface p-8 text-center text-sm text-muted-foreground">No bikes yet.</div>}
       </div>
