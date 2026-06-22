@@ -117,7 +117,18 @@ function InvoiceDetail() {
       const { error } = await supabase
         .from("parts")
         .insert({ job_id: jobId, name: "Shop consumables", quantity: 1, retail: 30, on_invoice: true });
-      if (!error) qc.invalidateQueries({ queryKey: ["invoice-parts", invoiceId, jobId] });
+      if (error) return;
+      const fresh = await supabase.from("parts").select("*").eq("job_id", jobId);
+      const partsSum = (fresh.data ?? []).reduce(
+        (s: number, p: any) => s + Number(p.retail ?? 0) * Number(p.quantity ?? 1),
+        0,
+      );
+      const subtotal = Number(invoice.data!.labour_total) + partsSum;
+      const gst = Math.round((subtotal * GST_RATE / (1 + GST_RATE)) * 100) / 100;
+      const total = Math.round(subtotal * 100) / 100;
+      await supabase.from("invoices").update({ parts_total: partsSum, gst, total }).eq("id", invoiceId);
+      qc.invalidateQueries({ queryKey: ["invoice-parts", invoiceId, jobId] });
+      qc.invalidateQueries({ queryKey: ["invoice", invoiceId] });
     })();
   }, [invoice.data?.job_id, parts.data, invoiceId, qc]);
 
