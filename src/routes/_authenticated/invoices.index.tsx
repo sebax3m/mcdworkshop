@@ -49,7 +49,6 @@ function InvoicesList() {
               key={inv.id}
               to="/invoices/$invoiceId"
               params={{ invoiceId: inv.id }}
-              target="_blank"
               className="card-surface p-4 flex items-center gap-4 hover:border-primary/50 transition-colors"
             >
               <div className="grid h-10 w-10 place-items-center rounded-lg bg-muted text-primary shrink-0">
