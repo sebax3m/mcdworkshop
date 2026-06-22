@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { fullBike } from "@/lib/format";
 import { uploadPhoto } from "@/lib/photos";
 import { generateBikeImage } from "@/lib/bike-image.functions";
+import { BikeMakeModelYear } from "@/components/BikeMakeModelYear";
 
 export const Route = createFileRoute("/_authenticated/motorcycles/")({
   component: Bikes,
@@ -110,12 +111,12 @@ function Bikes() {
               <option key={c.id} value={c.id}>{c.first_name} {c.last_name}</option>
             ))}
           </select>
+          <BikeMakeModelYear
+            value={{ make: f.make, model: f.model, year: f.year }}
+            onChange={(v) => setF({ ...f, make: v.make, model: v.model, year: v.year })}
+            required
+          />
           <div className="grid grid-cols-2 gap-2">
-            <Input placeholder="Make *" value={f.make} onChange={(e) => setF({ ...f, make: e.target.value })} />
-            <Input placeholder="Model *" value={f.model} onChange={(e) => setF({ ...f, model: e.target.value })} />
-          </div>
-          <div className="grid grid-cols-3 gap-2">
-            <Input placeholder="Year" inputMode="numeric" value={f.year} onChange={(e) => setF({ ...f, year: e.target.value })} />
             <Input placeholder="Rego" value={f.rego} onChange={(e) => setF({ ...f, rego: e.target.value.toUpperCase() })} />
             <div className="relative">
               <Input

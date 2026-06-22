@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
+import { BikeMakeModelYear } from "@/components/BikeMakeModelYear";
 import { uploadPhoto } from "@/lib/photos";
 import { generateBikeImage } from "@/lib/bike-image.functions";
 
@@ -199,10 +200,11 @@ function BikeProfile() {
         )}
         <div className="p-4 space-y-2">
           {editing && form ? (
-            <div className="grid grid-cols-2 gap-2">
-              <Input placeholder="Make" value={form.make} onChange={(e) => setForm({ ...form, make: e.target.value })} />
-              <Input placeholder="Model" value={form.model} onChange={(e) => setForm({ ...form, model: e.target.value })} />
-              <Input placeholder="Year" inputMode="numeric" value={form.year} onChange={(e) => setForm({ ...form, year: e.target.value })} />
+            <div className="space-y-2">
+              <BikeMakeModelYear
+                value={{ make: form.make, model: form.model, year: String(form.year ?? "") }}
+                onChange={(v) => setForm({ ...form, make: v.make, model: v.model, year: v.year })}
+              />
               <Input placeholder="Rego" value={form.rego} onChange={(e) => setForm({ ...form, rego: e.target.value.toUpperCase() })} />
             </div>
           ) : (
