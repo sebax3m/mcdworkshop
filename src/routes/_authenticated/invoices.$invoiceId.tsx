@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { ArrowLeft, Printer, Mail, FileDown, Pencil } from "lucide-react";
+import { ArrowLeft, Printer, Mail, FileDown, Pencil, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { fullBike } from "@/lib/format";
 import logo from "@/assets/apex-logo.png";
@@ -83,7 +83,7 @@ function InvoiceDetail() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("invoices")
-        .select("*, customers(*), motorcycles(*), jobs(job_number, title, description)")
+        .select("*, customers(*), motorcycles(*), jobs(job_number, title, description, odometer)")
         .eq("id", invoiceId)
         .maybeSingle();
       if (error) throw error;
@@ -102,6 +102,17 @@ function InvoiceDetail() {
     enabled: !!invoice.data?.job_id,
     queryFn: async () =>
       (await supabase.from("time_entries").select("minutes").eq("job_id", invoice.data!.job_id!)).data ?? [],
+  });
+
+  const checks = useQuery({
+    queryKey: ["invoice-checks", invoiceId, invoice.data?.job_id],
+    enabled: !!invoice.data?.job_id,
+    queryFn: async () =>
+      (await supabase
+        .from("job_tasks")
+        .select("id,label,is_done,note,sort_order")
+        .eq("job_id", invoice.data!.job_id!)
+        .order("sort_order")).data ?? [],
   });
 
   // Ensure every invoice carries a default $30 shop consumables line. Auto-insert
@@ -312,9 +323,42 @@ function InvoiceDetail() {
               <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-2">Motorcycle</div>
               <div className="font-display text-lg font-bold">{bike ? fullBike(bike as any) : "—"}</div>
               {bike?.rego && <div className="text-sm text-muted-foreground">Rego: {bike.rego}</div>}
+              {(inv.jobs?.odometer ?? bike?.mileage) != null && (
+                <div className="text-sm text-muted-foreground">
+                  Odometer: {Number(inv.jobs?.odometer ?? bike?.mileage).toLocaleString()} km
+                </div>
+              )}
               {inv.jobs?.title && <div className="text-sm text-muted-foreground">Service: {inv.jobs.title}</div>}
             </div>
           </div>
+
+          {/* Service checks */}
+          {(checks.data ?? []).length > 0 && (
+            <div className="pt-5 border-t border-border">
+              <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-3">
+                Service Checks & Work Performed
+              </div>
+              <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1.5 text-sm">
+                {(checks.data ?? []).map((t: any) => (
+                  <li key={t.id} className="flex items-start gap-2">
+                    <span
+                      className={`mt-0.5 grid h-4 w-4 flex-none place-items-center rounded-sm border ${
+                        t.is_done ? "border-emerald-500/60 bg-emerald-500/15 text-emerald-500" : "border-border text-muted-foreground/40"
+                      }`}
+                    >
+                      {t.is_done && <Check className="h-3 w-3" strokeWidth={3} />}
+                    </span>
+                    <div className="min-w-0">
+                      <div className={t.is_done ? "" : "text-muted-foreground line-through decoration-muted-foreground/40"}>
+                        {t.label}
+                      </div>
+                      {t.note && <div className="text-xs text-muted-foreground">{t.note}</div>}
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
 
           {/* Line items */}
           <div className="pt-5 border-t border-border">
