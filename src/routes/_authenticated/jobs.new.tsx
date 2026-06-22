@@ -19,7 +19,7 @@ type Step = "customer" | "bike" | "template" | "tech";
 
 function NewJob() {
   const nav = useNavigate();
-  const { isAdmin } = useCurrentUser();
+  const { isAdmin, loading: userLoading } = useCurrentUser();
   const [step, setStep] = useState<Step>("customer");
   const [customerId, setCustomerId] = useState<string | null>(null);
   const [bikeId, setBikeId] = useState<string | null>(null);
@@ -56,6 +56,10 @@ function NewJob() {
   const bike = (bikes.data as any[] | undefined)?.find((b) => b.id === bikeId);
   const template = (templates.data as any[] | undefined)?.find((t) => t.id === templateId);
   const tech = (techs.data as any[] | undefined)?.find((t) => t.id === techId);
+
+  if (userLoading) {
+    return <div className="card-surface p-8 text-center text-muted-foreground">Loading…</div>;
+  }
 
   if (!isAdmin) {
     return (
