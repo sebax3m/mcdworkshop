@@ -48,6 +48,7 @@ function NewBooking() {
   const [wof, setWof] = useState<string>("");
   const [complaints, setComplaints] = useState<string>("");
   const [notes, setNotes] = useState<string>("");
+  const [instructions, setInstructions] = useState<string>("");
   const [techId, setTechId] = useState<string | null>(null);
   const [arrivalPhotos, setArrivalPhotos] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
