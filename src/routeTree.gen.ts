@@ -20,10 +20,12 @@ import { Route as AuthenticatedClockRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedCalendarRouteImport } from './routes/_authenticated/calendar'
 import { Route as AuthenticatedMotorcyclesIndexRouteImport } from './routes/_authenticated/motorcycles.index'
 import { Route as AuthenticatedJobsIndexRouteImport } from './routes/_authenticated/jobs.index'
+import { Route as AuthenticatedInvoicesIndexRouteImport } from './routes/_authenticated/invoices.index'
 import { Route as AuthenticatedBookingsIndexRouteImport } from './routes/_authenticated/bookings.index'
 import { Route as AuthenticatedMotorcyclesBikeIdRouteImport } from './routes/_authenticated/motorcycles.$bikeId'
 import { Route as AuthenticatedJobsNewRouteImport } from './routes/_authenticated/jobs.new'
 import { Route as AuthenticatedJobsJobIdRouteImport } from './routes/_authenticated/jobs.$jobId'
+import { Route as AuthenticatedInvoicesInvoiceIdRouteImport } from './routes/_authenticated/invoices.$invoiceId'
 import { Route as AuthenticatedBookingsNewRouteImport } from './routes/_authenticated/bookings.new'
 import { Route as AuthenticatedBookingsBookingIdRouteImport } from './routes/_authenticated/bookings.$bookingId'
 
@@ -82,6 +84,12 @@ const AuthenticatedJobsIndexRoute = AuthenticatedJobsIndexRouteImport.update({
   path: '/jobs/',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedInvoicesIndexRoute =
+  AuthenticatedInvoicesIndexRouteImport.update({
+    id: '/invoices/',
+    path: '/invoices/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedBookingsIndexRoute =
   AuthenticatedBookingsIndexRouteImport.update({
     id: '/bookings/',
@@ -104,6 +112,12 @@ const AuthenticatedJobsJobIdRoute = AuthenticatedJobsJobIdRouteImport.update({
   path: '/jobs/$jobId',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedInvoicesInvoiceIdRoute =
+  AuthenticatedInvoicesInvoiceIdRouteImport.update({
+    id: '/invoices/$invoiceId',
+    path: '/invoices/$invoiceId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedBookingsNewRoute =
   AuthenticatedBookingsNewRouteImport.update({
     id: '/bookings/new',
@@ -128,10 +142,12 @@ export interface FileRoutesByFullPath {
   '/templates': typeof AuthenticatedTemplatesRoute
   '/bookings/$bookingId': typeof AuthenticatedBookingsBookingIdRoute
   '/bookings/new': typeof AuthenticatedBookingsNewRoute
+  '/invoices/$invoiceId': typeof AuthenticatedInvoicesInvoiceIdRoute
   '/jobs/$jobId': typeof AuthenticatedJobsJobIdRoute
   '/jobs/new': typeof AuthenticatedJobsNewRoute
   '/motorcycles/$bikeId': typeof AuthenticatedMotorcyclesBikeIdRoute
   '/bookings/': typeof AuthenticatedBookingsIndexRoute
+  '/invoices/': typeof AuthenticatedInvoicesIndexRoute
   '/jobs/': typeof AuthenticatedJobsIndexRoute
   '/motorcycles/': typeof AuthenticatedMotorcyclesIndexRoute
 }
@@ -146,10 +162,12 @@ export interface FileRoutesByTo {
   '/templates': typeof AuthenticatedTemplatesRoute
   '/bookings/$bookingId': typeof AuthenticatedBookingsBookingIdRoute
   '/bookings/new': typeof AuthenticatedBookingsNewRoute
+  '/invoices/$invoiceId': typeof AuthenticatedInvoicesInvoiceIdRoute
   '/jobs/$jobId': typeof AuthenticatedJobsJobIdRoute
   '/jobs/new': typeof AuthenticatedJobsNewRoute
   '/motorcycles/$bikeId': typeof AuthenticatedMotorcyclesBikeIdRoute
   '/bookings': typeof AuthenticatedBookingsIndexRoute
+  '/invoices': typeof AuthenticatedInvoicesIndexRoute
   '/jobs': typeof AuthenticatedJobsIndexRoute
   '/motorcycles': typeof AuthenticatedMotorcyclesIndexRoute
 }
@@ -166,10 +184,12 @@ export interface FileRoutesById {
   '/_authenticated/templates': typeof AuthenticatedTemplatesRoute
   '/_authenticated/bookings/$bookingId': typeof AuthenticatedBookingsBookingIdRoute
   '/_authenticated/bookings/new': typeof AuthenticatedBookingsNewRoute
+  '/_authenticated/invoices/$invoiceId': typeof AuthenticatedInvoicesInvoiceIdRoute
   '/_authenticated/jobs/$jobId': typeof AuthenticatedJobsJobIdRoute
   '/_authenticated/jobs/new': typeof AuthenticatedJobsNewRoute
   '/_authenticated/motorcycles/$bikeId': typeof AuthenticatedMotorcyclesBikeIdRoute
   '/_authenticated/bookings/': typeof AuthenticatedBookingsIndexRoute
+  '/_authenticated/invoices/': typeof AuthenticatedInvoicesIndexRoute
   '/_authenticated/jobs/': typeof AuthenticatedJobsIndexRoute
   '/_authenticated/motorcycles/': typeof AuthenticatedMotorcyclesIndexRoute
 }
@@ -186,10 +206,12 @@ export interface FileRouteTypes {
     | '/templates'
     | '/bookings/$bookingId'
     | '/bookings/new'
+    | '/invoices/$invoiceId'
     | '/jobs/$jobId'
     | '/jobs/new'
     | '/motorcycles/$bikeId'
     | '/bookings/'
+    | '/invoices/'
     | '/jobs/'
     | '/motorcycles/'
   fileRoutesByTo: FileRoutesByTo
@@ -204,10 +226,12 @@ export interface FileRouteTypes {
     | '/templates'
     | '/bookings/$bookingId'
     | '/bookings/new'
+    | '/invoices/$invoiceId'
     | '/jobs/$jobId'
     | '/jobs/new'
     | '/motorcycles/$bikeId'
     | '/bookings'
+    | '/invoices'
     | '/jobs'
     | '/motorcycles'
   id:
@@ -223,10 +247,12 @@ export interface FileRouteTypes {
     | '/_authenticated/templates'
     | '/_authenticated/bookings/$bookingId'
     | '/_authenticated/bookings/new'
+    | '/_authenticated/invoices/$invoiceId'
     | '/_authenticated/jobs/$jobId'
     | '/_authenticated/jobs/new'
     | '/_authenticated/motorcycles/$bikeId'
     | '/_authenticated/bookings/'
+    | '/_authenticated/invoices/'
     | '/_authenticated/jobs/'
     | '/_authenticated/motorcycles/'
   fileRoutesById: FileRoutesById
@@ -316,6 +342,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedJobsIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/invoices/': {
+      id: '/_authenticated/invoices/'
+      path: '/invoices'
+      fullPath: '/invoices/'
+      preLoaderRoute: typeof AuthenticatedInvoicesIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/bookings/': {
       id: '/_authenticated/bookings/'
       path: '/bookings'
@@ -344,6 +377,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedJobsJobIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/invoices/$invoiceId': {
+      id: '/_authenticated/invoices/$invoiceId'
+      path: '/invoices/$invoiceId'
+      fullPath: '/invoices/$invoiceId'
+      preLoaderRoute: typeof AuthenticatedInvoicesInvoiceIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/bookings/new': {
       id: '/_authenticated/bookings/new'
       path: '/bookings/new'
@@ -370,10 +410,12 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedTemplatesRoute: typeof AuthenticatedTemplatesRoute
   AuthenticatedBookingsBookingIdRoute: typeof AuthenticatedBookingsBookingIdRoute
   AuthenticatedBookingsNewRoute: typeof AuthenticatedBookingsNewRoute
+  AuthenticatedInvoicesInvoiceIdRoute: typeof AuthenticatedInvoicesInvoiceIdRoute
   AuthenticatedJobsJobIdRoute: typeof AuthenticatedJobsJobIdRoute
   AuthenticatedJobsNewRoute: typeof AuthenticatedJobsNewRoute
   AuthenticatedMotorcyclesBikeIdRoute: typeof AuthenticatedMotorcyclesBikeIdRoute
   AuthenticatedBookingsIndexRoute: typeof AuthenticatedBookingsIndexRoute
+  AuthenticatedInvoicesIndexRoute: typeof AuthenticatedInvoicesIndexRoute
   AuthenticatedJobsIndexRoute: typeof AuthenticatedJobsIndexRoute
   AuthenticatedMotorcyclesIndexRoute: typeof AuthenticatedMotorcyclesIndexRoute
 }
@@ -387,10 +429,12 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedTemplatesRoute: AuthenticatedTemplatesRoute,
   AuthenticatedBookingsBookingIdRoute: AuthenticatedBookingsBookingIdRoute,
   AuthenticatedBookingsNewRoute: AuthenticatedBookingsNewRoute,
+  AuthenticatedInvoicesInvoiceIdRoute: AuthenticatedInvoicesInvoiceIdRoute,
   AuthenticatedJobsJobIdRoute: AuthenticatedJobsJobIdRoute,
   AuthenticatedJobsNewRoute: AuthenticatedJobsNewRoute,
   AuthenticatedMotorcyclesBikeIdRoute: AuthenticatedMotorcyclesBikeIdRoute,
   AuthenticatedBookingsIndexRoute: AuthenticatedBookingsIndexRoute,
+  AuthenticatedInvoicesIndexRoute: AuthenticatedInvoicesIndexRoute,
   AuthenticatedJobsIndexRoute: AuthenticatedJobsIndexRoute,
   AuthenticatedMotorcyclesIndexRoute: AuthenticatedMotorcyclesIndexRoute,
 }
