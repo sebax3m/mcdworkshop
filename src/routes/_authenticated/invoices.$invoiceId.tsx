@@ -587,18 +587,15 @@ function ServiceChecks({
         </div>
       </div>
       {items.length > 0 && (
-        <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1.5 text-sm">
+        <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1 text-xs">
           {items.map((t: any) => (
             <li key={t.id} className="group flex items-start gap-2">
-              <span
-                className={`mt-0.5 grid h-4 w-4 flex-none place-items-center rounded-sm border ${
-                  t.is_done
-                    ? "border-emerald-500/60 bg-emerald-500/15 text-emerald-500"
-                    : "border-border text-muted-foreground/40"
+              <Check
+                className={`h-3.5 w-3.5 mt-0.5 flex-none ${
+                  t.is_done ? "text-emerald-500" : "text-muted-foreground/30"
                 }`}
-              >
-                {t.is_done && <Check className="h-3 w-3" strokeWidth={3} />}
-              </span>
+                strokeWidth={3}
+              />
               <div className="min-w-0 flex-1">
                 <EditableText
                   value={t.label}
@@ -694,7 +691,7 @@ function NotesBox({
         onChange={(e) => setValue(e.target.value)}
         onBlur={save}
         placeholder="Add notes for the customer — recommendations, follow-ups, parts to order next service…"
-        rows={6}
+        rows={4}
         className="w-full rounded-lg border border-border bg-background/50 p-3 text-sm leading-relaxed outline-none focus:border-primary resize-y print:border-border print:bg-transparent print:resize-none"
       />
     </div>
