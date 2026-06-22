@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -172,10 +172,9 @@ function Bikes() {
 
 function BikePhotoThumb({ path }: { path: string }) {
   const [url, setUrl] = useState("");
-  useState(() => {
+  useEffect(() => {
     import("@/lib/photos").then(({ getSignedUrl }) => getSignedUrl(path).then(setUrl));
-    return undefined as any;
-  });
+  }, [path]);
   if (!url) return <div className="h-full w-full animate-pulse bg-muted" />;
   return <img src={url} alt="" className="h-full w-full object-cover" />;
 }
