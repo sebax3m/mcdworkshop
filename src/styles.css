@@ -107,6 +107,12 @@
   --gradient-gold: linear-gradient(135deg, oklch(0.86 0.13 88) 0%, oklch(0.72 0.14 70) 100%);
   --shadow-gold: 0 10px 40px -10px oklch(0.81 0.13 82 / 0.35);
   --shadow-card: 0 1px 0 0 oklch(1 0 0 / 0.04) inset, 0 8px 24px -12px oklch(0 0 0 / 0.6);
+
+  /* APEX MOTO LAB racing red accent */
+  --apex-red: oklch(0.62 0.23 27);
+  --apex-red-glow: oklch(0.7 0.25 27);
+  --gradient-apex: linear-gradient(135deg, oklch(0.86 0.13 88) 0%, oklch(0.72 0.14 70) 55%, oklch(0.6 0.22 27) 100%);
+  --shadow-red: 0 8px 32px -8px oklch(0.62 0.23 27 / 0.45);
 }
 
 @layer base {
@@ -149,4 +155,23 @@
   border: 1px solid var(--border);
   box-shadow: var(--shadow-card);
   border-radius: var(--radius-xl);
+}
+
+@utility apex-glow {
+  box-shadow: 0 0 0 1px oklch(0.62 0.23 27 / 0.4), 0 10px 40px -10px oklch(0.62 0.23 27 / 0.5);
+}
+
+@utility text-apex {
+  color: var(--apex-red);
+}
+
+@utility bg-apex {
+  background: var(--apex-red);
+  color: white;
+}
+
+@utility apex-divider {
+  background: linear-gradient(90deg, transparent, var(--apex-red) 50%, transparent);
+  height: 2px;
+  border-radius: 2px;
 }

@@ -1,9 +1,10 @@
 import { Link, Outlet, useRouterState, useNavigate } from "@tanstack/react-router";
-import { LayoutDashboard, Wrench, Users, Bike, Timer, LogOut, Plus, FileStack } from "lucide-react";
+import { CalendarDays, Wrench, Users, Bike, Timer, LogOut, Plus, FileStack, ClipboardList } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { initials } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import apexLogoUrl from "@/assets/apex-logo.png";
 
 export function AppShell() {
   const nav = useNavigate();
@@ -11,11 +12,11 @@ export function AppShell() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
   const tabs = [
-    { to: "/dashboard", label: "Today", icon: LayoutDashboard },
+    { to: "/calendar", label: "Calendar", icon: CalendarDays },
+    { to: "/bookings", label: "Bookings", icon: ClipboardList },
     { to: "/jobs", label: "Jobs", icon: Wrench },
-    { to: "/clock", label: "Clock", icon: Timer },
-    { to: "/customers", label: "Customers", icon: Users },
     { to: "/motorcycles", label: "Bikes", icon: Bike },
+    { to: "/clock", label: "Clock", icon: Timer },
   ];
 
   async function signOut() {
@@ -26,21 +27,25 @@ export function AppShell() {
   return (
     <div className="min-h-screen flex flex-col bg-background text-foreground">
       <header className="sticky top-0 z-30 border-b border-border/60 bg-background/85 backdrop-blur-xl">
-        <div className="mx-auto flex max-w-5xl items-center gap-3 px-4 py-3">
-          <Link to="/dashboard" className="flex items-center gap-2 min-w-0">
-            <div className="grid h-9 w-9 shrink-0 place-items-center rounded-lg gold-surface font-bold">G</div>
-            <div className="min-w-0">
-              <div className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground leading-none">The Garage</div>
-              <div className="font-display text-sm font-semibold truncate">Performance Workshop</div>
+        <div className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-3">
+          <Link to="/calendar" className="flex items-center gap-2.5 min-w-0 group">
+            <img
+              src={apexLogoUrl}
+              alt="APEX MOTO LAB"
+              className="h-9 w-auto shrink-0 drop-shadow-[0_0_12px_oklch(0.81_0.13_82/0.35)] transition-transform group-hover:scale-105"
+            />
+            <div className="hidden sm:block min-w-0">
+              <div className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground leading-none">Workshop OS</div>
+              <div className="font-display text-sm font-bold tracking-wide truncate">APEX MOTO LAB</div>
             </div>
           </Link>
           <div className="ml-auto flex items-center gap-2">
             {isAdmin && (
               <Link
-                to="/jobs/new"
-                className="hidden sm:inline-flex items-center gap-1.5 rounded-lg gold-surface px-3 py-2 text-sm font-semibold"
+                to="/bookings/new"
+                className="hidden sm:inline-flex items-center gap-1.5 rounded-lg gold-surface px-3 py-2 text-sm font-semibold hover:scale-[1.02] transition-transform"
               >
-                <Plus className="h-4 w-4" /> New Job
+                <Plus className="h-4 w-4" /> Book In
               </Link>
             )}
             <div className="grid h-9 w-9 place-items-center rounded-full border border-border bg-muted text-xs font-semibold">
@@ -57,7 +62,7 @@ export function AppShell() {
         </div>
       </header>
 
-      <main className="flex-1 mx-auto w-full max-w-5xl px-4 pt-5 pb-32 sm:pb-10">
+      <main className="flex-1 mx-auto w-full max-w-6xl px-4 pt-5 pb-32 sm:pb-24">
         <Outlet />
       </main>
 

@@ -14,6 +14,113 @@ export type Database = {
   }
   public: {
     Tables: {
+      bookings: {
+        Row: {
+          arrival_photos: Json
+          assigned_tech_id: string | null
+          color: string | null
+          complaints: string | null
+          created_at: string
+          created_by: string | null
+          customer_id: string
+          damage_photos: Json
+          drop_off_time: string | null
+          estimated_hours: number | null
+          id: string
+          job_id: string | null
+          mileage: number | null
+          motorcycle_id: string
+          notes: string | null
+          rego: string | null
+          scheduled_date: string
+          service_template_id: string | null
+          service_type: string
+          status: string
+          updated_at: string
+          vin: string | null
+          wof_expiry: string | null
+        }
+        Insert: {
+          arrival_photos?: Json
+          assigned_tech_id?: string | null
+          color?: string | null
+          complaints?: string | null
+          created_at?: string
+          created_by?: string | null
+          customer_id: string
+          damage_photos?: Json
+          drop_off_time?: string | null
+          estimated_hours?: number | null
+          id?: string
+          job_id?: string | null
+          mileage?: number | null
+          motorcycle_id: string
+          notes?: string | null
+          rego?: string | null
+          scheduled_date: string
+          service_template_id?: string | null
+          service_type: string
+          status?: string
+          updated_at?: string
+          vin?: string | null
+          wof_expiry?: string | null
+        }
+        Update: {
+          arrival_photos?: Json
+          assigned_tech_id?: string | null
+          color?: string | null
+          complaints?: string | null
+          created_at?: string
+          created_by?: string | null
+          customer_id?: string
+          damage_photos?: Json
+          drop_off_time?: string | null
+          estimated_hours?: number | null
+          id?: string
+          job_id?: string | null
+          mileage?: number | null
+          motorcycle_id?: string
+          notes?: string | null
+          rego?: string | null
+          scheduled_date?: string
+          service_template_id?: string | null
+          service_type?: string
+          status?: string
+          updated_at?: string
+          vin?: string | null
+          wof_expiry?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bookings_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_motorcycle_id_fkey"
+            columns: ["motorcycle_id"]
+            isOneToOne: false
+            referencedRelation: "motorcycles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_service_template_id_fkey"
+            columns: ["service_template_id"]
+            isOneToOne: false
+            referencedRelation: "service_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clock_events: {
         Row: {
           event_type: Database["public"]["Enums"]["clock_event_type"]
@@ -76,6 +183,151 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      dyno_results: {
+        Row: {
+          after_url: string | null
+          before_url: string | null
+          created_at: string
+          created_by: string | null
+          graph_url: string | null
+          id: string
+          job_id: string | null
+          max_power: number | null
+          max_power_rpm: number | null
+          max_torque: number | null
+          max_torque_rpm: number | null
+          motorcycle_id: string
+          notes: string | null
+          run_date: string
+          run_type: string
+        }
+        Insert: {
+          after_url?: string | null
+          before_url?: string | null
+          created_at?: string
+          created_by?: string | null
+          graph_url?: string | null
+          id?: string
+          job_id?: string | null
+          max_power?: number | null
+          max_power_rpm?: number | null
+          max_torque?: number | null
+          max_torque_rpm?: number | null
+          motorcycle_id: string
+          notes?: string | null
+          run_date?: string
+          run_type?: string
+        }
+        Update: {
+          after_url?: string | null
+          before_url?: string | null
+          created_at?: string
+          created_by?: string | null
+          graph_url?: string | null
+          id?: string
+          job_id?: string | null
+          max_power?: number | null
+          max_power_rpm?: number | null
+          max_torque?: number | null
+          max_torque_rpm?: number | null
+          motorcycle_id?: string
+          notes?: string | null
+          run_date?: string
+          run_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dyno_results_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dyno_results_motorcycle_id_fkey"
+            columns: ["motorcycle_id"]
+            isOneToOne: false
+            referencedRelation: "motorcycles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      invoices: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          customer_id: string | null
+          gst: number
+          id: string
+          invoice_number: string
+          job_id: string | null
+          labour_total: number
+          motorcycle_id: string | null
+          notes: string | null
+          parts_total: number
+          snapshot: Json | null
+          status: string
+          total: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          customer_id?: string | null
+          gst?: number
+          id?: string
+          invoice_number: string
+          job_id?: string | null
+          labour_total?: number
+          motorcycle_id?: string | null
+          notes?: string | null
+          parts_total?: number
+          snapshot?: Json | null
+          status?: string
+          total?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          customer_id?: string | null
+          gst?: number
+          id?: string
+          invoice_number?: string
+          job_id?: string | null
+          labour_total?: number
+          motorcycle_id?: string | null
+          notes?: string | null
+          parts_total?: number
+          snapshot?: Json | null
+          status?: string
+          total?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoices_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_motorcycle_id_fkey"
+            columns: ["motorcycle_id"]
+            isOneToOne: false
+            referencedRelation: "motorcycles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       job_notes: {
         Row: {
@@ -187,6 +439,8 @@ export type Database = {
       }
       jobs: {
         Row: {
+          assigned_tech_id: string | null
+          color: string | null
           complaint: string | null
           completed_at: string | null
           created_at: string
@@ -198,6 +452,7 @@ export type Database = {
           job_number: number
           motorcycle_id: string
           odometer: number | null
+          scheduled_at: string | null
           scheduled_for: string | null
           started_at: string | null
           status: Database["public"]["Enums"]["job_status"]
@@ -207,6 +462,8 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          assigned_tech_id?: string | null
+          color?: string | null
           complaint?: string | null
           completed_at?: string | null
           created_at?: string
@@ -218,6 +475,7 @@ export type Database = {
           job_number?: number
           motorcycle_id: string
           odometer?: number | null
+          scheduled_at?: string | null
           scheduled_for?: string | null
           started_at?: string | null
           status?: Database["public"]["Enums"]["job_status"]
@@ -227,6 +485,8 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          assigned_tech_id?: string | null
+          color?: string | null
           complaint?: string | null
           completed_at?: string | null
           created_at?: string
@@ -238,6 +498,7 @@ export type Database = {
           job_number?: number
           motorcycle_id?: string
           odometer?: number | null
+          scheduled_at?: string | null
           scheduled_for?: string | null
           started_at?: string | null
           status?: Database["public"]["Enums"]["job_status"]
@@ -272,6 +533,8 @@ export type Database = {
       }
       motorcycles: {
         Row: {
+          brake_condition: string | null
+          chain_condition: string | null
           created_at: string
           customer_id: string
           ecu_info: string | null
@@ -281,12 +544,18 @@ export type Database = {
           model: string
           modifications: string | null
           notes: string | null
+          photos: Json
           rego: string | null
+          rego_expiry: string | null
+          tyre_condition: string | null
           updated_at: string
           vin: string | null
+          wof_expiry: string | null
           year: number | null
         }
         Insert: {
+          brake_condition?: string | null
+          chain_condition?: string | null
           created_at?: string
           customer_id: string
           ecu_info?: string | null
@@ -296,12 +565,18 @@ export type Database = {
           model: string
           modifications?: string | null
           notes?: string | null
+          photos?: Json
           rego?: string | null
+          rego_expiry?: string | null
+          tyre_condition?: string | null
           updated_at?: string
           vin?: string | null
+          wof_expiry?: string | null
           year?: number | null
         }
         Update: {
+          brake_condition?: string | null
+          chain_condition?: string | null
           created_at?: string
           customer_id?: string
           ecu_info?: string | null
@@ -311,9 +586,13 @@ export type Database = {
           model?: string
           modifications?: string | null
           notes?: string | null
+          photos?: Json
           rego?: string | null
+          rego_expiry?: string | null
+          tyre_condition?: string | null
           updated_at?: string
           vin?: string | null
+          wof_expiry?: string | null
           year?: number | null
         }
         Relationships: [
@@ -322,6 +601,53 @@ export type Database = {
             columns: ["customer_id"]
             isOneToOne: false
             referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      parts: {
+        Row: {
+          added_by: string | null
+          cost: number | null
+          created_at: string
+          id: string
+          job_id: string
+          name: string
+          on_invoice: boolean
+          quantity: number
+          retail: number | null
+          supplier: string | null
+        }
+        Insert: {
+          added_by?: string | null
+          cost?: number | null
+          created_at?: string
+          id?: string
+          job_id: string
+          name: string
+          on_invoice?: boolean
+          quantity?: number
+          retail?: number | null
+          supplier?: string | null
+        }
+        Update: {
+          added_by?: string | null
+          cost?: number | null
+          created_at?: string
+          id?: string
+          job_id?: string
+          name?: string
+          on_invoice?: boolean
+          quantity?: number
+          retail?: number | null
+          supplier?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "parts_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
             referencedColumns: ["id"]
           },
         ]
