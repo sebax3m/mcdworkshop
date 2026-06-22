@@ -13,6 +13,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedTemplatesRouteImport } from './routes/_authenticated/templates'
+import { Route as AuthenticatedInventoryRouteImport } from './routes/_authenticated/inventory'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedCustomersRouteImport } from './routes/_authenticated/customers'
 import { Route as AuthenticatedClockRouteImport } from './routes/_authenticated/clock'
@@ -43,6 +44,11 @@ const IndexRoute = IndexRouteImport.update({
 const AuthenticatedTemplatesRoute = AuthenticatedTemplatesRouteImport.update({
   id: '/templates',
   path: '/templates',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedInventoryRoute = AuthenticatedInventoryRouteImport.update({
+  id: '/inventory',
+  path: '/inventory',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
@@ -118,6 +124,7 @@ export interface FileRoutesByFullPath {
   '/clock': typeof AuthenticatedClockRoute
   '/customers': typeof AuthenticatedCustomersRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/inventory': typeof AuthenticatedInventoryRoute
   '/templates': typeof AuthenticatedTemplatesRoute
   '/bookings/$bookingId': typeof AuthenticatedBookingsBookingIdRoute
   '/bookings/new': typeof AuthenticatedBookingsNewRoute
@@ -135,6 +142,7 @@ export interface FileRoutesByTo {
   '/clock': typeof AuthenticatedClockRoute
   '/customers': typeof AuthenticatedCustomersRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/inventory': typeof AuthenticatedInventoryRoute
   '/templates': typeof AuthenticatedTemplatesRoute
   '/bookings/$bookingId': typeof AuthenticatedBookingsBookingIdRoute
   '/bookings/new': typeof AuthenticatedBookingsNewRoute
@@ -154,6 +162,7 @@ export interface FileRoutesById {
   '/_authenticated/clock': typeof AuthenticatedClockRoute
   '/_authenticated/customers': typeof AuthenticatedCustomersRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/inventory': typeof AuthenticatedInventoryRoute
   '/_authenticated/templates': typeof AuthenticatedTemplatesRoute
   '/_authenticated/bookings/$bookingId': typeof AuthenticatedBookingsBookingIdRoute
   '/_authenticated/bookings/new': typeof AuthenticatedBookingsNewRoute
@@ -173,6 +182,7 @@ export interface FileRouteTypes {
     | '/clock'
     | '/customers'
     | '/dashboard'
+    | '/inventory'
     | '/templates'
     | '/bookings/$bookingId'
     | '/bookings/new'
@@ -190,6 +200,7 @@ export interface FileRouteTypes {
     | '/clock'
     | '/customers'
     | '/dashboard'
+    | '/inventory'
     | '/templates'
     | '/bookings/$bookingId'
     | '/bookings/new'
@@ -208,6 +219,7 @@ export interface FileRouteTypes {
     | '/_authenticated/clock'
     | '/_authenticated/customers'
     | '/_authenticated/dashboard'
+    | '/_authenticated/inventory'
     | '/_authenticated/templates'
     | '/_authenticated/bookings/$bookingId'
     | '/_authenticated/bookings/new'
@@ -253,6 +265,13 @@ declare module '@tanstack/react-router' {
       path: '/templates'
       fullPath: '/templates'
       preLoaderRoute: typeof AuthenticatedTemplatesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/inventory': {
+      id: '/_authenticated/inventory'
+      path: '/inventory'
+      fullPath: '/inventory'
+      preLoaderRoute: typeof AuthenticatedInventoryRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/dashboard': {
@@ -347,6 +366,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedClockRoute: typeof AuthenticatedClockRoute
   AuthenticatedCustomersRoute: typeof AuthenticatedCustomersRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedInventoryRoute: typeof AuthenticatedInventoryRoute
   AuthenticatedTemplatesRoute: typeof AuthenticatedTemplatesRoute
   AuthenticatedBookingsBookingIdRoute: typeof AuthenticatedBookingsBookingIdRoute
   AuthenticatedBookingsNewRoute: typeof AuthenticatedBookingsNewRoute
@@ -363,6 +383,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedClockRoute: AuthenticatedClockRoute,
   AuthenticatedCustomersRoute: AuthenticatedCustomersRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedInventoryRoute: AuthenticatedInventoryRoute,
   AuthenticatedTemplatesRoute: AuthenticatedTemplatesRoute,
   AuthenticatedBookingsBookingIdRoute: AuthenticatedBookingsBookingIdRoute,
   AuthenticatedBookingsNewRoute: AuthenticatedBookingsNewRoute,

@@ -253,6 +253,54 @@ export type Database = {
           },
         ]
       }
+      inventory_items: {
+        Row: {
+          brand: string | null
+          category: string
+          created_at: string
+          id: string
+          min_stock: number
+          name: string
+          notes: string | null
+          sku: string | null
+          stock_qty: number
+          type: string | null
+          unit: string
+          unit_price: number
+          updated_at: string
+        }
+        Insert: {
+          brand?: string | null
+          category: string
+          created_at?: string
+          id?: string
+          min_stock?: number
+          name: string
+          notes?: string | null
+          sku?: string | null
+          stock_qty?: number
+          type?: string | null
+          unit?: string
+          unit_price?: number
+          updated_at?: string
+        }
+        Update: {
+          brand?: string | null
+          category?: string
+          created_at?: string
+          id?: string
+          min_stock?: number
+          name?: string
+          notes?: string | null
+          sku?: string | null
+          stock_qty?: number
+          type?: string | null
+          unit?: string
+          unit_price?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       invoices: {
         Row: {
           created_at: string
@@ -405,6 +453,7 @@ export type Database = {
           is_done: boolean
           job_id: string
           label: string
+          note: string | null
           sort_order: number
         }
         Insert: {
@@ -415,6 +464,7 @@ export type Database = {
           is_done?: boolean
           job_id: string
           label: string
+          note?: string | null
           sort_order?: number
         }
         Update: {
@@ -425,6 +475,7 @@ export type Database = {
           is_done?: boolean
           job_id?: string
           label?: string
+          note?: string | null
           sort_order?: number
         }
         Relationships: [
@@ -454,6 +505,7 @@ export type Database = {
           odometer: number | null
           scheduled_at: string | null
           scheduled_for: string | null
+          service_data: Json
           started_at: string | null
           status: Database["public"]["Enums"]["job_status"]
           technician_id: string | null
@@ -477,6 +529,7 @@ export type Database = {
           odometer?: number | null
           scheduled_at?: string | null
           scheduled_for?: string | null
+          service_data?: Json
           started_at?: string | null
           status?: Database["public"]["Enums"]["job_status"]
           technician_id?: string | null
@@ -500,6 +553,7 @@ export type Database = {
           odometer?: number | null
           scheduled_at?: string | null
           scheduled_for?: string | null
+          service_data?: Json
           started_at?: string | null
           status?: Database["public"]["Enums"]["job_status"]
           technician_id?: string | null
@@ -537,6 +591,7 @@ export type Database = {
           chain_condition: string | null
           created_at: string
           customer_id: string
+          cylinders: number
           ecu_info: string | null
           id: string
           make: string
@@ -558,6 +613,7 @@ export type Database = {
           chain_condition?: string | null
           created_at?: string
           customer_id: string
+          cylinders?: number
           ecu_info?: string | null
           id?: string
           make: string
@@ -579,6 +635,7 @@ export type Database = {
           chain_condition?: string | null
           created_at?: string
           customer_id?: string
+          cylinders?: number
           ecu_info?: string | null
           id?: string
           make?: string
