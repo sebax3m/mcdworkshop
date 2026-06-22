@@ -526,11 +526,6 @@ function ServiceChecks({
   title,
   items,
   onChanged,
-}: any) { return null as any; }
-  jobId,
-  title,
-  items,
-  onChanged,
 }: {
   jobId: string | null;
   title: string | null;
