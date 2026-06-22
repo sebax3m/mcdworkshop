@@ -182,7 +182,7 @@ function InvoiceDetail() {
               </thead>
               <tbody>
                 {Number(inv.labour_total) > 0 && (() => {
-                  const rateEx = 130 / 1.1;
+                  const rateEx = 130 / 1.15;
                   const hours = Number(inv.labour_total) / rateEx;
                   return (
                     <tr className="border-b border-border/40">
@@ -224,7 +224,7 @@ function InvoiceDetail() {
               <div className="flex justify-between"><span className="text-muted-foreground">Labour</span><span className="tabular-nums">${Number(inv.labour_total).toFixed(2)}</span></div>
               <div className="flex justify-between"><span className="text-muted-foreground">Parts</span><span className="tabular-nums">${Number(inv.parts_total).toFixed(2)}</span></div>
               <div className="flex justify-between pb-2 border-b border-border"><span className="text-muted-foreground">Subtotal</span><span className="tabular-nums">${subtotal.toFixed(2)}</span></div>
-              <div className="flex justify-between"><span className="text-muted-foreground">GST (10%)</span><span className="tabular-nums">${Number(inv.gst).toFixed(2)}</span></div>
+              <div className="flex justify-between"><span className="text-muted-foreground">GST (15%)</span><span className="tabular-nums">${Number(inv.gst).toFixed(2)}</span></div>
               <div className="flex justify-between pt-3 mt-1 border-t-2 border-foreground/80 font-display text-xl font-black">
                 <span>TOTAL</span>
                 <span className="gold-gradient-text tabular-nums">${Number(inv.total).toFixed(2)}</span>
