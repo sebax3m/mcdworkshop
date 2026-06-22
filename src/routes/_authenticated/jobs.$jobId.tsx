@@ -4,10 +4,12 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import { STATUS_META, STATUS_ORDER, formatMinutes, fullBike, initials } from "@/lib/format";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { toast } from "sonner";
-import { ArrowLeft, Play, Square, User, Bike as BikeIcon, ChevronDown, Check } from "lucide-react";
+import { ArrowLeft, Play, Square, User, Bike as BikeIcon, ChevronDown, Check, Droplet, Wrench, Package, Plus, X } from "lucide-react";
+import { detectServiceKind, KIND_META, SERVICE_PARTS } from "@/lib/service-kinds";
 
 export const Route = createFileRoute("/_authenticated/jobs/$jobId")({
   component: JobDetail,
@@ -54,6 +56,10 @@ function JobDetail() {
     enabled: !!job.data?.technician_id,
     queryFn: async () => (await supabase.from("profiles").select("full_name").eq("id", job.data!.technician_id!).maybeSingle()).data,
   });
+  const partsUsed = useQuery({
+    queryKey: ["job-parts", jobId],
+    queryFn: async () => (await supabase.from("parts").select("*").eq("job_id", jobId).order("created_at")).data ?? [],
+  });
 
   const activeTimer = useMemo(() => (time.data ?? []).find((t) => !t.ended_at && t.technician_id === user?.id), [time.data, user]);
   const totalMinutes = useMemo(() => (time.data ?? []).reduce((s, t) => s + (t.minutes ?? (t.ended_at ? Math.round((+new Date(t.ended_at) - +new Date(t.started_at)) / 60000) : 0)), 0), [time.data]);
@@ -64,6 +70,9 @@ function JobDetail() {
   const j = job.data;
   const meta = STATUS_META[j.status];
   const canEdit = isAdmin || j.technician_id === user?.id;
+  const kind = detectServiceKind(j.title);
+  const kindMeta = KIND_META[kind];
+  const cylinders = Math.max(1, Math.min(6, (j.motorcycles as any)?.cylinders ?? 4));
 
   async function toggleTask(taskId: string, isDone: boolean) {
     if (!canEdit) return;
@@ -115,7 +124,12 @@ function JobDetail() {
           <ArrowLeft className="h-4 w-4" />
         </button>
         <div className="min-w-0 flex-1">
-          <div className="text-xs uppercase tracking-[0.25em] text-muted-foreground">Job #{j.job_number}</div>
+          <div className="text-xs uppercase tracking-[0.25em] text-muted-foreground flex items-center gap-2">
+            Job #{j.job_number}
+            <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${kindMeta.cls}`}>
+              {kindMeta.label}
+            </span>
+          </div>
           <h1 className="font-display text-xl sm:text-2xl font-bold truncate">{j.title}</h1>
         </div>
         <StatusDropdown current={j.status} onChange={setStatus} disabled={!canEdit} />
@@ -160,25 +174,46 @@ function JobDetail() {
         </div>
         <div className="space-y-1.5">
           {(tasks.data ?? []).map((t) => (
-            <button
+            <TaskRow
               key={t.id}
-              onClick={() => toggleTask(t.id, t.is_done)}
-              disabled={!canEdit}
-              className={`w-full flex items-center gap-3 px-3 py-3 rounded-lg border text-left transition-colors ${
-                t.is_done ? "border-status-ready/30 bg-status-ready/5 text-muted-foreground line-through" : "border-border hover:border-primary/40"
-              }`}
-            >
-              <span className={`grid h-6 w-6 shrink-0 place-items-center rounded-md border ${t.is_done ? "bg-status-ready border-status-ready text-background" : "border-border"}`}>
-                {t.is_done && <Check className="h-3.5 w-3.5" />}
-              </span>
-              <span className="text-sm font-medium">{t.label}</span>
-            </button>
+              task={t}
+              canEdit={canEdit}
+              onToggle={() => toggleTask(t.id, t.is_done)}
+              onNoteSaved={() => qc.invalidateQueries({ queryKey: ["job-tasks", jobId] })}
+            />
           ))}
           {(!tasks.data || tasks.data.length === 0) && (
             <p className="text-sm text-muted-foreground text-center py-4">No checklist items.</p>
           )}
         </div>
       </section>
+
+      {/* Parts used (service-kind aware) */}
+      {SERVICE_PARTS[kind].length > 0 && (
+        <PartsSection
+          jobId={jobId}
+          canEdit={canEdit}
+          serviceData={(j.service_data as any) ?? {}}
+          fields={SERVICE_PARTS[kind]}
+          parts={partsUsed.data ?? []}
+          onChanged={() => {
+            qc.invalidateQueries({ queryKey: ["job", jobId] });
+            qc.invalidateQueries({ queryKey: ["job-parts", jobId] });
+            qc.invalidateQueries({ queryKey: ["inventory"] });
+          }}
+        />
+      )}
+
+      {/* Valve clearance diagram for Full service */}
+      {kind === "full" && (
+        <ValveClearanceSection
+          jobId={jobId}
+          cylinders={cylinders}
+          canEdit={canEdit}
+          data={((j.service_data as any) ?? {}).valves ?? {}}
+          onChanged={() => qc.invalidateQueries({ queryKey: ["job", jobId] })}
+        />
+      )}
 
       {/* Notes */}
       <section className="card-surface p-4">
