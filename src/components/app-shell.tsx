@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { initials } from "@/lib/format";
 import { cn } from "@/lib/utils";
-import apexLogo from "@/assets/apex-logo.png.asset.json";
+import apexLogoUrl from "@/assets/apex-logo.png";
 
 export function AppShell() {
   const nav = useNavigate();
@@ -30,7 +30,7 @@ export function AppShell() {
         <div className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-3">
           <Link to="/calendar" className="flex items-center gap-2.5 min-w-0 group">
             <img
-              src={apexLogo.url}
+              src={apexLogoUrl}
               alt="APEX MOTO LAB"
               className="h-9 w-auto shrink-0 drop-shadow-[0_0_12px_oklch(0.81_0.13_82/0.35)] transition-transform group-hover:scale-105"
             />
