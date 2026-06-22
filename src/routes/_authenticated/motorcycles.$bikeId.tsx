@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
+import { BikeMakeModelYear } from "@/components/BikeMakeModelYear";
 import { uploadPhoto } from "@/lib/photos";
 import { generateBikeImage } from "@/lib/bike-image.functions";
 
