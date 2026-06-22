@@ -186,6 +186,12 @@ function JobDetail() {
           .jobcard-print .card-surface { box-shadow: none !important; border-color: #d1d5db !important; background: #fff !important; }
           .no-print, .no-print * { display: none !important; }
         }
+        @keyframes printPulse {
+          0%, 100% { box-shadow: 0 0 0 0 rgba(212, 175, 55, 0.55); transform: translateY(0); }
+          50% { box-shadow: 0 0 0 10px rgba(212, 175, 55, 0); transform: translateY(-2px); }
+        }
+        .print-cta { animation: printPulse 2s ease-in-out infinite; }
+        .print-cta:hover { animation-play-state: paused; transform: translateY(-2px) scale(1.03); transition: transform 0.2s ease-out; }
       `}</style>
       <header className="flex items-center gap-3 no-print">
         <button onClick={() => nav({ to: "/jobs" })} className="grid h-9 w-9 place-items-center rounded-lg border border-border">
@@ -206,13 +212,59 @@ function JobDetail() {
         <StatusDropdown current={j.status} onChange={setStatus} disabled={!canEdit} />
       </header>
 
-      {/* Print-only header */}
-      <div className="hidden print:block border-b border-gray-300 pb-3 mb-3">
-        <div className="text-[10px] uppercase tracking-[0.25em] text-gray-500">
-          Job Card · Job #{j.job_number} · {kindMeta.label}
+      {/* Print-only compact summary */}
+      <div className="hidden print:block">
+        <div className="flex items-start justify-between gap-4 border-b-2 border-black pb-3 mb-4">
+          <div className="min-w-0">
+            <div className="text-[10px] uppercase tracking-[0.25em] text-gray-600">Apex Motorcycles · Job Card</div>
+            <h1 className="font-display text-2xl font-bold leading-tight">{j.title}</h1>
+            <div className="text-xs text-gray-700 mt-1">
+              {kindMeta.label}
+              {j.estimated_hours ? ` · Est. ${j.estimated_hours}h` : ""}
+              {" · "}Booked {j.scheduled_at ? new Date(j.scheduled_at).toLocaleDateString() : "—"}
+            </div>
+          </div>
+          <div className="text-right shrink-0">
+            <div className="text-[9px] uppercase tracking-[0.25em] text-gray-500">Job No.</div>
+            <div className="font-display text-4xl font-extrabold leading-none">#{j.job_number}</div>
+          </div>
         </div>
-        <h1 className="font-display text-2xl font-bold">{j.title}</h1>
+
+        <div className="grid grid-cols-2 gap-4 text-xs mb-4">
+          <div className="border border-gray-400 rounded p-2">
+            <div className="text-[9px] uppercase tracking-wider text-gray-500 mb-1">Vehicle</div>
+            <div className="font-bold">{fullBike(j.motorcycles as any)}</div>
+            <div className="grid grid-cols-2 gap-x-2 mt-1 text-[11px]">
+              <div><span className="text-gray-500">Rego:</span> {(j.motorcycles as any)?.rego ?? "—"}</div>
+              <div><span className="text-gray-500">Year:</span> {(j.motorcycles as any)?.year ?? "—"}</div>
+              <div><span className="text-gray-500">VIN:</span> {(j.motorcycles as any)?.vin ?? "—"}</div>
+              <div><span className="text-gray-500">Odo:</span> {(j.motorcycles as any)?.odometer ?? "—"}</div>
+              <div><span className="text-gray-500">Cyl:</span> {cylinders}</div>
+              <div><span className="text-gray-500">Colour:</span> {(j.motorcycles as any)?.color ?? "—"}</div>
+            </div>
+          </div>
+          <div className="border border-gray-400 rounded p-2">
+            <div className="text-[9px] uppercase tracking-wider text-gray-500 mb-1">Customer</div>
+            <div className="font-bold">{j.customers?.first_name ?? ""} {j.customers?.last_name ?? ""}</div>
+            <div className="text-[11px] mt-1">
+              <div><span className="text-gray-500">Phone:</span> {j.customers?.phone ?? "—"}</div>
+              <div><span className="text-gray-500">Email:</span> {j.customers?.email ?? "—"}</div>
+            </div>
+          </div>
+        </div>
+
+        {j.complaint && (
+          <div className="border border-gray-400 rounded p-2 mb-4 text-xs">
+            <div className="text-[9px] uppercase tracking-wider text-gray-500 mb-1">Customer Complaint / Instructions</div>
+            <p className="whitespace-pre-wrap">{j.complaint}</p>
+          </div>
+        )}
+
+        <div className="text-[9px] uppercase tracking-wider text-gray-500 mb-1">Instructions — follow checklist below</div>
       </div>
+
+      {/* Hide-on-print sections wrapped via print:hidden on each card */}
+      <div className="print:hidden">
 
       <div className="card-surface p-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
         <InfoRow icon={User} label="Customer" value={`${j.customers?.first_name ?? ""} ${j.customers?.last_name ?? ""}`} hint={j.customers?.phone} />
@@ -240,6 +292,7 @@ function JobDetail() {
             )
           )}
         </div>
+      </div>
       </div>
 
       {/* Service Template */}
@@ -307,14 +360,14 @@ function JobDetail() {
       </section>
 
       {j.complaint && (
-        <section className="card-surface p-4">
+        <section className="card-surface p-4 print:hidden">
           <div className="text-xs uppercase tracking-wider text-muted-foreground mb-1">Customer Complaint</div>
           <p className="text-sm whitespace-pre-wrap">{j.complaint}</p>
         </section>
       )}
 
       {canEdit && (
-        <section className="card-surface p-4">
+        <section className="card-surface p-4 print:hidden">
           <div className="flex items-center justify-between gap-3 flex-wrap">
             <div>
               <h2 className="font-display text-lg font-semibold">Invoice</h2>
@@ -339,10 +392,14 @@ function JobDetail() {
         </section>
       )}
 
-      <div className="flex justify-end pt-2 no-print">
-        <Button onClick={() => window.print()} variant="outline" size="sm" className="gap-2">
-          <Printer className="h-4 w-4" /> Print Job Card
-        </Button>
+      <div className="flex justify-center pt-6 pb-2 no-print">
+        <button
+          onClick={() => window.print()}
+          className="print-cta gold-surface inline-flex items-center gap-3 rounded-full px-8 py-4 font-display text-base font-bold uppercase tracking-wider shadow-lg"
+        >
+          <Printer className="h-5 w-5" />
+          Print Job Card
+        </button>
       </div>
     </div>
   );
