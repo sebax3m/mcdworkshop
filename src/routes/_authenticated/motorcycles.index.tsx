@@ -5,10 +5,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Bike as BikeIcon, Plus, Search, Camera, X } from "lucide-react";
+import { Bike as BikeIcon, Plus, Search, Camera, X, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { fullBike } from "@/lib/format";
 import { uploadPhoto } from "@/lib/photos";
+import { generateBikeImage } from "@/lib/bike-image.functions";
 
 export const Route = createFileRoute("/_authenticated/motorcycles/")({
   component: Bikes,
@@ -21,6 +22,7 @@ function Bikes() {
   const [f, setF] = useState({ customer_id: "", make: "", model: "", year: "", vin: "", rego: "", mileage: "", ecu_info: "", modifications: "" });
   const [photos, setPhotos] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
+  const [generating, setGenerating] = useState(false);
 
   const customers = useQuery({ queryKey: ["customers-options"], queryFn: async () => (await supabase.from("customers").select("id, first_name, last_name").order("first_name")).data ?? [] });
   const bikes = useQuery({
@@ -61,6 +63,27 @@ function Bikes() {
       toast.error(err.message ?? "Photo upload failed");
     } finally {
       setUploading(false);
+    }
+  }
+
+  async function autoGenerateBikePhoto() {
+    if (!f.make || !f.model) return toast.error("Enter make and model first");
+    setGenerating(true);
+    try {
+      const { b64_json } = await generateBikeImage({
+        data: { make: f.make, model: f.model, year: f.year || undefined },
+      });
+      const bin = atob(b64_json);
+      const bytes = new Uint8Array(bin.length);
+      for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+      const file = new File([bytes], `${f.make}-${f.model}.png`, { type: "image/png" });
+      const path = await uploadPhoto(file, "bikes");
+      setPhotos((p) => [...p, path]);
+      toast.success("AI photo generated");
+    } catch (err: any) {
+      toast.error(err.message ?? "Failed to generate photo");
+    } finally {
+      setGenerating(false);
     }
   }
 
@@ -112,10 +135,20 @@ function Bikes() {
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <span className="text-xs uppercase tracking-wider text-muted-foreground">Photos</span>
-              <label className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-xs font-semibold hover:border-primary/50 cursor-pointer">
-                <Camera className="h-3.5 w-3.5" /> {uploading ? "Uploading…" : "Add photo"}
-                <input type="file" accept="image/*" multiple capture="environment" className="hidden" onChange={(e) => handleBikePhotos(e.target.files)} />
-              </label>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={autoGenerateBikePhoto}
+                  disabled={generating || !f.make || !f.model}
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-primary/40 bg-primary/10 text-primary px-3 py-1.5 text-xs font-semibold hover:bg-primary/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <Sparkles className="h-3.5 w-3.5" /> {generating ? "Generating…" : "AI generate"}
+                </button>
+                <label className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-xs font-semibold hover:border-primary/50 cursor-pointer">
+                  <Camera className="h-3.5 w-3.5" /> {uploading ? "Uploading…" : "Add photo"}
+                  <input type="file" accept="image/*" multiple capture="environment" className="hidden" onChange={(e) => handleBikePhotos(e.target.files)} />
+                </label>
+              </div>
             </div>
             {photos.length > 0 && (
               <div className="grid grid-cols-4 gap-2">
