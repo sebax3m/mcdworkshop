@@ -166,6 +166,17 @@ function InvoiceDetail() {
         .order("sort_order")).data ?? [],
   });
 
+  const jobNotes = useQuery({
+    queryKey: ["invoice-job-notes", invoiceId, invoice.data?.job_id],
+    enabled: !!invoice.data?.job_id,
+    queryFn: async () =>
+      (await supabase
+        .from("job_notes")
+        .select("id, body, created_at")
+        .eq("job_id", invoice.data!.job_id!)
+        .order("created_at")).data ?? [],
+  });
+
   // Ensure every invoice carries a default $30 shop consumables line. Auto-insert
   // once per job if missing, then it behaves like any other editable part line.
   useEffect(() => {
@@ -476,6 +487,7 @@ function InvoiceDetail() {
             <NotesBox
               invoiceId={invoiceId}
               initial={inv.notes ?? ""}
+              jobNotes={jobNotes.data ?? []}
               onSaved={() => qc.invalidateQueries({ queryKey: ["invoice", invoiceId] })}
             />
             <div className="space-y-2 text-sm">
