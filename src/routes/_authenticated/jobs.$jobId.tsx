@@ -64,6 +64,10 @@ function JobDetail() {
     queryKey: ["job-invoice", jobId],
     queryFn: async () => (await supabase.from("invoices").select("id, invoice_number, status, total").eq("job_id", jobId).maybeSingle()).data,
   });
+  const booking = useQuery({
+    queryKey: ["job-booking", jobId],
+    queryFn: async () => (await supabase.from("bookings").select("notes, complaints").eq("job_id", jobId).maybeSingle()).data,
+  });
 
   const activeTimer = useMemo(() => (time.data ?? []).find((t) => !t.ended_at && t.technician_id === user?.id), [time.data, user]);
   const totalMinutes = useMemo(() => (time.data ?? []).reduce((s, t) => s + (t.minutes ?? (t.ended_at ? Math.round((+new Date(t.ended_at) - +new Date(t.started_at)) / 60000) : 0)), 0), [time.data]);
@@ -339,6 +343,13 @@ function JobDetail() {
       )}
 
       {/* Notes */}
+      {booking.data?.notes && (
+        <section className="card-surface p-4">
+          <div className="text-xs uppercase tracking-wider text-muted-foreground mb-1">Booking Instructions</div>
+          <p className="text-sm whitespace-pre-wrap">{booking.data.notes}</p>
+        </section>
+      )}
+
       <section className="card-surface p-4">
         <h2 className="font-display text-lg font-semibold mb-3">Notes</h2>
         {canEdit && <AddNote jobId={jobId} onAdded={() => qc.invalidateQueries({ queryKey: ["job-notes", jobId] })} />}
