@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { ArrowLeft, Printer, Mail, FileDown, Pencil, Check } from "lucide-react";
+import { ArrowLeft, Printer, Mail, FileDown, Pencil, Check, X, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { fullBike } from "@/lib/format";
 import logo from "@/assets/apex-logo.png";
@@ -328,37 +328,16 @@ function InvoiceDetail() {
                   Odometer: {Number(inv.jobs?.odometer ?? bike?.mileage).toLocaleString()} km
                 </div>
               )}
-              {inv.jobs?.title && <div className="text-sm text-muted-foreground">Service: {inv.jobs.title}</div>}
             </div>
           </div>
 
           {/* Service checks */}
-          {(checks.data ?? []).length > 0 && (
-            <div className="pt-5 border-t border-border">
-              <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-3">
-                Service Checks & Work Performed
-              </div>
-              <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1.5 text-sm">
-                {(checks.data ?? []).map((t: any) => (
-                  <li key={t.id} className="flex items-start gap-2">
-                    <span
-                      className={`mt-0.5 grid h-4 w-4 flex-none place-items-center rounded-sm border ${
-                        t.is_done ? "border-emerald-500/60 bg-emerald-500/15 text-emerald-500" : "border-border text-muted-foreground/40"
-                      }`}
-                    >
-                      {t.is_done && <Check className="h-3 w-3" strokeWidth={3} />}
-                    </span>
-                    <div className="min-w-0">
-                      <div className={t.is_done ? "" : "text-muted-foreground line-through decoration-muted-foreground/40"}>
-                        {t.label}
-                      </div>
-                      {t.note && <div className="text-xs text-muted-foreground">{t.note}</div>}
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
+          <ServiceChecks
+            jobId={inv.job_id}
+            title={inv.jobs?.title ?? null}
+            items={checks.data ?? []}
+            onChanged={() => qc.invalidateQueries({ queryKey: ["invoice-checks", invoiceId, inv.job_id] })}
+          />
 
           {/* Line items */}
           <div className="pt-5 border-t border-border">
@@ -488,6 +467,110 @@ function InvoiceDetail() {
           </Link>
         </div>
       )}
+    </div>
+  );
+}
+
+function ServiceChecks({
+  jobId,
+  title,
+  items,
+  onChanged,
+}: {
+  jobId: string | null;
+  title: string | null;
+  items: any[];
+  onChanged: () => void;
+}) {
+  const [draft, setDraft] = useState("");
+
+  async function addItem() {
+    if (!jobId || !draft.trim()) return;
+    const nextSort = items.length
+      ? Math.max(...items.map((i) => Number(i.sort_order ?? 0))) + 1
+      : 0;
+    const { error } = await supabase
+      .from("job_tasks")
+      .insert({ job_id: jobId, label: draft.trim(), is_done: true, sort_order: nextSort });
+    if (error) return toast.error(error.message);
+    setDraft("");
+    onChanged();
+  }
+
+  async function removeItem(id: string) {
+    const { error } = await supabase.from("job_tasks").delete().eq("id", id);
+    if (error) return toast.error(error.message);
+    onChanged();
+  }
+
+  if (!jobId) return null;
+  if (items.length === 0 && !title) return null;
+
+  return (
+    <div className="pt-5 border-t border-border">
+      <div className="flex items-baseline justify-between mb-3">
+        <div>
+          <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+            Work Performed
+          </div>
+          {title && <div className="font-display text-lg font-bold mt-0.5">{title}</div>}
+        </div>
+      </div>
+      {items.length > 0 && (
+        <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1.5 text-sm">
+          {items.map((t: any) => (
+            <li key={t.id} className="group flex items-start gap-2">
+              <span
+                className={`mt-0.5 grid h-4 w-4 flex-none place-items-center rounded-sm border ${
+                  t.is_done
+                    ? "border-emerald-500/60 bg-emerald-500/15 text-emerald-500"
+                    : "border-border text-muted-foreground/40"
+                }`}
+              >
+                {t.is_done && <Check className="h-3 w-3" strokeWidth={3} />}
+              </span>
+              <div className="min-w-0 flex-1">
+                <div
+                  className={
+                    t.is_done
+                      ? ""
+                      : "text-muted-foreground line-through decoration-muted-foreground/40"
+                  }
+                >
+                  {t.label}
+                </div>
+                {t.note && <div className="text-xs text-muted-foreground">{t.note}</div>}
+              </div>
+              <button
+                onClick={() => removeItem(t.id)}
+                className="no-print opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive p-0.5"
+                title="Remove item"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+      <div className="no-print mt-3 flex gap-2">
+        <input
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") { e.preventDefault(); addItem(); }
+          }}
+          placeholder="Add an item performed…"
+          className="flex-1 rounded-md border border-border bg-background px-3 py-1.5 text-sm outline-none focus:border-primary"
+        />
+        <button
+          onClick={addItem}
+          disabled={!draft.trim()}
+          className="grid place-items-center rounded-md border border-border px-3 text-sm hover:bg-primary/10 disabled:opacity-40"
+          title="Add item"
+        >
+          <Plus className="h-4 w-4" />
+        </button>
+      </div>
     </div>
   );
 }
