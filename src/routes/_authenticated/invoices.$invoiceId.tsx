@@ -104,6 +104,34 @@ function InvoiceDetail() {
       (await supabase.from("time_entries").select("minutes").eq("job_id", invoice.data!.job_id!)).data ?? [],
   });
 
+  // Ensure every invoice carries a default $30 shop consumables line. Auto-insert
+  // once per job if missing, then it behaves like any other editable part line.
+  useEffect(() => {
+    const jobId = invoice.data?.job_id;
+    if (!jobId || !parts.data) return;
+    const hasConsumables = parts.data.some(
+      (p: any) => (p.name ?? "").toLowerCase().includes("consumable"),
+    );
+    if (hasConsumables) return;
+    (async () => {
+      const { error } = await supabase
+        .from("parts")
+        .insert({ job_id: jobId, name: "Shop consumables", quantity: 1, retail: 30, on_invoice: true });
+      if (error) return;
+      const fresh = await supabase.from("parts").select("*").eq("job_id", jobId);
+      const partsSum = (fresh.data ?? []).reduce(
+        (s: number, p: any) => s + Number(p.retail ?? 0) * Number(p.quantity ?? 1),
+        0,
+      );
+      const subtotal = Number(invoice.data!.labour_total) + partsSum;
+      const gst = Math.round((subtotal * GST_RATE / (1 + GST_RATE)) * 100) / 100;
+      const total = Math.round(subtotal * 100) / 100;
+      await supabase.from("invoices").update({ parts_total: partsSum, gst, total }).eq("id", invoiceId);
+      qc.invalidateQueries({ queryKey: ["invoice-parts", invoiceId, jobId] });
+      qc.invalidateQueries({ queryKey: ["invoice", invoiceId] });
+    })();
+  }, [invoice.data?.job_id, parts.data, invoiceId, qc]);
+
   if (invoice.isLoading) return <div className="card-surface p-8 text-center text-sm text-muted-foreground">Loading…</div>;
   if (!invoice.data) return <div className="card-surface p-8 text-center text-sm text-muted-foreground">Invoice not found.</div>;
 
@@ -316,7 +344,7 @@ function InvoiceDetail() {
                         <div className="text-xs text-muted-foreground">
                           Diagnostics, service & repair · $130/hr (incl. GST)
                           {defaultHours > 0 && (
-                            <> · tracked {defaultHours.toFixed(2)}h</>
+                            <span className="no-print"> · tracked {defaultHours.toFixed(2)}h</span>
                           )}
                         </div>
                       </td>
