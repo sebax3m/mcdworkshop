@@ -343,6 +343,13 @@ function JobDetail() {
       )}
 
       {/* Notes */}
+      {booking.data?.notes && (
+        <section className="card-surface p-4">
+          <div className="text-xs uppercase tracking-wider text-muted-foreground mb-1">Booking Instructions</div>
+          <p className="text-sm whitespace-pre-wrap">{booking.data.notes}</p>
+        </section>
+      )}
+
       <section className="card-surface p-4">
         <h2 className="font-display text-lg font-semibold mb-3">Notes</h2>
         {canEdit && <AddNote jobId={jobId} onAdded={() => qc.invalidateQueries({ queryKey: ["job-notes", jobId] })} />}
@@ -367,13 +374,6 @@ function JobDetail() {
         <section className="card-surface p-4 print:hidden">
           <div className="text-xs uppercase tracking-wider text-muted-foreground mb-1">Customer Complaint</div>
           <p className="text-sm whitespace-pre-wrap">{j.complaint}</p>
-        </section>
-      )}
-
-      {booking.data?.notes && (
-        <section className="card-surface p-4">
-          <div className="text-xs uppercase tracking-wider text-muted-foreground mb-1">Booking Instructions</div>
-          <p className="text-sm whitespace-pre-wrap">{booking.data.notes}</p>
         </section>
       )}
 
