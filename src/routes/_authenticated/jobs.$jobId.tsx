@@ -333,3 +333,354 @@ function AddNote({ jobId, onAdded }: { jobId: string; onAdded: () => void }) {
     </div>
   );
 }
+
+function TaskRow({ task, canEdit, onToggle, onNoteSaved }: { task: any; canEdit: boolean; onToggle: () => void; onNoteSaved: () => void }) {
+  const [note, setNote] = useState(task.note ?? "");
+  const [dirty, setDirty] = useState(false);
+  useEffect(() => { setNote(task.note ?? ""); setDirty(false); }, [task.note]);
+
+  async function saveNote() {
+    const { error } = await supabase.from("job_tasks").update({ note: note || null }).eq("id", task.id);
+    if (error) return toast.error(error.message);
+    setDirty(false);
+    onNoteSaved();
+  }
+
+  return (
+    <div className={`rounded-lg border p-2.5 transition-colors ${task.is_done ? "border-status-ready/30 bg-status-ready/5" : "border-border"}`}>
+      <button
+        onClick={onToggle}
+        disabled={!canEdit}
+        className="w-full flex items-center gap-3 text-left"
+      >
+        <span className={`grid h-6 w-6 shrink-0 place-items-center rounded-md border ${task.is_done ? "bg-status-ready border-status-ready text-background" : "border-border"}`}>
+          {task.is_done && <Check className="h-3.5 w-3.5" />}
+        </span>
+        <span className={`text-sm font-medium ${task.is_done ? "text-muted-foreground line-through" : ""}`}>{task.label}</span>
+      </button>
+      {canEdit && (
+        <div className="mt-1.5 pl-9 flex items-center gap-2">
+          <input
+            value={note}
+            onChange={(e) => { setNote(e.target.value); setDirty(true); }}
+            onBlur={() => dirty && saveNote()}
+            onKeyDown={(e) => { if (e.key === "Enter") (e.currentTarget as HTMLInputElement).blur(); }}
+            placeholder="Quick note…"
+            maxLength={140}
+            className="flex-1 bg-transparent border-0 border-b border-border/50 text-xs py-1 focus:outline-none focus:border-primary placeholder:text-muted-foreground/60"
+          />
+          {dirty && <span className="text-[10px] text-primary">unsaved</span>}
+        </div>
+      )}
+      {!canEdit && note && <p className="mt-1 pl-9 text-xs text-muted-foreground italic">{note}</p>}
+    </div>
+  );
+}
+
+function PartsSection({
+  jobId, canEdit, serviceData, fields, parts, onChanged,
+}: {
+  jobId: string; canEdit: boolean; serviceData: any;
+  fields: Array<{ key: string; label: string; category: string; unitHint?: string }>;
+  parts: any[]; onChanged: () => void;
+}) {
+  const [picker, setPicker] = useState<{ key: string; category: string; label: string } | null>(null);
+  const used = serviceData?.parts_used ?? {};
+
+  async function clearField(key: string) {
+    const next = { ...used };
+    delete next[key];
+    const { error } = await supabase.from("jobs").update({ service_data: { ...serviceData, parts_used: next } }).eq("id", jobId);
+    if (error) return toast.error(error.message);
+    onChanged();
+  }
+
+  async function updateQty(key: string, qty: number) {
+    const current = used[key];
+    if (!current) return;
+    const next = { ...used, [key]: { ...current, quantity: qty } };
+    await supabase.from("jobs").update({ service_data: { ...serviceData, parts_used: next } }).eq("id", jobId);
+    onChanged();
+  }
+
+  return (
+    <section className="card-surface p-4">
+      <div className="flex items-center gap-2 mb-3">
+        <Droplet className="h-4 w-4 text-primary" />
+        <h2 className="font-display text-lg font-semibold">Parts & Fluids Used</h2>
+      </div>
+      <div className="space-y-2">
+        {fields.map((f) => {
+          const u = used[f.key];
+          return (
+            <div key={f.key} className="rounded-lg border border-border p-3">
+              <div className="flex items-center gap-2 justify-between">
+                <div className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">{f.label}</div>
+                {canEdit && (
+                  u ? (
+                    <button onClick={() => clearField(f.key)} className="text-[10px] text-destructive flex items-center gap-1">
+                      <X className="h-3 w-3" /> Remove
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => setPicker({ key: f.key, category: f.category, label: f.label })}
+                      className="text-[11px] font-semibold text-primary flex items-center gap-1 hover:underline"
+                    >
+                      <Plus className="h-3 w-3" /> Pick from inventory
+                    </button>
+                  )
+                )}
+              </div>
+              {u ? (
+                <div className="mt-2 flex items-center gap-2 flex-wrap">
+                  <span className="grid h-9 w-9 place-items-center rounded-md bg-muted text-primary"><Package className="h-4 w-4" /></span>
+                  <div className="flex-1 min-w-0">
+                    <div className="font-semibold text-sm truncate">{u.name}</div>
+                    <div className="text-xs text-muted-foreground truncate">{[u.brand, u.type].filter(Boolean).join(" · ")}</div>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <Input
+                      type="number"
+                      step="0.1"
+                      value={u.quantity ?? 1}
+                      onChange={(e) => updateQty(f.key, Number(e.target.value))}
+                      disabled={!canEdit}
+                      className="h-9 w-20"
+                    />
+                    <span className="text-xs text-muted-foreground">{u.unit || f.unitHint || ""}</span>
+                  </div>
+                </div>
+              ) : (
+                <div className="mt-1 text-sm text-muted-foreground italic">Not recorded yet.</div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      {parts.length > 0 && (
+        <div className="mt-4 pt-3 border-t border-border">
+          <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-2 font-semibold">Stock movements logged</div>
+          <ul className="text-xs space-y-1">
+            {parts.map((p) => (
+              <li key={p.id} className="flex justify-between text-muted-foreground">
+                <span>{p.name} × {Number(p.quantity)}</span>
+                <span>${(Number(p.retail) * Number(p.quantity)).toFixed(2)}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {picker && (
+        <InventoryPicker
+          jobId={jobId}
+          fieldKey={picker.key}
+          category={picker.category}
+          label={picker.label}
+          serviceData={serviceData}
+          onClose={() => setPicker(null)}
+          onPicked={() => { setPicker(null); onChanged(); }}
+        />
+      )}
+    </section>
+  );
+}
+
+function InventoryPicker({ jobId, fieldKey, category, label, serviceData, onClose, onPicked }: {
+  jobId: string; fieldKey: string; category: string; label: string; serviceData: any;
+  onClose: () => void; onPicked: () => void;
+}) {
+  const { user } = useCurrentUser();
+  const [qty, setQty] = useState("1");
+  const [pickedId, setPickedId] = useState<string | null>(null);
+
+  const items = useQuery({
+    queryKey: ["inventory-pick", category],
+    queryFn: async () => (await supabase.from("inventory_items").select("*").eq("category", category).order("name")).data ?? [],
+  });
+
+  async function confirm() {
+    const item = (items.data ?? []).find((i: any) => i.id === pickedId);
+    if (!item) return toast.error("Pick an item");
+    const n = Number(qty);
+    if (!n || n <= 0) return toast.error("Quantity must be > 0");
+
+    const used = serviceData?.parts_used ?? {};
+    const next = {
+      ...used,
+      [fieldKey]: {
+        inventory_item_id: item.id,
+        name: item.name,
+        brand: item.brand,
+        type: item.type,
+        unit: item.unit,
+        quantity: n,
+        unit_price: Number(item.unit_price),
+      },
+    };
+
+    const updates = await Promise.all([
+      supabase.from("jobs").update({ service_data: { ...serviceData, parts_used: next } }).eq("id", jobId),
+      supabase.from("parts").insert({
+        job_id: jobId, name: `${item.name}${item.brand ? ` (${item.brand})` : ""}`,
+        quantity: n, supplier: item.brand, cost: Number(item.unit_price), retail: Number(item.unit_price),
+        added_by: user?.id,
+      }),
+      supabase.from("inventory_items").update({ stock_qty: Math.max(0, Number(item.stock_qty) - n) }).eq("id", item.id),
+    ]);
+    const err = updates.find((u) => u.error)?.error;
+    if (err) return toast.error(err.message);
+    toast.success(`${item.name} added to job`);
+    onPicked();
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 grid place-items-center bg-background/80 p-4" onClick={onClose}>
+      <div className="card-surface p-5 w-full max-w-md space-y-3 max-h-[80vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+        <h3 className="font-display text-lg font-bold">Pick {label}</h3>
+        {items.isLoading ? (
+          <p className="text-sm text-muted-foreground">Loading…</p>
+        ) : (items.data ?? []).length === 0 ? (
+          <p className="text-sm text-muted-foreground">No inventory items in this category. Add some in the Inventory page.</p>
+        ) : (
+          <div className="space-y-1.5 max-h-72 overflow-y-auto">
+            {(items.data ?? []).map((i: any) => (
+              <button
+                key={i.id}
+                onClick={() => setPickedId(i.id)}
+                className={`w-full text-left rounded-lg border p-2.5 transition-colors ${
+                  pickedId === i.id ? "border-primary bg-primary/10" : "border-border hover:border-primary/40"
+                }`}
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <div className="min-w-0">
+                    <div className="font-semibold text-sm truncate">{i.name}</div>
+                    <div className="text-xs text-muted-foreground truncate">{[i.brand, i.type].filter(Boolean).join(" · ")}</div>
+                  </div>
+                  <div className="text-right shrink-0">
+                    <div className="text-xs font-bold">${Number(i.unit_price).toFixed(2)}</div>
+                    <div className="text-[10px] text-muted-foreground">{Number(i.stock_qty)} {i.unit}</div>
+                  </div>
+                </div>
+              </button>
+            ))}
+          </div>
+        )}
+        <div className="flex items-center gap-2">
+          <label className="text-xs text-muted-foreground">Quantity</label>
+          <Input type="number" step="0.1" value={qty} onChange={(e) => setQty(e.target.value)} className="h-9 w-24" />
+        </div>
+        <div className="flex gap-2 justify-end">
+          <Button variant="outline" onClick={onClose}>Cancel</Button>
+          <Button onClick={confirm} disabled={!pickedId} className="gold-surface">Add to job</Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ValveClearanceSection({ jobId, cylinders, canEdit, data, onChanged }: {
+  jobId: string; cylinders: number; canEdit: boolean; data: any; onChanged: () => void;
+}) {
+  const [values, setValues] = useState<any>(data ?? {});
+  const [saving, setSaving] = useState(false);
+  useEffect(() => { setValues(data ?? {}); }, [data]);
+
+  const intakePerCyl = 2;
+  const exhaustPerCyl = 2;
+
+  function set(cyl: number, side: "intake" | "exhaust", idx: number, v: string) {
+    const key = `c${cyl}_${side}_${idx}`;
+    setValues((s: any) => ({ ...s, [key]: v }));
+  }
+
+  async function save() {
+    setSaving(true);
+    const { data: job } = await supabase.from("jobs").select("service_data").eq("id", jobId).maybeSingle();
+    const next = { ...(job?.service_data as any ?? {}), valves: values };
+    const { error } = await supabase.from("jobs").update({ service_data: next }).eq("id", jobId);
+    setSaving(false);
+    if (error) return toast.error(error.message);
+    toast.success("Valve clearances saved");
+    onChanged();
+  }
+
+  return (
+    <section className="card-surface p-4">
+      <div className="flex items-center gap-2 mb-1">
+        <Wrench className="h-4 w-4 text-primary" />
+        <h2 className="font-display text-lg font-semibold">Valve Clearance Check</h2>
+      </div>
+      <p className="text-xs text-muted-foreground mb-3">
+        {cylinders}-cylinder engine. Record measured clearance in mm for each valve (intake & exhaust).
+      </p>
+
+      <div className="rounded-xl border border-border bg-background/40 p-3 overflow-x-auto">
+        <div className="flex gap-3 min-w-fit">
+          {Array.from({ length: cylinders }).map((_, c) => {
+            const cyl = c + 1;
+            return (
+              <div key={cyl} className="rounded-lg border border-border bg-card/60 p-2.5 min-w-[150px]">
+                <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold mb-2 text-center">
+                  Cyl {cyl}
+                </div>
+                <div className="space-y-2">
+                  <div>
+                    <div className="text-[10px] text-status-progress font-semibold mb-1">INTAKE</div>
+                    <div className="grid grid-cols-2 gap-1">
+                      {Array.from({ length: intakePerCyl }).map((_, i) => (
+                        <input
+                          key={i}
+                          disabled={!canEdit}
+                          value={values[`c${cyl}_intake_${i}`] ?? ""}
+                          onChange={(e) => set(cyl, "intake", i, e.target.value)}
+                          placeholder="mm"
+                          className="h-9 rounded-md bg-background border border-border text-center text-xs font-mono focus:outline-none focus:border-primary"
+                        />
+                      ))}
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-1 px-2">
+                    <div className="h-6 rounded-sm bg-status-progress/20 border border-status-progress/40" title="Intake valve" />
+                    <div className="h-6 rounded-sm bg-status-progress/20 border border-status-progress/40" title="Intake valve" />
+                  </div>
+                  <div className="h-px bg-border my-1" />
+                  <div className="grid grid-cols-2 gap-1 px-2">
+                    <div className="h-6 rounded-sm bg-destructive/20 border border-destructive/40" title="Exhaust valve" />
+                    <div className="h-6 rounded-sm bg-destructive/20 border border-destructive/40" title="Exhaust valve" />
+                  </div>
+                  <div>
+                    <div className="text-[10px] text-destructive font-semibold mb-1 mt-1">EXHAUST</div>
+                    <div className="grid grid-cols-2 gap-1">
+                      {Array.from({ length: exhaustPerCyl }).map((_, i) => (
+                        <input
+                          key={i}
+                          disabled={!canEdit}
+                          value={values[`c${cyl}_exhaust_${i}`] ?? ""}
+                          onChange={(e) => set(cyl, "exhaust", i, e.target.value)}
+                          placeholder="mm"
+                          className="h-9 rounded-md bg-background border border-border text-center text-xs font-mono focus:outline-none focus:border-primary"
+                        />
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+      <div className="mt-3 flex items-center gap-3 text-[10px] text-muted-foreground">
+        <span className="inline-flex items-center gap-1"><span className="h-2.5 w-2.5 rounded-sm bg-status-progress/40 border border-status-progress/60" /> Intake</span>
+        <span className="inline-flex items-center gap-1"><span className="h-2.5 w-2.5 rounded-sm bg-destructive/40 border border-destructive/60" /> Exhaust</span>
+        <span className="ml-auto">Spec usually: intake 0.10–0.20mm · exhaust 0.20–0.30mm</span>
+      </div>
+      {canEdit && (
+        <div className="mt-3 flex justify-end">
+          <Button onClick={save} disabled={saving} className="gold-surface">{saving ? "Saving…" : "Save measurements"}</Button>
+        </div>
+      )}
+    </section>
+  );
+}
