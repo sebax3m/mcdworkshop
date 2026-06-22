@@ -8,7 +8,8 @@ import apexLogoUrl from "@/assets/apex-logo.png";
 
 export function AppShell() {
   const nav = useNavigate();
-  const { fullName, isAdmin } = useCurrentUser();
+  const { fullName, isAdmin, isTechnician, loading: userLoading } = useCurrentUser();
+  const roleLabel = isAdmin ? "Admin" : isTechnician ? "Technician" : "No Role";
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
   const tabs = [
@@ -48,7 +49,26 @@ export function AppShell() {
                 <Plus className="h-4 w-4" /> Book In
               </Link>
             )}
-            <div className="grid h-9 w-9 place-items-center rounded-full border border-border bg-muted text-xs font-semibold">
+            {!userLoading && (
+              <span
+                className={cn(
+                  "hidden xs:inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.18em]",
+                  isAdmin
+                    ? "border-primary/40 bg-primary/10 text-primary shadow-[0_0_12px_-2px_oklch(0.81_0.13_82/0.45)]"
+                    : isTechnician
+                      ? "border-border bg-muted text-foreground"
+                      : "border-destructive/40 bg-destructive/10 text-destructive",
+                )}
+                title={`Signed in as ${roleLabel}`}
+              >
+                <span className={cn("h-1.5 w-1.5 rounded-full", isAdmin ? "bg-primary" : isTechnician ? "bg-foreground/60" : "bg-destructive")} />
+                {roleLabel}
+              </span>
+            )}
+            <div
+              className="grid h-9 w-9 place-items-center rounded-full border border-border bg-muted text-xs font-semibold"
+              title={fullName ? `${fullName} · ${roleLabel}` : roleLabel}
+            >
               {initials(fullName)}
             </div>
             <button
