@@ -323,9 +323,42 @@ function InvoiceDetail() {
               <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-2">Motorcycle</div>
               <div className="font-display text-lg font-bold">{bike ? fullBike(bike as any) : "—"}</div>
               {bike?.rego && <div className="text-sm text-muted-foreground">Rego: {bike.rego}</div>}
+              {(inv.jobs?.odometer ?? bike?.mileage) != null && (
+                <div className="text-sm text-muted-foreground">
+                  Odometer: {Number(inv.jobs?.odometer ?? bike?.mileage).toLocaleString()} km
+                </div>
+              )}
               {inv.jobs?.title && <div className="text-sm text-muted-foreground">Service: {inv.jobs.title}</div>}
             </div>
           </div>
+
+          {/* Service checks */}
+          {(checks.data ?? []).length > 0 && (
+            <div className="pt-5 border-t border-border">
+              <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-3">
+                Service Checks & Work Performed
+              </div>
+              <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1.5 text-sm">
+                {(checks.data ?? []).map((t: any) => (
+                  <li key={t.id} className="flex items-start gap-2">
+                    <span
+                      className={`mt-0.5 grid h-4 w-4 flex-none place-items-center rounded-sm border ${
+                        t.is_done ? "border-emerald-500/60 bg-emerald-500/15 text-emerald-500" : "border-border text-muted-foreground/40"
+                      }`}
+                    >
+                      {t.is_done && <Check className="h-3 w-3" strokeWidth={3} />}
+                    </span>
+                    <div className="min-w-0">
+                      <div className={t.is_done ? "" : "text-muted-foreground line-through decoration-muted-foreground/40"}>
+                        {t.label}
+                      </div>
+                      {t.note && <div className="text-xs text-muted-foreground">{t.note}</div>}
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
 
           {/* Line items */}
           <div className="pt-5 border-t border-border">
