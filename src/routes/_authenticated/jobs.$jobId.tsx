@@ -368,6 +368,120 @@ function TaskRow({ task, canEdit, onToggle, onNoteSaved }: { task: any; canEdit:
   );
 }
 
+function ServiceTemplateSection({
+  jobId, currentTemplateId, currentTitle, tasks, canEdit, completion,
+  onToggleTask, onNoteSaved, onTemplateChanged,
+}: {
+  jobId: string;
+  currentTemplateId: string | null;
+  currentTitle: string;
+  tasks: any[];
+  canEdit: boolean;
+  completion: number;
+  onToggleTask: (id: string, done: boolean) => void;
+  onNoteSaved: () => void;
+  onTemplateChanged: () => void;
+}) {
+  const [switching, setSwitching] = useState<string | null>(null);
+
+  const templates = useQuery({
+    queryKey: ["service-templates-pick"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("service_templates")
+        .select("id,name,description,tasks,estimated_hours")
+        .eq("is_active", true)
+        .order("sort_order");
+      return (data ?? []).filter((t: any) =>
+        ["Basic Service", "Standard Service", "Annual Service", "Full Service"].includes(t.name),
+      );
+    },
+  });
+
+  async function pickTemplate(tmpl: any) {
+    if (!canEdit) return;
+    if (tmpl.id === currentTemplateId) return;
+    if (tasks.length > 0 && !confirm(`Switch template to "${tmpl.name}"? This will replace the checklist.`)) return;
+    setSwitching(tmpl.id);
+    try {
+      await supabase.from("job_tasks").delete().eq("job_id", jobId);
+      const rows = ((tmpl.tasks as any[]) ?? []).map((t: any, i: number) => ({
+        job_id: jobId, label: t.label, sort_order: i,
+      }));
+      if (rows.length) await supabase.from("job_tasks").insert(rows);
+      await supabase.from("jobs").update({
+        template_id: tmpl.id,
+        title: tmpl.name,
+        description: tmpl.description,
+        estimated_hours: tmpl.estimated_hours,
+      }).eq("id", jobId);
+      toast.success(`Template set to ${tmpl.name}`);
+      onTemplateChanged();
+    } catch (e: any) {
+      toast.error(e.message ?? "Failed to switch template");
+    } finally {
+      setSwitching(null);
+    }
+  }
+
+  return (
+    <section className="card-surface p-4">
+      <div className="flex items-center justify-between mb-3">
+        <h2 className="font-display text-lg font-semibold">Service Template</h2>
+        <span className="text-xs text-muted-foreground">
+          {tasks.filter((t) => t.is_done).length}/{tasks.length} · {completion}%
+        </span>
+      </div>
+
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4">
+        {(templates.data ?? []).map((tmpl: any) => {
+          const active = tmpl.id === currentTemplateId;
+          return (
+            <button
+              key={tmpl.id}
+              onClick={() => pickTemplate(tmpl)}
+              disabled={!canEdit || switching === tmpl.id}
+              className={`rounded-xl border p-3 text-left transition-all ${
+                active
+                  ? "border-primary bg-primary/10 shadow-[0_0_18px_-6px_oklch(0.81_0.13_82/0.6)]"
+                  : "border-border hover:border-primary/40"
+              } disabled:opacity-60`}
+            >
+              <div className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground">
+                {tmpl.name.replace(" Service", "")}
+              </div>
+              <div className="text-xs font-semibold mt-1">
+                {(tmpl.tasks as any[])?.length ?? 0} tasks · {tmpl.estimated_hours ?? "—"}h
+              </div>
+              {active && <div className="mt-1 text-[10px] text-primary font-bold uppercase">Selected</div>}
+              {switching === tmpl.id && <div className="mt-1 text-[10px] text-muted-foreground">Switching…</div>}
+            </button>
+          );
+        })}
+      </div>
+
+      <div className="h-1.5 rounded-full bg-muted overflow-hidden mb-3">
+        <div className="h-full gold-surface transition-all" style={{ width: `${completion}%` }} />
+      </div>
+
+      <div className="space-y-1.5">
+        {tasks.map((t) => (
+          <TaskRow
+            key={t.id}
+            task={t}
+            canEdit={canEdit}
+            onToggle={() => onToggleTask(t.id, t.is_done)}
+            onNoteSaved={onNoteSaved}
+          />
+        ))}
+        {tasks.length === 0 && (
+          <p className="text-sm text-muted-foreground text-center py-4">Pick a template above to load the checklist.</p>
+        )}
+      </div>
+    </section>
+  );
+}
+
 function PartsSection({
   jobId, canEdit, serviceData, fields, parts, onChanged,
 }: {
