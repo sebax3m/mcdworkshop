@@ -3,7 +3,6 @@ import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
 import { ArrowLeft, ChevronRight, Search, Bike as BikeIcon, Calendar as CalendarIcon, Clock, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { fullBike, initials } from "@/lib/format";
