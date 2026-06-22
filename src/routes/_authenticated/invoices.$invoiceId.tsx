@@ -5,7 +5,7 @@ import { ArrowLeft, Printer, Mail, FileDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { fullBike } from "@/lib/format";
 
-export const Route = createFileRoute("/invoices/$invoiceId")({
+export const Route = createFileRoute("/_authenticated/invoices/$invoiceId")({
   component: InvoiceDetail,
 });
 
