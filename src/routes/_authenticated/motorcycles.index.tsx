@@ -24,6 +24,9 @@ function Bikes() {
   const [photos, setPhotos] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
   const [generating, setGenerating] = useState(false);
+  const [newCustOpen, setNewCustOpen] = useState(false);
+  const [newCust, setNewCust] = useState({ first_name: "", last_name: "", phone: "", email: "" });
+  const [savingCust, setSavingCust] = useState(false);
 
   const customers = useQuery({ queryKey: ["customers-options"], queryFn: async () => (await supabase.from("customers").select("id, first_name, last_name").order("first_name")).data ?? [] });
   const bikes = useQuery({
@@ -88,6 +91,29 @@ function Bikes() {
     }
   }
 
+  async function saveNewCustomer() {
+    if (!newCust.first_name.trim()) return toast.error("First name required");
+    setSavingCust(true);
+    try {
+      const { data, error } = await supabase.from("customers").insert({
+        first_name: newCust.first_name.trim(),
+        last_name: newCust.last_name.trim(),
+        phone: newCust.phone.trim() || null,
+        email: newCust.email.trim() || null,
+      }).select("id, first_name, last_name").single();
+      if (error) throw error;
+      await qc.invalidateQueries({ queryKey: ["customers-options"] });
+      setF((p) => ({ ...p, customer_id: data.id }));
+      setNewCust({ first_name: "", last_name: "", phone: "", email: "" });
+      setNewCustOpen(false);
+      toast.success("Customer created");
+    } catch (err: any) {
+      toast.error(err.message ?? "Failed to create customer");
+    } finally {
+      setSavingCust(false);
+    }
+  }
+
   return (
     <div className="space-y-5">
       <header className="grid grid-cols-[minmax(0,1fr)_auto] gap-3 items-center">
@@ -105,12 +131,36 @@ function Bikes() {
 
       {open && (
         <div className="card-surface p-4 space-y-3">
-          <select value={f.customer_id} onChange={(e) => setF({ ...f, customer_id: e.target.value })} className="w-full rounded-md bg-input border border-border px-3 py-2 text-sm">
-            <option value="">Select customer…</option>
-            {(customers.data ?? []).map((c: any) => (
-              <option key={c.id} value={c.id}>{c.first_name} {c.last_name}</option>
-            ))}
-          </select>
+          <div className="flex gap-2">
+            <select value={f.customer_id} onChange={(e) => setF({ ...f, customer_id: e.target.value })} className="flex-1 rounded-md bg-input border border-border px-3 py-2 text-sm">
+              <option value="">Select customer…</option>
+              {(customers.data ?? []).map((c: any) => (
+                <option key={c.id} value={c.id}>{c.first_name} {c.last_name}</option>
+              ))}
+            </select>
+            <button
+              type="button"
+              onClick={() => setNewCustOpen((o) => !o)}
+              className="inline-flex items-center gap-1 rounded-md border border-primary/40 bg-primary/10 text-primary px-3 py-2 text-xs font-semibold hover:bg-primary/20"
+            >
+              <Plus className="h-3.5 w-3.5" /> New
+            </button>
+          </div>
+          {newCustOpen && (
+            <div className="rounded-lg border border-border bg-muted/30 p-3 space-y-2">
+              <div className="text-xs uppercase tracking-wider text-muted-foreground">New customer</div>
+              <div className="grid grid-cols-2 gap-2">
+                <Input placeholder="First name *" value={newCust.first_name} onChange={(e) => setNewCust({ ...newCust, first_name: e.target.value })} />
+                <Input placeholder="Last name" value={newCust.last_name} onChange={(e) => setNewCust({ ...newCust, last_name: e.target.value })} />
+                <Input placeholder="Phone" inputMode="tel" value={newCust.phone} onChange={(e) => setNewCust({ ...newCust, phone: e.target.value })} />
+                <Input placeholder="Email" inputMode="email" value={newCust.email} onChange={(e) => setNewCust({ ...newCust, email: e.target.value })} />
+              </div>
+              <div className="flex gap-2">
+                <Button onClick={saveNewCustomer} disabled={savingCust} className="gold-surface flex-1">{savingCust ? "Saving…" : "Save customer"}</Button>
+                <Button variant="ghost" onClick={() => setNewCustOpen(false)}>Cancel</Button>
+              </div>
+            </div>
+          )}
           <BikeMakeModelYear
             value={{ make: f.make, model: f.model, year: f.year }}
             onChange={(v) => setF({ ...f, make: v.make, model: v.model, year: v.year })}
