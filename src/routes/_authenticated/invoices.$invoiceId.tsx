@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { ArrowLeft, Printer, Mail, FileDown, Pencil, Check, X, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { fullBike } from "@/lib/format";
-import logo from "@/assets/apex-logo.png";
+import logoAsset from "@/assets/motorcycle-doctors-logo.png.asset.json";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
@@ -301,8 +301,8 @@ function InvoiceDetail() {
           .invoice-page { position: absolute; left: 0; top: 0; width: 100%; max-width: none; margin: 0; padding: 0; }
           .invoice-sheet { box-shadow: none !important; border: none !important; background: #ffffff !important; color: #000 !important; }
           .invoice-sheet .text-muted-foreground { color: #4b5563 !important; }
-          .invoice-sheet .gold-gradient-text,
-          .invoice-sheet [class*="gold"] { color: #b8860b !important; background: none !important; -webkit-text-fill-color: #b8860b !important; }
+          .invoice-sheet .red-gradient-text,
+          .invoice-sheet [class*="red"] { color: #c62828 !important; background: none !important; -webkit-text-fill-color: #c62828 !important; }
           .invoice-sheet .border-border,
           .invoice-sheet [class*="border-"] { border-color: #d1d5db !important; }
           .no-print { display: none !important; }
@@ -330,7 +330,7 @@ function InvoiceDetail() {
           <Button onClick={() => window.print()} variant="outline" className="gap-2">
             <FileDown className="h-4 w-4" /> Save PDF
           </Button>
-          <Button onClick={() => window.print()} className="gold-surface gap-2">
+          <Button onClick={() => window.print()} className="red-surface gap-2">
             <Printer className="h-4 w-4" /> Print
           </Button>
         </div>
@@ -338,9 +338,9 @@ function InvoiceDetail() {
 
       <div className="card-surface invoice-sheet overflow-hidden">
         {/* Gold banner */}
-        <div className="gold-surface px-8 py-6 flex items-start justify-between gap-4 flex-wrap">
+        <div className="red-surface px-8 py-6 flex items-start justify-between gap-4 flex-wrap">
           <div className="flex items-center gap-4">
-            <img src={logo} alt="Motorcycle Doctors" className="h-14 w-14 rounded-md object-contain bg-black/10 p-1" />
+            <img src={logoAsset.url} alt="Motorcycle Doctors" className="h-14 w-14 rounded-md object-contain bg-black/10 p-1" />
             <div>
               <div className="font-display text-3xl font-black tracking-tight">Motorcycle Doctors</div>
               <div className="text-xs uppercase tracking-[0.3em] opacity-80 mt-1">Premium Motorcycle Workshop</div>
@@ -496,7 +496,7 @@ function InvoiceDetail() {
               <div className="flex justify-between"><span className="text-muted-foreground">GST 15% (incl. in above)</span><span className="tabular-nums">${Number(inv.gst).toFixed(2)}</span></div>
               <div className="flex justify-between pt-3 mt-1 border-t-2 border-foreground/80 font-display text-xl font-black">
                 <span>TOTAL</span>
-                <span className="gold-gradient-text tabular-nums">${Number(inv.total).toFixed(2)}</span>
+                <span className="red-gradient-text tabular-nums">${Number(inv.total).toFixed(2)}</span>
               </div>
             </div>
           </div>
