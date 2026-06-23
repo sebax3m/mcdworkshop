@@ -59,9 +59,9 @@ function AuthPage() {
           <div className="mx-auto h-14 w-14 grid place-items-center rounded-2xl gold-surface mb-4">
             <Wrench className="h-6 w-6" />
           </div>
-          <div className="text-xs uppercase tracking-[0.3em] text-muted-foreground">The Garage</div>
+          <div className="text-xs uppercase tracking-[0.3em] text-muted-foreground">The Shop</div>
           <h1 className="font-display text-3xl font-bold mt-1">
-            <span className="gold-gradient-text">Performance Workshop</span>
+            <span className="gold-gradient-text">Motorcycle Doctors</span>
           </h1>
           <p className="text-sm text-muted-foreground mt-2">Workshop OS — built for speed.</p>
         </div>

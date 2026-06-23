@@ -267,7 +267,7 @@ function InvoiceDetail() {
   function emailInvoice() {
     const to = customer?.email ?? "";
     const name = customer ? `${customer.first_name ?? ""}`.trim() : "there";
-    const subject = `Invoice ${inv.invoice_number} from APEX MOTO LAB`;
+    const subject = `Invoice ${inv.invoice_number} from Motorcycle Doctors`;
     const body = [
       `Hi ${name || "there"},`,
       ``,
@@ -285,7 +285,7 @@ function InvoiceDetail() {
       `View online: ${window.location.href}`,
       ``,
       `Thanks,`,
-      `APEX MOTO LAB`,
+      `Motorcycle Doctors`,
     ].join("\n");
     window.location.href = `mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
   }
@@ -340,9 +340,9 @@ function InvoiceDetail() {
         {/* Gold banner */}
         <div className="gold-surface px-8 py-6 flex items-start justify-between gap-4 flex-wrap">
           <div className="flex items-center gap-4">
-            <img src={logo} alt="APEX MOTO LAB" className="h-14 w-14 rounded-md object-contain bg-black/10 p-1" />
+            <img src={logo} alt="Motorcycle Doctors" className="h-14 w-14 rounded-md object-contain bg-black/10 p-1" />
             <div>
-              <div className="font-display text-3xl font-black tracking-tight">APEX MOTO LAB</div>
+              <div className="font-display text-3xl font-black tracking-tight">Motorcycle Doctors</div>
               <div className="text-xs uppercase tracking-[0.3em] opacity-80 mt-1">Premium Motorcycle Workshop</div>
             </div>
           </div>
@@ -506,7 +506,7 @@ function InvoiceDetail() {
             <div>
               <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-2">Payment Details</div>
               <div className="space-y-0.5 text-xs">
-                <div><span className="text-muted-foreground">Account:</span> APEX MOTO LAB</div>
+                <div><span className="text-muted-foreground">Account:</span> Motorcycle Doctors</div>
                 <div><span className="text-muted-foreground">BSB:</span> 000-000</div>
                 <div><span className="text-muted-foreground">Account #:</span> 0000 0000</div>
                 <div><span className="text-muted-foreground">Reference:</span> {inv.invoice_number}</div>
@@ -516,7 +516,7 @@ function InvoiceDetail() {
 
           {/* Footer */}
           <div className="pt-5 border-t border-border text-center text-[10px] uppercase tracking-[0.25em] text-muted-foreground">
-            APEX MOTO LAB · Workshop OS · Thank you for your business
+            Motorcycle Doctors · Workshop OS · Thank you for your business
           </div>
         </div>
       </div>

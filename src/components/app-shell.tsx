@@ -32,12 +32,12 @@ export function AppShell() {
           <Link to="/calendar" className="flex items-center gap-2.5 min-w-0 group">
             <img
               src={apexLogoUrl}
-              alt="APEX MOTO LAB"
+              alt="Motorcycle Doctors"
               className="h-9 w-auto shrink-0 drop-shadow-[0_0_12px_oklch(0.81_0.13_82/0.35)] transition-transform group-hover:scale-105"
             />
             <div className="hidden sm:block min-w-0">
               <div className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground leading-none">Workshop OS</div>
-              <div className="font-display text-sm font-bold tracking-wide truncate">APEX MOTO LAB</div>
+              <div className="font-display text-sm font-bold tracking-wide truncate">Motorcycle Doctors</div>
             </div>
           </Link>
           <div className="ml-auto flex items-center gap-2">
