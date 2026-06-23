@@ -6,7 +6,7 @@
 
 /*
  * Motorcycle Doctors — Design System
- * Dark-mode only. Matte black + brushed gold accent.
+ * Dark-mode only. Black background + red primary + blue accent.
  * Modern workshop OS inspired by Linear / ClickUp / Tesla Service.
  */
 
@@ -63,56 +63,56 @@
 
 :root {
   --radius: 0.75rem;
-  --background: oklch(0.13 0.005 80);
+  --background: oklch(0.08 0 0);
   --foreground: oklch(0.97 0.01 90);
-  --card: oklch(0.17 0.006 80);
+  --card: oklch(0.14 0 0);
   --card-foreground: oklch(0.97 0.01 90);
-  --popover: oklch(0.18 0.006 80);
+  --popover: oklch(0.16 0 0);
   --popover-foreground: oklch(0.97 0.01 90);
-  --primary: oklch(0.81 0.13 82);          /* brushed gold */
-  --primary-foreground: oklch(0.16 0.01 80);
-  --secondary: oklch(0.22 0.006 80);
+  --primary: oklch(0.58 0.22 25);
+  --primary-foreground: oklch(0.98 0.01 90);
+  --secondary: oklch(0.50 0.08 255);
   --secondary-foreground: oklch(0.97 0.01 90);
-  --muted: oklch(0.21 0.005 80);
+  --muted: oklch(0.18 0 0);
   --muted-foreground: oklch(0.68 0.015 85);
-  --accent: oklch(0.27 0.02 82);
+  --accent: oklch(0.22 0.02 255);
   --accent-foreground: oklch(0.97 0.01 90);
-  --destructive: oklch(0.62 0.22 25);
+  --destructive: oklch(0.55 0.22 25);
   --destructive-foreground: oklch(0.98 0.01 90);
-  --border: oklch(0.27 0.008 80);
-  --input: oklch(0.23 0.006 80);
-  --ring: oklch(0.78 0.13 82);
-  --chart-1: oklch(0.81 0.13 82);
-  --chart-2: oklch(0.68 0.14 200);
-  --chart-3: oklch(0.68 0.17 30);
-  --chart-4: oklch(0.72 0.16 145);
+  --border: oklch(0.24 0 0);
+  --input: oklch(0.20 0 0);
+  --ring: oklch(0.58 0.22 25);
+  --chart-1: oklch(0.58 0.22 25);
+  --chart-2: oklch(0.50 0.08 255);
+  --chart-3: oklch(0.55 0.22 25);
+  --chart-4: oklch(0.45 0.08 255);
   --chart-5: oklch(0.62 0.2 320);
-  --sidebar: oklch(0.15 0.005 80);
+  --sidebar: oklch(0.10 0 0);
   --sidebar-foreground: oklch(0.97 0.01 90);
-  --sidebar-primary: oklch(0.81 0.13 82);
-  --sidebar-primary-foreground: oklch(0.16 0.01 80);
-  --sidebar-accent: oklch(0.22 0.006 80);
+  --sidebar-primary: oklch(0.58 0.22 25);
+  --sidebar-primary-foreground: oklch(0.98 0.01 90);
+  --sidebar-accent: oklch(0.18 0 0);
   --sidebar-accent-foreground: oklch(0.97 0.01 90);
-  --sidebar-border: oklch(0.27 0.008 80);
-  --sidebar-ring: oklch(0.78 0.13 82);
+  --sidebar-border: oklch(0.24 0 0);
+  --sidebar-ring: oklch(0.58 0.22 25);
 
   /* Job status palette */
-  --status-new: oklch(0.7 0.16 245);        /* blue */
-  --status-assigned: oklch(0.74 0.14 280);  /* violet */
-  --status-progress: oklch(0.78 0.15 60);   /* orange */
-  --status-parts: oklch(0.67 0.22 25);      /* red */
-  --status-ready: oklch(0.78 0.16 150);     /* green */
-  --status-done: oklch(0.6 0.01 80);        /* grey */
+  --status-new: oklch(0.55 0.10 255);
+  --status-assigned: oklch(0.65 0.12 280);
+  --status-progress: oklch(0.78 0.15 60);
+  --status-parts: oklch(0.58 0.22 25);
+  --status-ready: oklch(0.78 0.16 150);
+  --status-done: oklch(0.6 0.01 80);
 
-  --gradient-gold: linear-gradient(135deg, oklch(0.86 0.13 88) 0%, oklch(0.72 0.14 70) 100%);
-  --shadow-gold: 0 10px 40px -10px oklch(0.81 0.13 82 / 0.35);
+  --gradient-red: linear-gradient(135deg, oklch(0.65 0.22 25) 0%, oklch(0.52 0.22 25) 100%);
+  --shadow-red: 0 10px 40px -10px oklch(0.58 0.22 25 / 0.35);
   --shadow-card: 0 1px 0 0 oklch(1 0 0 / 0.04) inset, 0 8px 24px -12px oklch(0 0 0 / 0.6);
 
-  /* APEX MOTO LAB racing red accent */
-  --apex-red: oklch(0.62 0.23 27);
-  --apex-red-glow: oklch(0.7 0.25 27);
-  --gradient-apex: linear-gradient(135deg, oklch(0.86 0.13 88) 0%, oklch(0.72 0.14 70) 55%, oklch(0.6 0.22 27) 100%);
-  --shadow-red: 0 8px 32px -8px oklch(0.62 0.23 27 / 0.45);
+  /* Blue accent tokens */
+  --md-blue: oklch(0.50 0.08 255);
+  --md-blue-glow: oklch(0.55 0.10 255);
+  --gradient-blue: linear-gradient(135deg, oklch(0.55 0.10 255) 0%, oklch(0.45 0.08 255) 100%);
+  --shadow-blue: 0 8px 32px -8px oklch(0.50 0.08 255 / 0.45);
 }
 
 @layer base {
@@ -126,8 +126,8 @@
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
     background-image:
-      radial-gradient(at 0% 0%, oklch(0.81 0.13 82 / 0.06) 0px, transparent 50%),
-      radial-gradient(at 100% 100%, oklch(0.7 0.16 245 / 0.04) 0px, transparent 50%);
+      radial-gradient(at 0% 0%, oklch(0.58 0.22 25 / 0.06) 0px, transparent 50%),
+      radial-gradient(at 100% 100%, oklch(0.50 0.08 255 / 0.04) 0px, transparent 50%);
     background-attachment: fixed;
   }
 
@@ -137,17 +137,17 @@
   }
 }
 
-@utility gold-gradient-text {
-  background: var(--gradient-gold);
+@utility red-gradient-text {
+  background: var(--gradient-red);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
 }
 
-@utility gold-surface {
-  background: var(--gradient-gold);
+@utility red-surface {
+  background: var(--gradient-red);
   color: var(--primary-foreground);
-  box-shadow: var(--shadow-gold);
+  box-shadow: var(--shadow-red);
 }
 
 @utility card-surface {
@@ -157,21 +157,21 @@
   border-radius: var(--radius-xl);
 }
 
-@utility apex-glow {
-  box-shadow: 0 0 0 1px oklch(0.62 0.23 27 / 0.4), 0 10px 40px -10px oklch(0.62 0.23 27 / 0.5);
+@utility red-glow {
+  box-shadow: 0 0 0 1px oklch(0.58 0.22 25 / 0.4), 0 10px 40px -10px oklch(0.58 0.22 25 / 0.5);
 }
 
-@utility text-apex {
-  color: var(--apex-red);
+@utility text-red-accent {
+  color: var(--md-blue);
 }
 
-@utility bg-apex {
-  background: var(--apex-red);
+@utility bg-red-accent {
+  background: var(--md-blue);
   color: white;
 }
 
-@utility apex-divider {
-  background: linear-gradient(90deg, transparent, var(--apex-red) 50%, transparent);
+@utility red-divider {
+  background: linear-gradient(90deg, transparent, var(--md-blue) 50%, transparent);
   height: 2px;
   border-radius: 2px;
 }

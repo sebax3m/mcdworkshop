@@ -113,7 +113,7 @@ function CalendarPage() {
       >
         <div className="absolute inset-0 opacity-50 pointer-events-none">
           <div className="absolute -top-20 -right-20 h-60 w-60 rounded-full bg-primary/10 blur-3xl" />
-          <div className="absolute -bottom-32 -left-10 h-72 w-72 rounded-full bg-[color:var(--apex-red)]/10 blur-3xl" />
+          <div className="absolute -bottom-32 -left-10 h-72 w-72 rounded-full bg-[color:var(--md-blue)]/10 blur-3xl" />
         </div>
         <div className="relative grid grid-cols-[minmax(0,1fr)_auto] items-end gap-4">
           <div className="min-w-0">
@@ -122,7 +122,7 @@ function CalendarPage() {
               Workshop Calendar
             </div>
             <h1 className="font-display text-2xl sm:text-4xl font-bold mt-1.5">
-              <span className="gold-gradient-text">{format(weekStart, "MMM d")}</span>
+              <span className="red-gradient-text">{format(weekStart, "MMM d")}</span>
               <span className="text-muted-foreground"> — </span>
               {format(weekEnd, "MMM d, yyyy")}
             </h1>
@@ -156,7 +156,7 @@ function CalendarPage() {
         <div className="relative mt-5 flex flex-wrap gap-2">
           <Link
             to="/bookings/new"
-            className="inline-flex items-center gap-1.5 rounded-xl gold-surface px-4 py-2.5 text-sm font-bold hover:scale-[1.02] transition-transform"
+            className="inline-flex items-center gap-1.5 rounded-xl red-surface px-4 py-2.5 text-sm font-bold hover:scale-[1.02] transition-transform"
           >
             <Plus className="h-4 w-4" /> Book In
           </Link>
@@ -204,7 +204,7 @@ function CalendarPage() {
                   >
                     {format(day, "EEE")}
                   </div>
-                  <div className={`font-display text-2xl font-bold leading-none mt-0.5 ${today ? "gold-gradient-text" : ""}`}>
+                  <div className={`font-display text-2xl font-bold leading-none mt-0.5 ${today ? "red-gradient-text" : ""}`}>
                     {format(day, "d")}
                   </div>
                 </div>
@@ -219,7 +219,7 @@ function CalendarPage() {
                   initial={{ width: 0 }}
                   animate={{ width: `${loadPct}%` }}
                   transition={{ duration: 0.6, ease: "easeOut" }}
-                  className={`h-full rounded-full ${over ? "bg-status-parts" : "bg-gradient-to-r from-[color:var(--primary)] to-[color:var(--apex-red)]"}`}
+                  className={`h-full rounded-full ${over ? "bg-status-parts" : "bg-gradient-to-r from-[color:var(--primary)] to-[color:var(--md-blue)]"}`}
                 />
               </div>
               <div className="mt-1 flex items-center justify-between text-[10px] text-muted-foreground tabular-nums">
@@ -267,7 +267,7 @@ function CalendarPage() {
                           <span className="text-[10px] text-muted-foreground tabular-nums">{b.estimated_hours ?? 1}h</span>
                           {b.tech_name ? (
                             <span className="inline-flex items-center gap-1 rounded-full bg-background/60 px-1.5 py-0.5 text-[9px] font-semibold">
-                              <span className="grid h-3.5 w-3.5 place-items-center rounded-full gold-surface text-[8px]">
+                              <span className="grid h-3.5 w-3.5 place-items-center rounded-full red-surface text-[8px]">
                                 {initials(b.tech_name)}
                               </span>
                               <span className="max-w-[60px] truncate">{b.tech_name.split(" ")[0]}</span>

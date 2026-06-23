@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { initials } from "@/lib/format";
 import { cn } from "@/lib/utils";
-import apexLogoUrl from "@/assets/apex-logo.png";
+import logoAsset from "@/assets/motorcycle-doctors-logo.png.asset.json";
 
 export function AppShell() {
   const nav = useNavigate();
@@ -31,9 +31,9 @@ export function AppShell() {
         <div className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-3">
           <Link to="/calendar" className="flex items-center gap-2.5 min-w-0 group">
             <img
-              src={apexLogoUrl}
+              src={logoAsset.url}
               alt="Motorcycle Doctors"
-              className="h-9 w-auto shrink-0 drop-shadow-[0_0_12px_oklch(0.81_0.13_82/0.35)] transition-transform group-hover:scale-105"
+              className="h-9 w-auto shrink-0 drop-shadow-[0_0_12px_oklch(0.58_0.22_25/0.35)] transition-transform group-hover:scale-105"
             />
             <div className="hidden sm:block min-w-0">
               <div className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground leading-none">Workshop OS</div>
@@ -44,7 +44,7 @@ export function AppShell() {
             {isAdmin && (
               <Link
                 to="/bookings/new"
-                className="hidden sm:inline-flex items-center gap-1.5 rounded-lg gold-surface px-3 py-2 text-sm font-semibold hover:scale-[1.02] transition-transform"
+                className="hidden sm:inline-flex items-center gap-1.5 rounded-lg red-surface px-3 py-2 text-sm font-semibold hover:scale-[1.02] transition-transform"
               >
                 <Plus className="h-4 w-4" /> Book In
               </Link>
@@ -54,7 +54,7 @@ export function AppShell() {
                 className={cn(
                   "hidden xs:inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.18em]",
                   isAdmin
-                    ? "border-primary/40 bg-primary/10 text-primary shadow-[0_0_12px_-2px_oklch(0.81_0.13_82/0.45)]"
+                    ? "border-primary/40 bg-primary/10 text-primary shadow-[0_0_12px_-2px_oklch(0.58_0.22_25/0.45)]"
                     : isTechnician
                       ? "border-border bg-muted text-foreground"
                       : "border-destructive/40 bg-destructive/10 text-destructive",
@@ -101,7 +101,7 @@ export function AppShell() {
                   active ? "text-primary" : "text-muted-foreground",
                 )}
               >
-                <Icon className={cn("h-5 w-5", active && "drop-shadow-[0_0_8px_oklch(0.81_0.13_82/0.6)]")} />
+                <Icon className={cn("h-5 w-5", active && "drop-shadow-[0_0_8px_oklch(0.58_0.22_25/0.6)]")} />
                 <span className="font-semibold">{t.label}</span>
               </Link>
             );
