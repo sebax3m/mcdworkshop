@@ -236,7 +236,7 @@ function AnalyticsPage() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `xero-sales-invoices-${format(now, "yyyy-MM-dd")}.csv`;
+    a.download = `xero-sales-invoices-${isAll ? "all-years" : selectedYear}-${format(now, "yyyy-MM-dd")}.csv`;
     a.click();
     URL.revokeObjectURL(url);
   };
