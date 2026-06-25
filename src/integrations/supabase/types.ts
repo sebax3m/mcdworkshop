@@ -306,55 +306,79 @@ export type Database = {
       }
       invoices: {
         Row: {
+          bike_snapshot: string | null
           created_at: string
           created_by: string | null
           customer_id: string | null
+          customer_name_snapshot: string | null
+          due_date: string | null
           gst: number
           id: string
+          invoice_date: string
           invoice_number: string
           job_id: string | null
           labour_total: number
           motorcycle_id: string | null
           notes: string | null
+          paid_amount: number
+          paid_on: string | null
           parts_total: number
           snapshot: Json | null
           status: string
+          subtotal_excl_gst: number
           total: number
           updated_at: string
+          xero_synced_at: string | null
         }
         Insert: {
+          bike_snapshot?: string | null
           created_at?: string
           created_by?: string | null
           customer_id?: string | null
+          customer_name_snapshot?: string | null
+          due_date?: string | null
           gst?: number
           id?: string
+          invoice_date?: string
           invoice_number: string
           job_id?: string | null
           labour_total?: number
           motorcycle_id?: string | null
           notes?: string | null
+          paid_amount?: number
+          paid_on?: string | null
           parts_total?: number
           snapshot?: Json | null
           status?: string
+          subtotal_excl_gst?: number
           total?: number
           updated_at?: string
+          xero_synced_at?: string | null
         }
         Update: {
+          bike_snapshot?: string | null
           created_at?: string
           created_by?: string | null
           customer_id?: string | null
+          customer_name_snapshot?: string | null
+          due_date?: string | null
           gst?: number
           id?: string
+          invoice_date?: string
           invoice_number?: string
           job_id?: string | null
           labour_total?: number
           motorcycle_id?: string | null
           notes?: string | null
+          paid_amount?: number
+          paid_on?: string | null
           parts_total?: number
           snapshot?: Json | null
           status?: string
+          subtotal_excl_gst?: number
           total?: number
           updated_at?: string
+          xero_synced_at?: string | null
         }
         Relationships: [
           {

@@ -1,5 +1,5 @@
 import { Link, Outlet, useRouterState, useNavigate } from "@tanstack/react-router";
-import { CalendarDays, Wrench, Bike, Timer, LogOut, Plus, ClipboardList, FileText, Settings as SettingsIcon } from "lucide-react";
+import { CalendarDays, Wrench, Bike, Timer, LogOut, Plus, ClipboardList, FileText, Settings as SettingsIcon, BarChart3 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { initials } from "@/lib/format";
@@ -146,6 +146,19 @@ export function AppShell() {
             )}
           >
             <FileText className="h-5 w-5" /> Invoices
+          </Link>
+        )}
+        {isAdmin && (
+          <Link
+            to="/analytics"
+            className={cn(
+              "flex items-center gap-2.5 rounded-full px-5 py-2.5 text-base font-medium transition-colors",
+              pathname.startsWith("/analytics")
+                ? "bg-primary text-primary-foreground"
+                : "text-muted-foreground hover:text-foreground",
+            )}
+          >
+            <BarChart3 className="h-5 w-5" /> Analytics
           </Link>
         )}
         {isAdmin && (
