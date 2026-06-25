@@ -252,15 +252,15 @@ function AnalyticsPage() {
         </div>
         <div className="h-72">
           <ResponsiveContainer width="100%" height="100%">
-            <Barbarchart data={monthlyseries}>
+            <BarChart data={monthlySeries}>
               <CartesianGrid strokeDasharray="3 3" className="stroke-border/40" />
               <XAxis dataKey="month" tick={{ fontSize: 12 }} />
               <YAxis tick={{ fontSize: 12 }} tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`} />
-              <tooltip formatter={(v: any) => fmt(Number(v))} contentStyle={{ background: "hsl(var(--background))", border: "1px solid hsl(var(--border))" }} />
+              <Tooltip formatter={(v: any) => fmt(Number(v))} contentStyle={{ background: "hsl(var(--background))", border: "1px solid hsl(var(--border))" }} />
               <Legend wrapperStyle={{ fontSize: 12 }} />
               <Bar dataKey="revenue" name="Revenue" stackId="a" fill="hsl(var(--primary))" radius={[6, 6, 0, 0]} />
               <Bar dataKey="gst" name="GST" stackId="a" fill="hsl(var(--secondary))" radius={[6, 6, 0, 0]} />
-            </barchart>
+            </BarChart>
           </ResponsiveContainer>
         </div>
       </div>
