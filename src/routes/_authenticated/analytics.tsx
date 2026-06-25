@@ -246,16 +246,29 @@ function AnalyticsPage() {
       <header className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <div className="text-xs uppercase tracking-[0.25em] text-muted-foreground">Workshop</div>
-          <h1 className="font-display text-2xl sm:text-3xl font-bold">Analytics & Tax</h1>
+          <h1 className="font-display text-2xl sm:text-3xl font-bold">
+            Analytics & Tax {isAll ? <span className="text-muted-foreground">· All years</span> : <span className="text-primary">· {selectedYear}</span>}
+          </h1>
           <p className="text-sm text-muted-foreground mt-1">
             Revenue, GST and outstanding balances — formatted for Xero import.
           </p>
         </div>
         <div className="flex items-center gap-2">
           <select
+            value={yearFilter}
+            onChange={(e) => setYearFilter(e.target.value)}
+            className="rounded-md border border-border bg-background px-3 py-2 text-sm font-medium"
+          >
+            <option value="all">All years</option>
+            {availableYears.map((y) => (
+              <option key={y} value={String(y)}>{y}</option>
+            ))}
+          </select>
+          <select
             value={fyStart}
             onChange={(e) => setFyStart(e.target.value as any)}
             className="rounded-md border border-border bg-background px-3 py-2 text-sm"
+            title="Used for current-FY KPI when viewing all years"
           >
             <option value="apr">NZ FY (Apr–Mar)</option>
             <option value="jan">Calendar year</option>
@@ -270,20 +283,22 @@ function AnalyticsPage() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <Kpi icon={<TrendingUp className="h-4 w-4" />} label="This week" value={fmt(totals.week.total)} sub={`${totals.week.count} invoices`} />
         <Kpi icon={<TrendingUp className="h-4 w-4" />} label="This month" value={fmt(totals.month.total)} sub={`${totals.month.count} invoices`} />
-        <Kpi icon={<DollarSign className="h-4 w-4" />} label="FY revenue" value={fmt(totals.year.total)} sub={`Excl GST ${fmt(totals.year.subtotal)}`} />
-        <Kpi icon={<Receipt className="h-4 w-4" />} label="GST collected (FY)" value={fmt(totals.year.gst)} sub="To remit to IRD" />
+        <Kpi icon={<DollarSign className="h-4 w-4" />} label={isAll ? "FY revenue" : `${selectedYear} revenue`} value={fmt(totals.year.total)} sub={`Excl GST ${fmt(totals.year.subtotal)}`} />
+        <Kpi icon={<Receipt className="h-4 w-4" />} label={isAll ? "GST collected (FY)" : `GST collected ${selectedYear}`} value={fmt(totals.year.gst)} sub="To remit to IRD" />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
-        <Kpi icon={<AlertCircle className="h-4 w-4 text-amber-400" />} label="Outstanding balance" value={fmt(totals.outstanding)} sub="Unpaid invoices" />
-        <Kpi icon={<DollarSign className="h-4 w-4 text-emerald-400" />} label="Paid (all time)" value={fmt(totals.paid)} sub="" />
+        <Kpi icon={<AlertCircle className="h-4 w-4 text-amber-400" />} label="Outstanding balance" value={fmt(totals.outstanding)} sub={isAll ? "Unpaid invoices" : `Unpaid in ${selectedYear}`} />
+        <Kpi icon={<DollarSign className="h-4 w-4 text-emerald-400" />} label={isAll ? "Paid (all time)" : `Paid in ${selectedYear}`} value={fmt(totals.paid)} sub="" />
         <Kpi icon={<TrendingUp className="h-4 w-4" />} label="Last 30 days" value={fmt(totals.last30.total)} sub="" />
       </div>
 
       {/* Monthly stacked bar chart */}
       <div className="card-surface p-5">
         <div className="flex items-center justify-between mb-3">
-          <h2 className="font-display text-lg font-bold">Revenue by month (last 12)</h2>
+          <h2 className="font-display text-lg font-bold">
+            {isAll ? "Revenue by year" : `Revenue by month · ${selectedYear}`}
+          </h2>
           <span className="text-xs text-muted-foreground">Incl. GST</span>
         </div>
         <div className="h-72">
