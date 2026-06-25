@@ -13,7 +13,7 @@ import {
   subDays,
   parseISO,
 } from "date-fns";
-import { Bar, BarChart, CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { Bar, BarChart, CartesianGrid, Line, LineChart, Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis, Legend, Cell } from "recharts";
 import { Button } from "@/components/ui/button";
 import { Download, TrendingUp, DollarSign, Receipt, AlertCircle } from "lucide-react";
 
@@ -244,56 +244,88 @@ function AnalyticsPage() {
         <Kpi icon={<TrendingUp className="h-4 w-4" />} label="Last 30 days" value={fmt(totals.last30.total)} sub="" />
       </div>
 
-      {/* Monthly bar chart */}
+      {/* Monthly stacked bar chart */}
       <div className="card-surface p-5">
         <div className="flex items-center justify-between mb-3">
           <h2 className="font-display text-lg font-bold">Revenue by month (last 12)</h2>
           <span className="text-xs text-muted-foreground">Incl. GST</span>
         </div>
-        <div className="h-64">
+        <div className="h-72">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={monthlySeries}>
               <CartesianGrid strokeDasharray="3 3" className="stroke-border/40" />
               <XAxis dataKey="month" tick={{ fontSize: 12 }} />
               <YAxis tick={{ fontSize: 12 }} tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`} />
               <Tooltip formatter={(v: any) => fmt(Number(v))} contentStyle={{ background: "hsl(var(--background))", border: "1px solid hsl(var(--border))" }} />
-              <Bar dataKey="revenue" fill="hsl(var(--primary))" radius={[6, 6, 0, 0]} />
+              <Legend wrapperStyle={{ fontSize: 12 }} />
+              <Bar dataKey="revenue" name="Revenue" stackId="a" fill="hsl(var(--primary))" radius={[6, 6, 0, 0]} />
+              <Bar dataKey="gst" name="GST" stackId="a" fill="hsl(var(--secondary))" radius={[6, 6, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>
       </div>
 
-      {/* Weekly line chart */}
+      {/* Weekly area chart */}
       <div className="card-surface p-5">
         <div className="flex items-center justify-between mb-3">
           <h2 className="font-display text-lg font-bold">Revenue by week (last 12)</h2>
         </div>
-        <div className="h-56">
+        <div className="h-64">
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={weeklySeries}>
+            <AreaChart data={weeklySeries}>
+              <defs>
+                <linearGradient id="revGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.5} />
+                  <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0.05} />
+                </linearGradient>
+              </defs>
               <CartesianGrid strokeDasharray="3 3" className="stroke-border/40" />
               <XAxis dataKey="week" tick={{ fontSize: 12 }} />
               <YAxis tick={{ fontSize: 12 }} tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`} />
               <Tooltip formatter={(v: any) => fmt(Number(v))} contentStyle={{ background: "hsl(var(--background))", border: "1px solid hsl(var(--border))" }} />
-              <Line type="monotone" dataKey="revenue" stroke="hsl(var(--primary))" strokeWidth={2} dot={{ r: 3 }} />
-            </LineChart>
+              <Area type="monotone" dataKey="revenue" stroke="hsl(var(--primary))" strokeWidth={2} fill="url(#revGrad)" dot={{ r: 3, fill: "hsl(var(--secondary))", stroke: "hsl(var(--background))", strokeWidth: 2 }} />
+            </AreaChart>
           </ResponsiveContainer>
         </div>
       </div>
 
-      {/* Top customers */}
+      {/* Top customers with mini bars */}
       <div className="card-surface p-5">
-        <h2 className="font-display text-lg font-bold mb-3">Top customers</h2>
-        <div className="divide-y divide-border">
-          {topCustomers.map((c) => (
-            <div key={c.name} className="flex items-center justify-between py-2.5">
-              <div>
-                <div className="font-medium">{c.name}</div>
-                <div className="text-xs text-muted-foreground">{c.count} invoice{c.count === 1 ? "" : "s"}</div>
+        <h2 className="font-display text-lg font-bold mb-4">Top customers</h2>
+        <div className="space-y-4">
+          {topCustomers.map((c, i) => {
+            const max = topCustomers[0]?.total || 1;
+            const pct = (c.total / max) * 100;
+            const hues = [
+              "oklch(0.58 0.22 25)",   // red
+              "oklch(0.50 0.08 255)",  // blue
+              "oklch(0.78 0.15 60)",   // amber
+              "oklch(0.78 0.16 150)",  // green
+              "oklch(0.62 0.2 320)",   // purple
+              "oklch(0.55 0.10 200)",  // teal
+              "oklch(0.65 0.12 40)",   // orange
+              "oklch(0.55 0.08 280)",  // indigo
+            ];
+            return (
+              <div key={c.name}>
+                <div className="flex items-center justify-between mb-1">
+                  <div className="flex items-center gap-2">
+                    <span className="inline-flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold text-white" style={{ background: hues[i % hues.length] }}>
+                      {i + 1}
+                    </span>
+                    <span className="font-medium text-sm">{c.name}</span>
+                  </div>
+                  <div className="text-right">
+                    <div className="font-display font-bold text-sm">{fmt(c.total)}</div>
+                    <div className="text-[10px] text-muted-foreground">{c.count} invoice{c.count === 1 ? "" : "s"}</div>
+                  </div>
+                </div>
+                <div className="h-2 w-full rounded-full bg-muted overflow-hidden">
+                  <div className="h-full rounded-full transition-all duration-500" style={{ width: `${pct}%`, background: hues[i % hues.length] }} />
+                </div>
               </div>
-              <div className="font-display font-bold">{fmt(c.total)}</div>
-            </div>
-          ))}
+            );
+          })}
           {topCustomers.length === 0 && (
             <p className="text-sm text-muted-foreground py-4">No invoices yet.</p>
           )}
