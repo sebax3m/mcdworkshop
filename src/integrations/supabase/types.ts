@@ -20,6 +20,8 @@ export type Database = {
           assigned_tech_id: string | null
           color: string | null
           complaints: string | null
+          confirmed: boolean
+          confirmed_at: string | null
           created_at: string
           created_by: string | null
           customer_id: string
@@ -47,6 +49,8 @@ export type Database = {
           assigned_tech_id?: string | null
           color?: string | null
           complaints?: string | null
+          confirmed?: boolean
+          confirmed_at?: string | null
           created_at?: string
           created_by?: string | null
           customer_id: string
@@ -74,6 +78,8 @@ export type Database = {
           assigned_tech_id?: string | null
           color?: string | null
           complaints?: string | null
+          confirmed?: boolean
+          confirmed_at?: string | null
           created_at?: string
           created_by?: string | null
           customer_id?: string

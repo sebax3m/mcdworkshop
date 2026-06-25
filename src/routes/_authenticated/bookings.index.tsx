@@ -1,8 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
-import { Plus, ClipboardList, Calendar, ArrowDown, ArrowUp } from "lucide-react";
+import { Plus, ClipboardList, Calendar, ArrowDown, ArrowUp, Phone, Check } from "lucide-react";
 import { format } from "date-fns";
 import { useState, useMemo } from "react";
 
@@ -16,6 +16,7 @@ type SortField = "date" | "priority";
 type SortDir = "asc" | "desc";
 
 function BookingsList() {
+  const qc = useQueryClient();
   const [sortField, setSortField] = useState<SortField>("date");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
 
@@ -24,13 +25,21 @@ function BookingsList() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("bookings")
-        .select("id, service_type, scheduled_date, drop_off_time, estimated_hours, status, priority, customers(first_name,last_name), motorcycles(year,make,model,rego)")
+        .select("id, service_type, scheduled_date, drop_off_time, estimated_hours, status, priority, confirmed, confirmed_at, customers(first_name,last_name,phone), motorcycles(year,make,model,rego)")
         .order("scheduled_date", { ascending: false })
         .limit(200);
       if (error) throw error;
       return data ?? [];
     },
   });
+
+  async function toggleConfirmed(id: string, current: boolean) {
+    const { error } = await supabase
+      .from("bookings")
+      .update({ confirmed: !current, confirmed_at: !current ? new Date().toISOString() : null })
+      .eq("id", id);
+    if (!error) qc.invalidateQueries({ queryKey: ["bookings-list"] });
+  }
 
   const bookings = useMemo(() => {
     const arr = [...rawBookings];
@@ -113,6 +122,7 @@ function BookingsList() {
           {bookings.map((b: any, i: number) => {
             const bike = b.motorcycles ? `${b.motorcycles.year ?? ""} ${b.motorcycles.make} ${b.motorcycles.model}`.trim() : "—";
             const customer = b.customers ? `${b.customers.first_name} ${b.customers.last_name}` : "—";
+            const phone = b.customers?.phone ?? "";
             const pLabel = (b.priority ?? "normal").toLowerCase();
             const pColor = pLabel === "high" ? "bg-red-500/20 text-red-400 border-red-500/30" : pLabel === "low" ? "bg-blue-500/20 text-blue-400 border-blue-500/30" : "bg-muted text-muted-foreground border-border";
             return (
@@ -121,11 +131,20 @@ function BookingsList() {
                 initial={{ opacity: 0, y: 6 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.2, delay: i * 0.02 }}
+                className={`card-surface p-4 flex items-center gap-3 transition-colors ${b.confirmed ? "border-green-500/40 bg-green-500/5" : ""}`}
               >
+                <button
+                  type="button"
+                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggleConfirmed(b.id, b.confirmed); }}
+                  title={b.confirmed ? "Confirmed — click to unmark" : "Mark as confirmed"}
+                  className={`shrink-0 h-6 w-6 rounded-md border grid place-items-center transition-colors ${b.confirmed ? "bg-green-500 border-green-500 text-white" : "border-border bg-card hover:bg-muted"}`}
+                >
+                  {b.confirmed && <Check className="h-4 w-4" />}
+                </button>
                 <Link
                   to="/bookings/$bookingId"
                   params={{ bookingId: b.id }}
-                  className="card-surface p-4 flex items-center gap-3 hover:border-primary/40 transition-colors"
+                  className="flex items-center gap-3 flex-1 min-w-0"
                 >
                   <div className="w-14 shrink-0 text-center rounded-lg bg-muted py-2">
                     <div className="text-[10px] uppercase text-muted-foreground">{format(new Date(b.scheduled_date), "MMM")}</div>
@@ -134,14 +153,29 @@ function BookingsList() {
                   <div className="min-w-0 flex-1">
                     <div className="font-semibold truncate">{bike}</div>
                     <div className="text-xs text-muted-foreground truncate">{customer} · {b.service_type}{b.motorcycles?.rego ? ` · ${b.motorcycles.rego}` : ""}</div>
+                    {phone && (
+                      <div className="text-xs text-foreground/80 mt-0.5 flex items-center gap-1">
+                        <Phone className="h-3 w-3" /> {phone}
+                      </div>
+                    )}
                   </div>
-                  <span className={`shrink-0 text-[10px] uppercase tracking-wider px-2 py-1 rounded-full border ${pColor}`}>
-                    {b.priority ?? "normal"}
-                  </span>
-                  <span className="shrink-0 text-[10px] uppercase tracking-wider px-2 py-1 rounded-full border border-border text-muted-foreground">
-                    {b.status}
-                  </span>
                 </Link>
+                {phone && (
+                  <a
+                    href={`tel:${phone}`}
+                    onClick={(e) => e.stopPropagation()}
+                    className="shrink-0 inline-flex items-center gap-1 rounded-lg border border-border bg-card px-2 py-1.5 text-xs font-semibold hover:bg-muted"
+                    title={`Call ${phone}`}
+                  >
+                    <Phone className="h-3 w-3" /> Call
+                  </a>
+                )}
+                <span className={`shrink-0 text-[10px] uppercase tracking-wider px-2 py-1 rounded-full border ${pColor}`}>
+                  {b.priority ?? "normal"}
+                </span>
+                <span className="shrink-0 text-[10px] uppercase tracking-wider px-2 py-1 rounded-full border border-border text-muted-foreground">
+                  {b.status}
+                </span>
               </motion.div>
             );
           })}
