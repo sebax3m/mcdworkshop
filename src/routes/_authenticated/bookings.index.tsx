@@ -2,26 +2,55 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
-import { Plus, ClipboardList, Calendar } from "lucide-react";
+import { Plus, ClipboardList, Calendar, ArrowDown, ArrowUp } from "lucide-react";
 import { format } from "date-fns";
+import { useState, useMemo } from "react";
 
 export const Route = createFileRoute("/_authenticated/bookings/")({
   component: BookingsList,
 });
 
+const PRIORITY_ORDER: Record<string, number> = { high: 0, normal: 1, low: 2 };
+
+type SortField = "date" | "priority";
+type SortDir = "asc" | "desc";
+
 function BookingsList() {
-  const { data: bookings = [], isLoading } = useQuery({
+  const [sortField, setSortField] = useState<SortField>("date");
+  const [sortDir, setSortDir] = useState<SortDir>("desc");
+
+  const { data: rawBookings = [], isLoading } = useQuery({
     queryKey: ["bookings-list"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("bookings")
-        .select("id, service_type, scheduled_date, drop_off_time, estimated_hours, status, customers(first_name,last_name), motorcycles(year,make,model,rego)")
+        .select("id, service_type, scheduled_date, drop_off_time, estimated_hours, status, priority, customers(first_name,last_name), motorcycles(year,make,model,rego)")
         .order("scheduled_date", { ascending: false })
-        .limit(100);
+        .limit(200);
       if (error) throw error;
       return data ?? [];
     },
   });
+
+  const bookings = useMemo(() => {
+    const arr = [...rawBookings];
+    arr.sort((a: any, b: any) => {
+      if (sortField === "date") {
+        const da = new Date(a.scheduled_date).getTime();
+        const db = new Date(b.scheduled_date).getTime();
+        return sortDir === "asc" ? da - db : db - da;
+      }
+      // priority
+      const pa = PRIORITY_ORDER[a.priority ?? "normal"] ?? 1;
+      const pb = PRIORITY_ORDER[b.priority ?? "normal"] ?? 1;
+      if (pa !== pb) return sortDir === "asc" ? pb - pa : pa - pb;
+      // tie-break by date desc
+      const da = new Date(a.scheduled_date).getTime();
+      const db = new Date(b.scheduled_date).getTime();
+      return db - da;
+    });
+    return arr;
+  }, [rawBookings, sortField, sortDir]);
 
   return (
     <div className="space-y-5">
@@ -39,6 +68,32 @@ function BookingsList() {
           </Link>
         </div>
       </header>
+
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="text-xs uppercase tracking-wider text-muted-foreground">Sort by</span>
+        <div className="flex rounded-lg border border-border overflow-hidden">
+          <button
+            onClick={() => { setSortField("date"); setSortDir("desc"); }}
+            className={`px-3 py-1.5 text-xs font-semibold ${sortField === "date" ? "bg-primary text-primary-foreground" : "bg-card hover:bg-muted"}`}
+          >
+            Date
+          </button>
+          <button
+            onClick={() => { setSortField("priority"); setSortDir("desc"); }}
+            className={`px-3 py-1.5 text-xs font-semibold border-l border-border ${sortField === "priority" ? "bg-primary text-primary-foreground" : "bg-card hover:bg-muted"}`}
+          >
+            Priority
+          </button>
+        </div>
+        <button
+          onClick={() => setSortDir((d) => (d === "asc" ? "desc" : "asc"))}
+          className="inline-flex items-center gap-1 rounded-lg border border-border bg-card px-3 py-1.5 text-xs font-semibold hover:bg-muted"
+          title="Toggle direction"
+        >
+          {sortDir === "asc" ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
+          {sortDir === "asc" ? "Ascending" : "Descending"}
+        </button>
+      </div>
 
       {isLoading ? (
         <div className="card-surface p-8 text-center text-sm text-muted-foreground">Loading…</div>
@@ -58,6 +113,8 @@ function BookingsList() {
           {bookings.map((b: any, i: number) => {
             const bike = b.motorcycles ? `${b.motorcycles.year ?? ""} ${b.motorcycles.make} ${b.motorcycles.model}`.trim() : "—";
             const customer = b.customers ? `${b.customers.first_name} ${b.customers.last_name}` : "—";
+            const pLabel = (b.priority ?? "normal").toLowerCase();
+            const pColor = pLabel === "high" ? "bg-red-500/20 text-red-400 border-red-500/30" : pLabel === "low" ? "bg-blue-500/20 text-blue-400 border-blue-500/30" : "bg-muted text-muted-foreground border-border";
             return (
               <motion.div
                 key={b.id}
@@ -78,6 +135,9 @@ function BookingsList() {
                     <div className="font-semibold truncate">{bike}</div>
                     <div className="text-xs text-muted-foreground truncate">{customer} · {b.service_type}{b.motorcycles?.rego ? ` · ${b.motorcycles.rego}` : ""}</div>
                   </div>
+                  <span className={`shrink-0 text-[10px] uppercase tracking-wider px-2 py-1 rounded-full border ${pColor}`}>
+                    {b.priority ?? "normal"}
+                  </span>
                   <span className="shrink-0 text-[10px] uppercase tracking-wider px-2 py-1 rounded-full border border-border text-muted-foreground">
                     {b.status}
                   </span>

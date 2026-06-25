@@ -45,6 +45,7 @@ function NewBooking() {
   const [customerId, setCustomerId] = useState<string | null>(null);
   const [bikeId, setBikeId] = useState<string | null>(null);
   const [serviceType, setServiceType] = useState<string>("Standard Service");
+  const [priority, setPriority] = useState<string>("normal");
   const [scheduledDate, setScheduledDate] = useState<string>(search.date || today);
   const [dropTime, setDropTime] = useState<string>("09:00");
   const [estHours, setEstHours] = useState<string>("2");
@@ -149,6 +150,7 @@ function NewBooking() {
           motorcycle_id: bike.id,
           assigned_tech_id: techId,
           service_type: serviceType,
+          priority,
           scheduled_date: scheduledDate,
           drop_off_time: dropTime || null,
           estimated_hours: Number(estHours) || 1,
@@ -322,6 +324,27 @@ function NewBooking() {
                   }`}
                 >
                   {s}
+                </button>
+              ))}
+            </div>
+          </section>
+
+          <section className="card-surface p-4 space-y-3">
+            <Label className="text-xs uppercase tracking-wider text-muted-foreground">Priority</Label>
+            <div className="flex flex-wrap gap-2">
+              {[
+                { label: "High", value: "high", color: "border-red-500 bg-red-500/10 text-red-400" },
+                { label: "Normal", value: "normal", color: "border-primary bg-primary/10 text-primary" },
+                { label: "Low", value: "low", color: "border-blue-500 bg-blue-500/10 text-blue-400" },
+              ].map((p) => (
+                <button
+                  key={p.value}
+                  onClick={() => setPriority(p.value)}
+                  className={`rounded-full px-3 py-1.5 text-xs font-semibold border transition-colors ${
+                    priority === p.value ? p.color : "border-border text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  {p.label}
                 </button>
               ))}
             </div>

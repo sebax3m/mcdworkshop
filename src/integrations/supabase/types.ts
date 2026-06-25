@@ -32,6 +32,7 @@ export type Database = {
           mileage: number | null
           motorcycle_id: string
           notes: string | null
+          priority: string
           rego: string | null
           scheduled_date: string
           service_template_id: string | null
@@ -58,6 +59,7 @@ export type Database = {
           mileage?: number | null
           motorcycle_id: string
           notes?: string | null
+          priority?: string
           rego?: string | null
           scheduled_date: string
           service_template_id?: string | null
@@ -84,6 +86,7 @@ export type Database = {
           mileage?: number | null
           motorcycle_id?: string
           notes?: string | null
+          priority?: string
           rego?: string | null
           scheduled_date?: string
           service_template_id?: string | null
