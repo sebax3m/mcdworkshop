@@ -24,13 +24,16 @@ export const Route = createFileRoute("/_authenticated/bookings/new")({
 const SERVICE_TYPES = [
   "Basic Service",
   "Standard Service",
+  "Annual Service",
   "Full Service",
   "Dyno Tuning",
+  "Collision Repair",
   "Diagnostic",
   "Tyre Change",
   "Brake Service",
   "Chain & Sprocket",
   "Suspension",
+  "Helmet Fitting",
   "Other",
 ];
 

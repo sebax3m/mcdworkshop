@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Wrench } from "lucide-react";
+import logoAsset from "@/assets/motorcycle-doctors-logo.png.asset.json";
 
 export const Route = createFileRoute("/auth")({
   component: AuthPage,
@@ -56,9 +56,11 @@ function AuthPage() {
     <div className="min-h-screen flex items-center justify-center px-4 py-10">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <div className="mx-auto h-14 w-14 grid place-items-center rounded-2xl gold-surface mb-4">
-            <Wrench className="h-6 w-6" />
-          </div>
+          <img
+            src={logoAsset.url}
+            alt="Motorcycle Doctors"
+            className="mx-auto h-28 w-28 object-contain mb-4"
+          />
           <div className="text-xs uppercase tracking-[0.3em] text-muted-foreground">The Shop</div>
           <h1 className="font-display text-3xl font-bold mt-1">
             <span className="gold-gradient-text">Motorcycle Doctors</span>

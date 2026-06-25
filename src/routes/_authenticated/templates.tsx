@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Wrench, Gauge, Sparkles, ShieldCheck, Zap } from "lucide-react";
+import { Wrench, Gauge, Sparkles, ShieldCheck, Zap, ShieldAlert } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/templates")({
   component: Templates,
@@ -37,6 +37,12 @@ const CONTENT: Record<string, { icon: any; tagline: string; body: string; covers
     tagline: "Power, torque & AFR optimisation",
     body: "The bike is strapped to the dyno for back-to-back power and AFR runs. Baseline (before) and final (after) power and torque figures are logged so the customer sees exactly what they gained. ECU map, fuel and ignition trims are adjusted between runs until the bike is safely making maximum power.",
     covers: ["Baseline dyno run", "ECU / fuel / ignition tuning", "Final dyno run", "Before vs after power & torque graph"],
+  },
+  "Collision Repair": {
+    icon: ShieldAlert,
+    tagline: "Insurance & private crash repairs",
+    body: "End-to-end crash repair — assessment, photos and quote for the insurer, parts ordering, panel and frame work, paint, and final reassembly. We liaise directly with insurance assessors and keep the customer updated through each stage.",
+    covers: ["Damage assessment & photos", "Insurance quote & liaison", "Parts ordering", "Panel, frame & paintwork", "Reassembly & road test"],
   },
 };
 
