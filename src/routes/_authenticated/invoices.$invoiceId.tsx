@@ -303,6 +303,16 @@ function InvoiceDetail() {
     window.location.href = `mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
   }
 
+  const canDelete = isAdmin && (inv.status ?? "").toLowerCase() === "draft";
+
+  async function deleteInvoice() {
+    const { error } = await supabase.from("invoices").delete().eq("id", invoiceId);
+    if (error) { toast.error(error.message); return; }
+    toast.success("Invoice deleted");
+    qc.invalidateQueries({ queryKey: ["invoices"] });
+    nav({ to: "/invoices" });
+  }
+
   return (
     <div className="space-y-5 max-w-3xl mx-auto invoice-page">
       <style>{`
