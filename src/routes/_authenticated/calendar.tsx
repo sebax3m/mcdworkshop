@@ -11,11 +11,8 @@ import {
   startOfWeek,
 } from "date-fns";
 import {
-  CalendarDays,
   ChevronLeft,
   ChevronRight,
-  Plus,
-  Wrench,
   AlertTriangle,
   Clock,
   User as UserIcon,
