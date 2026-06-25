@@ -272,7 +272,7 @@ function AnalyticsPage() {
         </div>
         <div className="h-64">
           <ResponsiveContainer width="100%" height="100%">
-            <areachart data={weeklyseries}>
+            <AreaChart data={weeklySeries}>
               <defs>
                 <linearGradient id="revGrad" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.5} />
@@ -282,9 +282,9 @@ function AnalyticsPage() {
               <CartesianGrid strokeDasharray="3 3" className="stroke-border/40" />
               <XAxis dataKey="week" tick={{ fontSize: 12 }} />
               <YAxis tick={{ fontSize: 12 }} tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`} />
-              <tooltip formatter={(v: any) => fmt(Number(v))} contentStyle={{ background: "hsl(var(--background))", border: "1px solid hsl(var(--border))" }} />
+              <Tooltip formatter={(v: any) => fmt(Number(v))} contentStyle={{ background: "hsl(var(--background))", border: "1px solid hsl(var(--border))" }} />
               <Area type="monotone" dataKey="revenue" stroke="hsl(var(--primary))" strokeWidth={2} fill="url(#revGrad)" dot={{ r: 3, fill: "hsl(var(--secondary))", stroke: "hsl(var(--background))", strokeWidth: 2 }} />
-            </areachart>
+            </AreaChart>
           </ResponsiveContainer>
         </div>
       </div>
