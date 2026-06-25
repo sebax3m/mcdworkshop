@@ -88,7 +88,7 @@ function CalendarPage() {
       const { data, error } = await supabase
         .from("bookings")
         .select(
-          "id, service_type, scheduled_date, drop_off_time, estimated_hours, status, color, complaints, notes, assigned_tech_id, customer_id, motorcycle_id, customers(first_name,last_name), motorcycles(year,make,model,rego)",
+          "id, service_type, scheduled_date, drop_off_time, estimated_hours, status, color, complaints, notes, assigned_tech_id, customer_id, motorcycle_id, confirmed, customers(first_name,last_name), motorcycles(year,make,model,rego)",
         )
         .gte("scheduled_date", format(visibleRange.start, "yyyy-MM-dd"))
         .lte("scheduled_date", format(visibleRange.end, "yyyy-MM-dd"))
@@ -287,9 +287,14 @@ function CalendarPage() {
                       return (
                         <div
                           key={b.id}
-                          className={`h-2 w-2 rounded-full ${c.bg} ring-1 ${c.ring}`}
-                          title={`${b.service_type} — ${b.motorcycles?.make ?? ""} ${b.motorcycles?.model ?? ""}`}
-                        />
+                          className="relative"
+                          title={`${b.service_type} — ${b.motorcycles?.make ?? ""} ${b.motorcycles?.model ?? ""}${b.confirmed ? " · Confirmed" : ""}`}
+                        >
+                          <div className={`h-2 w-2 rounded-full ${c.bg} ring-1 ${c.ring}`} />
+                          {b.confirmed && (
+                            <span className="absolute -top-0.5 -right-0.5 h-1.5 w-1.5 rounded-full bg-green-500 ring-1 ring-background" />
+                          )}
+                        </div>
                       );
                     })}
                     {dayBookings.length > 6 && (
@@ -391,8 +396,14 @@ function CalendarPage() {
                             e.stopPropagation();
                             nav({ to: "/bookings/$bookingId", params: { bookingId: b.id } });
                           }}
-                          className={`w-full text-left rounded-lg p-2 ring-1 ${c.bg} ${c.ring} hover:ring-2 transition-all cursor-grab active:cursor-grabbing`}
+                          className={`relative w-full text-left rounded-lg p-2 ring-1 ${c.bg} ${c.ring} hover:ring-2 transition-all cursor-grab active:cursor-grabbing`}
                         >
+                          {b.confirmed && (
+                            <span
+                              title="Confirmed"
+                              className="absolute -top-1 -right-1 h-2.5 w-2.5 rounded-full bg-green-500 ring-2 ring-background"
+                            />
+                          )}
                           <div className="flex items-center justify-between gap-1">
                             <span className={`text-[9px] font-bold uppercase tracking-wider ${c.label}`}>
                               {b.service_type}
