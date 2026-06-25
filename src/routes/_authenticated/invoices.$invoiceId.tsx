@@ -140,6 +140,7 @@ function InvoiceDetail() {
   const { invoiceId } = Route.useParams();
   const nav = useNavigate();
   const qc = useQueryClient();
+  const { isAdmin } = useCurrentUser();
 
   const invoice = useQuery({
     queryKey: ["invoice", invoiceId],
