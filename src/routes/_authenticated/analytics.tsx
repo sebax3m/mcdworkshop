@@ -42,6 +42,8 @@ const fmt = (n: number) =>
 
 function AnalyticsPage() {
   const [fyStart, setFyStart] = useState<"apr" | "jan">("apr"); // NZ FY = Apr–Mar
+  const [yearFilter, setYearFilter] = useState<string>("all"); // "all" or "2025" etc.
+
 
   const { data: invoices = [] } = useQuery<Inv[]>({
     queryKey: ["analytics-invoices"],
@@ -59,6 +61,22 @@ function AnalyticsPage() {
 
   const now = new Date();
 
+  const availableYears = useMemo(() => {
+    const set = new Set<number>();
+    for (const i of invoices) {
+      if (i.invoice_date) set.add(parseISO(i.invoice_date).getFullYear());
+    }
+    return Array.from(set).sort((a, b) => b - a);
+  }, [invoices]);
+
+  const isAll = yearFilter === "all";
+  const selectedYear = isAll ? null : Number(yearFilter);
+
+  const scoped = useMemo(() => {
+    if (isAll) return invoices;
+    return invoices.filter((i) => parseISO(i.invoice_date).getFullYear() === selectedYear);
+  }, [invoices, isAll, selectedYear]);
+
   const totals = useMemo(() => {
     const sum = (rows: Inv[], key: keyof Inv) => rows.reduce((a, r) => a + Number(r[key] || 0), 0);
     const inRange = (d: Date, a: Date, b: Date) => d >= a && d <= b;
@@ -75,42 +93,59 @@ function AnalyticsPage() {
 
     const week = invoices.filter((i) => inRange(parseISO(i.invoice_date), wkA, wkB));
     const month = invoices.filter((i) => inRange(parseISO(i.invoice_date), mA, mB));
-    const year = invoices.filter((i) => inRange(parseISO(i.invoice_date), yA, yB));
     const last30 = invoices.filter((i) => parseISO(i.invoice_date) >= subDays(now, 30));
+
+    // "Year" KPIs follow the year selector when a specific year is chosen,
+    // otherwise fall back to the FY range.
+    const yearRows = isAll
+      ? invoices.filter((i) => inRange(parseISO(i.invoice_date), yA, yB))
+      : scoped;
 
     return {
       week: { total: sum(week, "total"), count: week.length, gst: sum(week, "gst") },
       month: { total: sum(month, "total"), count: month.length, gst: sum(month, "gst") },
-      year: { total: sum(year, "total"), count: year.length, gst: sum(year, "gst"), subtotal: sum(year, "subtotal_excl_gst") },
+      year: { total: sum(yearRows, "total"), count: yearRows.length, gst: sum(yearRows, "gst"), subtotal: sum(yearRows, "subtotal_excl_gst") },
       last30: { total: sum(last30, "total") },
       outstanding: sum(
-        invoices.filter((i) => i.status !== "paid"),
+        scoped.filter((i) => i.status !== "paid"),
         "total",
-      ) - sum(invoices.filter((i) => i.status !== "paid"), "paid_amount"),
-      paid: sum(invoices.filter((i) => i.status === "paid"), "total"),
+      ) - sum(scoped.filter((i) => i.status !== "paid"), "paid_amount"),
+      paid: sum(scoped.filter((i) => i.status === "paid"), "total"),
       ytdRange: { from: yA, to: yB },
     };
-  }, [invoices, fyStart, now]);
+  }, [invoices, scoped, isAll, fyStart, now]);
 
+
+  // When viewing a single year: show 12 months Jan–Dec of that year.
+  // When viewing All years: show one bar per year.
   const monthlySeries = useMemo(() => {
-    const map = new Map<string, { month: string; revenue: number; gst: number }>();
-    for (const i of invoices) {
-      const key = format(parseISO(i.invoice_date), "yyyy-MM");
-      const label = format(parseISO(i.invoice_date), "MMM yy");
-      const cur = map.get(key) ?? { month: label, revenue: 0, gst: 0 };
-      cur.revenue += Number(i.total);
-      cur.gst += Number(i.gst);
-      map.set(key, cur);
+    if (isAll) {
+      const map = new Map<string, { month: string; revenue: number; gst: number }>();
+      for (const i of invoices) {
+        const key = format(parseISO(i.invoice_date), "yyyy");
+        const cur = map.get(key) ?? { month: key, revenue: 0, gst: 0 };
+        cur.revenue += Number(i.total);
+        cur.gst += Number(i.gst);
+        map.set(key, cur);
+      }
+      return Array.from(map.entries()).sort(([a], [b]) => (a < b ? -1 : 1)).map(([, v]) => v);
     }
-    return Array.from(map.entries())
-      .sort(([a], [b]) => (a < b ? -1 : 1))
-      .slice(-12)
-      .map(([, v]) => v);
-  }, [invoices]);
+    const months = Array.from({ length: 12 }, (_, m) => ({
+      month: format(new Date(selectedYear!, m, 1), "MMM"),
+      revenue: 0,
+      gst: 0,
+    }));
+    for (const i of scoped) {
+      const m = parseISO(i.invoice_date).getMonth();
+      months[m].revenue += Number(i.total);
+      months[m].gst += Number(i.gst);
+    }
+    return months;
+  }, [invoices, scoped, isAll, selectedYear]);
 
   const weeklySeries = useMemo(() => {
     const map = new Map<string, { week: string; revenue: number }>();
-    for (const i of invoices) {
+    for (const i of scoped) {
       const d = parseISO(i.invoice_date);
       const ws = startOfWeek(d, { weekStartsOn: 1 });
       const key = format(ws, "yyyy-MM-dd");
@@ -122,11 +157,11 @@ function AnalyticsPage() {
       .sort(([a], [b]) => (a < b ? -1 : 1))
       .slice(-12)
       .map(([, v]) => v);
-  }, [invoices]);
+  }, [scoped]);
 
   const topCustomers = useMemo(() => {
     const map = new Map<string, { name: string; total: number; count: number }>();
-    for (const i of invoices) {
+    for (const i of scoped) {
       const n = i.customer_name_snapshot || "Walk-in";
       const cur = map.get(n) ?? { name: n, total: 0, count: 0 };
       cur.total += Number(i.total);
@@ -134,7 +169,8 @@ function AnalyticsPage() {
       map.set(n, cur);
     }
     return Array.from(map.values()).sort((a, b) => b.total - a.total).slice(0, 8);
-  }, [invoices]);
+  }, [scoped]);
+
 
   const exportXeroCSV = () => {
     // Xero "Sales Invoices" import format
@@ -153,7 +189,7 @@ function AnalyticsPage() {
       "Currency",
     ];
     const rows: string[][] = [];
-    for (const inv of invoices) {
+    for (const inv of scoped) {
       const lines: any[] = inv.snapshot?.lines ?? [];
       const date = format(parseISO(inv.invoice_date), "dd/MM/yyyy");
       const due = inv.due_date ? format(parseISO(inv.due_date), "dd/MM/yyyy") : date;
@@ -200,7 +236,7 @@ function AnalyticsPage() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `xero-sales-invoices-${format(now, "yyyy-MM-dd")}.csv`;
+    a.download = `xero-sales-invoices-${isAll ? "all-years" : selectedYear}-${format(now, "yyyy-MM-dd")}.csv`;
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -210,16 +246,29 @@ function AnalyticsPage() {
       <header className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <div className="text-xs uppercase tracking-[0.25em] text-muted-foreground">Workshop</div>
-          <h1 className="font-display text-2xl sm:text-3xl font-bold">Analytics & Tax</h1>
+          <h1 className="font-display text-2xl sm:text-3xl font-bold">
+            Analytics & Tax {isAll ? <span className="text-muted-foreground">· All years</span> : <span className="text-primary">· {selectedYear}</span>}
+          </h1>
           <p className="text-sm text-muted-foreground mt-1">
             Revenue, GST and outstanding balances — formatted for Xero import.
           </p>
         </div>
         <div className="flex items-center gap-2">
           <select
+            value={yearFilter}
+            onChange={(e) => setYearFilter(e.target.value)}
+            className="rounded-md border border-border bg-background px-3 py-2 text-sm font-medium"
+          >
+            <option value="all">All years</option>
+            {availableYears.map((y) => (
+              <option key={y} value={String(y)}>{y}</option>
+            ))}
+          </select>
+          <select
             value={fyStart}
             onChange={(e) => setFyStart(e.target.value as any)}
             className="rounded-md border border-border bg-background px-3 py-2 text-sm"
+            title="Used for current-FY KPI when viewing all years"
           >
             <option value="apr">NZ FY (Apr–Mar)</option>
             <option value="jan">Calendar year</option>
@@ -234,20 +283,22 @@ function AnalyticsPage() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <Kpi icon={<TrendingUp className="h-4 w-4" />} label="This week" value={fmt(totals.week.total)} sub={`${totals.week.count} invoices`} />
         <Kpi icon={<TrendingUp className="h-4 w-4" />} label="This month" value={fmt(totals.month.total)} sub={`${totals.month.count} invoices`} />
-        <Kpi icon={<DollarSign className="h-4 w-4" />} label="FY revenue" value={fmt(totals.year.total)} sub={`Excl GST ${fmt(totals.year.subtotal)}`} />
-        <Kpi icon={<Receipt className="h-4 w-4" />} label="GST collected (FY)" value={fmt(totals.year.gst)} sub="To remit to IRD" />
+        <Kpi icon={<DollarSign className="h-4 w-4" />} label={isAll ? "FY revenue" : `${selectedYear} revenue`} value={fmt(totals.year.total)} sub={`Excl GST ${fmt(totals.year.subtotal)}`} />
+        <Kpi icon={<Receipt className="h-4 w-4" />} label={isAll ? "GST collected (FY)" : `GST collected ${selectedYear}`} value={fmt(totals.year.gst)} sub="To remit to IRD" />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
-        <Kpi icon={<AlertCircle className="h-4 w-4 text-amber-400" />} label="Outstanding balance" value={fmt(totals.outstanding)} sub="Unpaid invoices" />
-        <Kpi icon={<DollarSign className="h-4 w-4 text-emerald-400" />} label="Paid (all time)" value={fmt(totals.paid)} sub="" />
+        <Kpi icon={<AlertCircle className="h-4 w-4 text-amber-400" />} label="Outstanding balance" value={fmt(totals.outstanding)} sub={isAll ? "Unpaid invoices" : `Unpaid in ${selectedYear}`} />
+        <Kpi icon={<DollarSign className="h-4 w-4 text-emerald-400" />} label={isAll ? "Paid (all time)" : `Paid in ${selectedYear}`} value={fmt(totals.paid)} sub="" />
         <Kpi icon={<TrendingUp className="h-4 w-4" />} label="Last 30 days" value={fmt(totals.last30.total)} sub="" />
       </div>
 
       {/* Monthly stacked bar chart */}
       <div className="card-surface p-5">
         <div className="flex items-center justify-between mb-3">
-          <h2 className="font-display text-lg font-bold">Revenue by month (last 12)</h2>
+          <h2 className="font-display text-lg font-bold">
+            {isAll ? "Revenue by year" : `Revenue by month · ${selectedYear}`}
+          </h2>
           <span className="text-xs text-muted-foreground">Incl. GST</span>
         </div>
         <div className="h-72">
