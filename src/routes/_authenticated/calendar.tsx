@@ -153,20 +153,6 @@ function CalendarPage() {
             </button>
           </div>
         </div>
-        <div className="relative mt-5 flex flex-wrap gap-2">
-          <Link
-            to="/bookings/new"
-            className="inline-flex items-center gap-1.5 rounded-xl red-surface px-4 py-2.5 text-sm font-bold hover:scale-[1.02] transition-transform"
-          >
-            <Plus className="h-4 w-4" /> Book In
-          </Link>
-          <Link
-            to="/jobs/new"
-            className="inline-flex items-center gap-1.5 rounded-xl red-surface px-4 py-2.5 text-sm font-bold hover:scale-[1.02] transition-transform"
-          >
-            <Wrench className="h-4 w-4" /> Job Card
-          </Link>
-        </div>
       </motion.header>
 
       {/* WEEK GRID */}
