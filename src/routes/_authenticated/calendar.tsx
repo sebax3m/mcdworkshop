@@ -218,7 +218,7 @@ function CalendarPage() {
       {viewMode === "month" && (
         <div className="space-y-1">
           {/* Day headers */}
-          <div className="grid grid-cols-7 gap-2">
+          <div className="grid grid-cols-7 gap-2" style={{ gridTemplateColumns: 'repeat(7, minmax(0, 1fr))' }}>
             {dayNames.map((name) => (
               <div key={name} className="text-center text-[10px] font-bold uppercase tracking-wider text-muted-foreground py-1">
                 {name}
