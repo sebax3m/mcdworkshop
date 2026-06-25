@@ -619,8 +619,8 @@ function ServiceTemplateSection({
   const currentKindLabel = currentTmpl ? currentTmpl.name.replace(" Service", "").toUpperCase() : currentTitle.toUpperCase();
 
   return (
-    <section className="card-surface p-5">
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-5">
+    <section className="card-surface p-5 print:p-0 print:border-0 print:shadow-none print:bg-transparent">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-5 print:hidden">
         {(templates.data ?? []).map((tmpl: any) => {
           const active = tmpl.id === currentTemplateId;
           return (
@@ -644,19 +644,27 @@ function ServiceTemplateSection({
         })}
       </div>
 
-      <div className="flex items-baseline justify-between mb-1">
+      <div className="flex items-baseline justify-between mb-1 print:hidden">
         <h2 className="font-display text-xl font-bold tracking-wide">{currentKindLabel}</h2>
         <span className="text-xs text-muted-foreground">
           {tasks.filter((t) => t.is_done).length}/{tasks.length} done · {completion}%
         </span>
       </div>
       {currentTmpl?.description && (
-        <p className="text-sm text-primary mb-3">{currentTmpl.description}</p>
+        <p className="text-sm text-primary mb-3 print:hidden">{currentTmpl.description}</p>
       )}
 
-      <div className="h-1 rounded-full bg-muted overflow-hidden mb-4">
+      <div className="h-1 rounded-full bg-muted overflow-hidden mb-4 print:hidden">
         <div className="h-full gold-surface transition-all" style={{ width: `${completion}%` }} />
       </div>
+
+      {/* Print-only simple instruction list */}
+      <div className="hidden print:block mb-2">
+        <h2 className="font-display text-base font-bold uppercase tracking-wider border-b border-black pb-1 mb-2">
+          {currentKindLabel} — Instructions
+        </h2>
+      </div>
+
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-0.5">
         {tasks.map((t) => (
