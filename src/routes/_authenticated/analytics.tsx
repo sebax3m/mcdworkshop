@@ -116,25 +116,36 @@ function AnalyticsPage() {
   }, [invoices, scoped, isAll, fyStart, now]);
 
 
+  // When viewing a single year: show 12 months Jan–Dec of that year.
+  // When viewing All years: show one bar per year.
   const monthlySeries = useMemo(() => {
-    const map = new Map<string, { month: string; revenue: number; gst: number }>();
-    for (const i of invoices) {
-      const key = format(parseISO(i.invoice_date), "yyyy-MM");
-      const label = format(parseISO(i.invoice_date), "MMM yy");
-      const cur = map.get(key) ?? { month: label, revenue: 0, gst: 0 };
-      cur.revenue += Number(i.total);
-      cur.gst += Number(i.gst);
-      map.set(key, cur);
+    if (isAll) {
+      const map = new Map<string, { month: string; revenue: number; gst: number }>();
+      for (const i of invoices) {
+        const key = format(parseISO(i.invoice_date), "yyyy");
+        const cur = map.get(key) ?? { month: key, revenue: 0, gst: 0 };
+        cur.revenue += Number(i.total);
+        cur.gst += Number(i.gst);
+        map.set(key, cur);
+      }
+      return Array.from(map.entries()).sort(([a], [b]) => (a < b ? -1 : 1)).map(([, v]) => v);
     }
-    return Array.from(map.entries())
-      .sort(([a], [b]) => (a < b ? -1 : 1))
-      .slice(-12)
-      .map(([, v]) => v);
-  }, [invoices]);
+    const months = Array.from({ length: 12 }, (_, m) => ({
+      month: format(new Date(selectedYear!, m, 1), "MMM"),
+      revenue: 0,
+      gst: 0,
+    }));
+    for (const i of scoped) {
+      const m = parseISO(i.invoice_date).getMonth();
+      months[m].revenue += Number(i.total);
+      months[m].gst += Number(i.gst);
+    }
+    return months;
+  }, [invoices, scoped, isAll, selectedYear]);
 
   const weeklySeries = useMemo(() => {
     const map = new Map<string, { week: string; revenue: number }>();
-    for (const i of invoices) {
+    for (const i of scoped) {
       const d = parseISO(i.invoice_date);
       const ws = startOfWeek(d, { weekStartsOn: 1 });
       const key = format(ws, "yyyy-MM-dd");
@@ -146,11 +157,11 @@ function AnalyticsPage() {
       .sort(([a], [b]) => (a < b ? -1 : 1))
       .slice(-12)
       .map(([, v]) => v);
-  }, [invoices]);
+  }, [scoped]);
 
   const topCustomers = useMemo(() => {
     const map = new Map<string, { name: string; total: number; count: number }>();
-    for (const i of invoices) {
+    for (const i of scoped) {
       const n = i.customer_name_snapshot || "Walk-in";
       const cur = map.get(n) ?? { name: n, total: 0, count: 0 };
       cur.total += Number(i.total);
@@ -158,7 +169,8 @@ function AnalyticsPage() {
       map.set(n, cur);
     }
     return Array.from(map.values()).sort((a, b) => b.total - a.total).slice(0, 8);
-  }, [invoices]);
+  }, [scoped]);
+
 
   const exportXeroCSV = () => {
     // Xero "Sales Invoices" import format
