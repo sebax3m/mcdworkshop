@@ -13,7 +13,7 @@ import {
   subDays,
   parseISO,
 } from "date-fns";
-import { Bar, BarChart, CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { Bar, BarChart, CartesianGrid, Line, LineChart, Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis, Legend, Cell } from "recharts";
 import { Button } from "@/components/ui/button";
 import { Download, TrendingUp, DollarSign, Receipt, AlertCircle } from "lucide-react";
 
