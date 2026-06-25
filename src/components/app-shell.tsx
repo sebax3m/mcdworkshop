@@ -97,11 +97,11 @@ export function AppShell() {
                 key={t.to}
                 to={t.to}
                 className={cn(
-                  "flex flex-col items-center justify-center gap-0.5 py-2 text-[10px] uppercase tracking-wider transition-colors",
+                  "flex flex-col items-center justify-center gap-1 py-3 text-xs uppercase tracking-wider transition-colors",
                   active ? "text-primary" : "text-muted-foreground",
                 )}
               >
-                <Icon className={cn("h-5 w-5", active && "drop-shadow-[0_0_8px_oklch(0.58_0.22_25/0.6)]")} />
+                <Icon className={cn("h-6 w-6", active && "drop-shadow-[0_0_8px_oklch(0.58_0.22_25/0.6)]")} />
                 <span className="font-semibold">{t.label}</span>
               </Link>
             );
