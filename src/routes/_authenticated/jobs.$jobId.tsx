@@ -331,15 +331,16 @@ function JobDetail() {
         /></div>
       )}
 
-      {/* Valve clearance diagram for Full service */}
+      {/* Valve clearance diagram for Full service — also prints as a worksheet page */}
       {kind === "full" && (
-        <div className="print:hidden"><ValveClearanceSection
+        <ValveClearanceSection
           jobId={jobId}
           cylinders={cylinders}
           canEdit={canEdit}
           data={((j.service_data as any) ?? {}).valves ?? {}}
+          bike={j.motorcycles as any}
           onChanged={() => qc.invalidateQueries({ queryKey: ["job", jobId] })}
-        /></div>
+        />
       )}
 
       {/* Notes */}
