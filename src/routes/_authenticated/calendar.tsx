@@ -155,7 +155,7 @@ function CalendarPage() {
                 if (id) moveBooking(id, day);
                 setDraggingId(null);
               }}
-              className={`card-surface p-3 min-h-[260px] flex flex-col transition-colors ${
+              className={`card-surface p-4 min-h-[480px] flex flex-col transition-colors ${
                 today ? "ring-2 ring-primary/40" : ""
               } ${draggingId ? "border-dashed" : ""}`}
             >
