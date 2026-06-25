@@ -287,9 +287,14 @@ function CalendarPage() {
                       return (
                         <div
                           key={b.id}
-                          className={`h-2 w-2 rounded-full ${c.bg} ring-1 ${c.ring}`}
-                          title={`${b.service_type} — ${b.motorcycles?.make ?? ""} ${b.motorcycles?.model ?? ""}`}
-                        />
+                          className="relative"
+                          title={`${b.service_type} — ${b.motorcycles?.make ?? ""} ${b.motorcycles?.model ?? ""}${b.confirmed ? " · Confirmed" : ""}`}
+                        >
+                          <div className={`h-2 w-2 rounded-full ${c.bg} ring-1 ${c.ring}`} />
+                          {b.confirmed && (
+                            <span className="absolute -top-0.5 -right-0.5 h-1.5 w-1.5 rounded-full bg-green-500 ring-1 ring-background" />
+                          )}
+                        </div>
                       );
                     })}
                     {dayBookings.length > 6 && (
