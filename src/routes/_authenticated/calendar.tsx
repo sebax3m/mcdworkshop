@@ -104,56 +104,37 @@ function CalendarPage() {
 
   return (
     <div className="space-y-5">
-      {/* HERO HEADER */}
-      <motion.header
-        initial={{ opacity: 0, y: -8 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4 }}
-        className="relative overflow-hidden card-surface p-5"
-      >
-        <div className="absolute inset-0 opacity-50 pointer-events-none">
-          <div className="absolute -top-20 -right-20 h-60 w-60 rounded-full bg-primary/10 blur-3xl" />
-          <div className="absolute -bottom-32 -left-10 h-72 w-72 rounded-full bg-[color:var(--md-blue)]/10 blur-3xl" />
+      {/* WEEK NAV */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setWeekStart((d) => addWeeks(d, -1))}
+            className="grid h-10 w-10 place-items-center rounded-xl border border-border hover:border-primary/50 hover:bg-primary/5 transition-colors"
+            aria-label="Previous week"
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </button>
+          <button
+            onClick={() => setWeekStart(startOfWeek(new Date(), { weekStartsOn: 1 }))}
+            className="inline-flex items-center px-3 h-10 rounded-xl border border-border hover:border-primary/50 text-xs font-semibold uppercase tracking-wider"
+          >
+            Today
+          </button>
+          <button
+            onClick={() => setWeekStart((d) => addWeeks(d, 1))}
+            className="grid h-10 w-10 place-items-center rounded-xl border border-border hover:border-primary/50 hover:bg-primary/5 transition-colors"
+            aria-label="Next week"
+          >
+            <ChevronRight className="h-4 w-4" />
+          </button>
         </div>
-        <div className="relative grid grid-cols-[minmax(0,1fr)_auto] items-end gap-4">
-          <div className="min-w-0">
-            <div className="flex items-center gap-2 text-[10px] uppercase tracking-[0.3em] text-muted-foreground">
-              <CalendarDays className="h-3.5 w-3.5 text-primary" />
-              Workshop Calendar
-            </div>
-            <h1 className="font-display text-2xl sm:text-4xl font-bold mt-1.5">
-              <span className="red-gradient-text">{format(weekStart, "MMM d")}</span>
-              <span className="text-muted-foreground"> — </span>
-              {format(weekEnd, "MMM d, yyyy")}
-            </h1>
-            <p className="text-xs sm:text-sm text-muted-foreground mt-1">
-              {bookings.length} bookings · {[...totals.values()].reduce((a, b) => a + b, 0).toFixed(1)}h scheduled
-            </p>
-          </div>
-          <div className="flex items-center gap-2 shrink-0">
-            <button
-              onClick={() => setWeekStart((d) => addWeeks(d, -1))}
-              className="grid h-10 w-10 place-items-center rounded-xl border border-border hover:border-primary/50 hover:bg-primary/5 transition-colors"
-              aria-label="Previous week"
-            >
-              <ChevronLeft className="h-4 w-4" />
-            </button>
-            <button
-              onClick={() => setWeekStart(startOfWeek(new Date(), { weekStartsOn: 1 }))}
-              className="hidden sm:inline-flex items-center px-3 h-10 rounded-xl border border-border hover:border-primary/50 text-xs font-semibold uppercase tracking-wider"
-            >
-              Today
-            </button>
-            <button
-              onClick={() => setWeekStart((d) => addWeeks(d, 1))}
-              className="grid h-10 w-10 place-items-center rounded-xl border border-border hover:border-primary/50 hover:bg-primary/5 transition-colors"
-              aria-label="Next week"
-            >
-              <ChevronRight className="h-4 w-4" />
-            </button>
-          </div>
+        <div className="text-sm font-semibold text-muted-foreground">
+          {format(weekStart, "MMM d")} — {format(weekEnd, "MMM d, yyyy")}
+          <span className="ml-3 text-xs tabular-nums">
+            {bookings.length} bookings · {[...totals.values()].reduce((a, b) => a + b, 0).toFixed(1)}h
+          </span>
         </div>
-      </motion.header>
+      </div>
 
       {/* WEEK GRID */}
       <div className="grid grid-cols-1 lg:grid-cols-7 gap-3">
