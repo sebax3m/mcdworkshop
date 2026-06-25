@@ -42,7 +42,7 @@ const fmt = (n: number) =>
 
 function AnalyticsPage() {
   const [fyStart, setFyStart] = useState<"apr" | "jan">("apr"); // NZ FY = Apr–Mar
-  const [yearFilter, setYearFilter] = useState<string>("all"); // "all" or "2025" etc.
+  const [yearFilter, setYearFilter] = useState<string>(String(new Date().getFullYear())); // default to current year so monthly chart shows
 
 
   const { data: invoices = [] } = useQuery<Inv[]>({
