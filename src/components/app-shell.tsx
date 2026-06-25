@@ -109,8 +109,8 @@ export function AppShell() {
         </div>
       </nav>
 
-      {/* Desktop side tabs (top secondary nav) */}
-      <nav className="hidden sm:flex fixed bottom-6 left-1/2 -translate-x-1/2 z-40 items-center gap-1 rounded-full border border-border bg-card/90 px-1.5 py-1.5 backdrop-blur-xl shadow-[0_10px_40px_-10px_oklch(0_0_0/0.6)]">
+      {/* Desktop bottom nav */}
+      <nav className="hidden sm:flex fixed bottom-6 left-1/2 -translate-x-1/2 z-40 items-center gap-1.5 rounded-full border border-border bg-card/90 px-2 py-2 backdrop-blur-xl shadow-[0_10px_40px_-10px_oklch(0_0_0/0.6)]">
         {tabs.map((t) => {
           const active = pathname === t.to || pathname.startsWith(t.to + "/");
           const Icon = t.icon;
@@ -119,11 +119,11 @@ export function AppShell() {
               key={t.to}
               to={t.to}
               className={cn(
-                "flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-colors",
+                "flex items-center gap-2.5 rounded-full px-5 py-2.5 text-base font-medium transition-colors",
                 active ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground",
               )}
             >
-              <Icon className="h-4 w-4" /> {t.label}
+              <Icon className="h-5 w-5" /> {t.label}
             </Link>
           );
         })}
@@ -131,39 +131,39 @@ export function AppShell() {
           <Link
             to="/templates"
             className={cn(
-              "flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-colors",
+              "flex items-center gap-2.5 rounded-full px-5 py-2.5 text-base font-medium transition-colors",
               pathname.startsWith("/templates")
                 ? "bg-primary text-primary-foreground"
                 : "text-muted-foreground hover:text-foreground",
             )}
           >
-            <FileStack className="h-4 w-4" /> Templates
+            <FileStack className="h-5 w-5" /> Templates
           </Link>
         )}
         {isAdmin && (
           <Link
             to="/inventory"
             className={cn(
-              "flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-colors",
+              "flex items-center gap-2.5 rounded-full px-5 py-2.5 text-base font-medium transition-colors",
               pathname.startsWith("/inventory")
                 ? "bg-primary text-primary-foreground"
                 : "text-muted-foreground hover:text-foreground",
             )}
           >
-            <Package className="h-4 w-4" /> Inventory
+            <Package className="h-5 w-5" /> Inventory
           </Link>
         )}
         {isAdmin && (
           <Link
             to="/invoices"
             className={cn(
-              "flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-colors",
+              "flex items-center gap-2.5 rounded-full px-5 py-2.5 text-base font-medium transition-colors",
               pathname.startsWith("/invoices")
                 ? "bg-primary text-primary-foreground"
                 : "text-muted-foreground hover:text-foreground",
             )}
           >
-            <FileText className="h-4 w-4" /> Invoices
+            <FileText className="h-5 w-5" /> Invoices
           </Link>
         )}
       </nav>
