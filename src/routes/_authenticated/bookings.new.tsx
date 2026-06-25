@@ -150,6 +150,7 @@ function NewBooking() {
           motorcycle_id: bike.id,
           assigned_tech_id: techId,
           service_type: serviceType,
+          priority,
           scheduled_date: scheduledDate,
           drop_off_time: dropTime || null,
           estimated_hours: Number(estHours) || 1,
