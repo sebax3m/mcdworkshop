@@ -21,7 +21,7 @@ function AuthPage() {
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
-      if (data.session) nav({ to: "/dashboard", replace: true });
+      if (data.session) nav({ to: "/calendar", replace: true });
     });
   }, [nav]);
 
@@ -44,7 +44,7 @@ function AuthPage() {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
       }
-      nav({ to: "/dashboard", replace: true });
+      nav({ to: "/calendar", replace: true });
     } catch (err: any) {
       toast.error(err.message ?? "Something went wrong");
     } finally {
