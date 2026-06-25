@@ -27,7 +27,7 @@ const SERVICE_TYPES = [
   "Annual Service",
   "Full Service",
   "Dyno Tuning",
-  "Collision Repair",
+  "Collision Repair (Insurance)",
   "Diagnostic",
   "Tyre Change",
   "Brake Service",
