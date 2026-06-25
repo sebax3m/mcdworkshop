@@ -883,8 +883,8 @@ function InventoryPicker({ jobId, fieldKey, category, label, serviceData, onClos
   );
 }
 
-function ValveClearanceSection({ jobId, cylinders, canEdit, data, onChanged }: {
-  jobId: string; cylinders: number; canEdit: boolean; data: any; onChanged: () => void;
+function ValveClearanceSection({ jobId, cylinders, canEdit, data, bike, onChanged }: {
+  jobId: string; cylinders: number; canEdit: boolean; data: any; bike: any; onChanged: () => void;
 }) {
   const [values, setValues] = useState<any>(data ?? {});
   const [saving, setSaving] = useState(false);
@@ -892,6 +892,8 @@ function ValveClearanceSection({ jobId, cylinders, canEdit, data, onChanged }: {
 
   const intakePerCyl = 2;
   const exhaustPerCyl = 2;
+
+  const spec = getValveSpec(bike?.make, bike?.model, bike?.year);
 
   function set(cyl: number, side: "intake" | "exhaust", idx: number, v: string) {
     const key = `c${cyl}_${side}_${idx}`;
@@ -910,80 +912,202 @@ function ValveClearanceSection({ jobId, cylinders, canEdit, data, onChanged }: {
   }
 
   return (
-    <section className="card-surface p-4">
-      <div className="flex items-center gap-2 mb-1">
-        <Wrench className="h-4 w-4 text-primary" />
-        <h2 className="font-display text-lg font-semibold">Valve Clearance Check</h2>
-      </div>
-      <p className="text-xs text-muted-foreground mb-3">
-        {cylinders}-cylinder engine. Record measured clearance in mm for each valve (intake & exhaust).
-      </p>
+    <>
+      {/* Screen / on-card section */}
+      <section className="card-surface p-4 print:hidden">
+        <div className="flex items-center gap-2 mb-1">
+          <Wrench className="h-4 w-4 text-primary" />
+          <h2 className="font-display text-lg font-semibold">Valve Clearance Check</h2>
+        </div>
+        <p className="text-xs text-muted-foreground mb-3">
+          {cylinders}-cylinder engine. Record measured clearance in mm for each valve (intake & exhaust).
+        </p>
 
-      <div className="rounded-xl border border-border bg-background/40 p-3 overflow-x-auto">
-        <div className="flex gap-3 min-w-fit">
-          {Array.from({ length: cylinders }).map((_, c) => {
-            const cyl = c + 1;
-            return (
-              <div key={cyl} className="rounded-lg border border-border bg-card/60 p-2.5 min-w-[150px]">
-                <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold mb-2 text-center">
-                  Cyl {cyl}
-                </div>
-                <div className="space-y-2">
-                  <div>
-                    <div className="text-[10px] text-status-progress font-semibold mb-1">INTAKE</div>
-                    <div className="grid grid-cols-2 gap-1">
-                      {Array.from({ length: intakePerCyl }).map((_, i) => (
-                        <input
-                          key={i}
-                          disabled={!canEdit}
-                          value={values[`c${cyl}_intake_${i}`] ?? ""}
-                          onChange={(e) => set(cyl, "intake", i, e.target.value)}
-                          placeholder="mm"
-                          className="h-9 rounded-md bg-background border border-border text-center text-xs font-mono focus:outline-none focus:border-primary"
-                        />
-                      ))}
+        {/* Manufacturer recommendation */}
+        <div className="mb-3 rounded-lg border border-primary/40 bg-primary/5 p-3">
+          <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold mb-1">
+            Manufacturer recommendation {spec.generic && <span className="text-status-parts">· generic — verify manual</span>}
+          </div>
+          <div className="grid grid-cols-2 gap-3 text-sm">
+            <div>
+              <div className="text-[10px] text-status-progress font-semibold">INTAKE (cold)</div>
+              <div className="font-mono font-bold">{formatRange(spec.intake)}</div>
+            </div>
+            <div>
+              <div className="text-[10px] text-destructive font-semibold">EXHAUST (cold)</div>
+              <div className="font-mono font-bold">{formatRange(spec.exhaust)}</div>
+            </div>
+          </div>
+          <div className="mt-1.5 text-[10px] text-muted-foreground">Source: {spec.source}{bike?.make ? ` · ${bike.make} ${bike.model ?? ""}${bike.year ? ` ${bike.year}` : ""}` : ""}</div>
+          {spec.note && <div className="mt-1 text-[10px] text-status-parts">{spec.note}</div>}
+        </div>
+
+        <div className="rounded-xl border border-border bg-background/40 p-3 overflow-x-auto">
+          <div className="flex gap-3 min-w-fit">
+            {Array.from({ length: cylinders }).map((_, c) => {
+              const cyl = c + 1;
+              return (
+                <div key={cyl} className="rounded-lg border border-border bg-card/60 p-2.5 min-w-[150px]">
+                  <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold mb-2 text-center">
+                    Cyl {cyl}
+                  </div>
+                  <div className="space-y-2">
+                    <div>
+                      <div className="text-[10px] text-status-progress font-semibold mb-1">INTAKE</div>
+                      <div className="grid grid-cols-2 gap-1">
+                        {Array.from({ length: intakePerCyl }).map((_, i) => (
+                          <input
+                            key={i}
+                            disabled={!canEdit}
+                            value={values[`c${cyl}_intake_${i}`] ?? ""}
+                            onChange={(e) => set(cyl, "intake", i, e.target.value)}
+                            placeholder="mm"
+                            className="h-9 rounded-md bg-background border border-border text-center text-xs font-mono focus:outline-none focus:border-primary"
+                          />
+                        ))}
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-1 px-2">
+                      <div className="h-6 rounded-sm bg-status-progress/20 border border-status-progress/40" title="Intake valve" />
+                      <div className="h-6 rounded-sm bg-status-progress/20 border border-status-progress/40" title="Intake valve" />
+                    </div>
+                    <div className="h-px bg-border my-1" />
+                    <div className="grid grid-cols-2 gap-1 px-2">
+                      <div className="h-6 rounded-sm bg-destructive/20 border border-destructive/40" title="Exhaust valve" />
+                      <div className="h-6 rounded-sm bg-destructive/20 border border-destructive/40" title="Exhaust valve" />
+                    </div>
+                    <div>
+                      <div className="text-[10px] text-destructive font-semibold mb-1 mt-1">EXHAUST</div>
+                      <div className="grid grid-cols-2 gap-1">
+                        {Array.from({ length: exhaustPerCyl }).map((_, i) => (
+                          <input
+                            key={i}
+                            disabled={!canEdit}
+                            value={values[`c${cyl}_exhaust_${i}`] ?? ""}
+                            onChange={(e) => set(cyl, "exhaust", i, e.target.value)}
+                            placeholder="mm"
+                            className="h-9 rounded-md bg-background border border-border text-center text-xs font-mono focus:outline-none focus:border-primary"
+                          />
+                        ))}
+                      </div>
                     </div>
                   </div>
-                  <div className="grid grid-cols-2 gap-1 px-2">
-                    <div className="h-6 rounded-sm bg-status-progress/20 border border-status-progress/40" title="Intake valve" />
-                    <div className="h-6 rounded-sm bg-status-progress/20 border border-status-progress/40" title="Intake valve" />
-                  </div>
-                  <div className="h-px bg-border my-1" />
-                  <div className="grid grid-cols-2 gap-1 px-2">
-                    <div className="h-6 rounded-sm bg-destructive/20 border border-destructive/40" title="Exhaust valve" />
-                    <div className="h-6 rounded-sm bg-destructive/20 border border-destructive/40" title="Exhaust valve" />
-                  </div>
-                  <div>
-                    <div className="text-[10px] text-destructive font-semibold mb-1 mt-1">EXHAUST</div>
-                    <div className="grid grid-cols-2 gap-1">
-                      {Array.from({ length: exhaustPerCyl }).map((_, i) => (
-                        <input
-                          key={i}
-                          disabled={!canEdit}
-                          value={values[`c${cyl}_exhaust_${i}`] ?? ""}
-                          onChange={(e) => set(cyl, "exhaust", i, e.target.value)}
-                          placeholder="mm"
-                          className="h-9 rounded-md bg-background border border-border text-center text-xs font-mono focus:outline-none focus:border-primary"
-                        />
-                      ))}
-                    </div>
-                  </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
+        </div>
+        <div className="mt-3 flex items-center gap-3 text-[10px] text-muted-foreground">
+          <span className="inline-flex items-center gap-1"><span className="h-2.5 w-2.5 rounded-sm bg-status-progress/40 border border-status-progress/60" /> Intake</span>
+          <span className="inline-flex items-center gap-1"><span className="h-2.5 w-2.5 rounded-sm bg-destructive/40 border border-destructive/60" /> Exhaust</span>
+          <span className="ml-auto">Spec: I {formatRange(spec.intake)} · E {formatRange(spec.exhaust)}</span>
+        </div>
+        {canEdit && (
+          <div className="mt-3 flex justify-end">
+            <Button onClick={save} disabled={saving} className="gold-surface">{saving ? "Saving…" : "Save measurements"}</Button>
+          </div>
+        )}
+      </section>
+
+      {/* Print-only worksheet — forced onto its own page */}
+      <ValveClearancePrintSheet bike={bike} cylinders={cylinders} values={values} spec={spec} />
+    </>
+  );
+}
+
+function ValveClearancePrintSheet({
+  bike, cylinders, values, spec,
+}: {
+  bike: any; cylinders: number; values: any; spec: ValveSpec;
+}) {
+  return (
+    <div className="hidden print:block" style={{ pageBreakBefore: "always", breakBefore: "page" }}>
+      <div className="flex items-start justify-between gap-4 border-b-2 border-black pb-3 mb-4">
+        <div className="min-w-0">
+          <div className="text-[10px] uppercase tracking-[0.25em] text-gray-600">Motorcycle Doctors · Valve Clearance Worksheet</div>
+          <h1 className="font-display text-2xl font-bold leading-tight">
+            {bike?.make ?? ""} {bike?.model ?? ""} {bike?.year ?? ""}
+          </h1>
+          <div className="text-xs text-gray-700 mt-1">
+            {cylinders}-cyl · Rego {bike?.rego ?? "—"} · VIN {bike?.vin ?? "—"}
+          </div>
+        </div>
+        <div className="text-right shrink-0 border border-gray-400 rounded p-2">
+          <div className="text-[9px] uppercase tracking-wider text-gray-500">Manufacturer spec (cold)</div>
+          <div className="text-xs"><b>Intake:</b> <span className="font-mono">{formatRange(spec.intake)}</span></div>
+          <div className="text-xs"><b>Exhaust:</b> <span className="font-mono">{formatRange(spec.exhaust)}</span></div>
+          <div className="text-[9px] text-gray-500 mt-0.5">
+            {spec.generic ? "Generic — verify manual · " : ""}{spec.source}
+          </div>
         </div>
       </div>
-      <div className="mt-3 flex items-center gap-3 text-[10px] text-muted-foreground">
-        <span className="inline-flex items-center gap-1"><span className="h-2.5 w-2.5 rounded-sm bg-status-progress/40 border border-status-progress/60" /> Intake</span>
-        <span className="inline-flex items-center gap-1"><span className="h-2.5 w-2.5 rounded-sm bg-destructive/40 border border-destructive/60" /> Exhaust</span>
-        <span className="ml-auto">Spec usually: intake 0.10–0.20mm · exhaust 0.20–0.30mm</span>
-      </div>
-      {canEdit && (
-        <div className="mt-3 flex justify-end">
-          <Button onClick={save} disabled={saving} className="gold-surface">{saving ? "Saving…" : "Save measurements"}</Button>
+
+      {spec.note && (
+        <div className="border border-gray-400 rounded p-2 mb-3 text-[11px]">
+          <b>Note:</b> {spec.note}
         </div>
       )}
-    </section>
+
+      {Array.from({ length: cylinders }).map((_, c) => {
+        const cyl = c + 1;
+        const rows: Array<{ side: "intake" | "exhaust"; idx: number; label: string; spec: [number, number] }> = [
+          { side: "intake", idx: 0, label: "Intake 1", spec: spec.intake },
+          { side: "intake", idx: 1, label: "Intake 2", spec: spec.intake },
+          { side: "exhaust", idx: 0, label: "Exhaust 1", spec: spec.exhaust },
+          { side: "exhaust", idx: 1, label: "Exhaust 2", spec: spec.exhaust },
+        ];
+        return (
+          <div key={cyl} className="mb-3 border border-gray-400 rounded">
+            <div className="bg-gray-100 px-2 py-1 text-[11px] font-bold uppercase tracking-wider border-b border-gray-400">
+              Cylinder {cyl}
+            </div>
+            <table className="w-full text-[11px] border-collapse">
+              <thead>
+                <tr className="text-left">
+                  <th className="border-b border-gray-300 px-2 py-1 w-[18%]">Valve</th>
+                  <th className="border-b border-gray-300 px-2 py-1 w-[14%]">Spec (mm)</th>
+                  <th className="border-b border-gray-300 px-2 py-1 w-[14%]">Measured before</th>
+                  <th className="border-b border-gray-300 px-2 py-1 w-[14%]">Current shim</th>
+                  <th className="border-b border-gray-300 px-2 py-1 w-[14%]">New shim</th>
+                  <th className="border-b border-gray-300 px-2 py-1 w-[14%]">Measured after</th>
+                  <th className="border-b border-gray-300 px-2 py-1 w-[12%]">In spec ✓</th>
+                </tr>
+              </thead>
+              <tbody>
+                {rows.map((r) => {
+                  const before = values?.[`c${cyl}_${r.side}_${r.idx}`] ?? "";
+                  return (
+                    <tr key={r.side + r.idx}>
+                      <td className="border-b border-gray-200 px-2 py-2 font-semibold">
+                        <span className={r.side === "intake" ? "text-gray-800" : "text-gray-800"}>{r.label}</span>
+                      </td>
+                      <td className="border-b border-gray-200 px-2 py-2 font-mono">{formatRange(r.spec)}</td>
+                      <td className="border-b border-gray-200 px-2 py-2 font-mono">{before || "_____"}</td>
+                      <td className="border-b border-gray-200 px-2 py-2 font-mono">_____</td>
+                      <td className="border-b border-gray-200 px-2 py-2 font-mono">_____</td>
+                      <td className="border-b border-gray-200 px-2 py-2 font-mono">_____</td>
+                      <td className="border-b border-gray-200 px-2 py-2 text-center">☐</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        );
+      })}
+
+      <div className="grid grid-cols-2 gap-3 text-[11px] mt-4">
+        <div className="border border-gray-400 rounded p-2">
+          <div className="text-[9px] uppercase tracking-wider text-gray-500 mb-1">Shim calculation</div>
+          <div className="font-mono">New shim = Current shim + (Measured − Target)</div>
+          <div className="text-[10px] text-gray-600 mt-1">Target = mid-point of spec range unless manual states otherwise.</div>
+        </div>
+        <div className="border border-gray-400 rounded p-2">
+          <div className="text-[9px] uppercase tracking-wider text-gray-500 mb-1">Sign-off</div>
+          <div className="text-[11px]">Technician: ______________________</div>
+          <div className="text-[11px] mt-2">Date: ______ / ______ / __________</div>
+        </div>
+      </div>
+    </div>
   );
 }
