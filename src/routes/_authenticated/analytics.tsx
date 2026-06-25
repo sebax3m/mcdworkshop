@@ -279,20 +279,6 @@ function AnalyticsPage() {
         </div>
       </header>
 
-      {/* KPI cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <Kpi icon={<TrendingUp className="h-4 w-4" />} label="This week" value={fmt(totals.week.total)} sub={`${totals.week.count} invoices`} />
-        <Kpi icon={<TrendingUp className="h-4 w-4" />} label="This month" value={fmt(totals.month.total)} sub={`${totals.month.count} invoices`} />
-        <Kpi icon={<DollarSign className="h-4 w-4" />} label={isAll ? "FY revenue" : `${selectedYear} revenue`} value={fmt(totals.year.total)} sub={`Excl GST ${fmt(totals.year.subtotal)}`} />
-        <Kpi icon={<Receipt className="h-4 w-4" />} label={isAll ? "GST collected (FY)" : `GST collected ${selectedYear}`} value={fmt(totals.year.gst)} sub="To remit to IRD" />
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
-        <Kpi icon={<AlertCircle className="h-4 w-4 text-amber-400" />} label="Outstanding balance" value={fmt(totals.outstanding)} sub={isAll ? "Unpaid invoices" : `Unpaid in ${selectedYear}`} />
-        <Kpi icon={<DollarSign className="h-4 w-4 text-emerald-400" />} label={isAll ? "Paid (all time)" : `Paid in ${selectedYear}`} value={fmt(totals.paid)} sub="" />
-        <Kpi icon={<TrendingUp className="h-4 w-4" />} label="Last 30 days" value={fmt(totals.last30.total)} sub="" />
-      </div>
-
       {/* Monthly stacked bar chart */}
       <div className="card-surface p-5">
         <div className="flex items-center justify-between mb-3">
@@ -330,6 +316,20 @@ function AnalyticsPage() {
             </BarChart>
           </ResponsiveContainer>
         </div>
+      </div>
+
+      {/* KPI cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <Kpi icon={<TrendingUp className="h-4 w-4" />} label="This week" value={fmt(totals.week.total)} sub={`${totals.week.count} invoices`} />
+        <Kpi icon={<TrendingUp className="h-4 w-4" />} label="This month" value={fmt(totals.month.total)} sub={`${totals.month.count} invoices`} />
+        <Kpi icon={<DollarSign className="h-4 w-4" />} label={isAll ? "FY revenue" : `${selectedYear} revenue`} value={fmt(totals.year.total)} sub={`Excl GST ${fmt(totals.year.subtotal)}`} />
+        <Kpi icon={<Receipt className="h-4 w-4" />} label={isAll ? "GST collected (FY)" : `GST collected ${selectedYear}`} value={fmt(totals.year.gst)} sub="To remit to IRD" />
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
+        <Kpi icon={<AlertCircle className="h-4 w-4 text-amber-400" />} label="Outstanding balance" value={fmt(totals.outstanding)} sub={isAll ? "Unpaid invoices" : `Unpaid in ${selectedYear}`} />
+        <Kpi icon={<DollarSign className="h-4 w-4 text-emerald-400" />} label={isAll ? "Paid (all time)" : `Paid in ${selectedYear}`} value={fmt(totals.paid)} sub="" />
+        <Kpi icon={<TrendingUp className="h-4 w-4" />} label="Last 30 days" value={fmt(totals.last30.total)} sub="" />
       </div>
 
       {/* Weekly area chart */}
