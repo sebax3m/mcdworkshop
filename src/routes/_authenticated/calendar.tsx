@@ -226,7 +226,7 @@ function CalendarPage() {
             ))}
           </div>
 
-          <div className="grid grid-cols-7 gap-2">
+          <div className="grid grid-cols-7 gap-2" style={{ gridTemplateColumns: 'repeat(7, minmax(0, 1fr))' }}>
             {monthDays.map((day, idx) => {
               const dayKey = format(day, "yyyy-MM-dd");
               const dayBookings = (bookings as any[]).filter((b) => b.scheduled_date === dayKey);
