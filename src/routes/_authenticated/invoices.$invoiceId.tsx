@@ -1,12 +1,24 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { ArrowLeft, Printer, Mail, FileDown, Pencil, Check, X, Plus } from "lucide-react";
+import { ArrowLeft, Printer, Mail, FileDown, Pencil, Check, X, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { fullBike } from "@/lib/format";
 import logoAsset from "@/assets/motorcycle-doctors-logo.png.asset.json";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
+import { useCurrentUser } from "@/hooks/use-current-user";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 const GST_RATE = 0.15;
 // Amounts on the invoice are GST-inclusive. The GST line shows the embedded portion.
@@ -128,6 +140,7 @@ function InvoiceDetail() {
   const { invoiceId } = Route.useParams();
   const nav = useNavigate();
   const qc = useQueryClient();
+  const { isAdmin } = useCurrentUser();
 
   const invoice = useQuery({
     queryKey: ["invoice", invoiceId],
@@ -290,6 +303,16 @@ function InvoiceDetail() {
     window.location.href = `mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
   }
 
+  const canDelete = isAdmin && (inv.status ?? "").toLowerCase() === "draft";
+
+  async function deleteInvoice() {
+    const { error } = await supabase.from("invoices").delete().eq("id", invoiceId);
+    if (error) { toast.error(error.message); return; }
+    toast.success("Invoice deleted");
+    qc.invalidateQueries({ queryKey: ["invoices"] });
+    nav({ to: "/invoices" });
+  }
+
   return (
     <div className="space-y-5 max-w-3xl mx-auto invoice-page">
       <style>{`
@@ -333,6 +356,27 @@ function InvoiceDetail() {
           <Button onClick={() => window.print()} className="red-surface gap-2">
             <Printer className="h-4 w-4" /> Print
           </Button>
+          {canDelete && (
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="destructive" className="gap-2">
+                  <Trash2 className="h-4 w-4" /> Delete
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Delete invoice {inv.invoice_number}?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This permanently removes the draft invoice. This action cannot be undone.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={deleteInvoice}>Delete</AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          )}
         </div>
       </header>
 
