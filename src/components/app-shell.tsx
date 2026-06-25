@@ -82,7 +82,7 @@ export function AppShell() {
         </div>
       </header>
 
-      <main className="flex-1 mx-auto w-full max-w-6xl px-4 pt-5 pb-32 sm:pb-24">
+      <main className="flex-1 mx-auto w-full max-w-6xl px-4 pt-5 pb-36 sm:pb-28">
         <Outlet />
       </main>
 
