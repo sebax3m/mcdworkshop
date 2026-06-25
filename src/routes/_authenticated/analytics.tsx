@@ -189,7 +189,7 @@ function AnalyticsPage() {
       "Currency",
     ];
     const rows: string[][] = [];
-    for (const inv of invoices) {
+    for (const inv of scoped) {
       const lines: any[] = inv.snapshot?.lines ?? [];
       const date = format(parseISO(inv.invoice_date), "dd/MM/yyyy");
       const due = inv.due_date ? format(parseISO(inv.due_date), "dd/MM/yyyy") : date;
