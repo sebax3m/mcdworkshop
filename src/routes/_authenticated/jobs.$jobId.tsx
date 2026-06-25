@@ -191,12 +191,7 @@ function JobDetail() {
           .jobcard-print .card-surface { box-shadow: none !important; border-color: #d1d5db !important; background: #fff !important; }
           .no-print, .no-print * { display: none !important; }
         }
-        @keyframes printPulse {
-          0%, 100% { box-shadow: 0 0 0 0 rgba(212, 175, 55, 0.55); transform: translateY(0); }
-          50% { box-shadow: 0 0 0 10px rgba(212, 175, 55, 0); transform: translateY(-2px); }
-        }
-        .print-cta { animation: printPulse 2s ease-in-out infinite; }
-        .print-cta:hover { animation-play-state: paused; transform: translateY(-2px) scale(1.03); transition: transform 0.2s ease-out; }
+        .print-cta:hover { transform: translateY(-1px); transition: transform 0.15s ease-out; }
       `}</style>
       <header className="flex items-center gap-3 no-print">
         <button onClick={() => nav({ to: "/jobs" })} className="grid h-9 w-9 place-items-center rounded-lg border border-border">
