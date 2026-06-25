@@ -61,6 +61,22 @@ function AnalyticsPage() {
 
   const now = new Date();
 
+  const availableYears = useMemo(() => {
+    const set = new Set<number>();
+    for (const i of invoices) {
+      if (i.invoice_date) set.add(parseISO(i.invoice_date).getFullYear());
+    }
+    return Array.from(set).sort((a, b) => b - a);
+  }, [invoices]);
+
+  const isAll = yearFilter === "all";
+  const selectedYear = isAll ? null : Number(yearFilter);
+
+  const scoped = useMemo(() => {
+    if (isAll) return invoices;
+    return invoices.filter((i) => parseISO(i.invoice_date).getFullYear() === selectedYear);
+  }, [invoices, isAll, selectedYear]);
+
   const totals = useMemo(() => {
     const sum = (rows: Inv[], key: keyof Inv) => rows.reduce((a, r) => a + Number(r[key] || 0), 0);
     const inRange = (d: Date, a: Date, b: Date) => d >= a && d <= b;
@@ -77,22 +93,28 @@ function AnalyticsPage() {
 
     const week = invoices.filter((i) => inRange(parseISO(i.invoice_date), wkA, wkB));
     const month = invoices.filter((i) => inRange(parseISO(i.invoice_date), mA, mB));
-    const year = invoices.filter((i) => inRange(parseISO(i.invoice_date), yA, yB));
     const last30 = invoices.filter((i) => parseISO(i.invoice_date) >= subDays(now, 30));
+
+    // "Year" KPIs follow the year selector when a specific year is chosen,
+    // otherwise fall back to the FY range.
+    const yearRows = isAll
+      ? invoices.filter((i) => inRange(parseISO(i.invoice_date), yA, yB))
+      : scoped;
 
     return {
       week: { total: sum(week, "total"), count: week.length, gst: sum(week, "gst") },
       month: { total: sum(month, "total"), count: month.length, gst: sum(month, "gst") },
-      year: { total: sum(year, "total"), count: year.length, gst: sum(year, "gst"), subtotal: sum(year, "subtotal_excl_gst") },
+      year: { total: sum(yearRows, "total"), count: yearRows.length, gst: sum(yearRows, "gst"), subtotal: sum(yearRows, "subtotal_excl_gst") },
       last30: { total: sum(last30, "total") },
       outstanding: sum(
-        invoices.filter((i) => i.status !== "paid"),
+        scoped.filter((i) => i.status !== "paid"),
         "total",
-      ) - sum(invoices.filter((i) => i.status !== "paid"), "paid_amount"),
-      paid: sum(invoices.filter((i) => i.status === "paid"), "total"),
+      ) - sum(scoped.filter((i) => i.status !== "paid"), "paid_amount"),
+      paid: sum(scoped.filter((i) => i.status === "paid"), "total"),
       ytdRange: { from: yA, to: yB },
     };
-  }, [invoices, fyStart, now]);
+  }, [invoices, scoped, isAll, fyStart, now]);
+
 
   const monthlySeries = useMemo(() => {
     const map = new Map<string, { month: string; revenue: number; gst: number }>();
