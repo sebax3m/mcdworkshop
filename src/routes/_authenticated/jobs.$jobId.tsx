@@ -525,19 +525,20 @@ function TaskRow({ task, canEdit, onToggle, onNoteSaved }: { task: any; canEdit:
   }
 
   return (
-    <div className="py-0.5">
+    <div className="py-0.5 print:py-1 print:break-inside-avoid">
       <button
         onClick={onToggle}
         disabled={!canEdit}
         className="w-full flex items-start gap-2 text-left group"
       >
         <Check
-          className={`h-3 w-3 mt-0.5 shrink-0 transition-colors ${
+          className={`h-3 w-3 mt-0.5 shrink-0 transition-colors print:hidden ${
             task.is_done ? "text-status-ready" : "text-status-ready/70 group-hover:text-status-ready"
           }`}
           strokeWidth={3}
         />
-        <span className={`text-xs leading-snug ${task.is_done ? "text-muted-foreground line-through" : "text-foreground"}`}>
+        <span className="hidden print:inline-block h-3.5 w-3.5 mt-0.5 shrink-0 border border-black rounded-[2px]" />
+        <span className={`text-xs leading-snug print:text-[13px] print:text-black ${task.is_done ? "text-muted-foreground line-through print:no-underline print:text-black" : "text-foreground"}`}>
           {task.label}
         </span>
       </button>
