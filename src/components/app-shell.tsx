@@ -137,32 +137,6 @@ export function AppShell() {
         })}
         {isAdmin && (
           <Link
-            to="/templates"
-            className={cn(
-              "flex items-center gap-2.5 rounded-full px-5 py-2.5 text-base font-medium transition-colors",
-              pathname.startsWith("/templates")
-                ? "bg-primary text-primary-foreground"
-                : "text-muted-foreground hover:text-foreground",
-            )}
-          >
-            <FileStack className="h-5 w-5" /> Templates
-          </Link>
-        )}
-        {isAdmin && (
-          <Link
-            to="/inventory"
-            className={cn(
-              "flex items-center gap-2.5 rounded-full px-5 py-2.5 text-base font-medium transition-colors",
-              pathname.startsWith("/inventory")
-                ? "bg-primary text-primary-foreground"
-                : "text-muted-foreground hover:text-foreground",
-            )}
-          >
-            <Package className="h-5 w-5" /> Inventory
-          </Link>
-        )}
-        {isAdmin && (
-          <Link
             to="/invoices"
             className={cn(
               "flex items-center gap-2.5 rounded-full px-5 py-2.5 text-base font-medium transition-colors",
@@ -172,6 +146,22 @@ export function AppShell() {
             )}
           >
             <FileText className="h-5 w-5" /> Invoices
+          </Link>
+        )}
+        {isAdmin && (
+          <Link
+            to="/settings"
+            className={cn(
+              "flex items-center gap-2.5 rounded-full px-5 py-2.5 text-base font-medium transition-colors",
+              pathname.startsWith("/settings") ||
+                pathname.startsWith("/templates") ||
+                pathname.startsWith("/inventory") ||
+                pathname.startsWith("/customers")
+                ? "bg-primary text-primary-foreground"
+                : "text-muted-foreground hover:text-foreground",
+            )}
+          >
+            <SettingsIcon className="h-5 w-5" /> Settings
           </Link>
         )}
       </nav>
