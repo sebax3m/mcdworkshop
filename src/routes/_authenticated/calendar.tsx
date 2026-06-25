@@ -396,8 +396,14 @@ function CalendarPage() {
                             e.stopPropagation();
                             nav({ to: "/bookings/$bookingId", params: { bookingId: b.id } });
                           }}
-                          className={`w-full text-left rounded-lg p-2 ring-1 ${c.bg} ${c.ring} hover:ring-2 transition-all cursor-grab active:cursor-grabbing`}
+                          className={`relative w-full text-left rounded-lg p-2 ring-1 ${c.bg} ${c.ring} hover:ring-2 transition-all cursor-grab active:cursor-grabbing`}
                         >
+                          {b.confirmed && (
+                            <span
+                              title="Confirmed"
+                              className="absolute -top-1 -right-1 h-2.5 w-2.5 rounded-full bg-green-500 ring-2 ring-background"
+                            />
+                          )}
                           <div className="flex items-center justify-between gap-1">
                             <span className={`text-[9px] font-bold uppercase tracking-wider ${c.label}`}>
                               {b.service_type}
