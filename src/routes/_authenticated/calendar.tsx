@@ -162,9 +162,9 @@ function CalendarPage() {
           </Link>
           <Link
             to="/jobs/new"
-            className="inline-flex items-center gap-1.5 rounded-xl border border-border bg-card px-4 py-2.5 text-sm font-semibold hover:border-primary/50 transition-colors"
+            className="inline-flex items-center gap-1.5 rounded-xl red-surface px-4 py-2.5 text-sm font-bold hover:scale-[1.02] transition-transform"
           >
-            <Wrench className="h-4 w-4" /> Create Job Card
+            <Wrench className="h-4 w-4" /> Job Card
           </Link>
         </div>
       </motion.header>
