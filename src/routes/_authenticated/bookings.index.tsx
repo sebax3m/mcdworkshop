@@ -1,8 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
-import { Plus, ClipboardList, Calendar, ArrowDown, ArrowUp } from "lucide-react";
+import { Plus, ClipboardList, Calendar, ArrowDown, ArrowUp, Phone, Check } from "lucide-react";
 import { format } from "date-fns";
 import { useState, useMemo } from "react";
 
