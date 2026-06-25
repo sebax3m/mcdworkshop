@@ -253,13 +253,29 @@ function AnalyticsPage() {
         <div className="h-72">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={monthlySeries}>
-              <CartesianGrid strokeDasharray="3 3" className="stroke-border/40" />
-              <XAxis dataKey="month" tick={{ fontSize: 12 }} />
-              <YAxis tick={{ fontSize: 12 }} tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`} />
-              <Tooltip formatter={(v: any) => fmt(Number(v))} contentStyle={{ background: "hsl(var(--background))", border: "1px solid hsl(var(--border))" }} />
-              <Legend wrapperStyle={{ fontSize: 12 }} />
-              <Bar dataKey="revenue" name="Revenue" stackId="a" fill="hsl(var(--primary))" radius={[6, 6, 0, 0]} />
-              <Bar dataKey="gst" name="GST" stackId="a" fill="hsl(var(--secondary))" radius={[6, 6, 0, 0]} />
+              <defs>
+                <linearGradient id="barRev" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#ef4444" />
+                  <stop offset="100%" stopColor="#b91c1c" />
+                </linearGradient>
+                <linearGradient id="barGst" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#60a5fa" />
+                  <stop offset="100%" stopColor="#1d4ed8" />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="#27272a" />
+              <XAxis dataKey="month" tick={{ fontSize: 12, fill: "#a1a1aa" }} stroke="#3f3f46" />
+              <YAxis tick={{ fontSize: 12, fill: "#a1a1aa" }} stroke="#3f3f46" tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`} />
+              <Tooltip
+                formatter={(v: any) => fmt(Number(v))}
+                contentStyle={{ background: "#0a0a0a", border: "1px solid #3f3f46", borderRadius: 8 }}
+                labelStyle={{ color: "#fafafa" }}
+                itemStyle={{ color: "#fafafa" }}
+                cursor={{ fill: "rgba(239,68,68,0.08)" }}
+              />
+              <Legend wrapperStyle={{ fontSize: 12, color: "#a1a1aa" }} />
+              <Bar dataKey="revenue" name="Revenue" stackId="a" fill="url(#barRev)" radius={[0, 0, 0, 0]} />
+              <Bar dataKey="gst" name="GST" stackId="a" fill="url(#barGst)" radius={[6, 6, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -275,15 +291,22 @@ function AnalyticsPage() {
             <AreaChart data={weeklySeries}>
               <defs>
                 <linearGradient id="revGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.5} />
-                  <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0.05} />
+                  <stop offset="5%" stopColor="#ef4444" stopOpacity={0.7} />
+                  <stop offset="60%" stopColor="#a855f7" stopOpacity={0.35} />
+                  <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.05} />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" className="stroke-border/40" />
-              <XAxis dataKey="week" tick={{ fontSize: 12 }} />
-              <YAxis tick={{ fontSize: 12 }} tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`} />
-              <Tooltip formatter={(v: any) => fmt(Number(v))} contentStyle={{ background: "hsl(var(--background))", border: "1px solid hsl(var(--border))" }} />
-              <Area type="monotone" dataKey="revenue" stroke="hsl(var(--primary))" strokeWidth={2} fill="url(#revGrad)" dot={{ r: 3, fill: "hsl(var(--secondary))", stroke: "hsl(var(--background))", strokeWidth: 2 }} />
+              <CartesianGrid strokeDasharray="3 3" stroke="#27272a" />
+              <XAxis dataKey="week" tick={{ fontSize: 12, fill: "#a1a1aa" }} stroke="#3f3f46" />
+              <YAxis tick={{ fontSize: 12, fill: "#a1a1aa" }} stroke="#3f3f46" tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`} />
+              <Tooltip
+                formatter={(v: any) => fmt(Number(v))}
+                contentStyle={{ background: "#0a0a0a", border: "1px solid #3f3f46", borderRadius: 8 }}
+                labelStyle={{ color: "#fafafa" }}
+                itemStyle={{ color: "#fafafa" }}
+                cursor={{ stroke: "#ef4444", strokeWidth: 1, strokeDasharray: "3 3" }}
+              />
+              <Area type="monotone" dataKey="revenue" stroke="#ef4444" strokeWidth={2.5} fill="url(#revGrad)" dot={{ r: 4, fill: "#3b82f6", stroke: "#0a0a0a", strokeWidth: 2 }} activeDot={{ r: 6, fill: "#ef4444", stroke: "#fafafa", strokeWidth: 2 }} />
             </AreaChart>
           </ResponsiveContainer>
         </div>
