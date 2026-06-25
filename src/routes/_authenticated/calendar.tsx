@@ -162,13 +162,13 @@ function CalendarPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <div
-                    className={`text-[10px] uppercase tracking-[0.2em] ${
+                    className={`text-sm font-semibold uppercase tracking-wide ${
                       today ? "text-primary" : "text-muted-foreground"
                     }`}
                   >
-                    {format(day, "EEE")}
+                    {format(day, "EEEE")}
                   </div>
-                  <div className={`font-display text-2xl font-bold leading-none mt-0.5 ${today ? "red-gradient-text" : ""}`}>
+                  <div className={`font-display text-3xl font-bold leading-none mt-0.5 ${today ? "red-gradient-text" : ""}`}>
                     {format(day, "d")}
                   </div>
                 </div>
