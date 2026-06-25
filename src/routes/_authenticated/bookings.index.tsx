@@ -16,6 +16,7 @@ type SortField = "date" | "priority";
 type SortDir = "asc" | "desc";
 
 function BookingsList() {
+  const qc = useQueryClient();
   const [sortField, setSortField] = useState<SortField>("date");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
 
@@ -24,13 +25,21 @@ function BookingsList() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("bookings")
-        .select("id, service_type, scheduled_date, drop_off_time, estimated_hours, status, priority, customers(first_name,last_name), motorcycles(year,make,model,rego)")
+        .select("id, service_type, scheduled_date, drop_off_time, estimated_hours, status, priority, confirmed, confirmed_at, customers(first_name,last_name,phone), motorcycles(year,make,model,rego)")
         .order("scheduled_date", { ascending: false })
         .limit(200);
       if (error) throw error;
       return data ?? [];
     },
   });
+
+  async function toggleConfirmed(id: string, current: boolean) {
+    const { error } = await supabase
+      .from("bookings")
+      .update({ confirmed: !current, confirmed_at: !current ? new Date().toISOString() : null })
+      .eq("id", id);
+    if (!error) qc.invalidateQueries({ queryKey: ["bookings-list"] });
+  }
 
   const bookings = useMemo(() => {
     const arr = [...rawBookings];
