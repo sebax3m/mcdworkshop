@@ -32,12 +32,14 @@ const SERVICE_COLORS: Record<string, { bg: string; ring: string; label: string }
   full: { bg: "bg-status-assigned/20", ring: "ring-status-assigned/40", label: "text-status-assigned" },
   dyno: { bg: "bg-status-parts/20", ring: "ring-status-parts/40", label: "text-status-parts" },
   diagnostic: { bg: "bg-status-progress/20", ring: "ring-status-progress/40", label: "text-status-progress" },
+  insurance: { bg: "bg-amber-500/20", ring: "ring-amber-500/50", label: "text-amber-400" },
   default: { bg: "bg-muted", ring: "ring-border", label: "text-foreground" },
 };
 
 function serviceColor(t: string | null | undefined) {
   if (!t) return SERVICE_COLORS.default;
   const k = t.toLowerCase();
+  if (k.includes("collision") || k.includes("insurance") || k.includes("crash")) return SERVICE_COLORS.insurance;
   if (k.includes("dyno")) return SERVICE_COLORS.dyno;
   if (k.includes("full")) return SERVICE_COLORS.full;
   if (k.includes("standard")) return SERVICE_COLORS.standard;
@@ -45,6 +47,7 @@ function serviceColor(t: string | null | undefined) {
   if (k.includes("diag")) return SERVICE_COLORS.diagnostic;
   return SERVICE_COLORS.default;
 }
+
 
 function CalendarPage() {
   const qc = useQueryClient();
