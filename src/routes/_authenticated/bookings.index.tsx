@@ -131,44 +131,58 @@ function BookingsList() {
                 initial={{ opacity: 0, y: 6 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.2, delay: i * 0.02 }}
-                className={`card-surface p-4 flex items-center gap-3 transition-colors ${b.confirmed ? "border-green-500/40 bg-green-500/5" : ""}`}
+                role="button"
+                tabIndex={0}
+                onClick={() => toggleConfirmed(b.id, b.confirmed)}
+                onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggleConfirmed(b.id, b.confirmed); } }}
+                title={b.confirmed ? "Click to unmark confirmed" : "Click to mark as confirmed"}
+                className="card-surface p-4 flex items-center gap-3 cursor-pointer hover:bg-muted/30"
               >
-                <button
-                  type="button"
-                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggleConfirmed(b.id, b.confirmed); }}
-                  title={b.confirmed ? "Confirmed — click to unmark" : "Mark as confirmed"}
-                  className={`shrink-0 h-6 w-6 rounded-md border grid place-items-center transition-colors ${b.confirmed ? "bg-green-500 border-green-500 text-white" : "border-border bg-card hover:bg-muted"}`}
+                <div
+                  aria-hidden
+                  className={`shrink-0 h-6 w-6 rounded-md border grid place-items-center ${b.confirmed ? "bg-green-500 border-green-500 text-white" : "border-border bg-card"}`}
                 >
                   {b.confirmed && <Check className="h-4 w-4" />}
-                </button>
-                <Link
-                  to="/bookings/$bookingId"
-                  params={{ bookingId: b.id }}
-                  className="flex items-center gap-3 flex-1 min-w-0"
-                >
-                  <div className="w-14 shrink-0 text-center rounded-lg bg-muted py-2">
-                    <div className="text-[10px] uppercase text-muted-foreground">{format(new Date(b.scheduled_date), "MMM")}</div>
-                    <div className="font-display text-xl font-bold leading-none">{format(new Date(b.scheduled_date), "d")}</div>
-                  </div>
-                  <div className="min-w-0 flex-1">
+                </div>
+                <div className="w-14 shrink-0 text-center rounded-lg bg-muted py-2">
+                  <div className="text-[10px] uppercase text-muted-foreground">{format(new Date(b.scheduled_date), "MMM")}</div>
+                  <div className="font-display text-xl font-bold leading-none">{format(new Date(b.scheduled_date), "d")}</div>
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2">
                     <div className="font-semibold truncate">{bike}</div>
-                    <div className="text-xs text-muted-foreground truncate">{customer} · {b.service_type}{b.motorcycles?.rego ? ` · ${b.motorcycles.rego}` : ""}</div>
-                    {phone && (
-                      <div className="text-xs text-foreground/80 mt-0.5 flex items-center gap-1">
-                        <Phone className="h-3 w-3" /> {phone}
-                      </div>
+                    {b.confirmed && (
+                      <span className="shrink-0 text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-green-500/15 text-green-400 border border-green-500/30">
+                        Confirmed
+                      </span>
                     )}
                   </div>
-                </Link>
+                  <div className="text-xs text-muted-foreground truncate">{customer} · {b.service_type}{b.motorcycles?.rego ? ` · ${b.motorcycles.rego}` : ""}</div>
+                  {phone && (
+                    <div className="text-xs text-foreground/80 mt-0.5 flex items-center gap-1">
+                      <Phone className="h-3 w-3" /> {phone}
+                    </div>
+                  )}
+                </div>
                 {phone && (
-                  <a
-                    href={`tel:${phone}`}
-                    onClick={(e) => e.stopPropagation()}
-                    className="shrink-0 inline-flex items-center gap-1 rounded-lg border border-border bg-card px-2 py-1.5 text-xs font-semibold hover:bg-muted"
-                    title={`Call ${phone}`}
-                  >
-                    <Phone className="h-3 w-3" /> Call
-                  </a>
+                  <>
+                    <a
+                      href={`tel:${phone}`}
+                      onClick={(e) => e.stopPropagation()}
+                      className="shrink-0 inline-flex items-center gap-1 rounded-lg border border-border bg-card px-2 py-1.5 text-xs font-semibold hover:bg-muted"
+                      title={`Call ${phone}`}
+                    >
+                      <Phone className="h-3 w-3" /> Call
+                    </a>
+                    <a
+                      href={`sms:${phone}`}
+                      onClick={(e) => e.stopPropagation()}
+                      className="shrink-0 inline-flex items-center gap-1 rounded-lg border border-border bg-card px-2 py-1.5 text-xs font-semibold hover:bg-muted"
+                      title={`Text ${phone}`}
+                    >
+                      <MessageSquare className="h-3 w-3" /> Text
+                    </a>
+                  </>
                 )}
                 <span className={`shrink-0 text-[10px] uppercase tracking-wider px-2 py-1 rounded-full border ${pColor}`}>
                   {b.priority ?? "normal"}
@@ -176,6 +190,15 @@ function BookingsList() {
                 <span className="shrink-0 text-[10px] uppercase tracking-wider px-2 py-1 rounded-full border border-border text-muted-foreground">
                   {b.status}
                 </span>
+                <Link
+                  to="/bookings/$bookingId"
+                  params={{ bookingId: b.id }}
+                  onClick={(e) => e.stopPropagation()}
+                  className="shrink-0 inline-flex items-center gap-1 rounded-lg border border-border bg-card px-2 py-1.5 text-xs font-semibold hover:bg-muted"
+                  title="Open booking"
+                >
+                  <ExternalLink className="h-3 w-3" /> View
+                </Link>
               </motion.div>
             );
           })}
