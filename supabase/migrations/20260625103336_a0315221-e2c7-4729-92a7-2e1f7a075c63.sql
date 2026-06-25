@@ -1,0 +1,3 @@
+INSERT INTO public.service_templates (name, description, estimated_hours, tasks, is_active, sort_order)
+SELECT 'Collision Repair', 'End-to-end crash repair: assessment, insurance liaison, parts, panel/frame/paint, reassembly.', 8, '["Damage assessment & photos","Insurance quote & liaison","Parts ordering","Panel, frame & paintwork","Reassembly & road test"]'::jsonb, true, 60
+WHERE NOT EXISTS (SELECT 1 FROM public.service_templates WHERE name = 'Collision Repair');
