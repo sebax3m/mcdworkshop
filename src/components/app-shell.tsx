@@ -56,7 +56,7 @@ export function AppShell() {
                 to="/jobs/new"
                 className="hidden sm:inline-flex items-center gap-1.5 rounded-lg red-surface px-3 py-2 text-sm font-semibold hover:scale-[1.02] transition-transform"
               >
-                <Plus className="h-4 w-4" /> Job Card
+                Job Card
               </Link>
             )}
             {!userLoading && (
