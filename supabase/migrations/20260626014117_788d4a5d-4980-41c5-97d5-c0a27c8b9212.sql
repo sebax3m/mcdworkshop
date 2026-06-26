@@ -1,0 +1,1 @@
+ALTER TABLE public.insurance_claims ADD COLUMN IF NOT EXISTS damage_marks JSONB NOT NULL DEFAULT '[]'::jsonb;
