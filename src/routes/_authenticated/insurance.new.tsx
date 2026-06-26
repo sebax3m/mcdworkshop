@@ -1,14 +1,16 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Search, ShieldCheck } from "lucide-react";
+import { ArrowLeft, Search, ShieldCheck, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { fullBike } from "@/lib/format";
+import { NZ_INSURERS } from "@/lib/nz-insurers";
+import { BikeMakeModelYear } from "@/components/BikeMakeModelYear";
 
 export const Route = createFileRoute("/_authenticated/insurance/new")({
   component: NewClaim,
@@ -16,6 +18,7 @@ export const Route = createFileRoute("/_authenticated/insurance/new")({
 
 function NewClaim() {
   const nav = useNavigate();
+  const qc = useQueryClient();
   const today = new Date().toISOString().slice(0, 10);
   const [customerId, setCustomerId] = useState<string | null>(null);
   const [bikeId, setBikeId] = useState<string | null>(null);
@@ -29,6 +32,15 @@ function NewClaim() {
   const [saving, setSaving] = useState(false);
   const [showCustomerPicker, setShowCustomerPicker] = useState(false);
 
+  // New customer inline
+  const [newCustOpen, setNewCustOpen] = useState(false);
+  const [savingCust, setSavingCust] = useState(false);
+  const [newCust, setNewCust] = useState({ first_name: "", last_name: "", phone: "", email: "" });
+
+  // New bike inline
+  const [newBikeOpen, setNewBikeOpen] = useState(false);
+  const [savingBike, setSavingBike] = useState(false);
+  const [newBike, setNewBike] = useState({ make: "", model: "", year: "", rego: "", color: "" });
 
   const customers = useQuery({
     queryKey: ["ins-customers"],
@@ -48,6 +60,57 @@ function NewClaim() {
       `${c.first_name} ${c.last_name} ${c.phone ?? ""} ${c.email ?? ""}`.toLowerCase().includes(s),
     );
   }, [customers.data, search]);
+
+  async function saveNewCustomer() {
+    if (!newCust.first_name.trim()) return toast.error("First name required");
+    setSavingCust(true);
+    try {
+      const { data, error } = await supabase.from("customers").insert({
+        first_name: newCust.first_name.trim(),
+        last_name: newCust.last_name.trim(),
+        phone: newCust.phone.trim() || null,
+        email: newCust.email.trim() || null,
+      }).select("id").single();
+      if (error) throw error;
+      await qc.invalidateQueries({ queryKey: ["ins-customers"] });
+      setCustomerId(data.id);
+      setBikeId(null);
+      setNewCust({ first_name: "", last_name: "", phone: "", email: "" });
+      setNewCustOpen(false);
+      setShowCustomerPicker(true);
+      toast.success("Customer created");
+    } catch (e: any) {
+      toast.error(e.message ?? "Failed to create customer");
+    } finally {
+      setSavingCust(false);
+    }
+  }
+
+  async function saveNewBike() {
+    if (!customerId) return toast.error("Pick a customer first");
+    if (!newBike.make.trim() || !newBike.model.trim()) return toast.error("Make and model required");
+    setSavingBike(true);
+    try {
+      const { data, error } = await (supabase as any).from("motorcycles").insert({
+        customer_id: customerId,
+        make: newBike.make.trim(),
+        model: newBike.model.trim(),
+        year: newBike.year ? Number(newBike.year) : null,
+        rego: newBike.rego.trim().toUpperCase() || null,
+        color: newBike.color.trim() || null,
+      }).select("id").single();
+      if (error) throw error;
+      await qc.invalidateQueries({ queryKey: ["ins-bikes", customerId] });
+      setBikeId(data.id);
+      setNewBike({ make: "", model: "", year: "", rego: "", color: "" });
+      setNewBikeOpen(false);
+      toast.success("Bike added");
+    } catch (e: any) {
+      toast.error(e.message ?? "Failed to add bike");
+    } finally {
+      setSavingBike(false);
+    }
+  }
 
   async function save() {
     setSaving(true);
@@ -126,15 +189,39 @@ function NewClaim() {
         )}
         {showCustomerPicker && (
           <>
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <input
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search customer…"
-                className="w-full rounded-xl bg-card border border-border pl-10 pr-3 py-2.5 text-sm"
-              />
+            <div className="flex gap-2">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <input
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Search customer…"
+                  className="w-full rounded-xl bg-card border border-border pl-10 pr-3 py-2.5 text-sm"
+                />
+              </div>
+              <button
+                type="button"
+                onClick={() => setNewCustOpen((o) => !o)}
+                className="inline-flex items-center gap-1 rounded-md border border-primary/40 bg-primary/10 text-primary px-3 py-2 text-xs font-semibold hover:bg-primary/20 shrink-0"
+              >
+                <Plus className="h-3.5 w-3.5" /> New customer
+              </button>
             </div>
+            {newCustOpen && (
+              <div className="rounded-lg border border-border bg-muted/30 p-3 space-y-2">
+                <div className="text-xs uppercase tracking-wider text-muted-foreground">New customer</div>
+                <div className="grid grid-cols-2 gap-2">
+                  <Input placeholder="First name *" value={newCust.first_name} onChange={(e) => setNewCust({ ...newCust, first_name: e.target.value })} />
+                  <Input placeholder="Last name" value={newCust.last_name} onChange={(e) => setNewCust({ ...newCust, last_name: e.target.value })} />
+                  <Input placeholder="Phone" inputMode="tel" value={newCust.phone} onChange={(e) => setNewCust({ ...newCust, phone: e.target.value })} />
+                  <Input placeholder="Email" inputMode="email" value={newCust.email} onChange={(e) => setNewCust({ ...newCust, email: e.target.value })} />
+                </div>
+                <div className="flex gap-2">
+                  <Button onClick={saveNewCustomer} disabled={savingCust} className="gold-surface flex-1">{savingCust ? "Saving…" : "Save customer"}</Button>
+                  <Button variant="ghost" onClick={() => setNewCustOpen(false)}>Cancel</Button>
+                </div>
+              </div>
+            )}
             <div className="max-h-48 overflow-y-auto rounded-lg border border-border divide-y divide-border">
               {filteredCust.slice(0, 50).map((c: any) => (
                 <button
@@ -149,9 +236,34 @@ function NewClaim() {
             </div>
             {customerId && (
               <div className="space-y-1.5">
-                <Label>Motorcycle</Label>
-                {(bikes.data ?? []).length === 0 ? (
-                  <p className="text-sm text-muted-foreground">No bikes for this customer.</p>
+                <div className="flex items-center justify-between">
+                  <Label>Motorcycle</Label>
+                  <button
+                    type="button"
+                    onClick={() => setNewBikeOpen((o) => !o)}
+                    className="inline-flex items-center gap-1 rounded-md border border-primary/40 bg-primary/10 text-primary px-2.5 py-1 text-[11px] font-semibold hover:bg-primary/20"
+                  >
+                    <Plus className="h-3 w-3" /> New bike
+                  </button>
+                </div>
+                {newBikeOpen && (
+                  <div className="rounded-lg border border-border bg-muted/30 p-3 space-y-2">
+                    <BikeMakeModelYear
+                      value={{ make: newBike.make, model: newBike.model, year: newBike.year }}
+                      onChange={(v) => setNewBike({ ...newBike, make: v.make, model: v.model, year: v.year })}
+                    />
+                    <div className="grid grid-cols-2 gap-2">
+                      <Input placeholder="Rego" value={newBike.rego} onChange={(e) => setNewBike({ ...newBike, rego: e.target.value.toUpperCase() })} />
+                      <Input placeholder="Colour" value={newBike.color} onChange={(e) => setNewBike({ ...newBike, color: e.target.value })} />
+                    </div>
+                    <div className="flex gap-2">
+                      <Button onClick={saveNewBike} disabled={savingBike} className="gold-surface flex-1">{savingBike ? "Saving…" : "Save bike"}</Button>
+                      <Button variant="ghost" onClick={() => setNewBikeOpen(false)}>Cancel</Button>
+                    </div>
+                  </div>
+                )}
+                {(bikes.data ?? []).length === 0 && !newBikeOpen ? (
+                  <p className="text-sm text-muted-foreground">No bikes for this customer — add one above.</p>
                 ) : (
                   (bikes.data ?? []).map((b: any) => (
                     <button
@@ -173,7 +285,17 @@ function NewClaim() {
       <section className="card-surface p-4 grid sm:grid-cols-2 gap-3">
         <div>
           <Label>Insurer</Label>
-          <Input value={insurer} onChange={(e) => setInsurer(e.target.value)} placeholder="e.g. AA Insurance" />
+          <Input
+            list="nz-insurers"
+            value={insurer}
+            onChange={(e) => setInsurer(e.target.value)}
+            placeholder="Select or type insurer…"
+          />
+          <datalist id="nz-insurers">
+            {NZ_INSURERS.map((n) => (
+              <option key={n} value={n} />
+            ))}
+          </datalist>
         </div>
         <div>
           <Label>Insurer claim reference</Label>
