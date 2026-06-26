@@ -91,7 +91,7 @@ function NewClaim() {
     if (!newBike.make.trim() || !newBike.model.trim()) return toast.error("Make and model required");
     setSavingBike(true);
     try {
-      const { data, error } = await supabase.from("motorcycles").insert({
+      const { data, error } = await (supabase as any).from("motorcycles").insert({
         customer_id: customerId,
         make: newBike.make.trim(),
         model: newBike.model.trim(),
