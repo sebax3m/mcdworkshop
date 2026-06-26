@@ -18,6 +18,7 @@ export const Route = createFileRoute("/_authenticated/insurance/new")({
 
 function NewClaim() {
   const nav = useNavigate();
+  const qc = useQueryClient();
   const today = new Date().toISOString().slice(0, 10);
   const [customerId, setCustomerId] = useState<string | null>(null);
   const [bikeId, setBikeId] = useState<string | null>(null);
@@ -31,6 +32,15 @@ function NewClaim() {
   const [saving, setSaving] = useState(false);
   const [showCustomerPicker, setShowCustomerPicker] = useState(false);
 
+  // New customer inline
+  const [newCustOpen, setNewCustOpen] = useState(false);
+  const [savingCust, setSavingCust] = useState(false);
+  const [newCust, setNewCust] = useState({ first_name: "", last_name: "", phone: "", email: "" });
+
+  // New bike inline
+  const [newBikeOpen, setNewBikeOpen] = useState(false);
+  const [savingBike, setSavingBike] = useState(false);
+  const [newBike, setNewBike] = useState({ make: "", model: "", year: "", rego: "", color: "" });
 
   const customers = useQuery({
     queryKey: ["ins-customers"],
@@ -50,6 +60,57 @@ function NewClaim() {
       `${c.first_name} ${c.last_name} ${c.phone ?? ""} ${c.email ?? ""}`.toLowerCase().includes(s),
     );
   }, [customers.data, search]);
+
+  async function saveNewCustomer() {
+    if (!newCust.first_name.trim()) return toast.error("First name required");
+    setSavingCust(true);
+    try {
+      const { data, error } = await supabase.from("customers").insert({
+        first_name: newCust.first_name.trim(),
+        last_name: newCust.last_name.trim(),
+        phone: newCust.phone.trim() || null,
+        email: newCust.email.trim() || null,
+      }).select("id").single();
+      if (error) throw error;
+      await qc.invalidateQueries({ queryKey: ["ins-customers"] });
+      setCustomerId(data.id);
+      setBikeId(null);
+      setNewCust({ first_name: "", last_name: "", phone: "", email: "" });
+      setNewCustOpen(false);
+      setShowCustomerPicker(true);
+      toast.success("Customer created");
+    } catch (e: any) {
+      toast.error(e.message ?? "Failed to create customer");
+    } finally {
+      setSavingCust(false);
+    }
+  }
+
+  async function saveNewBike() {
+    if (!customerId) return toast.error("Pick a customer first");
+    if (!newBike.make.trim() || !newBike.model.trim()) return toast.error("Make and model required");
+    setSavingBike(true);
+    try {
+      const { data, error } = await supabase.from("motorcycles").insert({
+        customer_id: customerId,
+        make: newBike.make.trim(),
+        model: newBike.model.trim(),
+        year: newBike.year ? Number(newBike.year) : null,
+        rego: newBike.rego.trim().toUpperCase() || null,
+        color: newBike.color.trim() || null,
+      }).select("id").single();
+      if (error) throw error;
+      await qc.invalidateQueries({ queryKey: ["ins-bikes", customerId] });
+      setBikeId(data.id);
+      setNewBike({ make: "", model: "", year: "", rego: "", color: "" });
+      setNewBikeOpen(false);
+      toast.success("Bike added");
+    } catch (e: any) {
+      toast.error(e.message ?? "Failed to add bike");
+    } finally {
+      setSavingBike(false);
+    }
+  }
 
   async function save() {
     setSaving(true);
