@@ -213,7 +213,17 @@ function JobDetail() {
       </header>
 
       {/* Print-only compact summary */}
+      <style>{`
+        @media print {
+          @page { size: A4; margin: 10mm 10mm 10mm 10mm; }
+          html, body { font-size: 10.5px !important; }
+          .card-surface { padding: 0 !important; margin: 0 !important; border: 0 !important; box-shadow: none !important; background: transparent !important; }
+          h1, h2, h3 { margin: 0 !important; }
+          section, .card-surface { page-break-inside: auto; }
+        }
+      `}</style>
       <div className="hidden print:block">
+
         <div className="flex items-start justify-between gap-4 border-b-2 border-black pb-3 mb-4">
           <div className="min-w-0">
             <div className="text-[10px] uppercase tracking-[0.25em] text-gray-600">Motorcycle Doctors · Job Card</div>
