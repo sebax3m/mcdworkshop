@@ -40,7 +40,7 @@ export function ClaimDamageSection({
   initialMarks?: DamageMark[];
 }) {
   const qc = useQueryClient();
-  const [view, setView] = useState<"side" | "top">("side");
+  const [view, setView] = useState<DamageView>("left");
   const [severity, setSeverity] = useState<DamageMark["severity"]>("moderate");
   const [marks, setMarks] = useState<DamageMark[]>(initialMarks ?? []);
   const [dirty, setDirty] = useState(false);
