@@ -17,6 +17,7 @@ import { format } from "date-fns";
 import { fullBike } from "@/lib/format";
 import { CLAIM_PIPELINE, CLAIM_STATUS_META, type ClaimStatus, nextStatus } from "@/lib/insurance";
 import { useCurrentUser } from "@/hooks/use-current-user";
+import { ClaimDamageSection } from "@/components/ClaimDamageSection";
 
 export const Route = createFileRoute("/_authenticated/insurance/$claimId")({
   component: ClaimDetail,
@@ -192,6 +193,12 @@ function ClaimDetail() {
       <ClaimInsurerCard c={c} onUpdate={updateClaim} />
 
       <ClaimCustodyCard c={c} onUpdate={updateClaim} />
+
+      <ClaimDamageSection
+        claimId={claimId}
+        canEdit={true}
+        initialMarks={Array.isArray(c.damage_marks) ? c.damage_marks : []}
+      />
 
       {/* Quotation builder (parts + labour) */}
       <QuoteBuilder

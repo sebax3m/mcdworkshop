@@ -328,6 +328,7 @@ export type Database = {
           created_at: string
           created_by: string | null
           customer_id: string | null
+          damage_marks: Json
           date_received: string
           declined_at: string | null
           expected_return_date: string | null
@@ -358,6 +359,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           customer_id?: string | null
+          damage_marks?: Json
           date_received?: string
           declined_at?: string | null
           expected_return_date?: string | null
@@ -388,6 +390,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           customer_id?: string | null
+          damage_marks?: Json
           date_received?: string
           declined_at?: string | null
           expected_return_date?: string | null
