@@ -184,7 +184,7 @@ function ClaimDetail() {
           <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold mb-1">Motorcycle</div>
           <div className="font-bold flex items-center gap-1.5"><BikeIcon className="h-4 w-4" /> {bikeText}</div>
           <div className="text-xs text-muted-foreground mt-0.5">
-            Rego {c.motorcycles?.rego ?? "—"} · VIN {c.motorcycles?.vin ?? "—"} · {c.motorcycles?.odometer ?? "—"}km
+            Rego {c.motorcycles?.rego ?? "—"} · VIN {c.motorcycles?.vin ?? "—"} · {c.motorcycles?.mileage ?? "—"}km
           </div>
         </div>
       </section>
