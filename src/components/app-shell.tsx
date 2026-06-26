@@ -28,8 +28,9 @@ export function AppShell() {
 
   return (
     <div className="min-h-screen flex flex-col bg-background text-foreground">
+      {/* ===== HEADER ===== */}
       <header className="sticky top-0 z-30 border-b border-border/60 bg-background/85 backdrop-blur-xl">
-        <div className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-3">
+        <div className="flex items-center gap-3 px-4 py-3">
           <Link to="/calendar" className="flex items-center gap-2.5 min-w-0 group">
             <img
               src={logoAsset.url}
@@ -92,11 +93,91 @@ export function AppShell() {
         </div>
       </header>
 
-      <main className="flex-1 mx-auto w-full max-w-6xl px-4 pt-5 pb-36 sm:pb-28">
+      {/* ===== DESKTOP SIDEBAR ===== */}
+      <aside className="hidden sm:flex fixed left-0 top-0 z-20 w-[200px] h-screen pt-[60px] flex-col border-r border-border/60 bg-card/80 backdrop-blur-xl overflow-y-auto">
+        <nav className="flex-1 flex flex-col gap-1 p-3">
+          {tabs.map((t) => {
+            const active = pathname === t.to || pathname.startsWith(t.to + "/");
+            const Icon = t.icon;
+            return (
+              <Link
+                key={t.to}
+                to={t.to}
+                className={cn(
+                  "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
+                  active ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground hover:bg-muted",
+                )}
+              >
+                <Icon className="h-5 w-5 shrink-0" />
+                {t.label}
+              </Link>
+            );
+          })}
+
+          {isAdmin && (
+            <Link
+              to="/invoices"
+              className={cn(
+                "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
+                pathname.startsWith("/invoices")
+                  ? "bg-primary text-primary-foreground"
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted",
+              )}
+            >
+              <FileText className="h-5 w-5 shrink-0" /> Invoices
+            </Link>
+          )}
+          {isAdmin && (
+            <Link
+              to="/insurance"
+              className={cn(
+                "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
+                pathname.startsWith("/insurance")
+                  ? "bg-primary text-primary-foreground"
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted",
+              )}
+            >
+              <ShieldCheck className="h-5 w-5 shrink-0" /> Insurance
+            </Link>
+          )}
+          {isAdmin && (
+            <Link
+              to="/analytics"
+              className={cn(
+                "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
+                pathname.startsWith("/analytics")
+                  ? "bg-primary text-primary-foreground"
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted",
+              )}
+            >
+              <BarChart3 className="h-5 w-5 shrink-0" /> Analytics
+            </Link>
+          )}
+          {isAdmin && (
+            <Link
+              to="/settings"
+              className={cn(
+                "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
+                pathname.startsWith("/settings") ||
+                  pathname.startsWith("/templates") ||
+                  pathname.startsWith("/inventory") ||
+                  pathname.startsWith("/customers")
+                  ? "bg-primary text-primary-foreground"
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted",
+              )}
+            >
+              <SettingsIcon className="h-5 w-5 shrink-0" /> Settings
+            </Link>
+          )}
+        </nav>
+      </aside>
+
+      {/* ===== MAIN ===== */}
+      <main className="flex-1 px-4 pt-5 pb-28 sm:pb-5 sm:ml-[200px]">
         <Outlet />
       </main>
 
-      {/* Mobile bottom nav */}
+      {/* ===== MOBILE BOTTOM NAV ===== */}
       <nav className="fixed bottom-0 inset-x-0 z-40 sm:hidden border-t border-border bg-background/95 backdrop-blur-xl">
         <div className="grid grid-cols-5">
           {tabs.map((t) => {
@@ -117,82 +198,6 @@ export function AppShell() {
             );
           })}
         </div>
-      </nav>
-
-      {/* Desktop bottom nav */}
-      <nav className="hidden sm:flex fixed bottom-6 left-1/2 -translate-x-1/2 z-40 items-center gap-1.5 rounded-full border border-border bg-card/90 px-2 py-2 backdrop-blur-xl shadow-[0_10px_40px_-10px_oklch(0_0_0/0.6)]">
-        {tabs.map((t) => {
-          const active = pathname === t.to || pathname.startsWith(t.to + "/");
-          const Icon = t.icon;
-          return (
-            <Link
-              key={t.to}
-              to={t.to}
-              className={cn(
-                "flex items-center gap-2.5 rounded-full px-5 py-2.5 text-base font-medium transition-colors",
-                active ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground",
-              )}
-            >
-              <Icon className="h-5 w-5" /> {t.label}
-            </Link>
-          );
-        })}
-        {isAdmin && (
-          <Link
-            to="/invoices"
-            className={cn(
-              "flex items-center gap-2.5 rounded-full px-5 py-2.5 text-base font-medium transition-colors",
-              pathname.startsWith("/invoices")
-                ? "bg-primary text-primary-foreground"
-                : "text-muted-foreground hover:text-foreground",
-            )}
-          >
-            <FileText className="h-5 w-5" /> Invoices
-          </Link>
-        )}
-        {isAdmin && (
-          <Link
-            to="/insurance"
-            className={cn(
-              "flex items-center gap-2.5 rounded-full px-5 py-2.5 text-base font-medium transition-colors",
-              pathname.startsWith("/insurance")
-                ? "bg-primary text-primary-foreground"
-                : "text-muted-foreground hover:text-foreground",
-            )}
-          >
-            <ShieldCheck className="h-5 w-5" /> Insurance
-          </Link>
-        )}
-
-        {isAdmin && (
-          <Link
-            to="/analytics"
-            className={cn(
-              "flex items-center gap-2.5 rounded-full px-5 py-2.5 text-base font-medium transition-colors",
-              pathname.startsWith("/analytics")
-                ? "bg-primary text-primary-foreground"
-                : "text-muted-foreground hover:text-foreground",
-            )}
-          >
-            <BarChart3 className="h-5 w-5" /> Analytics
-          </Link>
-        )}
-        {isAdmin && (
-          <Link
-            to="/settings"
-            className={cn(
-              "flex items-center gap-2.5 rounded-full px-5 py-2.5 text-base font-medium transition-colors",
-              pathname.startsWith("/settings") ||
-                pathname.startsWith("/templates") ||
-                pathname.startsWith("/inventory") ||
-                pathname.startsWith("/customers")
-                ? "bg-primary text-primary-foreground"
-                : "text-muted-foreground hover:text-foreground",
-            )}
-          >
-            <SettingsIcon className="h-5 w-5" /> Settings
-          </Link>
-        )}
       </nav>
     </div>
   );
