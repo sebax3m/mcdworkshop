@@ -5,6 +5,7 @@ import { useCurrentUser } from "@/hooks/use-current-user";
 import { initials } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import logoAsset from "@/assets/motorcycle-doctors-logo.png.asset.json";
+import { ActiveUserSwitcher } from "@/components/ActiveUserSwitcher";
 
 export function AppShell() {
   const nav = useNavigate();
@@ -41,6 +42,7 @@ export function AppShell() {
             </div>
           </Link>
           <div className="ml-auto flex items-center gap-2">
+            <ActiveUserSwitcher />
             {isAdmin && (
               <Link
                 to="/bookings/new"
