@@ -27,6 +27,8 @@ function NewClaim() {
   const [expectedReturn, setExpectedReturn] = useState<string>("");
   const [search, setSearch] = useState("");
   const [saving, setSaving] = useState(false);
+  const [showCustomerPicker, setShowCustomerPicker] = useState(false);
+
 
   const customers = useQuery({
     queryKey: ["ins-customers"],
