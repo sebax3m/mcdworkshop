@@ -193,91 +193,17 @@ function ClaimDetail() {
 
       <ClaimCustodyCard c={c} onUpdate={updateClaim} />
 
-      {/* Quote / linked job */}
-      <section className="card-surface p-4">
-        <div className="flex items-center gap-2 mb-2">
-          <Wrench className="h-4 w-4 text-primary" />
-          <h2 className="font-display text-lg font-semibold">Quote · Parts & Labour</h2>
-        </div>
-        {c.job_id ? (
-          <div className="space-y-3">
-            <div className="rounded-lg border border-border bg-background/40 p-3 flex items-center gap-3 flex-wrap">
-              <div className="min-w-0">
-                <div className="text-xs text-muted-foreground">Linked job card</div>
-                <div className="font-bold">#{c.jobs?.job_number} · {c.jobs?.title}</div>
-                <div className="text-[11px] text-muted-foreground uppercase tracking-wider">{c.jobs?.status}</div>
-              </div>
-              <Link
-                to="/jobs/$jobId"
-                params={{ jobId: c.job_id }}
-                className="ml-auto inline-flex items-center gap-1.5 rounded-lg red-surface px-3 py-2 text-sm font-bold"
-              >
-                Open job card <ExternalLink className="h-3.5 w-3.5" />
-              </Link>
-            </div>
-            <div className="grid sm:grid-cols-2 gap-3">
-              <div>
-                <Label>Quote total ($)</Label>
-                <Input
-                  type="number" step="0.01"
-                  defaultValue={c.quote_amount ?? ""}
-                  onBlur={(e) => {
-                    const v = e.target.value === "" ? null : Number(e.target.value);
-                    if (v !== (c.quote_amount ?? null)) updateClaim({ quote_amount: v });
-                  }}
-                  placeholder="0.00"
-                />
-              </div>
-              <div>
-                <Label>Approved amount ($)</Label>
-                <Input
-                  type="number" step="0.01"
-                  defaultValue={c.approved_amount ?? ""}
-                  onBlur={(e) => {
-                    const v = e.target.value === "" ? null : Number(e.target.value);
-                    if (v !== (c.approved_amount ?? null)) updateClaim({ approved_amount: v });
-                  }}
-                  placeholder="0.00"
-                />
-              </div>
-            </div>
-            <div className="flex gap-2 flex-wrap">
-              {c.status !== "quote_sent" && c.status !== "approved" && c.status !== "declined" && (
-                <Button onClick={markSent} className="gold-surface gap-2">
-                  <Send className="h-4 w-4" /> Mark as sent to insurer
-                </Button>
-              )}
-              {c.customers?.email && (
-                <a
-                  href={`mailto:?subject=${encodeURIComponent(`Quote ${c.claim_number} — ${c.insurer_name ?? ""}`)}&body=${encodeURIComponent(`Hi,\n\nPlease find attached our repair quote for claim ${c.claim_number} (${bikeText}).\n\nQuote total: $${c.quote_amount ?? ""}\n\nKind regards,\nMotorcycle Doctors`)}`}
-                  className="inline-flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-sm font-semibold hover:border-primary/40"
-                >
-                  <Mail className="h-4 w-4" /> Email customer
-                </a>
-              )}
-              {c.status === "quote_sent" && (
-                <>
-                  <Button onClick={() => setStatus("approved")} className="gap-2 bg-green-600 hover:bg-green-700 text-white">
-                    <Check className="h-4 w-4" /> Insurer approved
-                  </Button>
-                  <Button onClick={() => setStatus("declined")} variant="outline" className="gap-2 text-destructive border-destructive/40">
-                    <X className="h-4 w-4" /> Insurer declined
-                  </Button>
-                </>
-              )}
-            </div>
-          </div>
-        ) : (
-          <div className="space-y-3">
-            <p className="text-sm text-muted-foreground">
-              Start the quote — this creates a Collision Repair job card where you log parts and labour estimates. The job stays linked to this claim.
-            </p>
-            <Button onClick={startQuote} className="gold-surface gap-2 h-11 px-5 font-bold">
-              <Plus className="h-4 w-4" /> Start Quote (create job card)
-            </Button>
-          </div>
-        )}
-      </section>
+      {/* Quotation builder (parts + labour) */}
+      <QuoteBuilder
+        c={c}
+        bikeText={bikeText}
+        onUpdate={updateClaim}
+        onMarkSent={markSent}
+        onApprove={() => setStatus("approved")}
+        onDecline={() => setStatus("declined")}
+        onStartJob={startQuote}
+      />
+
 
       {/* Notes */}
       <ClaimNotesCard c={c} onUpdate={updateClaim} />
@@ -319,7 +245,257 @@ function ClaimDetail() {
   );
 }
 
-import { Plus } from "lucide-react";
+import { Plus, Trash, Hash } from "lucide-react";
+
+type QuoteItem = {
+  id: string;
+  kind: "part" | "labour";
+  description: string;
+  qty: number; // qty for parts, hours for labour
+  unit_price: number; // $ per unit / $ per hour
+};
+
+function newItem(kind: QuoteItem["kind"], unit_price = 0): QuoteItem {
+  return {
+    id: (globalThis.crypto?.randomUUID?.() ?? Math.random().toString(36).slice(2)),
+    kind,
+    description: "",
+    qty: kind === "labour" ? 1 : 1,
+    unit_price,
+  };
+}
+
+function QuoteBuilder({
+  c, bikeText, onUpdate, onMarkSent, onApprove, onDecline, onStartJob,
+}: {
+  c: any; bikeText: string;
+  onUpdate: (p: any) => any;
+  onMarkSent: () => void;
+  onApprove: () => void;
+  onDecline: () => void;
+  onStartJob: () => void;
+}) {
+  const initial: QuoteItem[] = Array.isArray(c.quote_items) ? c.quote_items : [];
+  const [items, setItems] = useState<QuoteItem[]>(initial);
+  const [rate, setRate] = useState<number>(Number(c.quote_labour_rate ?? 110));
+  const [dirty, setDirty] = useState(false);
+  const [saving, setSaving] = useState(false);
+
+  const subtotal = items.reduce((s, it) => s + (Number(it.qty) || 0) * (Number(it.unit_price) || 0), 0);
+  const gst = subtotal * 0.15;
+  const total = subtotal + gst;
+
+  function patch(id: string, p: Partial<QuoteItem>) {
+    setItems((arr) => arr.map((it) => (it.id === id ? { ...it, ...p } : it)));
+    setDirty(true);
+  }
+  function remove(id: string) {
+    setItems((arr) => arr.filter((it) => it.id !== id));
+    setDirty(true);
+  }
+  function addPart() {
+    setItems((arr) => [...arr, newItem("part")]);
+    setDirty(true);
+  }
+  function addLabour() {
+    setItems((arr) => [...arr, newItem("labour", rate)]);
+    setDirty(true);
+  }
+
+  async function save() {
+    setSaving(true);
+    try {
+      await onUpdate({
+        quote_items: items,
+        quote_amount: Number(total.toFixed(2)),
+        quote_labour_rate: rate || null,
+      });
+      setDirty(false);
+      toast.success("Quote saved");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <section className="card-surface p-4 sm:p-5 border-l-4 border-primary/60 print:break-inside-avoid print:border-0">
+      <div className="flex items-center justify-between gap-3 flex-wrap mb-3">
+        <div className="flex items-center gap-2.5">
+          <div className="grid h-9 w-9 place-items-center rounded-lg bg-primary/15 text-primary">
+            <Wrench className="h-5 w-5" />
+          </div>
+          <div>
+            <div className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground font-bold">Quotation</div>
+            <h2 className="font-display text-lg font-semibold">Parts & labour estimate</h2>
+          </div>
+        </div>
+        <div className="flex items-center gap-2 print:hidden">
+          <div className="flex items-center gap-1.5">
+            <Label className="text-[10px] uppercase tracking-wider text-muted-foreground">Labour $/hr</Label>
+            <Input
+              type="number" step="1" min="0"
+              value={rate}
+              onChange={(e) => { setRate(Number(e.target.value) || 0); setDirty(true); }}
+              className="w-20 h-8 text-sm"
+            />
+          </div>
+          {dirty && (
+            <Button onClick={save} disabled={saving} size="sm" className="gold-surface gap-2">
+              <Check className="h-3.5 w-3.5" /> {saving ? "Saving…" : "Save quote"}
+            </Button>
+          )}
+        </div>
+      </div>
+
+      {/* Items */}
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead className="text-[10px] uppercase tracking-wider text-muted-foreground">
+            <tr className="border-b border-border">
+              <th className="text-left py-2 w-20">Type</th>
+              <th className="text-left py-2">Description</th>
+              <th className="text-right py-2 w-20">Qty/Hrs</th>
+              <th className="text-right py-2 w-24">Unit $</th>
+              <th className="text-right py-2 w-24">Line $</th>
+              <th className="w-8 print:hidden" />
+            </tr>
+          </thead>
+          <tbody>
+            {items.length === 0 && (
+              <tr><td colSpan={6} className="py-6 text-center text-sm text-muted-foreground">
+                No line items yet. Add parts or labour below.
+              </td></tr>
+            )}
+            {items.map((it) => {
+              const line = (Number(it.qty) || 0) * (Number(it.unit_price) || 0);
+              return (
+                <tr key={it.id} className="border-b border-border/50">
+                  <td className="py-1.5">
+                    <span className={`inline-flex items-center rounded-md border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
+                      it.kind === "labour" ? "border-blue-500/40 bg-blue-500/10 text-blue-400" : "border-amber-500/40 bg-amber-500/10 text-amber-400"
+                    }`}>
+                      {it.kind}
+                    </span>
+                  </td>
+                  <td className="py-1.5 pr-2">
+                    <Input
+                      value={it.description}
+                      onChange={(e) => patch(it.id, { description: e.target.value })}
+                      placeholder={it.kind === "labour" ? "e.g. Fairing R&R, paint blend" : "e.g. LH fairing panel OEM"}
+                      className="h-8 text-sm print:border-0 print:bg-transparent print:px-0"
+                    />
+                  </td>
+                  <td className="py-1.5">
+                    <Input
+                      type="number" step="0.25" min="0"
+                      value={it.qty}
+                      onChange={(e) => patch(it.id, { qty: Number(e.target.value) || 0 })}
+                      className="h-8 text-sm text-right tabular-nums"
+                    />
+                  </td>
+                  <td className="py-1.5">
+                    <Input
+                      type="number" step="0.01" min="0"
+                      value={it.unit_price}
+                      onChange={(e) => patch(it.id, { unit_price: Number(e.target.value) || 0 })}
+                      className="h-8 text-sm text-right tabular-nums"
+                    />
+                  </td>
+                  <td className="py-1.5 text-right font-mono font-semibold tabular-nums">
+                    ${line.toFixed(2)}
+                  </td>
+                  <td className="py-1.5 print:hidden">
+                    <button onClick={() => remove(it.id)} className="text-muted-foreground hover:text-destructive">
+                      <Trash className="h-4 w-4" />
+                    </button>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+          <tfoot className="text-sm">
+            <tr><td colSpan={4} className="pt-3 text-right text-muted-foreground">Subtotal</td><td className="pt-3 text-right font-mono tabular-nums">${subtotal.toFixed(2)}</td><td /></tr>
+            <tr><td colSpan={4} className="text-right text-muted-foreground">GST (15%)</td><td className="text-right font-mono tabular-nums">${gst.toFixed(2)}</td><td /></tr>
+            <tr className="border-t border-border"><td colSpan={4} className="pt-2 text-right font-bold uppercase tracking-wider text-xs">Quote total</td><td className="pt-2 text-right font-mono font-bold text-base tabular-nums text-primary">${total.toFixed(2)}</td><td /></tr>
+          </tfoot>
+        </table>
+      </div>
+
+      {/* Actions */}
+      <div className="mt-4 flex flex-wrap items-center gap-2 print:hidden">
+        <Button onClick={addPart} variant="outline" size="sm" className="gap-1.5">
+          <Plus className="h-3.5 w-3.5" /> Add part
+        </Button>
+        <Button onClick={addLabour} variant="outline" size="sm" className="gap-1.5">
+          <Plus className="h-3.5 w-3.5" /> Add labour
+        </Button>
+
+        <div className="ml-auto flex flex-wrap items-center gap-2">
+          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+            <Label className="text-[10px] uppercase tracking-wider">Approved $</Label>
+            <Input
+              type="number" step="0.01"
+              defaultValue={c.approved_amount ?? ""}
+              onBlur={(e) => {
+                const v = e.target.value === "" ? null : Number(e.target.value);
+                if (v !== (c.approved_amount ?? null)) onUpdate({ approved_amount: v });
+              }}
+              className="w-28 h-8 text-sm"
+              placeholder="0.00"
+            />
+          </div>
+
+          {c.status !== "quote_sent" && c.status !== "approved" && c.status !== "declined" && (
+            <Button onClick={onMarkSent} size="sm" className="gold-surface gap-2">
+              <Send className="h-3.5 w-3.5" /> Mark sent
+            </Button>
+          )}
+          {c.status === "quote_sent" && (
+            <>
+              <Button onClick={onApprove} size="sm" className="gap-2 bg-green-600 hover:bg-green-700 text-white">
+                <Check className="h-3.5 w-3.5" /> Approved
+              </Button>
+              <Button onClick={onDecline} variant="outline" size="sm" className="gap-2 text-destructive border-destructive/40">
+                <X className="h-3.5 w-3.5" /> Declined
+              </Button>
+            </>
+          )}
+          {c.customers?.email && (
+            <a
+              href={`mailto:${c.customers.email}?subject=${encodeURIComponent(`Quote ${c.claim_number} — ${c.insurer_name ?? ""}`)}&body=${encodeURIComponent(`Hi ${c.customers?.first_name ?? ""},\n\nPlease find our repair quote for claim ${c.claim_number} (${bikeText}).\n\nQuote total: $${total.toFixed(2)} (incl. GST)\n\nKind regards,\nMotorcycle Doctors`)}`}
+              className="inline-flex items-center gap-2 rounded-md border border-border px-3 py-1.5 text-xs font-semibold hover:border-primary/40"
+            >
+              <Mail className="h-3.5 w-3.5" /> Email
+            </a>
+          )}
+        </div>
+      </div>
+
+      {/* Workshop side */}
+      <div className="mt-4 pt-3 border-t border-border/60 flex items-center gap-2 flex-wrap print:hidden">
+        <Hash className="h-3.5 w-3.5 text-muted-foreground" />
+        {c.job_id ? (
+          <Link
+            to="/jobs/$jobId"
+            params={{ jobId: c.job_id }}
+            className="text-xs font-semibold inline-flex items-center gap-1.5 hover:underline"
+          >
+            Open linked job card #{c.jobs?.job_number} <ExternalLink className="h-3 w-3" />
+          </Link>
+        ) : (
+          <>
+            <span className="text-xs text-muted-foreground">Ready for the workshop?</span>
+            <button onClick={onStartJob} className="text-xs font-semibold text-primary hover:underline">
+              Create Collision Repair job card
+            </button>
+          </>
+        )}
+      </div>
+    </section>
+  );
+}
+
+
 
 function ClaimInsurerCard({ c, onUpdate }: { c: any; onUpdate: (p: any) => void }) {
   const [insurer, setInsurer] = useState(c.insurer_name ?? "");
@@ -415,10 +591,42 @@ function PrintQuoteHeader({ c, bikeText }: { c: any; bikeText: string }) {
           <p className="whitespace-pre-wrap">{c.notes}</p>
         </div>
       )}
+      {Array.isArray(c.quote_items) && c.quote_items.length > 0 && (() => {
+        const items = c.quote_items as Array<{ kind: string; description: string; qty: number; unit_price: number }>;
+        const subtotal = items.reduce((s, it) => s + (Number(it.qty) || 0) * (Number(it.unit_price) || 0), 0);
+        const gst = subtotal * 0.15;
+        return (
+          <table className="w-full text-xs border border-gray-400 border-collapse mb-3">
+            <thead className="bg-gray-100">
+              <tr>
+                <th className="border border-gray-400 text-left px-2 py-1 w-16">Type</th>
+                <th className="border border-gray-400 text-left px-2 py-1">Description</th>
+                <th className="border border-gray-400 text-right px-2 py-1 w-16">Qty</th>
+                <th className="border border-gray-400 text-right px-2 py-1 w-20">Unit $</th>
+                <th className="border border-gray-400 text-right px-2 py-1 w-20">Line $</th>
+              </tr>
+            </thead>
+            <tbody>
+              {items.map((it, i) => (
+                <tr key={i}>
+                  <td className="border border-gray-400 px-2 py-1 capitalize">{it.kind}</td>
+                  <td className="border border-gray-400 px-2 py-1">{it.description || "—"}</td>
+                  <td className="border border-gray-400 px-2 py-1 text-right font-mono">{Number(it.qty).toFixed(2)}</td>
+                  <td className="border border-gray-400 px-2 py-1 text-right font-mono">${Number(it.unit_price).toFixed(2)}</td>
+                  <td className="border border-gray-400 px-2 py-1 text-right font-mono">${((Number(it.qty)||0)*(Number(it.unit_price)||0)).toFixed(2)}</td>
+                </tr>
+              ))}
+              <tr><td colSpan={4} className="border border-gray-400 px-2 py-1 text-right">Subtotal</td><td className="border border-gray-400 px-2 py-1 text-right font-mono">${subtotal.toFixed(2)}</td></tr>
+              <tr><td colSpan={4} className="border border-gray-400 px-2 py-1 text-right">GST (15%)</td><td className="border border-gray-400 px-2 py-1 text-right font-mono">${gst.toFixed(2)}</td></tr>
+              <tr className="bg-gray-100"><td colSpan={4} className="border border-gray-400 px-2 py-1 text-right font-bold">Total (incl. GST)</td><td className="border border-gray-400 px-2 py-1 text-right font-mono font-bold">${(subtotal+gst).toFixed(2)}</td></tr>
+            </tbody>
+          </table>
+        );
+      })()}
       <div className="text-xs">
         <b>Quote total:</b> <span className="font-mono">${c.quote_amount != null ? Number(c.quote_amount).toFixed(2) : "_______"}</span>
       </div>
-      <div className="mt-2 text-[10px] text-gray-600">Parts and labour breakdown is on the linked Collision Repair job card — print and attach.</div>
+
     </div>
   );
 }
