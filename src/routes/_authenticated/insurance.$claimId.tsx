@@ -479,10 +479,19 @@ function QuoteBuilder({
                   const { sendClaimEmailWithPdf } = await import("@/lib/claim-pdf");
                   const subject = `Quote ${c.claim_number} — ${c.insurer_name ?? ""}`;
                   const body = `Hi ${c.customers?.first_name ?? ""},\n\nPlease find attached our repair quote for claim ${c.claim_number} (${bikeText}).\n\nQuote total: $${total.toFixed(2)} (incl. GST)\n\nKind regards,\nMotorcycle Doctors`;
+                  // Always pull the freshest saved marks so the PDF matches what was drawn
+                  const { data: fresh } = await (supabase as any)
+                    .from("insurance_claims")
+                    .select("damage_marks")
+                    .eq("id", c.id)
+                    .maybeSingle();
+                  const liveMarks = Array.isArray(fresh?.damage_marks)
+                    ? fresh.damage_marks
+                    : Array.isArray(c.damage_marks) ? c.damage_marks : [];
                   const res = await sendClaimEmailWithPdf({
                     claim: c,
                     bikeText,
-                    marks: Array.isArray(c.damage_marks) ? (c.damage_marks as any) : [],
+                    marks: liveMarks as any,
                     items,
                     to: c.customers.email,
                     subject,

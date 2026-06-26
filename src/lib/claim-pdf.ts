@@ -128,7 +128,7 @@ export async function buildClaimPdf(d: ClaimPdfData): Promise<Blob> {
     y += wrapped.length * 4 + 4;
   }
 
-  // ---------- Damage diagrams (left / right / top) ----------
+  // ---------- Damage diagrams (left / right / top) — stacked, large ----------
   const views: Array<{ key: "left" | "right" | "top"; title: string }> = [
     { key: "left", title: "Left side" },
     { key: "right", title: "Right side" },
@@ -137,60 +137,68 @@ export async function buildClaimPdf(d: ClaimPdfData): Promise<Blob> {
   const sideData = await fetchAsDataUrl(bikeSideAsset.url);
   const topData = await fetchAsDataUrl(bikeTopAsset.url);
 
-  const diagW = (pageW - margin * 2 - 8) / 3;
-  const diagH = diagW * (320 / 600);
-
-  if (y + diagH + 16 > pageH - margin) {
-    pdf.addPage();
-    y = margin;
-  }
   pdf.setFontSize(8);
   pdf.setTextColor(100);
   pdf.text("DAMAGE DIAGRAM", margin, y);
   pdf.setTextColor(0);
   y += 4;
 
-  for (let i = 0; i < views.length; i++) {
-    const v = views[i];
-    const xPos = margin + i * (diagW + 4);
-    const viewMarks = marks.filter((m) => normView(m.view) === v.key);
-    const data = v.key === "top" ? topData : sideData;
-    pdf.setFontSize(8);
+  // Global numbering across all views so legend matches diagram
+  const numbered = marks.map((m, i) => ({ m, n: i + 1 }));
+
+  const diagW = pageW - margin * 2;
+  const diagH = diagW * (320 / 600);
+
+  for (const v of views) {
+    const viewItems = numbered.filter(({ m }) => normView(m.view) === v.key);
+    // skip a view entirely if no marks AND we want compactness?  show all 3 so insurer can see
+    if (y + diagH + 10 > pageH - margin) {
+      pdf.addPage();
+      y = margin;
+    }
+    pdf.setFontSize(9);
     pdf.setFont("helvetica", "bold");
-    pdf.text(v.title, xPos, y + 3);
+    pdf.text(`${v.title}${viewItems.length ? `  (${viewItems.length} mark${viewItems.length > 1 ? "s" : ""})` : ""}`, margin, y);
     pdf.setFont("helvetica", "normal");
+    y += 2;
     pdf.setDrawColor(0);
-    pdf.rect(xPos, y + 4, diagW, diagH);
+    pdf.setLineWidth(0.3);
+    pdf.rect(margin, y, diagW, diagH);
+    const data = v.key === "top" ? topData : sideData;
     if (data) {
       try {
         if (v.key === "right") {
-          // mirror by adding the image flipped using a temp canvas
           const flipped = await flipImage(data);
-          pdf.addImage(flipped, "PNG", xPos, y + 4, diagW, diagH);
+          pdf.addImage(flipped, "PNG", margin, y, diagW, diagH);
         } else {
-          pdf.addImage(data, "PNG", xPos, y + 4, diagW, diagH);
+          pdf.addImage(data, "PNG", margin, y, diagW, diagH);
         }
       } catch {}
     }
-    // marks
-    viewMarks.forEach((m, idx) => {
-      const cx = xPos + m.x * diagW;
-      const cy = y + 4 + m.y * diagH;
+    // marks — large and obvious
+    viewItems.forEach(({ m, n }) => {
+      const cx = margin + m.x * diagW;
+      const cy = y + m.y * diagH;
       const [r, g, b] = SEV_COLOR[m.severity];
+      // white halo for contrast
+      pdf.setFillColor(255, 255, 255);
+      pdf.circle(cx, cy, 5.2, "F");
+      // colored disc
       pdf.setFillColor(r, g, b);
-      pdf.setDrawColor(255);
-      pdf.setLineWidth(0.4);
-      pdf.circle(cx, cy, 2.4, "FD");
-      pdf.setTextColor(255);
-      pdf.setFontSize(7);
+      pdf.setDrawColor(0);
+      pdf.setLineWidth(0.5);
+      pdf.circle(cx, cy, 4.4, "FD");
+      // number
+      pdf.setTextColor(255, 255, 255);
+      pdf.setFontSize(11);
       pdf.setFont("helvetica", "bold");
-      pdf.text(String(idx + 1), cx, cy + 1, { align: "center" });
+      pdf.text(String(n), cx, cy + 1.4, { align: "center" });
       pdf.setTextColor(0);
       pdf.setFont("helvetica", "normal");
       pdf.setLineWidth(0.2);
     });
+    y += diagH + 4;
   }
-  y += diagH + 8;
 
   // ---------- Damage legend ----------
   if (marks.length) {
