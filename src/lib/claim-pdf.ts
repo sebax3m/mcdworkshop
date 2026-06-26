@@ -336,26 +336,38 @@ export async function buildClaimPdf(d: ClaimPdfData): Promise<Blob> {
     pdf.setTextColor(0);
     y += 4;
 
-    const perRow = 4;
-    const gap = 3;
-    const thumbW = (pageW - margin * 2 - gap * (perRow - 1)) / perRow;
-    const thumbH = thumbW * 0.75;
+    const perRow = 3;
+    const gap = 4;
+    const cellW = (pageW - margin * 2 - gap * (perRow - 1)) / perRow;
+    const cellH = cellW * 0.75;
     let col = 0;
     for (const dataUrl of photos) {
-      if (col === 0 && y + thumbH > pageH - margin) {
+      if (col === 0 && y + cellH > pageH - margin) {
         pdf.addPage();
         y = margin;
       }
-      const xPos = margin + col * (thumbW + gap);
+      const xPos = margin + col * (cellW + gap);
+      // fit-contain inside cell, preserve aspect
+      const { w: iw, h: ih } = await imgDims(dataUrl);
+      const scale = Math.min(cellW / iw, cellH / ih);
+      const drawW = iw * scale;
+      const drawH = ih * scale;
+      const dx = xPos + (cellW - drawW) / 2;
+      const dy = y + (cellH - drawH) / 2;
+      // light cell background
+      pdf.setFillColor(245, 245, 245);
+      pdf.rect(xPos, y, cellW, cellH, "F");
       try {
-        pdf.addImage(dataUrl, "JPEG", xPos, y, thumbW, thumbH);
+        pdf.addImage(dataUrl, "JPEG", dx, dy, drawW, drawH);
       } catch {
         try {
-          pdf.addImage(dataUrl, "PNG", xPos, y, thumbW, thumbH);
+          pdf.addImage(dataUrl, "PNG", dx, dy, drawW, drawH);
         } catch {}
       }
-      pdf.setDrawColor(0);
-      pdf.rect(xPos, y, thumbW, thumbH);
+      pdf.setDrawColor(180);
+      pdf.setLineWidth(0.2);
+      pdf.rect(xPos, y, cellW, cellH);
+
       col++;
       if (col >= perRow) {
         col = 0;
