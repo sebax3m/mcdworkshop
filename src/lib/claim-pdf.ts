@@ -238,7 +238,7 @@ export async function buildClaimPdf(d: ClaimPdfData): Promise<Blob> {
   };
   pdf.setFontSize(8);
   pdf.setFont("helvetica", "bold");
-  pdf.setFillColor(240);
+  pdf.setFillColor(240, 240, 240);
   pdf.rect(margin, y - 3, pageW - margin * 2, 5, "F");
   pdf.text("Type", cols.type + 1, y);
   pdf.text("Description", cols.desc, y);
