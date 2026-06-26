@@ -189,15 +189,39 @@ function NewClaim() {
         )}
         {showCustomerPicker && (
           <>
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <input
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search customer…"
-                className="w-full rounded-xl bg-card border border-border pl-10 pr-3 py-2.5 text-sm"
-              />
+            <div className="flex gap-2">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <input
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Search customer…"
+                  className="w-full rounded-xl bg-card border border-border pl-10 pr-3 py-2.5 text-sm"
+                />
+              </div>
+              <button
+                type="button"
+                onClick={() => setNewCustOpen((o) => !o)}
+                className="inline-flex items-center gap-1 rounded-md border border-primary/40 bg-primary/10 text-primary px-3 py-2 text-xs font-semibold hover:bg-primary/20 shrink-0"
+              >
+                <Plus className="h-3.5 w-3.5" /> New customer
+              </button>
             </div>
+            {newCustOpen && (
+              <div className="rounded-lg border border-border bg-muted/30 p-3 space-y-2">
+                <div className="text-xs uppercase tracking-wider text-muted-foreground">New customer</div>
+                <div className="grid grid-cols-2 gap-2">
+                  <Input placeholder="First name *" value={newCust.first_name} onChange={(e) => setNewCust({ ...newCust, first_name: e.target.value })} />
+                  <Input placeholder="Last name" value={newCust.last_name} onChange={(e) => setNewCust({ ...newCust, last_name: e.target.value })} />
+                  <Input placeholder="Phone" inputMode="tel" value={newCust.phone} onChange={(e) => setNewCust({ ...newCust, phone: e.target.value })} />
+                  <Input placeholder="Email" inputMode="email" value={newCust.email} onChange={(e) => setNewCust({ ...newCust, email: e.target.value })} />
+                </div>
+                <div className="flex gap-2">
+                  <Button onClick={saveNewCustomer} disabled={savingCust} className="gold-surface flex-1">{savingCust ? "Saving…" : "Save customer"}</Button>
+                  <Button variant="ghost" onClick={() => setNewCustOpen(false)}>Cancel</Button>
+                </div>
+              </div>
+            )}
             <div className="max-h-48 overflow-y-auto rounded-lg border border-border divide-y divide-border">
               {filteredCust.slice(0, 50).map((c: any) => (
                 <button
@@ -212,9 +236,34 @@ function NewClaim() {
             </div>
             {customerId && (
               <div className="space-y-1.5">
-                <Label>Motorcycle</Label>
-                {(bikes.data ?? []).length === 0 ? (
-                  <p className="text-sm text-muted-foreground">No bikes for this customer.</p>
+                <div className="flex items-center justify-between">
+                  <Label>Motorcycle</Label>
+                  <button
+                    type="button"
+                    onClick={() => setNewBikeOpen((o) => !o)}
+                    className="inline-flex items-center gap-1 rounded-md border border-primary/40 bg-primary/10 text-primary px-2.5 py-1 text-[11px] font-semibold hover:bg-primary/20"
+                  >
+                    <Plus className="h-3 w-3" /> New bike
+                  </button>
+                </div>
+                {newBikeOpen && (
+                  <div className="rounded-lg border border-border bg-muted/30 p-3 space-y-2">
+                    <BikeMakeModelYear
+                      value={{ make: newBike.make, model: newBike.model, year: newBike.year }}
+                      onChange={(v) => setNewBike({ ...newBike, make: v.make, model: v.model, year: v.year })}
+                    />
+                    <div className="grid grid-cols-2 gap-2">
+                      <Input placeholder="Rego" value={newBike.rego} onChange={(e) => setNewBike({ ...newBike, rego: e.target.value.toUpperCase() })} />
+                      <Input placeholder="Colour" value={newBike.color} onChange={(e) => setNewBike({ ...newBike, color: e.target.value })} />
+                    </div>
+                    <div className="flex gap-2">
+                      <Button onClick={saveNewBike} disabled={savingBike} className="gold-surface flex-1">{savingBike ? "Saving…" : "Save bike"}</Button>
+                      <Button variant="ghost" onClick={() => setNewBikeOpen(false)}>Cancel</Button>
+                    </div>
+                  </div>
+                )}
+                {(bikes.data ?? []).length === 0 && !newBikeOpen ? (
+                  <p className="text-sm text-muted-foreground">No bikes for this customer — add one above.</p>
                 ) : (
                   (bikes.data ?? []).map((b: any) => (
                     <button
