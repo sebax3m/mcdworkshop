@@ -259,7 +259,7 @@ function CalendarPage() {
                     setWeekStart(startOfWeek(day, { weekStartsOn: 1 }));
                     setViewMode("week");
                   }}
-                  className={`card-surface p-2 min-h-[120px] flex flex-col cursor-pointer transition-colors hover:ring-1 hover:ring-primary/30 ${
+                  className={`card-surface p-2 min-h-[160px] flex flex-col cursor-pointer transition-colors hover:ring-1 hover:ring-primary/30 ${
                     today ? "ring-2 ring-primary/40" : ""
                   } ${draggingId ? "border-dashed" : ""} ${!inMonth ? "opacity-40" : ""}`}
                 >
@@ -342,7 +342,7 @@ function CalendarPage() {
                   if (id) moveBooking(id, day);
                   setDraggingId(null);
                 }}
-                className={`card-surface p-4 min-h-[480px] flex flex-col transition-colors ${
+                className={`card-surface p-4 min-h-[calc(100vh-240px)] flex flex-col transition-colors ${
                   today ? "ring-2 ring-primary/40" : ""
                 } ${draggingId ? "border-dashed" : ""}`}
               >
@@ -462,7 +462,7 @@ function CalendarPage() {
       )}
 
       {/* LEGEND */}
-      <div className="card-surface p-4">
+      <div className="card-surface p-4 sm:sticky sm:bottom-0">
         <div className="text-xs uppercase tracking-[0.25em] text-muted-foreground mb-3">Service legend</div>
         <div className="flex flex-wrap gap-2.5">
           {[
