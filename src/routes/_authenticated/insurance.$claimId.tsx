@@ -253,6 +253,7 @@ function ClaimDetail() {
 }
 
 import { Plus, Trash, Hash } from "lucide-react";
+import { CRASH_PARTS, PART_CATEGORIES, LABOUR_PRESETS, type DamageLevel } from "@/lib/crash-parts";
 
 type QuoteItem = {
   id: string;
@@ -306,6 +307,40 @@ function QuoteBuilder({
   }
   function addLabour() {
     setItems((arr) => [...arr, newItem("labour", rate)]);
+    setDirty(true);
+  }
+
+  const [quickCat, setQuickCat] = useState<string>(PART_CATEGORIES[0]);
+  const [damageLevel, setDamageLevel] = useState<DamageLevel>("moderate");
+
+  function quickAddPart(p: (typeof CRASH_PARTS)[number]) {
+    const partItem: QuoteItem = {
+      id: (globalThis.crypto?.randomUUID?.() ?? Math.random().toString(36).slice(2)),
+      kind: "part",
+      description: p.name,
+      qty: 1,
+      unit_price: p.estPrice,
+    };
+    const hrs = p.labourHrs[damageLevel];
+    const labourItem: QuoteItem = {
+      id: (globalThis.crypto?.randomUUID?.() ?? Math.random().toString(36).slice(2)),
+      kind: "labour",
+      description: `R&R ${p.name} (${damageLevel})`,
+      qty: hrs,
+      unit_price: rate,
+    };
+    setItems((arr) => [...arr, partItem, labourItem]);
+    setDirty(true);
+  }
+
+  function quickAddLabour(preset: (typeof LABOUR_PRESETS)[number]) {
+    setItems((arr) => [...arr, {
+      id: (globalThis.crypto?.randomUUID?.() ?? Math.random().toString(36).slice(2)),
+      kind: "labour",
+      description: preset.name,
+      qty: preset.hrs,
+      unit_price: rate,
+    }]);
     setDirty(true);
   }
 
@@ -426,6 +461,73 @@ function QuoteBuilder({
             <tr className="border-t border-border"><td colSpan={4} className="pt-2 text-right font-bold uppercase tracking-wider text-xs">Quote total</td><td className="pt-2 text-right font-mono font-bold text-base tabular-nums text-primary">${total.toFixed(2)}</td><td /></tr>
           </tfoot>
         </table>
+      </div>
+
+      {/* Quick add catalog */}
+      <div className="mt-4 rounded-lg border border-border bg-muted/30 p-3 print:hidden">
+        <div className="flex items-center justify-between gap-2 flex-wrap mb-2">
+          <div className="text-[10px] uppercase tracking-[0.2em] font-bold text-muted-foreground">Quick add — crash parts</div>
+          <div className="flex items-center gap-1.5">
+            <Label className="text-[10px] uppercase tracking-wider text-muted-foreground">Damage</Label>
+            {(["minor","moderate","severe"] as DamageLevel[]).map((lvl) => (
+              <button
+                key={lvl}
+                onClick={() => setDamageLevel(lvl)}
+                className={`px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider border ${
+                  damageLevel === lvl
+                    ? lvl === "minor" ? "bg-emerald-500/20 border-emerald-500/50 text-emerald-400"
+                    : lvl === "moderate" ? "bg-amber-500/20 border-amber-500/50 text-amber-400"
+                    : "bg-red-500/20 border-red-500/50 text-red-400"
+                    : "border-border text-muted-foreground hover:text-foreground"
+                }`}
+              >{lvl}</button>
+            ))}
+          </div>
+        </div>
+        <div className="flex flex-wrap gap-1.5 mb-2">
+          {PART_CATEGORIES.map((cat) => (
+            <button
+              key={cat}
+              onClick={() => setQuickCat(cat)}
+              className={`px-2.5 py-1 rounded-md text-xs border ${
+                quickCat === cat ? "bg-primary/15 border-primary/50 text-primary" : "border-border text-muted-foreground hover:text-foreground"
+              }`}
+            >{cat}</button>
+          ))}
+        </div>
+        <div className="flex flex-wrap gap-1.5">
+          {CRASH_PARTS.filter((p) => p.category === quickCat).map((p) => {
+            const hrs = p.labourHrs[damageLevel];
+            return (
+              <button
+                key={p.id}
+                onClick={() => quickAddPart(p)}
+                className="group inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-2.5 py-1.5 text-xs hover:border-primary/60 hover:bg-primary/5 transition"
+                title={`Adds part $${p.estPrice} + ${hrs}h labour`}
+              >
+                <Plus className="h-3 w-3 text-primary" />
+                <span className="font-medium">{p.name}</span>
+                <span className="text-[10px] text-muted-foreground tabular-nums">${p.estPrice} · {hrs}h</span>
+              </button>
+            );
+          })}
+        </div>
+        <div className="mt-3 pt-3 border-t border-border/60">
+          <div className="text-[10px] uppercase tracking-[0.2em] font-bold text-muted-foreground mb-2">Quick add — labour bundles</div>
+          <div className="flex flex-wrap gap-1.5">
+            {LABOUR_PRESETS.map((l) => (
+              <button
+                key={l.id}
+                onClick={() => quickAddLabour(l)}
+                className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-2.5 py-1.5 text-xs hover:border-blue-500/50 hover:bg-blue-500/5 transition"
+              >
+                <Plus className="h-3 w-3 text-blue-400" />
+                <span className="font-medium">{l.name}</span>
+                <span className="text-[10px] text-muted-foreground tabular-nums">{l.hrs}h</span>
+              </button>
+            ))}
+          </div>
+        </div>
       </div>
 
       {/* Actions */}
