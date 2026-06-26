@@ -269,7 +269,7 @@ function QuoteBuilder({
   c, bikeText, onUpdate, onMarkSent, onApprove, onDecline, onStartJob,
 }: {
   c: any; bikeText: string;
-  onUpdate: (p: any) => Promise<void> | void;
+  onUpdate: (p: any) => any;
   onMarkSent: () => void;
   onApprove: () => void;
   onDecline: () => void;
