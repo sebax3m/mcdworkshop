@@ -462,7 +462,7 @@ function CalendarPage() {
       )}
 
       {/* LEGEND */}
-      <div className="card-surface p-4">
+      <div className="card-surface p-4 sm:sticky sm:bottom-0">
         <div className="text-xs uppercase tracking-[0.25em] text-muted-foreground mb-3">Service legend</div>
         <div className="flex flex-wrap gap-2.5">
           {[
