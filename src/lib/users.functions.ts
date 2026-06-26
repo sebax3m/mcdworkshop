@@ -13,16 +13,15 @@ export type UserLoginRow = {
 export const listUsersWithLogins = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }): Promise<UserLoginRow[]> => {
-    // Verify caller is admin via security-definer function
-    const { data: isAdmin, error: roleErr } = await context.supabase.rpc("has_role", {
-      _user_id: context.userId,
-      _role: "admin",
-    });
-    if (roleErr || !isAdmin) {
-      throw new Error("Only admins can view login records");
-    }
-
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    // Verify caller is admin (admin client bypasses RLS)
+    const { data: callerRoles } = await supabaseAdmin
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", context.userId);
+    const isAdmin = (callerRoles ?? []).some((r) => r.role === "admin");
+    if (!isAdmin) throw new Error("Only admins can view login records");
 
     // Pull auth users (paginated)
     const authUsers: Array<{
