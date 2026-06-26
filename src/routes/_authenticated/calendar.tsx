@@ -44,9 +44,9 @@ const SERVICE_COLORS: Record<string, { bg: string; ring: string; label: string }
   basic: { bg: "bg-status-new/20", ring: "ring-status-new/40", label: "text-status-new" },
   standard: { bg: "bg-primary/20", ring: "ring-primary/40", label: "text-primary" },
   full: { bg: "bg-status-assigned/20", ring: "ring-status-assigned/40", label: "text-status-assigned" },
-  dyno: { bg: "bg-status-parts/20", ring: "ring-status-parts/40", label: "text-status-parts" },
+  dyno: { bg: "bg-status-dyno/20", ring: "ring-status-dyno/40", label: "text-status-dyno" },
   diagnostic: { bg: "bg-status-progress/20", ring: "ring-status-progress/40", label: "text-status-progress" },
-  insurance: { bg: "bg-amber-500/20", ring: "ring-amber-500/50", label: "text-amber-400" },
+  insurance: { bg: "bg-status-insurance/20", ring: "ring-status-insurance/40", label: "text-status-insurance" },
   default: { bg: "bg-muted", ring: "ring-border", label: "text-foreground" },
 };
 
