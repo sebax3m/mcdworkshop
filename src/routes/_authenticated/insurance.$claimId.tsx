@@ -253,6 +253,7 @@ function ClaimDetail() {
 }
 
 import { Plus, Trash, Hash } from "lucide-react";
+import { CRASH_PARTS, PART_CATEGORIES, LABOUR_PRESETS, type DamageLevel } from "@/lib/crash-parts";
 
 type QuoteItem = {
   id: string;
