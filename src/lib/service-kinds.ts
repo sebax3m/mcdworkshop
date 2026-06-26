@@ -1,7 +1,8 @@
-export type ServiceKind = "basic" | "standard" | "annual" | "full" | "dyno" | "other";
+export type ServiceKind = "basic" | "standard" | "annual" | "full" | "dyno" | "collision" | "other";
 
 export function detectServiceKind(title?: string | null): ServiceKind {
   const t = (title ?? "").toLowerCase();
+  if (t.includes("collision") || t.includes("insurance") || t.includes("crash") || t.includes("accident")) return "collision";
   if (t.includes("full")) return "full";
   if (t.includes("annual")) return "annual";
   if (t.includes("standard")) return "standard";
@@ -9,6 +10,7 @@ export function detectServiceKind(title?: string | null): ServiceKind {
   if (t.includes("dyno") || t.includes("tune")) return "dyno";
   return "other";
 }
+
 
 /** Which parts/fluid fields apply to each service kind, cumulative basic → full */
 export const SERVICE_PARTS: Record<ServiceKind, Array<{ key: string; label: string; category: string; unitHint?: string }>> = {
