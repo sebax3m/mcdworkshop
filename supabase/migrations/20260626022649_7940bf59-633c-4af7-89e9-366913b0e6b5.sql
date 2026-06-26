@@ -1,0 +1,1 @@
+ALTER TABLE public.insurance_claims ADD COLUMN IF NOT EXISTS workshop_entry_date date;

@@ -349,6 +349,7 @@ export type Database = {
           repair_started_at: string | null
           status: Database["public"]["Enums"]["insurance_claim_status"]
           updated_at: string
+          workshop_entry_date: string | null
         }
         Insert: {
           approved_amount?: number | null
@@ -380,6 +381,7 @@ export type Database = {
           repair_started_at?: string | null
           status?: Database["public"]["Enums"]["insurance_claim_status"]
           updated_at?: string
+          workshop_entry_date?: string | null
         }
         Update: {
           approved_amount?: number | null
@@ -411,6 +413,7 @@ export type Database = {
           repair_started_at?: string | null
           status?: Database["public"]["Enums"]["insurance_claim_status"]
           updated_at?: string
+          workshop_entry_date?: string | null
         }
         Relationships: [
           {
