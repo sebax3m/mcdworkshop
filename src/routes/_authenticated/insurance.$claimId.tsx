@@ -391,15 +391,15 @@ function QuoteBuilder({
 
       {/* Items */}
       <div className="overflow-x-auto">
-        <table className="w-full text-sm">
+        <table className="w-full text-sm border-separate border-spacing-y-1">
           <thead className="text-[10px] uppercase tracking-wider text-muted-foreground">
             <tr className="border-b border-border">
-              <th className="text-left py-2 w-20">Type</th>
-              <th className="text-left py-2">Description</th>
-              <th className="text-right py-2 w-20">Qty/Hrs</th>
-              <th className="text-right py-2 w-24">Unit $</th>
-              <th className="text-right py-2 w-24">Line $</th>
-              <th className="w-8 print:hidden" />
+              <th className="text-left py-2 pr-2 w-20">Type</th>
+              <th className="text-left py-2 pr-2">Description</th>
+              <th className="text-right py-2 px-2 w-20">Qty/Hrs</th>
+              <th className="text-right py-2 px-2 w-24">Unit $</th>
+              <th className="text-right py-2 pl-2 pr-3 w-28">Line $</th>
+              <th className="w-10 print:hidden" />
             </tr>
           </thead>
           <tbody>
@@ -411,8 +411,8 @@ function QuoteBuilder({
             {items.map((it) => {
               const line = (Number(it.qty) || 0) * (Number(it.unit_price) || 0);
               return (
-                <tr key={it.id} className="border-b border-border/50">
-                  <td className="py-1.5">
+                <tr key={it.id} className="border-b border-border/50 align-middle">
+                  <td className="py-1.5 pr-2">
                     <span className={`inline-flex items-center rounded-md border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
                       it.kind === "labour" ? "border-blue-500/40 bg-blue-500/10 text-blue-400" : "border-amber-500/40 bg-amber-500/10 text-amber-400"
                     }`}>
@@ -427,7 +427,7 @@ function QuoteBuilder({
                       className="h-8 text-sm print:border-0 print:bg-transparent print:px-0"
                     />
                   </td>
-                  <td className="py-1.5">
+                  <td className="py-1.5 px-2">
                     <Input
                       type="number" step="0.25" min="0"
                       value={it.qty}
@@ -435,7 +435,7 @@ function QuoteBuilder({
                       className="h-8 text-sm text-right tabular-nums"
                     />
                   </td>
-                  <td className="py-1.5">
+                  <td className="py-1.5 px-2">
                     <Input
                       type="number" step="0.01" min="0"
                       value={it.unit_price}
@@ -443,11 +443,11 @@ function QuoteBuilder({
                       className="h-8 text-sm text-right tabular-nums"
                     />
                   </td>
-                  <td className="py-1.5 text-right font-mono font-semibold tabular-nums">
+                  <td className="py-1.5 pl-2 pr-3 text-right font-mono font-semibold tabular-nums whitespace-nowrap">
                     ${line.toFixed(2)}
                   </td>
-                  <td className="py-1.5 print:hidden">
-                    <button onClick={() => remove(it.id)} className="text-muted-foreground hover:text-destructive">
+                  <td className="py-1.5 pl-1 print:hidden text-center">
+                    <button onClick={() => remove(it.id)} className="text-muted-foreground hover:text-destructive inline-flex">
                       <Trash className="h-4 w-4" />
                     </button>
                   </td>
@@ -456,12 +456,25 @@ function QuoteBuilder({
             })}
           </tbody>
           <tfoot className="text-sm">
-            <tr><td colSpan={4} className="pt-3 text-right text-muted-foreground">Subtotal</td><td className="pt-3 text-right font-mono tabular-nums">${subtotal.toFixed(2)}</td><td /></tr>
-            <tr><td colSpan={4} className="text-right text-muted-foreground">GST (15%)</td><td className="text-right font-mono tabular-nums">${gst.toFixed(2)}</td><td /></tr>
-            <tr className="border-t border-border"><td colSpan={4} className="pt-2 text-right font-bold uppercase tracking-wider text-xs">Quote total</td><td className="pt-2 text-right font-mono font-bold text-base tabular-nums text-primary">${total.toFixed(2)}</td><td /></tr>
+            <tr>
+              <td colSpan={4} className="pt-3 pr-3 text-right text-muted-foreground">Subtotal</td>
+              <td className="pt-3 pl-2 pr-3 text-right font-mono tabular-nums whitespace-nowrap">${subtotal.toFixed(2)}</td>
+              <td className="print:hidden" />
+            </tr>
+            <tr>
+              <td colSpan={4} className="pr-3 text-right text-muted-foreground">GST (15%)</td>
+              <td className="pl-2 pr-3 text-right font-mono tabular-nums whitespace-nowrap">${gst.toFixed(2)}</td>
+              <td className="print:hidden" />
+            </tr>
+            <tr className="border-t border-border">
+              <td colSpan={4} className="pt-2 pr-3 text-right font-bold uppercase tracking-wider text-xs">Quote total</td>
+              <td className="pt-2 pl-2 pr-3 text-right font-mono font-bold text-base tabular-nums text-primary whitespace-nowrap">${total.toFixed(2)}</td>
+              <td className="print:hidden" />
+            </tr>
           </tfoot>
         </table>
       </div>
+
 
       {/* Quick add catalog */}
       <div className="mt-4 rounded-lg border border-border bg-muted/30 p-3 print:hidden">
