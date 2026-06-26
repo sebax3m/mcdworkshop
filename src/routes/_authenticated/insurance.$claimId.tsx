@@ -34,7 +34,7 @@ function ClaimDetail() {
       const { data, error } = await (supabase as any)
         .from("insurance_claims")
         .select(
-          "*, customers(id,first_name,last_name,phone,email), motorcycles(id,year,make,model,rego,vin,odometer), jobs(id,job_number,title,status)",
+          "*, customers(id,first_name,last_name,phone,email), motorcycles(id,year,make,model,rego,vin,mileage), jobs(id,job_number,title,status)",
         )
         .eq("id", claimId)
         .maybeSingle();
