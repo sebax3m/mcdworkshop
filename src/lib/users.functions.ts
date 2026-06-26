@@ -108,10 +108,10 @@ export const updateUserDetails = createServerFn({ method: "POST" })
     if (data.full_name !== undefined) profileUpdate.full_name = data.full_name;
     if (data.email !== undefined) profileUpdate.email = data.email;
     if (Object.keys(profileUpdate).length > 0) {
+      // Upsert because some legacy users may not have a profiles row yet.
       const { error } = await supabaseAdmin
         .from("profiles")
-        .update(profileUpdate)
-        .eq("id", data.userId);
+        .upsert({ id: data.userId, ...profileUpdate }, { onConflict: "id" });
       if (error) throw new Error(error.message);
     }
 
