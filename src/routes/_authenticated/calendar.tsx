@@ -259,7 +259,7 @@ function CalendarPage() {
                     setWeekStart(startOfWeek(day, { weekStartsOn: 1 }));
                     setViewMode("week");
                   }}
-                  className={`card-surface p-2 min-h-[120px] flex flex-col cursor-pointer transition-colors hover:ring-1 hover:ring-primary/30 ${
+                  className={`card-surface p-2 min-h-[160px] flex flex-col cursor-pointer transition-colors hover:ring-1 hover:ring-primary/30 ${
                     today ? "ring-2 ring-primary/40" : ""
                   } ${draggingId ? "border-dashed" : ""} ${!inMonth ? "opacity-40" : ""}`}
                 >
