@@ -16,6 +16,7 @@ import { Route as AuthenticatedTemplatesRouteImport } from './routes/_authentica
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedInvoicesRouteImport } from './routes/_authenticated/invoices'
 import { Route as AuthenticatedInventoryRouteImport } from './routes/_authenticated/inventory'
+import { Route as AuthenticatedInsuranceRouteImport } from './routes/_authenticated/insurance'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedCustomersRouteImport } from './routes/_authenticated/customers'
 import { Route as AuthenticatedClockRouteImport } from './routes/_authenticated/clock'
@@ -24,11 +25,14 @@ import { Route as AuthenticatedAnalyticsRouteImport } from './routes/_authentica
 import { Route as AuthenticatedMotorcyclesIndexRouteImport } from './routes/_authenticated/motorcycles.index'
 import { Route as AuthenticatedJobsIndexRouteImport } from './routes/_authenticated/jobs.index'
 import { Route as AuthenticatedInvoicesIndexRouteImport } from './routes/_authenticated/invoices.index'
+import { Route as AuthenticatedInsuranceIndexRouteImport } from './routes/_authenticated/insurance.index'
 import { Route as AuthenticatedBookingsIndexRouteImport } from './routes/_authenticated/bookings.index'
 import { Route as AuthenticatedMotorcyclesBikeIdRouteImport } from './routes/_authenticated/motorcycles.$bikeId'
 import { Route as AuthenticatedJobsNewRouteImport } from './routes/_authenticated/jobs.new'
 import { Route as AuthenticatedJobsJobIdRouteImport } from './routes/_authenticated/jobs.$jobId'
 import { Route as AuthenticatedInvoicesInvoiceIdRouteImport } from './routes/_authenticated/invoices.$invoiceId'
+import { Route as AuthenticatedInsuranceNewRouteImport } from './routes/_authenticated/insurance.new'
+import { Route as AuthenticatedInsuranceClaimIdRouteImport } from './routes/_authenticated/insurance.$claimId'
 import { Route as AuthenticatedBookingsNewRouteImport } from './routes/_authenticated/bookings.new'
 import { Route as AuthenticatedBookingsBookingIdRouteImport } from './routes/_authenticated/bookings.$bookingId'
 
@@ -64,6 +68,11 @@ const AuthenticatedInvoicesRoute = AuthenticatedInvoicesRouteImport.update({
 const AuthenticatedInventoryRoute = AuthenticatedInventoryRouteImport.update({
   id: '/inventory',
   path: '/inventory',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedInsuranceRoute = AuthenticatedInsuranceRouteImport.update({
+  id: '/insurance',
+  path: '/insurance',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
@@ -108,6 +117,12 @@ const AuthenticatedInvoicesIndexRoute =
     path: '/',
     getParentRoute: () => AuthenticatedInvoicesRoute,
   } as any)
+const AuthenticatedInsuranceIndexRoute =
+  AuthenticatedInsuranceIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedInsuranceRoute,
+  } as any)
 const AuthenticatedBookingsIndexRoute =
   AuthenticatedBookingsIndexRouteImport.update({
     id: '/bookings/',
@@ -136,6 +151,18 @@ const AuthenticatedInvoicesInvoiceIdRoute =
     path: '/$invoiceId',
     getParentRoute: () => AuthenticatedInvoicesRoute,
   } as any)
+const AuthenticatedInsuranceNewRoute =
+  AuthenticatedInsuranceNewRouteImport.update({
+    id: '/new',
+    path: '/new',
+    getParentRoute: () => AuthenticatedInsuranceRoute,
+  } as any)
+const AuthenticatedInsuranceClaimIdRoute =
+  AuthenticatedInsuranceClaimIdRouteImport.update({
+    id: '/$claimId',
+    path: '/$claimId',
+    getParentRoute: () => AuthenticatedInsuranceRoute,
+  } as any)
 const AuthenticatedBookingsNewRoute =
   AuthenticatedBookingsNewRouteImport.update({
     id: '/bookings/new',
@@ -157,17 +184,21 @@ export interface FileRoutesByFullPath {
   '/clock': typeof AuthenticatedClockRoute
   '/customers': typeof AuthenticatedCustomersRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/insurance': typeof AuthenticatedInsuranceRouteWithChildren
   '/inventory': typeof AuthenticatedInventoryRoute
   '/invoices': typeof AuthenticatedInvoicesRouteWithChildren
   '/settings': typeof AuthenticatedSettingsRoute
   '/templates': typeof AuthenticatedTemplatesRoute
   '/bookings/$bookingId': typeof AuthenticatedBookingsBookingIdRoute
   '/bookings/new': typeof AuthenticatedBookingsNewRoute
+  '/insurance/$claimId': typeof AuthenticatedInsuranceClaimIdRoute
+  '/insurance/new': typeof AuthenticatedInsuranceNewRoute
   '/invoices/$invoiceId': typeof AuthenticatedInvoicesInvoiceIdRoute
   '/jobs/$jobId': typeof AuthenticatedJobsJobIdRoute
   '/jobs/new': typeof AuthenticatedJobsNewRoute
   '/motorcycles/$bikeId': typeof AuthenticatedMotorcyclesBikeIdRoute
   '/bookings/': typeof AuthenticatedBookingsIndexRoute
+  '/insurance/': typeof AuthenticatedInsuranceIndexRoute
   '/invoices/': typeof AuthenticatedInvoicesIndexRoute
   '/jobs/': typeof AuthenticatedJobsIndexRoute
   '/motorcycles/': typeof AuthenticatedMotorcyclesIndexRoute
@@ -185,11 +216,14 @@ export interface FileRoutesByTo {
   '/templates': typeof AuthenticatedTemplatesRoute
   '/bookings/$bookingId': typeof AuthenticatedBookingsBookingIdRoute
   '/bookings/new': typeof AuthenticatedBookingsNewRoute
+  '/insurance/$claimId': typeof AuthenticatedInsuranceClaimIdRoute
+  '/insurance/new': typeof AuthenticatedInsuranceNewRoute
   '/invoices/$invoiceId': typeof AuthenticatedInvoicesInvoiceIdRoute
   '/jobs/$jobId': typeof AuthenticatedJobsJobIdRoute
   '/jobs/new': typeof AuthenticatedJobsNewRoute
   '/motorcycles/$bikeId': typeof AuthenticatedMotorcyclesBikeIdRoute
   '/bookings': typeof AuthenticatedBookingsIndexRoute
+  '/insurance': typeof AuthenticatedInsuranceIndexRoute
   '/invoices': typeof AuthenticatedInvoicesIndexRoute
   '/jobs': typeof AuthenticatedJobsIndexRoute
   '/motorcycles': typeof AuthenticatedMotorcyclesIndexRoute
@@ -204,17 +238,21 @@ export interface FileRoutesById {
   '/_authenticated/clock': typeof AuthenticatedClockRoute
   '/_authenticated/customers': typeof AuthenticatedCustomersRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/insurance': typeof AuthenticatedInsuranceRouteWithChildren
   '/_authenticated/inventory': typeof AuthenticatedInventoryRoute
   '/_authenticated/invoices': typeof AuthenticatedInvoicesRouteWithChildren
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/templates': typeof AuthenticatedTemplatesRoute
   '/_authenticated/bookings/$bookingId': typeof AuthenticatedBookingsBookingIdRoute
   '/_authenticated/bookings/new': typeof AuthenticatedBookingsNewRoute
+  '/_authenticated/insurance/$claimId': typeof AuthenticatedInsuranceClaimIdRoute
+  '/_authenticated/insurance/new': typeof AuthenticatedInsuranceNewRoute
   '/_authenticated/invoices/$invoiceId': typeof AuthenticatedInvoicesInvoiceIdRoute
   '/_authenticated/jobs/$jobId': typeof AuthenticatedJobsJobIdRoute
   '/_authenticated/jobs/new': typeof AuthenticatedJobsNewRoute
   '/_authenticated/motorcycles/$bikeId': typeof AuthenticatedMotorcyclesBikeIdRoute
   '/_authenticated/bookings/': typeof AuthenticatedBookingsIndexRoute
+  '/_authenticated/insurance/': typeof AuthenticatedInsuranceIndexRoute
   '/_authenticated/invoices/': typeof AuthenticatedInvoicesIndexRoute
   '/_authenticated/jobs/': typeof AuthenticatedJobsIndexRoute
   '/_authenticated/motorcycles/': typeof AuthenticatedMotorcyclesIndexRoute
@@ -229,17 +267,21 @@ export interface FileRouteTypes {
     | '/clock'
     | '/customers'
     | '/dashboard'
+    | '/insurance'
     | '/inventory'
     | '/invoices'
     | '/settings'
     | '/templates'
     | '/bookings/$bookingId'
     | '/bookings/new'
+    | '/insurance/$claimId'
+    | '/insurance/new'
     | '/invoices/$invoiceId'
     | '/jobs/$jobId'
     | '/jobs/new'
     | '/motorcycles/$bikeId'
     | '/bookings/'
+    | '/insurance/'
     | '/invoices/'
     | '/jobs/'
     | '/motorcycles/'
@@ -257,11 +299,14 @@ export interface FileRouteTypes {
     | '/templates'
     | '/bookings/$bookingId'
     | '/bookings/new'
+    | '/insurance/$claimId'
+    | '/insurance/new'
     | '/invoices/$invoiceId'
     | '/jobs/$jobId'
     | '/jobs/new'
     | '/motorcycles/$bikeId'
     | '/bookings'
+    | '/insurance'
     | '/invoices'
     | '/jobs'
     | '/motorcycles'
@@ -275,17 +320,21 @@ export interface FileRouteTypes {
     | '/_authenticated/clock'
     | '/_authenticated/customers'
     | '/_authenticated/dashboard'
+    | '/_authenticated/insurance'
     | '/_authenticated/inventory'
     | '/_authenticated/invoices'
     | '/_authenticated/settings'
     | '/_authenticated/templates'
     | '/_authenticated/bookings/$bookingId'
     | '/_authenticated/bookings/new'
+    | '/_authenticated/insurance/$claimId'
+    | '/_authenticated/insurance/new'
     | '/_authenticated/invoices/$invoiceId'
     | '/_authenticated/jobs/$jobId'
     | '/_authenticated/jobs/new'
     | '/_authenticated/motorcycles/$bikeId'
     | '/_authenticated/bookings/'
+    | '/_authenticated/insurance/'
     | '/_authenticated/invoices/'
     | '/_authenticated/jobs/'
     | '/_authenticated/motorcycles/'
@@ -348,6 +397,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedInventoryRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/insurance': {
+      id: '/_authenticated/insurance'
+      path: '/insurance'
+      fullPath: '/insurance'
+      preLoaderRoute: typeof AuthenticatedInsuranceRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/dashboard': {
       id: '/_authenticated/dashboard'
       path: '/dashboard'
@@ -404,6 +460,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedInvoicesIndexRouteImport
       parentRoute: typeof AuthenticatedInvoicesRoute
     }
+    '/_authenticated/insurance/': {
+      id: '/_authenticated/insurance/'
+      path: '/'
+      fullPath: '/insurance/'
+      preLoaderRoute: typeof AuthenticatedInsuranceIndexRouteImport
+      parentRoute: typeof AuthenticatedInsuranceRoute
+    }
     '/_authenticated/bookings/': {
       id: '/_authenticated/bookings/'
       path: '/bookings'
@@ -439,6 +502,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedInvoicesInvoiceIdRouteImport
       parentRoute: typeof AuthenticatedInvoicesRoute
     }
+    '/_authenticated/insurance/new': {
+      id: '/_authenticated/insurance/new'
+      path: '/new'
+      fullPath: '/insurance/new'
+      preLoaderRoute: typeof AuthenticatedInsuranceNewRouteImport
+      parentRoute: typeof AuthenticatedInsuranceRoute
+    }
+    '/_authenticated/insurance/$claimId': {
+      id: '/_authenticated/insurance/$claimId'
+      path: '/$claimId'
+      fullPath: '/insurance/$claimId'
+      preLoaderRoute: typeof AuthenticatedInsuranceClaimIdRouteImport
+      parentRoute: typeof AuthenticatedInsuranceRoute
+    }
     '/_authenticated/bookings/new': {
       id: '/_authenticated/bookings/new'
       path: '/bookings/new'
@@ -455,6 +532,24 @@ declare module '@tanstack/react-router' {
     }
   }
 }
+
+interface AuthenticatedInsuranceRouteChildren {
+  AuthenticatedInsuranceClaimIdRoute: typeof AuthenticatedInsuranceClaimIdRoute
+  AuthenticatedInsuranceNewRoute: typeof AuthenticatedInsuranceNewRoute
+  AuthenticatedInsuranceIndexRoute: typeof AuthenticatedInsuranceIndexRoute
+}
+
+const AuthenticatedInsuranceRouteChildren: AuthenticatedInsuranceRouteChildren =
+  {
+    AuthenticatedInsuranceClaimIdRoute: AuthenticatedInsuranceClaimIdRoute,
+    AuthenticatedInsuranceNewRoute: AuthenticatedInsuranceNewRoute,
+    AuthenticatedInsuranceIndexRoute: AuthenticatedInsuranceIndexRoute,
+  }
+
+const AuthenticatedInsuranceRouteWithChildren =
+  AuthenticatedInsuranceRoute._addFileChildren(
+    AuthenticatedInsuranceRouteChildren,
+  )
 
 interface AuthenticatedInvoicesRouteChildren {
   AuthenticatedInvoicesInvoiceIdRoute: typeof AuthenticatedInvoicesInvoiceIdRoute
@@ -477,6 +572,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedClockRoute: typeof AuthenticatedClockRoute
   AuthenticatedCustomersRoute: typeof AuthenticatedCustomersRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedInsuranceRoute: typeof AuthenticatedInsuranceRouteWithChildren
   AuthenticatedInventoryRoute: typeof AuthenticatedInventoryRoute
   AuthenticatedInvoicesRoute: typeof AuthenticatedInvoicesRouteWithChildren
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
@@ -497,6 +593,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedClockRoute: AuthenticatedClockRoute,
   AuthenticatedCustomersRoute: AuthenticatedCustomersRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedInsuranceRoute: AuthenticatedInsuranceRouteWithChildren,
   AuthenticatedInventoryRoute: AuthenticatedInventoryRoute,
   AuthenticatedInvoicesRoute: AuthenticatedInvoicesRouteWithChildren,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
