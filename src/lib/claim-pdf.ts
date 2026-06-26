@@ -43,8 +43,19 @@ const SEV_COLOR: Record<DamageMark["severity"], [number, number, number]> = {
   severe: [239, 68, 68],
 };
 
-function normView(v: DamageMark["view"]): "left" | "right" | "top" {
-  return v === "side" ? "left" : v;
+function normView(v: DamageMark["view"]): "left" | "right" {
+  // top view is no longer supported — fold legacy top/side marks into left
+  if (v === "right") return "right";
+  return "left";
+}
+
+async function imgDims(dataUrl: string): Promise<{ w: number; h: number }> {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => resolve({ w: img.naturalWidth, h: img.naturalHeight });
+    img.onerror = () => resolve({ w: 4, h: 3 });
+    img.src = dataUrl;
+  });
 }
 
 async function fetchAsDataUrl(url: string): Promise<string | null> {
@@ -62,6 +73,7 @@ async function fetchAsDataUrl(url: string): Promise<string | null> {
     return null;
   }
 }
+
 
 async function loadClaimPhotos(claimId: string): Promise<string[]> {
   const { data } = await supabase
