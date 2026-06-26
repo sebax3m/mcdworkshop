@@ -402,12 +402,12 @@ function CalendarPage() {
                             e.stopPropagation();
                             setSelectedBooking(b);
                           }}
-                          className={`relative w-full text-left rounded-lg p-2 ring-1 ${c.bg} ${c.ring} hover:ring-2 transition-all cursor-grab active:cursor-grabbing`}
+                          className={`relative w-full text-left rounded-lg p-2 pr-4 ring-1 ${c.bg} ${c.ring} hover:ring-2 transition-all cursor-grab active:cursor-grabbing`}
                         >
                           {b.confirmed && (
                             <span
                               title="Confirmed"
-                              className="absolute -top-1 -right-1 h-2.5 w-2.5 rounded-full bg-green-500 ring-2 ring-background"
+                              className="absolute top-1 right-1 h-2 w-2 rounded-full bg-green-500 ring-2 ring-background"
                             />
                           )}
                           <div className="flex items-center justify-between gap-1">
@@ -443,15 +443,18 @@ function CalendarPage() {
                     })}
                   </AnimatePresence>
                   {!isLoading && dayBookings.length === 0 && (
-                    <Link
-                      to="/bookings/new"
-                      search={{ date: dayKey }}
-                      className="block rounded-lg border border-dashed border-border/60 p-3 text-center text-[10px] uppercase tracking-wider text-muted-foreground hover:text-primary hover:border-primary/40 transition-colors"
-                    >
-                      + Book
-                    </Link>
+                    <div className="rounded-lg border border-dashed border-border/40 p-3 text-center text-[10px] uppercase tracking-wider text-muted-foreground">
+                      No bookings
+                    </div>
                   )}
                 </div>
+                <Link
+                  to="/bookings/new"
+                  search={{ date: dayKey }}
+                  className="mt-2 block rounded-lg border border-dashed border-border/60 px-2 py-2 text-center text-[10px] font-semibold uppercase tracking-wider text-muted-foreground hover:text-primary hover:border-primary/40 hover:bg-primary/5 transition-colors"
+                >
+                  + Add Book In
+                </Link>
               </motion.div>
             );
           })}
@@ -472,7 +475,7 @@ function CalendarPage() {
           ].map((s) => {
             const c = SERVICE_COLORS[s.k];
             return (
-              <span key={s.k} className={`inline-flex items-center gap-2 rounded-full px-4 py-2 ring-1 text-sm font-semibold uppercase tracking-wider ${c.bg} ${c.ring} ${c.label}`}>
+              <span key={s.k} className={`inline-flex items-center gap-2 rounded-full px-[15px] py-[7px] ring-1 text-[13px] font-semibold uppercase tracking-wider ${c.bg} ${c.ring} ${c.label}`}>
                 <span className="h-2.5 w-2.5 rounded-full bg-current" />
                 {s.label}
               </span>
