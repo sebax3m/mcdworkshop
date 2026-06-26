@@ -371,10 +371,10 @@ export async function buildClaimPdf(d: ClaimPdfData): Promise<Blob> {
       col++;
       if (col >= perRow) {
         col = 0;
-        y += thumbH + gap;
+        y += cellH + gap;
       }
     }
-    if (col !== 0) y += thumbH + gap;
+    if (col !== 0) y += cellH + gap;
   }
 
   return pdf.output("blob");
