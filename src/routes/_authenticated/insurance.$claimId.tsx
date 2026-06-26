@@ -467,50 +467,46 @@ function QuoteBuilder({
               </Button>
             </>
           )}
-          {c.customers?.email && (
-            <Button
-              type="button"
-              size="sm"
-              variant="outline"
-              className="gap-2"
-              onClick={async () => {
-                const t = toast.loading("Building PDF with photos & diagram…");
-                try {
-                  const { sendClaimEmailWithPdf } = await import("@/lib/claim-pdf");
-                  const subject = `Quote ${c.claim_number} — ${c.insurer_name ?? ""}`;
-                  const body = `Hi ${c.customers?.first_name ?? ""},\n\nPlease find attached our repair quote for claim ${c.claim_number} (${bikeText}).\n\nQuote total: $${total.toFixed(2)} (incl. GST)\n\nKind regards,\nMotorcycle Doctors`;
-                  // Always pull the freshest saved marks so the PDF matches what was drawn
-                  const { data: fresh } = await (supabase as any)
-                    .from("insurance_claims")
-                    .select("damage_marks")
-                    .eq("id", c.id)
-                    .maybeSingle();
-                  const liveMarks = Array.isArray(fresh?.damage_marks)
-                    ? fresh.damage_marks
-                    : Array.isArray(c.damage_marks) ? c.damage_marks : [];
-                  const res = await sendClaimEmailWithPdf({
-                    claim: c,
-                    bikeText,
-                    marks: liveMarks as any,
-                    items,
-                    to: c.customers.email,
-                    subject,
-                    body,
-                  });
-                  toast.success(
-                    res.shared
-                      ? "Shared with PDF attached"
-                      : "PDF downloaded. Attach it to the email that opens.",
-                    { id: t },
-                  );
-                } catch (e: any) {
-                  toast.error(e?.message ?? "Failed to generate PDF", { id: t });
-                }
-              }}
-            >
-              <Mail className="h-3.5 w-3.5" /> Email + PDF
-            </Button>
-          )}
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            className="gap-2"
+            onClick={async () => {
+              const t = toast.loading("Building PDF with photos & diagram…");
+              try {
+                const { buildClaimPdf } = await import("@/lib/claim-pdf");
+                const { data: fresh } = await (supabase as any)
+                  .from("insurance_claims")
+                  .select("damage_marks")
+                  .eq("id", c.id)
+                  .maybeSingle();
+                const liveMarks = Array.isArray(fresh?.damage_marks)
+                  ? fresh.damage_marks
+                  : Array.isArray(c.damage_marks) ? c.damage_marks : [];
+                const blob = await buildClaimPdf({
+                  claim: c,
+                  bikeText,
+                  marks: liveMarks as any,
+                  items,
+                });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = `Claim-${c.claim_number}.pdf`;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                setTimeout(() => URL.revokeObjectURL(url), 2000);
+                toast.success("PDF downloaded", { id: t });
+              } catch (e: any) {
+                toast.error(e?.message ?? "Failed to generate PDF", { id: t });
+              }
+            }}
+          >
+            <Printer className="h-3.5 w-3.5" /> Download PDF
+          </Button>
+
 
         </div>
       </div>
