@@ -517,7 +517,7 @@ function PipelineFlow({
               )}
               <div className="flex items-center gap-2.5">
                 <div className={`grid h-9 w-9 place-items-center rounded-full transition-all ${nodeCls}`}>
-                  <Icon className="h-4.5 w-4.5" />
+                  <Icon className="h-4 w-4" />
                 </div>
                 <div className="min-w-0">
                   <div className="text-[9px] uppercase tracking-wider text-muted-foreground font-bold">
