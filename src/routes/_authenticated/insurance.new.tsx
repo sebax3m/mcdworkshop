@@ -285,7 +285,17 @@ function NewClaim() {
       <section className="card-surface p-4 grid sm:grid-cols-2 gap-3">
         <div>
           <Label>Insurer</Label>
-          <Input value={insurer} onChange={(e) => setInsurer(e.target.value)} placeholder="e.g. AA Insurance" />
+          <Input
+            list="nz-insurers"
+            value={insurer}
+            onChange={(e) => setInsurer(e.target.value)}
+            placeholder="Select or type insurer…"
+          />
+          <datalist id="nz-insurers">
+            {NZ_INSURERS.map((n) => (
+              <option key={n} value={n} />
+            ))}
+          </datalist>
         </div>
         <div>
           <Label>Insurer claim reference</Label>
