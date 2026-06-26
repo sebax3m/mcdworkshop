@@ -1,5 +1,6 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Users, Check, ChevronDown } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -21,12 +22,26 @@ export function ActiveUserSwitcher() {
   const activeId = useActiveTechnicianId();
   const active = technicians.find((t) => t.id === activeId) ?? null;
 
-  // If nothing selected yet and we have technicians, default to first.
+  const [authUserId, setAuthUserId] = useState<string | null>(null);
+
   useEffect(() => {
-    if (!loading && !activeId && technicians.length > 0) {
+    supabase.auth.getUser().then(({ data }) => setAuthUserId(data.user?.id ?? null));
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
+      setAuthUserId(session?.user?.id ?? null);
+    });
+    return () => sub.subscription.unsubscribe();
+  }, []);
+
+  // Auto-sync active user to the currently logged-in auth user when they're staff.
+  useEffect(() => {
+    if (loading || !authUserId) return;
+    const me = technicians.find((t) => t.id === authUserId);
+    if (me && activeId !== authUserId) {
+      setActiveTechnicianId(authUserId);
+    } else if (!activeId && technicians.length > 0) {
       setActiveTechnicianId(technicians[0].id);
     }
-  }, [loading, activeId, technicians]);
+  }, [loading, activeId, technicians, authUserId]);
 
   return (
     <DropdownMenu>
