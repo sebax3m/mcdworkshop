@@ -52,5 +52,7 @@ export const KIND_META: Record<ServiceKind, { label: string; cls: string }> = {
   annual: { label: "Annual Service", cls: "border-primary/40 bg-primary/10 text-primary" },
   full: { label: "Full Service", cls: "border-status-parts/40 bg-status-parts/10 text-status-parts" },
   dyno: { label: "Dyno Tune", cls: "border-primary/40 bg-primary/10 text-primary" },
+  collision: { label: "Collision Repair", cls: "border-orange-500/40 bg-orange-500/10 text-orange-400" },
   other: { label: "Service", cls: "border-border bg-muted text-muted-foreground" },
+
 };
