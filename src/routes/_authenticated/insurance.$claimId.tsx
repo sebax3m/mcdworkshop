@@ -9,7 +9,9 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   ArrowLeft, ShieldCheck, Phone, MessageSquare, Wrench, Printer, Send, Check, X,
   Bike as BikeIcon, ExternalLink, Trash2, Mail,
+  Inbox, ClipboardList, FileEdit, FileCheck2, ThumbsUp, Package, Hammer, PackageCheck, Archive, ChevronRight,
 } from "lucide-react";
+
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { fullBike } from "@/lib/format";
