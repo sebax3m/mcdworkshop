@@ -41,7 +41,9 @@ export const SERVICE_PARTS: Record<ServiceKind, Array<{ key: string; label: stri
     { key: "coolant", label: "Coolant", category: "coolant", unitHint: "L" },
   ],
   dyno: [],
+  collision: [],
   other: [],
+
 };
 
 export const KIND_META: Record<ServiceKind, { label: string; cls: string }> = {
