@@ -1,7 +1,18 @@
 import jsPDF from "jspdf";
 import { supabase } from "@/integrations/supabase/client";
 import bikeSideAsset from "@/assets/bike-side.png.asset.json";
-import bikeTopAsset from "@/assets/bike-top.png.asset.json";
+import logoAsset from "@/assets/motorcycle-doctors-logo.png.asset.json";
+
+const COMPANY = {
+  name: "Motorcycle Doctors",
+  tagline: "Motorcycle Service · Repair · Insurance",
+  address: "Auckland, New Zealand",
+  phone: "+64 9 000 0000",
+  email: "info@motorcycle-doctors.co.nz",
+  web: "motorcycle-doctors.co.nz",
+  gst: "GST # —",
+};
+
 
 export type DamageMark = {
   id: string;
