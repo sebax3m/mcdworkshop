@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { FileStack, Users, Package, Bike, ChevronRight, ShieldCheck } from "lucide-react";
+import { FileStack, Users, Package, Bike, ChevronRight, ShieldCheck, UserCog } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/settings")({
   component: SettingsPage,
@@ -35,6 +35,12 @@ const sections = [
     icon: ShieldCheck,
     title: "Insurance Claims",
     desc: "Track collision repair claims, quotes, insurer approvals and parts.",
+  },
+  {
+    to: "/users",
+    icon: UserCog,
+    title: "Users & Logins",
+    desc: "View sign-in history per user, emails, roles and switch the active user.",
   },
 ] as const;
 
