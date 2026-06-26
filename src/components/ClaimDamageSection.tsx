@@ -5,15 +5,22 @@ import { getSignedUrls, uploadPhoto } from "@/lib/photos";
 import { AlertTriangle, Camera, Trash2, X, RotateCcw, Save } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import bikeSideAsset from "@/assets/bike-side.png.asset.json";
+import bikeTopAsset from "@/assets/bike-top.png.asset.json";
 
+export type DamageView = "left" | "right" | "top";
 export type DamageMark = {
   id: string;
-  view: "side" | "top";
+  view: DamageView | "side"; // "side" kept for backward compat (treated as "left")
   x: number; // 0-1
   y: number; // 0-1
   severity: "minor" | "moderate" | "severe";
   label?: string;
 };
+
+function normView(v: DamageMark["view"]): DamageView {
+  return v === "side" ? "left" : (v as DamageView);
+}
 
 const SEVERITY: Record<DamageMark["severity"], { color: string; label: string }> = {
   minor:    { color: "#facc15", label: "Minor" },
