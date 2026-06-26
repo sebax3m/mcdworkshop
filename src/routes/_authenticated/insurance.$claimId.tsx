@@ -85,7 +85,30 @@ function ClaimDetail() {
       nav({ to: "/jobs/$jobId", params: { jobId: c.job_id } });
       return;
     }
-    // Create a linked Collision Repair job card
+    // Build quote summary from current quote_items so the technician sees
+    // exactly which parts to replace/repair and the labour budget.
+    const items: Array<{ kind: "part" | "labour"; description: string; qty: number; unit_price: number }> =
+      Array.isArray(c.quote_items) ? c.quote_items : [];
+    const parts = items.filter((it) => it.kind === "part" && (it.description ?? "").trim());
+    const labours = items.filter((it) => it.kind === "labour" && (it.description ?? "").trim());
+    const estimatedHours = labours.reduce((s, it) => s + (Number(it.qty) || 0), 0);
+
+    const lines: string[] = [];
+    lines.push(`Insurance claim ${c.claim_number}${c.insurer_name ? ` · ${c.insurer_name}` : ""}`);
+    if (parts.length) {
+      lines.push("", "PARTS TO REPLACE / REPAIR:");
+      for (const p of parts) {
+        lines.push(`  • ${p.description}${Number(p.qty) > 1 ? ` ×${p.qty}` : ""}`);
+      }
+    }
+    if (labours.length) {
+      lines.push("", `LABOUR (est. ${estimatedHours.toFixed(2)} hrs):`);
+      for (const l of labours) {
+        lines.push(`  • ${l.description} — ${Number(l.qty).toFixed(2)} hrs`);
+      }
+    }
+    const description = lines.join("\n");
+
     const title = `Collision Repair — ${c.claim_number}`;
     const { data: job, error } = await supabase
       .from("jobs")
@@ -93,17 +116,48 @@ function ClaimDetail() {
         customer_id: c.customer_id,
         motorcycle_id: c.motorcycle_id,
         title,
-        description: `Insurance claim ${c.claim_number}${c.insurer_name ? ` · ${c.insurer_name}` : ""}`,
+        description,
         complaint: c.notes ?? null,
         status: "new",
+        estimated_hours: estimatedHours > 0 ? estimatedHours : null,
       } as any)
       .select("id")
       .single();
     if (error) return toast.error(error.message);
+
+    // Seed checklist tasks so the technician can tick each item as completed.
+    const tasks: Array<{ job_id: string; label: string; sort_order: number; note: string | null }> = [];
+    let order = 0;
+    for (const p of parts) {
+      tasks.push({
+        job_id: job.id,
+        label: `Replace / repair: ${p.description}${Number(p.qty) > 1 ? ` ×${p.qty}` : ""}`,
+        sort_order: order++,
+        note: "Part (from insurance quote)",
+      });
+    }
+    for (const l of labours) {
+      tasks.push({
+        job_id: job.id,
+        label: `${l.description} (${Number(l.qty).toFixed(2)} hrs est.)`,
+        sort_order: order++,
+        note: "Labour (from insurance quote)",
+      });
+    }
+    if (tasks.length) {
+      const { error: tErr } = await supabase.from("job_tasks").insert(tasks as any);
+      if (tErr) toast.error(`Job created, but tasks failed: ${tErr.message}`);
+    }
+
     await updateClaim({ job_id: job.id, status: "quote_in_progress" });
-    toast.success("Quote job card created");
+    toast.success(
+      tasks.length
+        ? `Job card created with ${tasks.length} task${tasks.length === 1 ? "" : "s"} from quote`
+        : "Quote job card created",
+    );
     nav({ to: "/jobs/$jobId", params: { jobId: job.id } });
   }
+
 
   async function markSent() {
     const sentAt = new Date().toISOString();
