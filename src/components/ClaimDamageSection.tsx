@@ -68,7 +68,7 @@ export function ClaimDamageSection({
     },
   });
 
-  const viewMarks = useMemo(() => marks.filter((m) => m.view === view), [marks, view]);
+  const viewMarks = useMemo(() => marks.filter((m) => normView(m.view) === view), [marks, view]);
 
   function handleCanvasClick(e: React.MouseEvent<SVGSVGElement>) {
     if (!canEdit) return;
