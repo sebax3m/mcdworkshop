@@ -468,13 +468,32 @@ function QuoteBuilder({
             </>
           )}
           {c.customers?.email && (
-            <a
-              href={`mailto:${c.customers.email}?subject=${encodeURIComponent(`Quote ${c.claim_number} — ${c.insurer_name ?? ""}`)}&body=${encodeURIComponent(`Hi ${c.customers?.first_name ?? ""},\n\nPlease find our repair quote for claim ${c.claim_number} (${bikeText}).\n\nQuote total: $${total.toFixed(2)} (incl. GST)\n\nKind regards,\nMotorcycle Doctors`)}`}
-              className="inline-flex items-center gap-2 rounded-md border border-border px-3 py-1.5 text-xs font-semibold hover:border-primary/40"
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              className="gap-2"
+              onClick={async () => {
+                const t = toast.loading("Generating PDF…");
+                try {
+                  const { generateClaimPdf } = await import("@/lib/claim-pdf");
+                  await generateClaimPdf({
+                    elementId: "claim-print-area",
+                    filename: `Claim-${c.claim_number}.pdf`,
+                    email: c.customers.email,
+                    subject: `Quote ${c.claim_number} — ${c.insurer_name ?? ""}`,
+                    body: `Hi ${c.customers?.first_name ?? ""},\n\nPlease find attached our repair quote for claim ${c.claim_number} (${bikeText}).\n\nQuote total: $${total.toFixed(2)} (incl. GST)\n\nThe PDF has been downloaded — please attach it to this email before sending.\n\nKind regards,\nMotorcycle Doctors`,
+                  });
+                  toast.success("PDF downloaded. Attach it to the email that opens.", { id: t });
+                } catch (e: any) {
+                  toast.error(e?.message ?? "Failed to generate PDF", { id: t });
+                }
+              }}
             >
-              <Mail className="h-3.5 w-3.5" /> Email
-            </a>
+              <Mail className="h-3.5 w-3.5" /> Email + PDF
+            </Button>
           )}
+
         </div>
       </div>
 
@@ -568,7 +587,7 @@ function ClaimNotesCard({ c, onUpdate }: { c: any; onUpdate: (p: any) => void })
 
 function PrintQuoteHeader({ c, bikeText }: { c: any; bikeText: string }) {
   return (
-    <div className="hidden print:block">
+    <div id="claim-print-area" className="hidden print:block">
       <div className="border-b-2 border-black pb-3 mb-4">
         <div className="text-[10px] uppercase tracking-[0.25em] text-gray-600">Motorcycle Doctors · Insurance Quote</div>
         <div className="flex items-end justify-between gap-4">
