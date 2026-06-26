@@ -443,14 +443,15 @@ function QuoteBuilder({
                       className="h-8 text-sm text-right tabular-nums"
                     />
                   </td>
-                  <td className="py-1.5 pl-2 pr-3 text-right font-mono font-semibold tabular-nums whitespace-nowrap">
+                  <td className="py-1.5 pl-3 pr-3 text-right font-mono font-semibold tabular-nums whitespace-nowrap">
                     ${line.toFixed(2)}
                   </td>
-                  <td className="py-1.5 pl-1 print:hidden text-center">
-                    <button onClick={() => remove(it.id)} className="text-muted-foreground hover:text-destructive inline-flex">
-                      <Trash className="h-4 w-4" />
+                  <td className="py-1.5 pl-2 pr-1 print:hidden" style={{ width: 36 }}>
+                    <button onClick={() => remove(it.id)} className="grid h-8 w-8 place-items-center rounded-md border border-border text-muted-foreground hover:text-destructive hover:border-destructive/50">
+                      <Trash className="h-3.5 w-3.5" />
                     </button>
                   </td>
+
                 </tr>
               );
             })}
