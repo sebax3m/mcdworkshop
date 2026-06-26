@@ -468,13 +468,32 @@ function QuoteBuilder({
             </>
           )}
           {c.customers?.email && (
-            <a
-              href={`mailto:${c.customers.email}?subject=${encodeURIComponent(`Quote ${c.claim_number} — ${c.insurer_name ?? ""}`)}&body=${encodeURIComponent(`Hi ${c.customers?.first_name ?? ""},\n\nPlease find our repair quote for claim ${c.claim_number} (${bikeText}).\n\nQuote total: $${total.toFixed(2)} (incl. GST)\n\nKind regards,\nMotorcycle Doctors`)}`}
-              className="inline-flex items-center gap-2 rounded-md border border-border px-3 py-1.5 text-xs font-semibold hover:border-primary/40"
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              className="gap-2"
+              onClick={async () => {
+                const t = toast.loading("Generating PDF…");
+                try {
+                  const { generateClaimPdf } = await import("@/lib/claim-pdf");
+                  await generateClaimPdf({
+                    elementId: "claim-print-area",
+                    filename: `Claim-${c.claim_number}.pdf`,
+                    email: c.customers.email,
+                    subject: `Quote ${c.claim_number} — ${c.insurer_name ?? ""}`,
+                    body: `Hi ${c.customers?.first_name ?? ""},\n\nPlease find attached our repair quote for claim ${c.claim_number} (${bikeText}).\n\nQuote total: $${total.toFixed(2)} (incl. GST)\n\nThe PDF has been downloaded — please attach it to this email before sending.\n\nKind regards,\nMotorcycle Doctors`,
+                  });
+                  toast.success("PDF downloaded. Attach it to the email that opens.", { id: t });
+                } catch (e: any) {
+                  toast.error(e?.message ?? "Failed to generate PDF", { id: t });
+                }
+              }}
             >
-              <Mail className="h-3.5 w-3.5" /> Email
-            </a>
+              <Mail className="h-3.5 w-3.5" /> Email + PDF
+            </Button>
           )}
+
         </div>
       </div>
 
