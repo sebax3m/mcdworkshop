@@ -78,3 +78,50 @@ export const listUsersWithLogins = createServerFn({ method: "GET" })
         return bt - at;
       });
   });
+
+export const updateUserDetails = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: {
+    userId: string;
+    full_name?: string;
+    email?: string;
+    role?: "admin" | "technician";
+  }) => input)
+  .handler(async ({ data, context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    const { data: callerRoles } = await supabaseAdmin
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", context.userId);
+    const isAdmin = (callerRoles ?? []).some((r) => r.role === "admin");
+    if (!isAdmin) throw new Error("Only admins can edit users");
+
+    if (data.email) {
+      const { error } = await supabaseAdmin.auth.admin.updateUserById(data.userId, {
+        email: data.email,
+      });
+      if (error) throw new Error(error.message);
+    }
+
+    const profileUpdate: { full_name?: string; email?: string } = {};
+    if (data.full_name !== undefined) profileUpdate.full_name = data.full_name;
+    if (data.email !== undefined) profileUpdate.email = data.email;
+    if (Object.keys(profileUpdate).length > 0) {
+      const { error } = await supabaseAdmin
+        .from("profiles")
+        .update(profileUpdate)
+        .eq("id", data.userId);
+      if (error) throw new Error(error.message);
+    }
+
+    if (data.role) {
+      await supabaseAdmin.from("user_roles").delete().eq("user_id", data.userId);
+      const { error } = await supabaseAdmin
+        .from("user_roles")
+        .insert({ user_id: data.userId, role: data.role });
+      if (error) throw new Error(error.message);
+    }
+
+    return { ok: true };
+  });
