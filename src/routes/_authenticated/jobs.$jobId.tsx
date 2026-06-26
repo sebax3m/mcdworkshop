@@ -1063,6 +1063,48 @@ function ValveClearancePrintSheet({
         </div>
       )}
 
+      <div className="text-[10px] uppercase tracking-[0.2em] text-gray-600 text-center mb-2">
+        Top-down view · INTAKE (top) / EXHAUST (bottom) · write measured mm inside each circle
+      </div>
+      <div className="flex gap-3 justify-center flex-wrap mb-4">
+        {Array.from({ length: cylinders }).map((_, c) => {
+          const cyl = c + 1;
+          return (
+            <div key={cyl} className="border-2 border-gray-400 rounded-2xl p-3 flex flex-col items-center gap-2" style={{ minWidth: 140 }}>
+              <div className="text-[10px] uppercase tracking-wider text-gray-700 font-bold">Cyl {cyl}</div>
+              <div className="flex gap-2">
+                {Array.from({ length: 2 }).map((_, i) => {
+                  const v = values?.[`c${cyl}_intake_${i}`] ?? "";
+                  return (
+                    <div key={i} className="h-16 w-16 rounded-full border-2 border-gray-700 flex items-center justify-center font-mono text-sm font-bold bg-white">
+                      {v || ""}
+                    </div>
+                  );
+                })}
+              </div>
+              <div className="h-3 w-3 rounded-full border border-gray-600 bg-gray-200" title="Spark plug" />
+              <div className="flex gap-2">
+                {Array.from({ length: 2 }).map((_, i) => {
+                  const v = values?.[`c${cyl}_exhaust_${i}`] ?? "";
+                  return (
+                    <div key={i} className="h-16 w-16 rounded-full border-2 border-black flex items-center justify-center font-mono text-sm font-bold bg-white">
+                      {v || ""}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      <div className="flex items-center justify-center gap-4 text-[10px] text-gray-700 mb-3">
+        <span className="inline-flex items-center gap-1"><span className="h-3 w-3 rounded-full border-2 border-gray-700" /> Intake · spec {formatRange(spec.intake)}</span>
+        <span className="inline-flex items-center gap-1"><span className="h-3 w-3 rounded-full border-2 border-black" /> Exhaust · spec {formatRange(spec.exhaust)}</span>
+        <span className="inline-flex items-center gap-1"><span className="h-2 w-2 rounded-full border border-gray-600 bg-gray-200" /> Spark plug</span>
+      </div>
+
+      {/* Shim worksheet — compact rows per cylinder */}
       {Array.from({ length: cylinders }).map((_, c) => {
         const cyl = c + 1;
         const rows: Array<{ side: "intake" | "exhaust"; idx: number; label: string; spec: [number, number] }> = [
@@ -1072,20 +1114,20 @@ function ValveClearancePrintSheet({
           { side: "exhaust", idx: 1, label: "Exhaust 2", spec: spec.exhaust },
         ];
         return (
-          <div key={cyl} className="mb-3 border border-gray-400 rounded">
-            <div className="bg-gray-100 px-2 py-1 text-[11px] font-bold uppercase tracking-wider border-b border-gray-400">
-              Cylinder {cyl}
+          <div key={cyl} className="mb-2 border border-gray-400 rounded">
+            <div className="bg-gray-100 px-2 py-1 text-[10px] font-bold uppercase tracking-wider border-b border-gray-400">
+              Cylinder {cyl} — shim worksheet
             </div>
-            <table className="w-full text-[11px] border-collapse">
+            <table className="w-full text-[10px] border-collapse">
               <thead>
                 <tr className="text-left">
                   <th className="border-b border-gray-300 px-2 py-1 w-[18%]">Valve</th>
-                  <th className="border-b border-gray-300 px-2 py-1 w-[14%]">Spec (mm)</th>
-                  <th className="border-b border-gray-300 px-2 py-1 w-[14%]">Measured before</th>
+                  <th className="border-b border-gray-300 px-2 py-1 w-[14%]">Spec</th>
+                  <th className="border-b border-gray-300 px-2 py-1 w-[14%]">Measured</th>
                   <th className="border-b border-gray-300 px-2 py-1 w-[14%]">Current shim</th>
                   <th className="border-b border-gray-300 px-2 py-1 w-[14%]">New shim</th>
-                  <th className="border-b border-gray-300 px-2 py-1 w-[14%]">Measured after</th>
-                  <th className="border-b border-gray-300 px-2 py-1 w-[12%]">In spec ✓</th>
+                  <th className="border-b border-gray-300 px-2 py-1 w-[14%]">After</th>
+                  <th className="border-b border-gray-300 px-2 py-1 w-[12%]">OK ✓</th>
                 </tr>
               </thead>
               <tbody>
@@ -1093,15 +1135,13 @@ function ValveClearancePrintSheet({
                   const before = values?.[`c${cyl}_${r.side}_${r.idx}`] ?? "";
                   return (
                     <tr key={r.side + r.idx}>
-                      <td className="border-b border-gray-200 px-2 py-2 font-semibold">
-                        <span className={r.side === "intake" ? "text-gray-800" : "text-gray-800"}>{r.label}</span>
-                      </td>
-                      <td className="border-b border-gray-200 px-2 py-2 font-mono">{formatRange(r.spec)}</td>
-                      <td className="border-b border-gray-200 px-2 py-2 font-mono">{before || "_____"}</td>
-                      <td className="border-b border-gray-200 px-2 py-2 font-mono">_____</td>
-                      <td className="border-b border-gray-200 px-2 py-2 font-mono">_____</td>
-                      <td className="border-b border-gray-200 px-2 py-2 font-mono">_____</td>
-                      <td className="border-b border-gray-200 px-2 py-2 text-center">☐</td>
+                      <td className="border-b border-gray-200 px-2 py-1.5 font-semibold">{r.label}</td>
+                      <td className="border-b border-gray-200 px-2 py-1.5 font-mono">{formatRange(r.spec)}</td>
+                      <td className="border-b border-gray-200 px-2 py-1.5 font-mono">{before || "_____"}</td>
+                      <td className="border-b border-gray-200 px-2 py-1.5 font-mono">_____</td>
+                      <td className="border-b border-gray-200 px-2 py-1.5 font-mono">_____</td>
+                      <td className="border-b border-gray-200 px-2 py-1.5 font-mono">_____</td>
+                      <td className="border-b border-gray-200 px-2 py-1.5 text-center">☐</td>
                     </tr>
                   );
                 })}
