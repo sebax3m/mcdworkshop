@@ -48,7 +48,6 @@ function NewClaim() {
   }, [customers.data, search]);
 
   async function save() {
-    if (!customerId || !bikeId) return toast.error("Pick a customer and bike");
     setSaving(true);
     try {
       const { data, error } = await (supabase as any)
@@ -75,6 +74,7 @@ function NewClaim() {
       setSaving(false);
     }
   }
+
 
   return (
     <div className="space-y-5 max-w-3xl mx-auto">
