@@ -1,7 +1,18 @@
 import jsPDF from "jspdf";
 import { supabase } from "@/integrations/supabase/client";
 import bikeSideAsset from "@/assets/bike-side.png.asset.json";
-import bikeTopAsset from "@/assets/bike-top.png.asset.json";
+import logoAsset from "@/assets/motorcycle-doctors-logo.png.asset.json";
+
+const COMPANY = {
+  name: "Motorcycle Doctors",
+  tagline: "Motorcycle Service · Repair · Insurance",
+  address: "Auckland, New Zealand",
+  phone: "+64 9 000 0000",
+  email: "info@motorcycle-doctors.co.nz",
+  web: "motorcycle-doctors.co.nz",
+  gst: "GST # —",
+};
+
 
 export type DamageMark = {
   id: string;
@@ -32,8 +43,19 @@ const SEV_COLOR: Record<DamageMark["severity"], [number, number, number]> = {
   severe: [239, 68, 68],
 };
 
-function normView(v: DamageMark["view"]): "left" | "right" | "top" {
-  return v === "side" ? "left" : v;
+function normView(v: DamageMark["view"]): "left" | "right" {
+  // top view is no longer supported — fold legacy top/side marks into left
+  if (v === "right") return "right";
+  return "left";
+}
+
+async function imgDims(dataUrl: string): Promise<{ w: number; h: number }> {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => resolve({ w: img.naturalWidth, h: img.naturalHeight });
+    img.onerror = () => resolve({ w: 4, h: 3 });
+    img.src = dataUrl;
+  });
 }
 
 async function fetchAsDataUrl(url: string): Promise<string | null> {
@@ -51,6 +73,7 @@ async function fetchAsDataUrl(url: string): Promise<string | null> {
     return null;
   }
 }
+
 
 async function loadClaimPhotos(claimId: string): Promise<string[]> {
   const { data } = await supabase
@@ -76,23 +99,38 @@ export async function buildClaimPdf(d: ClaimPdfData): Promise<Blob> {
   const margin = 12;
   let y = margin;
 
-  // ---------- Header ----------
+  // ---------- Header with logo & company info ----------
+  const logoData = await fetchAsDataUrl(logoAsset.url);
+  const logoH = 18;
+  const logoW = 18;
+  if (logoData) {
+    try { pdf.addImage(logoData, "PNG", margin, y, logoW, logoH); } catch {}
+  }
+  const titleX = margin + logoW + 4;
   pdf.setFont("helvetica", "bold");
-  pdf.setFontSize(16);
-  pdf.text("Motorcycle Doctors — Insurance Quote", margin, y);
-  y += 6;
-  pdf.setFontSize(11);
-  pdf.text(`Claim ${c.claim_number}`, margin, y);
+  pdf.setFontSize(15);
+  pdf.text(COMPANY.name, titleX, y + 6);
+  pdf.setFont("helvetica", "normal");
+  pdf.setFontSize(8);
+  pdf.setTextColor(90);
+  pdf.text(COMPANY.tagline, titleX, y + 10.5);
+  pdf.text(`${COMPANY.address}  ·  ${COMPANY.phone}`, titleX, y + 14);
+  pdf.text(`${COMPANY.email}  ·  ${COMPANY.web}`, titleX, y + 17);
+  pdf.setTextColor(0);
+
+  // Right-side document block
+  pdf.setFont("helvetica", "bold");
+  pdf.setFontSize(13);
+  pdf.text("INSURANCE QUOTE", pageW - margin, y + 5, { align: "right" });
   pdf.setFont("helvetica", "normal");
   pdf.setFontSize(9);
-  const headerRight = [
-    `Insurer: ${c.insurer_name ?? "—"}`,
-    `Ref: ${c.insurer_claim_ref ?? "—"}`,
-    `Date: ${new Date(c.date_received ?? Date.now()).toLocaleDateString()}`,
-  ];
-  headerRight.forEach((t, i) => pdf.text(t, pageW - margin, y - 4 + i * 4, { align: "right" }));
-  y += 3;
+  pdf.text(`Claim: ${c.claim_number}`, pageW - margin, y + 10, { align: "right" });
+  pdf.text(`Insurer: ${c.insurer_name ?? "—"}`, pageW - margin, y + 13.5, { align: "right" });
+  pdf.text(`Ref: ${c.insurer_claim_ref ?? "—"}`, pageW - margin, y + 17, { align: "right" });
+
+  y += logoH + 4;
   pdf.setDrawColor(0);
+  pdf.setLineWidth(0.4);
   pdf.line(margin, y, pageW - margin, y);
   y += 5;
 
@@ -113,7 +151,9 @@ export async function buildClaimPdf(d: ClaimPdfData): Promise<Blob> {
   y += 4;
   pdf.text(`${c.customers?.phone ?? "—"}  ·  ${c.customers?.email ?? "—"}`, margin, y);
   pdf.text(`Rego ${c.motorcycles?.rego ?? "—"}  ·  VIN ${c.motorcycles?.vin ?? "—"}`, margin + colW + 4, y);
-  y += 8;
+  y += 4;
+  pdf.text(`Date: ${new Date(c.date_received ?? Date.now()).toLocaleDateString()}`, margin, y);
+  y += 7;
 
   // ---------- Damage notes ----------
   if (c.notes) {
@@ -128,14 +168,12 @@ export async function buildClaimPdf(d: ClaimPdfData): Promise<Blob> {
     y += wrapped.length * 4 + 4;
   }
 
-  // ---------- Damage diagrams (left / right / top) — stacked, large ----------
-  const views: Array<{ key: "left" | "right" | "top"; title: string }> = [
+  // ---------- Damage diagrams (left / right) ----------
+  const views: Array<{ key: "left" | "right"; title: string }> = [
     { key: "left", title: "Left side" },
     { key: "right", title: "Right side" },
-    { key: "top", title: "Top view" },
   ];
   const sideData = await fetchAsDataUrl(bikeSideAsset.url);
-  const topData = await fetchAsDataUrl(bikeTopAsset.url);
 
   pdf.setFontSize(8);
   pdf.setTextColor(100);
@@ -143,15 +181,12 @@ export async function buildClaimPdf(d: ClaimPdfData): Promise<Blob> {
   pdf.setTextColor(0);
   y += 4;
 
-  // Global numbering across all views so legend matches diagram
   const numbered = marks.map((m, i) => ({ m, n: i + 1 }));
-
   const diagW = pageW - margin * 2;
   const diagH = diagW * (320 / 600);
 
   for (const v of views) {
     const viewItems = numbered.filter(({ m }) => normView(m.view) === v.key);
-    // skip a view entirely if no marks AND we want compactness?  show all 3 so insurer can see
     if (y + diagH + 10 > pageH - margin) {
       pdf.addPage();
       y = margin;
@@ -164,31 +199,26 @@ export async function buildClaimPdf(d: ClaimPdfData): Promise<Blob> {
     pdf.setDrawColor(0);
     pdf.setLineWidth(0.3);
     pdf.rect(margin, y, diagW, diagH);
-    const data = v.key === "top" ? topData : sideData;
-    if (data) {
+    if (sideData) {
       try {
         if (v.key === "right") {
-          const flipped = await flipImage(data);
+          const flipped = await flipImage(sideData);
           pdf.addImage(flipped, "PNG", margin, y, diagW, diagH);
         } else {
-          pdf.addImage(data, "PNG", margin, y, diagW, diagH);
+          pdf.addImage(sideData, "PNG", margin, y, diagW, diagH);
         }
       } catch {}
     }
-    // marks — large and obvious
     viewItems.forEach(({ m, n }) => {
       const cx = margin + m.x * diagW;
       const cy = y + m.y * diagH;
       const [r, g, b] = SEV_COLOR[m.severity];
-      // white halo for contrast
       pdf.setFillColor(255, 255, 255);
       pdf.circle(cx, cy, 5.2, "F");
-      // colored disc
       pdf.setFillColor(r, g, b);
       pdf.setDrawColor(0);
       pdf.setLineWidth(0.5);
       pdf.circle(cx, cy, 4.4, "FD");
-      // number
       pdf.setTextColor(255, 255, 255);
       pdf.setFontSize(11);
       pdf.setFont("helvetica", "bold");
@@ -199,6 +229,7 @@ export async function buildClaimPdf(d: ClaimPdfData): Promise<Blob> {
     });
     y += diagH + 4;
   }
+
 
   // ---------- Damage legend ----------
   if (marks.length) {
@@ -305,33 +336,45 @@ export async function buildClaimPdf(d: ClaimPdfData): Promise<Blob> {
     pdf.setTextColor(0);
     y += 4;
 
-    const perRow = 4;
-    const gap = 3;
-    const thumbW = (pageW - margin * 2 - gap * (perRow - 1)) / perRow;
-    const thumbH = thumbW * 0.75;
+    const perRow = 3;
+    const gap = 4;
+    const cellW = (pageW - margin * 2 - gap * (perRow - 1)) / perRow;
+    const cellH = cellW * 0.75;
     let col = 0;
     for (const dataUrl of photos) {
-      if (col === 0 && y + thumbH > pageH - margin) {
+      if (col === 0 && y + cellH > pageH - margin) {
         pdf.addPage();
         y = margin;
       }
-      const xPos = margin + col * (thumbW + gap);
+      const xPos = margin + col * (cellW + gap);
+      // fit-contain inside cell, preserve aspect
+      const { w: iw, h: ih } = await imgDims(dataUrl);
+      const scale = Math.min(cellW / iw, cellH / ih);
+      const drawW = iw * scale;
+      const drawH = ih * scale;
+      const dx = xPos + (cellW - drawW) / 2;
+      const dy = y + (cellH - drawH) / 2;
+      // light cell background
+      pdf.setFillColor(245, 245, 245);
+      pdf.rect(xPos, y, cellW, cellH, "F");
       try {
-        pdf.addImage(dataUrl, "JPEG", xPos, y, thumbW, thumbH);
+        pdf.addImage(dataUrl, "JPEG", dx, dy, drawW, drawH);
       } catch {
         try {
-          pdf.addImage(dataUrl, "PNG", xPos, y, thumbW, thumbH);
+          pdf.addImage(dataUrl, "PNG", dx, dy, drawW, drawH);
         } catch {}
       }
-      pdf.setDrawColor(0);
-      pdf.rect(xPos, y, thumbW, thumbH);
+      pdf.setDrawColor(180);
+      pdf.setLineWidth(0.2);
+      pdf.rect(xPos, y, cellW, cellH);
+
       col++;
       if (col >= perRow) {
         col = 0;
-        y += thumbH + gap;
+        y += cellH + gap;
       }
     }
-    if (col !== 0) y += thumbH + gap;
+    if (col !== 0) y += cellH + gap;
   }
 
   return pdf.output("blob");
