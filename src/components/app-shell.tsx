@@ -48,7 +48,7 @@ export function AppShell() {
                 to="/bookings/new"
                 className="hidden sm:inline-flex items-center gap-1.5 rounded-lg red-surface px-3 py-2 text-sm font-semibold hover:scale-[1.02] transition-transform"
               >
-                <Plus className="h-4 w-4" /> Book In
+                Book In
               </Link>
             )}
             {isAdmin && (
