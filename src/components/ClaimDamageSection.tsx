@@ -5,15 +5,22 @@ import { getSignedUrls, uploadPhoto } from "@/lib/photos";
 import { AlertTriangle, Camera, Trash2, X, RotateCcw, Save } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import bikeSideAsset from "@/assets/bike-side.png.asset.json";
+import bikeTopAsset from "@/assets/bike-top.png.asset.json";
 
+export type DamageView = "left" | "right" | "top";
 export type DamageMark = {
   id: string;
-  view: "side" | "top";
+  view: DamageView | "side"; // "side" kept for backward compat (treated as "left")
   x: number; // 0-1
   y: number; // 0-1
   severity: "minor" | "moderate" | "severe";
   label?: string;
 };
+
+function normView(v: DamageMark["view"]): DamageView {
+  return v === "side" ? "left" : (v as DamageView);
+}
 
 const SEVERITY: Record<DamageMark["severity"], { color: string; label: string }> = {
   minor:    { color: "#facc15", label: "Minor" },
@@ -33,7 +40,7 @@ export function ClaimDamageSection({
   initialMarks?: DamageMark[];
 }) {
   const qc = useQueryClient();
-  const [view, setView] = useState<"side" | "top">("side");
+  const [view, setView] = useState<DamageView>("left");
   const [severity, setSeverity] = useState<DamageMark["severity"]>("moderate");
   const [marks, setMarks] = useState<DamageMark[]>(initialMarks ?? []);
   const [dirty, setDirty] = useState(false);
@@ -61,7 +68,7 @@ export function ClaimDamageSection({
     },
   });
 
-  const viewMarks = useMemo(() => marks.filter((m) => m.view === view), [marks, view]);
+  const viewMarks = useMemo(() => marks.filter((m) => normView(m.view) === view), [marks, view]);
 
   function handleCanvasClick(e: React.MouseEvent<SVGSVGElement>) {
     if (!canEdit) return;
@@ -156,7 +163,7 @@ export function ClaimDamageSection({
       {/* Controls (screen only) */}
       <div className="flex items-center gap-2 flex-wrap mb-3 print:hidden">
         <div className="inline-flex rounded-lg border border-border p-0.5">
-          {(["side", "top"] as const).map((v) => (
+          {(["left", "right", "top"] as const).map((v) => (
             <button
               key={v}
               onClick={() => setView(v)}
@@ -164,7 +171,7 @@ export function ClaimDamageSection({
                 view === v ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"
               }`}
             >
-              {v === "side" ? "Side view" : "Top view"}
+              {v === "left" ? "Left side" : v === "right" ? "Right side" : "Top view"}
             </button>
           ))}
         </div>
@@ -193,13 +200,14 @@ export function ClaimDamageSection({
       </div>
 
       {/* Interactive diagram (screen only) */}
-      <div className="relative rounded-xl border border-border bg-gradient-to-br from-background to-card overflow-hidden print:hidden">
+      <div className="relative rounded-xl border border-border bg-card overflow-hidden print:hidden">
         <svg
           viewBox="0 0 600 320"
           className={`w-full h-auto ${canEdit ? "cursor-crosshair" : ""}`}
           onClick={handleCanvasClick}
         >
-          {view === "side" ? <BikeSide /> : <BikeTop />}
+          <BikeImage view={view} />
+
           {viewMarks.map((m, i) => (
             <g key={m.id} className="pointer-events-auto">
               <circle cx={m.x * 600} cy={m.y * 320} r={14} fill={SEVERITY[m.severity].color} fillOpacity={0.85} stroke="white" strokeWidth={2} />
@@ -273,14 +281,12 @@ export function ClaimDamageSection({
         )}
       </div>
 
-      {/* Print-only worksheet: both views side-by-side, clean black-on-white, with space to write */}
+      {/* Print-only worksheet: all views, clean black-on-white, with space to write */}
       <div className="hidden print:block">
-        <PrintDiagram title="Side view" marks={marks.filter((m) => m.view === "side")}>
-          <BikeSidePrint />
-        </PrintDiagram>
-        <PrintDiagram title="Top view" marks={marks.filter((m) => m.view === "top")}>
-          <BikeTopPrint />
-        </PrintDiagram>
+        <PrintDiagram title="Left side" marks={marks.filter((m) => normView(m.view) === "left")} view="left" />
+        <PrintDiagram title="Right side" marks={marks.filter((m) => normView(m.view) === "right")} view="right" />
+        <PrintDiagram title="Top view" marks={marks.filter((m) => normView(m.view) === "top")} view="top" />
+
 
         <div style={{ marginTop: 10 }}>
           <div style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: 1 }}>
@@ -334,19 +340,30 @@ export function ClaimDamageSection({
 function PrintDiagram({
   title,
   marks,
-  children,
+  view,
 }: {
   title: string;
   marks: DamageMark[];
-  children: React.ReactNode;
+  view: DamageView;
 }) {
+  const src = view === "top" ? bikeTopAsset.url : bikeSideAsset.url;
+  const flip = view === "right";
   return (
     <div style={{ pageBreakInside: "avoid", marginBottom: 12 }}>
       <div style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: 1, marginBottom: 4 }}>
         {title}
       </div>
       <svg viewBox="0 0 600 320" style={{ width: "100%", height: "auto", border: "1px solid #000" }}>
-        {children}
+        <image
+          href={src}
+          x={0}
+          y={0}
+          width={600}
+          height={320}
+          preserveAspectRatio="xMidYMid meet"
+          style={{ filter: "grayscale(1) contrast(1.2)" }}
+          transform={flip ? "translate(600,0) scale(-1,1)" : undefined}
+        />
         {marks.map((m, i) => (
           <g key={m.id}>
             <circle cx={m.x * 600} cy={m.y * 320} r={13} fill="white" stroke="#000" strokeWidth={2} />
@@ -360,118 +377,22 @@ function PrintDiagram({
   );
 }
 
-// --- SVG bike views (screen, themed) -------------------------------------
+// --- Bike image diagrams -------------------------------------------------
 
-function BikeSide() {
+function BikeImage({ view }: { view: DamageView }) {
+  const src = view === "top" ? bikeTopAsset.url : bikeSideAsset.url;
+  const flip = view === "right";
   return (
-    <g fill="none" stroke="hsl(var(--muted-foreground))" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-      <circle cx={130} cy={240} r={55} />
-      <circle cx={470} cy={240} r={55} />
-      <circle cx={130} cy={240} r={18} fill="hsl(var(--muted))" />
-      <circle cx={470} cy={240} r={18} fill="hsl(var(--muted))" />
-      <line x1={130} y1={240} x2={170} y2={130} />
-      <line x1={170} y1={130} x2={210} y2={110} />
-      <line x1={210} y1={110} x2={245} y2={80} />
-      <line x1={235} y1={75} x2={260} y2={75} />
-      <circle cx={200} cy={140} r={18} fill="hsl(var(--muted))" />
-      <path d="M 240 135 Q 290 110 340 130 L 350 165 L 245 170 Z" fill="hsl(var(--card))" />
-      <path d="M 345 145 Q 410 138 445 155 L 420 175 L 340 170 Z" fill="hsl(var(--card))" />
-      <path d="M 440 155 L 480 145 L 495 175 L 445 175 Z" fill="hsl(var(--card))" />
-      <rect x={265} y={170} width={110} height={60} rx={8} fill="hsl(var(--muted))" />
-      <line x1={280} y1={185} x2={360} y2={185} />
-      <line x1={280} y1={200} x2={360} y2={200} />
-      <line x1={280} y1={215} x2={360} y2={215} />
-      <path d="M 370 215 L 460 230 L 470 245 L 380 235 Z" fill="hsl(var(--muted))" />
-      <line x1={370} y1={220} x2={470} y2={240} />
-      <g fontSize={9} fill="hsl(var(--muted-foreground))" stroke="none" textAnchor="middle">
-        <text x={200} y={170}>Front</text>
-        <text x={470} y={310}>Rear wheel</text>
-        <text x={130} y={310}>Front wheel</text>
-        <text x={465} y={140}>Tail</text>
-      </g>
-    </g>
+    <image
+      href={src}
+      x={0}
+      y={0}
+      width={600}
+      height={320}
+      preserveAspectRatio="xMidYMid meet"
+      transform={flip ? "translate(600,0) scale(-1,1)" : undefined}
+      style={{ opacity: 0.95 }}
+    />
   );
 }
 
-function BikeTop() {
-  return (
-    <g fill="none" stroke="hsl(var(--muted-foreground))" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-      <line x1={300} y1={50} x2={300} y2={270} strokeDasharray="6 6" stroke="hsl(var(--border))" />
-      <rect x={285} y={50} width={30} height={50} rx={6} fill="hsl(var(--muted))" />
-      <line x1={220} y1={110} x2={380} y2={110} />
-      <circle cx={220} cy={110} r={6} fill="hsl(var(--muted))" />
-      <circle cx={380} cy={110} r={6} fill="hsl(var(--muted))" />
-      <path d="M 260 105 Q 300 90 340 105 L 340 140 L 260 140 Z" fill="hsl(var(--card))" />
-      <path d="M 260 140 Q 300 130 340 140 L 348 185 L 252 185 Z" fill="hsl(var(--card))" />
-      <path d="M 258 185 L 342 185 L 335 230 L 265 230 Z" fill="hsl(var(--muted))" />
-      <path d="M 270 230 L 330 230 L 322 265 L 278 265 Z" fill="hsl(var(--card))" />
-      <circle cx={205} cy={100} r={10} fill="hsl(var(--card))" />
-      <circle cx={395} cy={100} r={10} fill="hsl(var(--card))" />
-      <rect x={285} y={265} width={30} height={45} rx={6} fill="hsl(var(--muted))" />
-      <g fontSize={9} fill="hsl(var(--muted-foreground))" stroke="none" textAnchor="middle">
-        <text x={300} y={42}>Front</text>
-        <text x={300} y={305}>Rear</text>
-        <text x={180} y={114}>L</text>
-        <text x={420} y={114}>R</text>
-      </g>
-    </g>
-  );
-}
-
-// --- Print versions (black on white) -------------------------------------
-
-function BikeSidePrint() {
-  return (
-    <g fill="none" stroke="#000" strokeWidth={1.4} strokeLinecap="round" strokeLinejoin="round">
-      <circle cx={130} cy={240} r={55} />
-      <circle cx={470} cy={240} r={55} />
-      <circle cx={130} cy={240} r={18} />
-      <circle cx={470} cy={240} r={18} />
-      <line x1={130} y1={240} x2={170} y2={130} />
-      <line x1={170} y1={130} x2={210} y2={110} />
-      <line x1={210} y1={110} x2={245} y2={80} />
-      <line x1={235} y1={75} x2={260} y2={75} />
-      <circle cx={200} cy={140} r={18} />
-      <path d="M 240 135 Q 290 110 340 130 L 350 165 L 245 170 Z" />
-      <path d="M 345 145 Q 410 138 445 155 L 420 175 L 340 170 Z" />
-      <path d="M 440 155 L 480 145 L 495 175 L 445 175 Z" />
-      <rect x={265} y={170} width={110} height={60} rx={8} />
-      <line x1={280} y1={185} x2={360} y2={185} />
-      <line x1={280} y1={200} x2={360} y2={200} />
-      <line x1={280} y1={215} x2={360} y2={215} />
-      <path d="M 370 215 L 460 230 L 470 245 L 380 235 Z" />
-      <line x1={370} y1={220} x2={470} y2={240} />
-      <g fontSize={9} fill="#000" stroke="none" textAnchor="middle">
-        <text x={200} y={170}>Front</text>
-        <text x={470} y={310}>Rear wheel</text>
-        <text x={130} y={310}>Front wheel</text>
-        <text x={465} y={140}>Tail</text>
-      </g>
-    </g>
-  );
-}
-
-function BikeTopPrint() {
-  return (
-    <g fill="none" stroke="#000" strokeWidth={1.4} strokeLinecap="round" strokeLinejoin="round">
-      <line x1={300} y1={50} x2={300} y2={270} strokeDasharray="6 6" />
-      <rect x={285} y={50} width={30} height={50} rx={6} />
-      <line x1={220} y1={110} x2={380} y2={110} />
-      <circle cx={220} cy={110} r={6} />
-      <circle cx={380} cy={110} r={6} />
-      <path d="M 260 105 Q 300 90 340 105 L 340 140 L 260 140 Z" />
-      <path d="M 260 140 Q 300 130 340 140 L 348 185 L 252 185 Z" />
-      <path d="M 258 185 L 342 185 L 335 230 L 265 230 Z" />
-      <path d="M 270 230 L 330 230 L 322 265 L 278 265 Z" />
-      <circle cx={205} cy={100} r={10} />
-      <circle cx={395} cy={100} r={10} />
-      <rect x={285} y={265} width={30} height={45} rx={6} />
-      <g fontSize={9} fill="#000" stroke="none" textAnchor="middle">
-        <text x={300} y={42}>Front</text>
-        <text x={300} y={305}>Rear</text>
-        <text x={180} y={114}>L</text>
-        <text x={420} y={114}>R</text>
-      </g>
-    </g>
-  );
-}
