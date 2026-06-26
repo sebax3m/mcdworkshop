@@ -310,6 +310,40 @@ function QuoteBuilder({
     setDirty(true);
   }
 
+  const [quickCat, setQuickCat] = useState<string>(PART_CATEGORIES[0]);
+  const [damageLevel, setDamageLevel] = useState<DamageLevel>("moderate");
+
+  function quickAddPart(p: (typeof CRASH_PARTS)[number]) {
+    const partItem: QuoteItem = {
+      id: (globalThis.crypto?.randomUUID?.() ?? Math.random().toString(36).slice(2)),
+      kind: "part",
+      description: p.name,
+      qty: 1,
+      unit_price: p.estPrice,
+    };
+    const hrs = p.labourHrs[damageLevel];
+    const labourItem: QuoteItem = {
+      id: (globalThis.crypto?.randomUUID?.() ?? Math.random().toString(36).slice(2)),
+      kind: "labour",
+      description: `R&R ${p.name} (${damageLevel})`,
+      qty: hrs,
+      unit_price: rate,
+    };
+    setItems((arr) => [...arr, partItem, labourItem]);
+    setDirty(true);
+  }
+
+  function quickAddLabour(preset: (typeof LABOUR_PRESETS)[number]) {
+    setItems((arr) => [...arr, {
+      id: (globalThis.crypto?.randomUUID?.() ?? Math.random().toString(36).slice(2)),
+      kind: "labour",
+      description: preset.name,
+      qty: preset.hrs,
+      unit_price: rate,
+    }]);
+    setDirty(true);
+  }
+
   async function save() {
     setSaving(true);
     try {
