@@ -960,64 +960,61 @@ function ValveClearanceSection({ jobId, cylinders, canEdit, data, bike, onChange
           {spec.note && <div className="mt-1 text-[10px] text-status-parts">{spec.note}</div>}
         </div>
 
-        <div className="rounded-xl border border-border bg-background/40 p-3 overflow-x-auto">
-          <div className="flex gap-3 min-w-fit">
+        <div className="rounded-xl border border-border bg-background/40 p-4 overflow-x-auto">
+          <div className="text-[10px] uppercase tracking-wider text-muted-foreground text-center mb-3">
+            Top-down view · INTAKE (top) / EXHAUST (bottom)
+          </div>
+          <div className="flex gap-4 min-w-fit justify-center">
             {Array.from({ length: cylinders }).map((_, c) => {
               const cyl = c + 1;
               return (
-                <div key={cyl} className="rounded-lg border border-border bg-card/60 p-2.5 min-w-[150px]">
-                  <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold mb-2 text-center">
+                <div
+                  key={cyl}
+                  className="rounded-2xl border-2 border-border bg-card/60 p-3 flex flex-col items-center gap-2"
+                  style={{ minWidth: 150 }}
+                >
+                  <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold">
                     Cyl {cyl}
                   </div>
-                  <div className="space-y-2">
-                    <div>
-                      <div className="text-[10px] text-status-progress font-semibold mb-1">INTAKE</div>
-                      <div className="grid grid-cols-2 gap-1">
-                        {Array.from({ length: intakePerCyl }).map((_, i) => (
-                          <input
-                            key={i}
-                            disabled={!canEdit}
-                            value={values[`c${cyl}_intake_${i}`] ?? ""}
-                            onChange={(e) => set(cyl, "intake", i, e.target.value)}
-                            placeholder="mm"
-                            className="h-9 rounded-md bg-background border border-border text-center text-xs font-mono focus:outline-none focus:border-primary"
-                          />
-                        ))}
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-1 px-2">
-                      <div className="h-6 rounded-sm bg-status-progress/20 border border-status-progress/40" title="Intake valve" />
-                      <div className="h-6 rounded-sm bg-status-progress/20 border border-status-progress/40" title="Intake valve" />
-                    </div>
-                    <div className="h-px bg-border my-1" />
-                    <div className="grid grid-cols-2 gap-1 px-2">
-                      <div className="h-6 rounded-sm bg-destructive/20 border border-destructive/40" title="Exhaust valve" />
-                      <div className="h-6 rounded-sm bg-destructive/20 border border-destructive/40" title="Exhaust valve" />
-                    </div>
-                    <div>
-                      <div className="text-[10px] text-destructive font-semibold mb-1 mt-1">EXHAUST</div>
-                      <div className="grid grid-cols-2 gap-1">
-                        {Array.from({ length: exhaustPerCyl }).map((_, i) => (
-                          <input
-                            key={i}
-                            disabled={!canEdit}
-                            value={values[`c${cyl}_exhaust_${i}`] ?? ""}
-                            onChange={(e) => set(cyl, "exhaust", i, e.target.value)}
-                            placeholder="mm"
-                            className="h-9 rounded-md bg-background border border-border text-center text-xs font-mono focus:outline-none focus:border-primary"
-                          />
-                        ))}
-                      </div>
-                    </div>
+                  {/* Intake row — two big circles */}
+                  <div className="flex gap-2">
+                    {Array.from({ length: intakePerCyl }).map((_, i) => (
+                      <input
+                        key={i}
+                        disabled={!canEdit}
+                        value={values[`c${cyl}_intake_${i}`] ?? ""}
+                        onChange={(e) => set(cyl, "intake", i, e.target.value)}
+                        placeholder="mm"
+                        title={`Cyl ${cyl} Intake ${i + 1}`}
+                        className="h-16 w-16 rounded-full bg-status-progress/15 border-2 border-status-progress/60 text-center text-sm font-mono font-bold focus:outline-none focus:border-status-progress focus:bg-status-progress/25 placeholder:text-status-progress/50 placeholder:font-normal"
+                      />
+                    ))}
+                  </div>
+                  {/* Spark plug center */}
+                  <div className="h-4 w-4 rounded-full bg-muted-foreground/30 border border-muted-foreground/50" title="Spark plug" />
+                  {/* Exhaust row — two big circles */}
+                  <div className="flex gap-2">
+                    {Array.from({ length: exhaustPerCyl }).map((_, i) => (
+                      <input
+                        key={i}
+                        disabled={!canEdit}
+                        value={values[`c${cyl}_exhaust_${i}`] ?? ""}
+                        onChange={(e) => set(cyl, "exhaust", i, e.target.value)}
+                        placeholder="mm"
+                        title={`Cyl ${cyl} Exhaust ${i + 1}`}
+                        className="h-16 w-16 rounded-full bg-destructive/15 border-2 border-destructive/60 text-center text-sm font-mono font-bold focus:outline-none focus:border-destructive focus:bg-destructive/25 placeholder:text-destructive/50 placeholder:font-normal"
+                      />
+                    ))}
                   </div>
                 </div>
               );
             })}
           </div>
         </div>
-        <div className="mt-3 flex items-center gap-3 text-[10px] text-muted-foreground">
-          <span className="inline-flex items-center gap-1"><span className="h-2.5 w-2.5 rounded-sm bg-status-progress/40 border border-status-progress/60" /> Intake</span>
-          <span className="inline-flex items-center gap-1"><span className="h-2.5 w-2.5 rounded-sm bg-destructive/40 border border-destructive/60" /> Exhaust</span>
+        <div className="mt-3 flex items-center gap-3 text-[10px] text-muted-foreground flex-wrap">
+          <span className="inline-flex items-center gap-1"><span className="h-3 w-3 rounded-full bg-status-progress/40 border border-status-progress/60" /> Intake</span>
+          <span className="inline-flex items-center gap-1"><span className="h-3 w-3 rounded-full bg-destructive/40 border border-destructive/60" /> Exhaust</span>
+          <span className="inline-flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-muted-foreground/40 border border-muted-foreground/60" /> Spark plug</span>
           <span className="ml-auto">Spec: I {formatRange(spec.intake)} · E {formatRange(spec.exhaust)}</span>
         </div>
         {canEdit && (
