@@ -281,14 +281,12 @@ export function ClaimDamageSection({
         )}
       </div>
 
-      {/* Print-only worksheet: both views side-by-side, clean black-on-white, with space to write */}
+      {/* Print-only worksheet: all views, clean black-on-white, with space to write */}
       <div className="hidden print:block">
-        <PrintDiagram title="Side view" marks={marks.filter((m) => m.view === "side")}>
-          <BikeSidePrint />
-        </PrintDiagram>
-        <PrintDiagram title="Top view" marks={marks.filter((m) => m.view === "top")}>
-          <BikeTopPrint />
-        </PrintDiagram>
+        <PrintDiagram title="Left side" marks={marks.filter((m) => normView(m.view) === "left")} view="left" />
+        <PrintDiagram title="Right side" marks={marks.filter((m) => normView(m.view) === "right")} view="right" />
+        <PrintDiagram title="Top view" marks={marks.filter((m) => normView(m.view) === "top")} view="top" />
+
 
         <div style={{ marginTop: 10 }}>
           <div style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: 1 }}>
