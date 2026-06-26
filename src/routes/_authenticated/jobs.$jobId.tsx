@@ -283,13 +283,26 @@ function JobDetail() {
             </div>
           </div>
           {canEdit && (
-            activeTimer ? (
-              <LiveTimerButton startedAt={activeTimer.started_at} onStop={stopTimer} />
-            ) : (
-              <Button onClick={startTimer} className="gold-surface h-12 px-5 font-bold gap-2">
-                <Play className="h-4 w-4" /> Start Job
-              </Button>
-            )
+            <div className="flex items-center gap-2 flex-wrap">
+              {activeTimer ? (
+                <LiveTimerButton startedAt={activeTimer.started_at} onStop={stopTimer} />
+              ) : (
+                <Button onClick={startTimer} className="gold-surface h-12 px-5 font-bold gap-2">
+                  <Play className="h-4 w-4" /> Start Job
+                </Button>
+              )}
+              {j.status !== "completed" && j.status !== "invoiced" && (
+                <Button
+                  onClick={async () => {
+                    if (activeTimer) await stopTimer();
+                    await setStatus("completed");
+                  }}
+                  className="h-12 px-5 font-bold gap-2 bg-green-600 hover:bg-green-700 text-white"
+                >
+                  <Check className="h-4 w-4" /> Finish Job
+                </Button>
+              )}
+            </div>
           )}
         </div>
       </div>
