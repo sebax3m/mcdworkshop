@@ -1,10 +1,21 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { STATUS_META, STATUS_ORDER, fullBike } from "@/lib/format";
-import { Plus, Search } from "lucide-react";
+import { Plus, Search, Trash2, X } from "lucide-react";
 import { useCurrentUser } from "@/hooks/use-current-user";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/jobs/")({
   component: JobsList,
@@ -12,8 +23,13 @@ export const Route = createFileRoute("/_authenticated/jobs/")({
 
 function JobsList() {
   const { isAdmin } = useCurrentUser();
+  const qc = useQueryClient();
   const [filter, setFilter] = useState<string>("active");
   const [search, setSearch] = useState("");
+  const [selectMode, setSelectMode] = useState(false);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const { data: jobs = [], isLoading } = useQuery({
     queryKey: ["jobs", filter],
@@ -36,6 +52,35 @@ function JobsList() {
     return hay.includes(search.toLowerCase());
   });
 
+  const toggle = (id: string) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const exitSelect = () => {
+    setSelectMode(false);
+    setSelected(new Set());
+  };
+
+  const handleDelete = async () => {
+    setDeleting(true);
+    const ids = Array.from(selected);
+    const { error } = await supabase.from("jobs").delete().in("id", ids);
+    setDeleting(false);
+    setConfirmOpen(false);
+    if (error) {
+      toast.error(`Failed to delete: ${error.message}`);
+      return;
+    }
+    toast.success(`Deleted ${ids.length} job${ids.length === 1 ? "" : "s"}`);
+    exitSelect();
+    qc.invalidateQueries({ queryKey: ["jobs"] });
+  };
+
   return (
     <div className="space-y-5">
       <header className="grid grid-cols-[minmax(0,1fr)_auto] gap-3 items-center">
@@ -43,11 +88,39 @@ function JobsList() {
           <div className="text-xs uppercase tracking-[0.25em] text-muted-foreground">Workshop</div>
           <h1 className="font-display text-2xl sm:text-3xl font-bold truncate">Job Board</h1>
         </div>
-        {isAdmin && (
-          <Link to="/jobs/new" className="shrink-0 inline-flex items-center gap-1.5 rounded-lg gold-surface px-3 py-2 text-sm font-semibold">
-            <Plus className="h-4 w-4" /> New
-          </Link>
-        )}
+        <div className="flex items-center gap-2 shrink-0">
+          {isAdmin && (
+            selectMode ? (
+              <>
+                <button
+                  onClick={() => setConfirmOpen(true)}
+                  disabled={selected.size === 0}
+                  className="inline-flex items-center gap-1.5 rounded-lg bg-destructive text-destructive-foreground px-3 py-2 text-sm font-semibold disabled:opacity-40"
+                >
+                  <Trash2 className="h-4 w-4" /> Delete{selected.size > 0 ? ` (${selected.size})` : ""}
+                </button>
+                <button
+                  onClick={exitSelect}
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-2 text-sm font-semibold"
+                >
+                  <X className="h-4 w-4" /> Cancel
+                </button>
+              </>
+            ) : (
+              <button
+                onClick={() => setSelectMode(true)}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-2 text-sm font-semibold"
+              >
+                Select
+              </button>
+            )
+          )}
+          {isAdmin && !selectMode && (
+            <Link to="/jobs/new" className="inline-flex items-center gap-1.5 rounded-lg gold-surface px-3 py-2 text-sm font-semibold">
+              <Plus className="h-4 w-4" /> New
+            </Link>
+          )}
+        </div>
       </header>
 
       <div className="relative">
@@ -88,13 +161,25 @@ function JobsList() {
         <div className="space-y-2">
           {filtered.map((j: any) => {
             const meta = STATUS_META[j.status];
-            return (
-              <Link
-                key={j.id}
-                to="/jobs/$jobId"
-                params={{ jobId: j.id }}
-                className="card-surface p-4 flex items-center gap-3 hover:border-primary/40 transition-colors"
-              >
+            const isSelected = selected.has(j.id);
+            const rowClass = `card-surface p-4 flex items-center gap-3 transition-colors ${
+              selectMode
+                ? isSelected
+                  ? "border-primary/60 bg-primary/5 cursor-pointer"
+                  : "hover:border-primary/40 cursor-pointer"
+                : "hover:border-primary/40"
+            }`;
+            const inner = (
+              <>
+                {selectMode && (
+                  <input
+                    type="checkbox"
+                    checked={isSelected}
+                    onChange={() => toggle(j.id)}
+                    onClick={(e) => e.stopPropagation()}
+                    className="h-5 w-5 shrink-0 accent-primary"
+                  />
+                )}
                 <div className="w-12 shrink-0 text-center">
                   <div className="text-[10px] uppercase text-muted-foreground">Job</div>
                   <div className="font-display text-lg font-bold tabular-nums">#{j.job_number}</div>
@@ -110,11 +195,47 @@ function JobsList() {
                   <span className={`h-1.5 w-1.5 rounded-full ${meta.dot}`} />
                   {meta.label}
                 </span>
+              </>
+            );
+            if (selectMode) {
+              return (
+                <div key={j.id} className={rowClass} onClick={() => toggle(j.id)}>
+                  {inner}
+                </div>
+              );
+            }
+            return (
+              <Link key={j.id} to="/jobs/$jobId" params={{ jobId: j.id }} className={rowClass}>
+                {inner}
               </Link>
             );
           })}
         </div>
       )}
+
+      <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete {selected.size} job{selected.size === 1 ? "" : "s"}?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently remove the selected job{selected.size === 1 ? "" : "s"} and any related tasks, time entries, photos and invoices. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => {
+                e.preventDefault();
+                handleDelete();
+              }}
+              disabled={deleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deleting ? "Deleting…" : "Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
