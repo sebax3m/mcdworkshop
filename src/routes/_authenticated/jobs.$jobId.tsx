@@ -291,7 +291,7 @@ function JobDetail() {
                   <Play className="h-4 w-4" /> Start Job
                 </Button>
               )}
-              {j.status !== "completed" && j.status !== "invoiced" && (
+              {j.status !== "completed" && (
                 <Button
                   onClick={async () => {
                     if (activeTimer) await stopTimer();
