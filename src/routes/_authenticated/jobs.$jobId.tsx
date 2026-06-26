@@ -690,7 +690,7 @@ function ServiceTemplateSection({
       </div>
 
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-0.5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 print:grid-cols-3 gap-x-4 gap-y-0">
         {tasks.map((t) => (
           <TaskRow
             key={t.id}
