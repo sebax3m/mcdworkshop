@@ -474,17 +474,26 @@ function QuoteBuilder({
               variant="outline"
               className="gap-2"
               onClick={async () => {
-                const t = toast.loading("Generating PDF…");
+                const t = toast.loading("Building PDF with photos & diagram…");
                 try {
-                  const { generateClaimPdf } = await import("@/lib/claim-pdf");
-                  await generateClaimPdf({
-                    elementId: "claim-print-area",
-                    filename: `Claim-${c.claim_number}.pdf`,
-                    email: c.customers.email,
-                    subject: `Quote ${c.claim_number} — ${c.insurer_name ?? ""}`,
-                    body: `Hi ${c.customers?.first_name ?? ""},\n\nPlease find attached our repair quote for claim ${c.claim_number} (${bikeText}).\n\nQuote total: $${total.toFixed(2)} (incl. GST)\n\nThe PDF has been downloaded — please attach it to this email before sending.\n\nKind regards,\nMotorcycle Doctors`,
+                  const { sendClaimEmailWithPdf } = await import("@/lib/claim-pdf");
+                  const subject = `Quote ${c.claim_number} — ${c.insurer_name ?? ""}`;
+                  const body = `Hi ${c.customers?.first_name ?? ""},\n\nPlease find attached our repair quote for claim ${c.claim_number} (${bikeText}).\n\nQuote total: $${total.toFixed(2)} (incl. GST)\n\nKind regards,\nMotorcycle Doctors`;
+                  const res = await sendClaimEmailWithPdf({
+                    claim: c,
+                    bikeText,
+                    marks: Array.isArray(c.damage_marks) ? (c.damage_marks as any) : [],
+                    items,
+                    to: c.customers.email,
+                    subject,
+                    body,
                   });
-                  toast.success("PDF downloaded. Attach it to the email that opens.", { id: t });
+                  toast.success(
+                    res.shared
+                      ? "Shared with PDF attached"
+                      : "PDF downloaded. Attach it to the email that opens.",
+                    { id: t },
+                  );
                 } catch (e: any) {
                   toast.error(e?.message ?? "Failed to generate PDF", { id: t });
                 }
