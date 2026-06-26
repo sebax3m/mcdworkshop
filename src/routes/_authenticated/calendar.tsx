@@ -402,12 +402,12 @@ function CalendarPage() {
                             e.stopPropagation();
                             setSelectedBooking(b);
                           }}
-                          className={`relative w-full text-left rounded-lg p-2 ring-1 ${c.bg} ${c.ring} hover:ring-2 transition-all cursor-grab active:cursor-grabbing`}
+                          className={`relative w-full text-left rounded-lg p-2 pr-4 ring-1 ${c.bg} ${c.ring} hover:ring-2 transition-all cursor-grab active:cursor-grabbing`}
                         >
                           {b.confirmed && (
                             <span
                               title="Confirmed"
-                              className="absolute -top-1 -right-1 h-2.5 w-2.5 rounded-full bg-green-500 ring-2 ring-background"
+                              className="absolute top-1 right-1 h-2 w-2 rounded-full bg-green-500 ring-2 ring-background"
                             />
                           )}
                           <div className="flex items-center justify-between gap-1">
