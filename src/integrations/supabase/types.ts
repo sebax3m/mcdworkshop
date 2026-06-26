@@ -265,6 +265,168 @@ export type Database = {
           },
         ]
       }
+      insurance_claim_events: {
+        Row: {
+          claim_id: string
+          created_at: string
+          created_by: string | null
+          event_type: string
+          from_status:
+            | Database["public"]["Enums"]["insurance_claim_status"]
+            | null
+          id: string
+          note: string | null
+          to_status:
+            | Database["public"]["Enums"]["insurance_claim_status"]
+            | null
+        }
+        Insert: {
+          claim_id: string
+          created_at?: string
+          created_by?: string | null
+          event_type: string
+          from_status?:
+            | Database["public"]["Enums"]["insurance_claim_status"]
+            | null
+          id?: string
+          note?: string | null
+          to_status?:
+            | Database["public"]["Enums"]["insurance_claim_status"]
+            | null
+        }
+        Update: {
+          claim_id?: string
+          created_at?: string
+          created_by?: string | null
+          event_type?: string
+          from_status?:
+            | Database["public"]["Enums"]["insurance_claim_status"]
+            | null
+          id?: string
+          note?: string | null
+          to_status?:
+            | Database["public"]["Enums"]["insurance_claim_status"]
+            | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "insurance_claim_events_claim_id_fkey"
+            columns: ["claim_id"]
+            isOneToOne: false
+            referencedRelation: "insurance_claims"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      insurance_claims: {
+        Row: {
+          approved_amount: number | null
+          approved_at: string | null
+          bike_with_customer: boolean
+          claim_number: string | null
+          closed_at: string | null
+          created_at: string
+          created_by: string | null
+          customer_id: string | null
+          date_received: string
+          declined_at: string | null
+          expected_return_date: string | null
+          id: string
+          insurer_claim_ref: string | null
+          insurer_name: string | null
+          job_id: string | null
+          motorcycle_id: string | null
+          notes: string | null
+          parts_ordered_at: string | null
+          parts_received_at: string | null
+          quote_amount: number | null
+          quote_sent_at: string | null
+          quote_started_at: string | null
+          ready_for_pickup_at: string | null
+          repair_started_at: string | null
+          status: Database["public"]["Enums"]["insurance_claim_status"]
+          updated_at: string
+        }
+        Insert: {
+          approved_amount?: number | null
+          approved_at?: string | null
+          bike_with_customer?: boolean
+          claim_number?: string | null
+          closed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          customer_id?: string | null
+          date_received?: string
+          declined_at?: string | null
+          expected_return_date?: string | null
+          id?: string
+          insurer_claim_ref?: string | null
+          insurer_name?: string | null
+          job_id?: string | null
+          motorcycle_id?: string | null
+          notes?: string | null
+          parts_ordered_at?: string | null
+          parts_received_at?: string | null
+          quote_amount?: number | null
+          quote_sent_at?: string | null
+          quote_started_at?: string | null
+          ready_for_pickup_at?: string | null
+          repair_started_at?: string | null
+          status?: Database["public"]["Enums"]["insurance_claim_status"]
+          updated_at?: string
+        }
+        Update: {
+          approved_amount?: number | null
+          approved_at?: string | null
+          bike_with_customer?: boolean
+          claim_number?: string | null
+          closed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          customer_id?: string | null
+          date_received?: string
+          declined_at?: string | null
+          expected_return_date?: string | null
+          id?: string
+          insurer_claim_ref?: string | null
+          insurer_name?: string | null
+          job_id?: string | null
+          motorcycle_id?: string | null
+          notes?: string | null
+          parts_ordered_at?: string | null
+          parts_received_at?: string | null
+          quote_amount?: number | null
+          quote_sent_at?: string | null
+          quote_started_at?: string | null
+          ready_for_pickup_at?: string | null
+          repair_started_at?: string | null
+          status?: Database["public"]["Enums"]["insurance_claim_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "insurance_claims_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "insurance_claims_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "insurance_claims_motorcycle_id_fkey"
+            columns: ["motorcycle_id"]
+            isOneToOne: false
+            referencedRelation: "motorcycles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       inventory_items: {
         Row: {
           brand: string | null
@@ -883,6 +1045,17 @@ export type Database = {
     Enums: {
       app_role: "admin" | "technician"
       clock_event_type: "clock_in" | "clock_out" | "break_start" | "break_end"
+      insurance_claim_status:
+        | "intake"
+        | "assessing"
+        | "quote_in_progress"
+        | "quote_sent"
+        | "approved"
+        | "declined"
+        | "waiting_parts"
+        | "in_repair"
+        | "ready_for_pickup"
+        | "closed"
       job_status:
         | "new"
         | "assigned"
@@ -1019,6 +1192,18 @@ export const Constants = {
     Enums: {
       app_role: ["admin", "technician"],
       clock_event_type: ["clock_in", "clock_out", "break_start", "break_end"],
+      insurance_claim_status: [
+        "intake",
+        "assessing",
+        "quote_in_progress",
+        "quote_sent",
+        "approved",
+        "declined",
+        "waiting_parts",
+        "in_repair",
+        "ready_for_pickup",
+        "closed",
+      ],
       job_status: [
         "new",
         "assigned",
