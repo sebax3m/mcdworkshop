@@ -381,6 +381,17 @@ function JobDetail() {
         </section>
       )}
 
+      {/* Damage report (collision repair jobs) */}
+      {kind === "collision" && (
+        <DamageSection
+          jobId={jobId}
+          canEdit={canEdit}
+          initialMarks={((j.service_data as any) ?? {}).damage_marks ?? []}
+          onMarksChanged={() => qc.invalidateQueries({ queryKey: ["job", jobId] })}
+        />
+      )}
+
+
       <section className="card-surface p-4">
         <h2 className="font-display text-lg font-semibold mb-3">Notes</h2>
         {canEdit && <AddNote jobId={jobId} onAdded={() => qc.invalidateQueries({ queryKey: ["job-notes", jobId] })} />}
