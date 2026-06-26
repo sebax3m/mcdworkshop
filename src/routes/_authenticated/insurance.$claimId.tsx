@@ -555,22 +555,42 @@ function ClaimInsurerCard({ c, onUpdate }: { c: any; onUpdate: (p: any) => void 
 }
 
 function ClaimCustodyCard({ c, onUpdate }: { c: any; onUpdate: (p: any) => void }) {
+  const location: "workshop" | "customer" = c.bike_with_customer ? "customer" : "workshop";
   return (
-    <section className="card-surface p-4">
-      <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold mb-2">Bike custody</div>
-      <label className="flex items-center gap-2 text-sm">
-        <input
-          type="checkbox"
-          checked={!!c.bike_with_customer}
-          onChange={(e) => onUpdate({
-            bike_with_customer: e.target.checked,
-            expected_return_date: e.target.checked ? c.expected_return_date : null,
+    <section className="card-surface p-4 space-y-3">
+      <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold">Bike custody</div>
+      <div className="flex flex-wrap gap-2">
+        <button
+          type="button"
+          onClick={() => onUpdate({
+            bike_with_customer: false,
+            workshop_entry_date: c.workshop_entry_date ?? new Date().toISOString().slice(0, 10),
+            expected_return_date: null,
           })}
-        />
-        Bike currently with customer
-      </label>
-      {c.bike_with_customer && (
-        <div className="mt-3 max-w-xs">
+          className={`px-3 py-2 rounded-md text-sm border ${location === "workshop" ? "bg-primary text-primary-foreground border-primary" : "bg-background border-border"}`}
+        >
+          In workshop
+        </button>
+        <button
+          type="button"
+          onClick={() => onUpdate({ bike_with_customer: true })}
+          className={`px-3 py-2 rounded-md text-sm border ${location === "customer" ? "bg-primary text-primary-foreground border-primary" : "bg-background border-border"}`}
+        >
+          With customer
+        </button>
+      </div>
+      {location === "workshop" && (
+        <div className="max-w-xs">
+          <Label>Date entered workshop</Label>
+          <Input
+            type="date"
+            defaultValue={c.workshop_entry_date ?? ""}
+            onBlur={(e) => e.target.value !== (c.workshop_entry_date ?? "") && onUpdate({ workshop_entry_date: e.target.value || null })}
+          />
+        </div>
+      )}
+      {location === "customer" && (
+        <div className="max-w-xs">
           <Label>Expected return date</Label>
           <Input
             type="date"
