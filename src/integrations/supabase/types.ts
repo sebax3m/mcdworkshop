@@ -340,6 +340,8 @@ export type Database = {
           parts_ordered_at: string | null
           parts_received_at: string | null
           quote_amount: number | null
+          quote_items: Json
+          quote_labour_rate: number | null
           quote_sent_at: string | null
           quote_started_at: string | null
           ready_for_pickup_at: string | null
@@ -368,6 +370,8 @@ export type Database = {
           parts_ordered_at?: string | null
           parts_received_at?: string | null
           quote_amount?: number | null
+          quote_items?: Json
+          quote_labour_rate?: number | null
           quote_sent_at?: string | null
           quote_started_at?: string | null
           ready_for_pickup_at?: string | null
@@ -396,6 +400,8 @@ export type Database = {
           parts_ordered_at?: string | null
           parts_received_at?: string | null
           quote_amount?: number | null
+          quote_items?: Json
+          quote_labour_rate?: number | null
           quote_sent_at?: string | null
           quote_started_at?: string | null
           ready_for_pickup_at?: string | null
