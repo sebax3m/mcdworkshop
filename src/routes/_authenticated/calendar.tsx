@@ -443,15 +443,18 @@ function CalendarPage() {
                     })}
                   </AnimatePresence>
                   {!isLoading && dayBookings.length === 0 && (
-                    <Link
-                      to="/bookings/new"
-                      search={{ date: dayKey }}
-                      className="block rounded-lg border border-dashed border-border/60 p-3 text-center text-[10px] uppercase tracking-wider text-muted-foreground hover:text-primary hover:border-primary/40 transition-colors"
-                    >
-                      + Book
-                    </Link>
+                    <div className="rounded-lg border border-dashed border-border/40 p-3 text-center text-[10px] uppercase tracking-wider text-muted-foreground">
+                      No bookings
+                    </div>
                   )}
                 </div>
+                <Link
+                  to="/bookings/new"
+                  search={{ date: dayKey }}
+                  className="mt-2 block rounded-lg border border-dashed border-border/60 px-2 py-2 text-center text-[10px] font-semibold uppercase tracking-wider text-muted-foreground hover:text-primary hover:border-primary/40 hover:bg-primary/5 transition-colors"
+                >
+                  + Add Book In
+                </Link>
               </motion.div>
             );
           })}
