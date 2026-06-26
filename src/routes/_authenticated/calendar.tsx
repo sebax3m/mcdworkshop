@@ -22,6 +22,11 @@ import {
   AlertTriangle,
   Clock,
   User as UserIcon,
+  X,
+  Wrench,
+  FileText,
+  Bike as BikeIcon,
+  Phone,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -72,6 +77,7 @@ function CalendarPage() {
   const [monthStart, setMonthStart] = useState<Date>(() => startOfMonth(new Date()));
   const [weekStart, setWeekStart] = useState<Date>(() => startOfWeek(new Date(), { weekStartsOn: 1 }));
   const [draggingId, setDraggingId] = useState<string | null>(null);
+  const [selectedBooking, setSelectedBooking] = useState<any | null>(null);
 
   const visibleRange = useMemo(() => {
     if (viewMode === "week") {
@@ -88,7 +94,7 @@ function CalendarPage() {
       const { data, error } = await supabase
         .from("bookings")
         .select(
-          "id, service_type, scheduled_date, drop_off_time, estimated_hours, status, color, complaints, notes, assigned_tech_id, customer_id, motorcycle_id, confirmed, customers(first_name,last_name), motorcycles(year,make,model,rego)",
+          "id, service_type, scheduled_date, drop_off_time, estimated_hours, status, color, complaints, notes, assigned_tech_id, customer_id, motorcycle_id, confirmed, job_id, customers(first_name,last_name,phone,email), motorcycles(year,make,model,rego)",
         )
         .gte("scheduled_date", format(visibleRange.start, "yyyy-MM-dd"))
         .lte("scheduled_date", format(visibleRange.end, "yyyy-MM-dd"))
@@ -394,7 +400,7 @@ function CalendarPage() {
                           onDragEnd={() => setDraggingId(null)}
                           onClick={(e) => {
                             e.stopPropagation();
-                            nav({ to: "/bookings/$bookingId", params: { bookingId: b.id } });
+                            setSelectedBooking(b);
                           }}
                           className={`relative w-full text-left rounded-lg p-2 ring-1 ${c.bg} ${c.ring} hover:ring-2 transition-all cursor-grab active:cursor-grabbing`}
                         >
@@ -454,25 +460,180 @@ function CalendarPage() {
 
       {/* LEGEND */}
       <div className="card-surface p-4">
-        <div className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground mb-2">Service legend</div>
-        <div className="flex flex-wrap gap-2">
+        <div className="text-xs uppercase tracking-[0.25em] text-muted-foreground mb-3">Service legend</div>
+        <div className="flex flex-wrap gap-2.5">
           {[
             { label: "Basic", k: "basic" },
             { label: "Standard", k: "standard" },
             { label: "Full", k: "full" },
             { label: "Dyno", k: "dyno" },
             { label: "Diagnostic", k: "diagnostic" },
+            { label: "Insurance", k: "insurance" },
           ].map((s) => {
             const c = SERVICE_COLORS[s.k];
             return (
-              <span key={s.k} className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 ring-1 text-[10px] font-semibold uppercase tracking-wider ${c.bg} ${c.ring} ${c.label}`}>
-                <span className="h-1.5 w-1.5 rounded-full bg-current" />
+              <span key={s.k} className={`inline-flex items-center gap-2 rounded-full px-4 py-2 ring-1 text-sm font-semibold uppercase tracking-wider ${c.bg} ${c.ring} ${c.label}`}>
+                <span className="h-2.5 w-2.5 rounded-full bg-current" />
                 {s.label}
               </span>
             );
           })}
         </div>
       </div>
+
+      {/* BOOKING QUICK-VIEW POPUP */}
+      <AnimatePresence>
+        {selectedBooking && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+            onClick={() => setSelectedBooking(null)}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 10 }}
+              transition={{ duration: 0.15 }}
+              onClick={(e) => e.stopPropagation()}
+              className="card-surface w-full max-w-md p-5 space-y-4 relative"
+            >
+              <button
+                onClick={() => setSelectedBooking(null)}
+                className="absolute top-3 right-3 grid h-8 w-8 place-items-center rounded-lg border border-border text-muted-foreground hover:text-foreground hover:border-foreground/30 transition-colors"
+                aria-label="Close"
+              >
+                <X className="h-4 w-4" />
+              </button>
+
+              {(() => {
+                const b = selectedBooking;
+                const c = serviceColor(b.service_type);
+                const bike = b.motorcycles
+                  ? `${b.motorcycles.year ?? ""} ${b.motorcycles.make} ${b.motorcycles.model}`.trim()
+                  : "—";
+                const customer = b.customers ? `${b.customers.first_name} ${b.customers.last_name}` : "—";
+                return (
+                  <>
+                    <div className="flex items-center gap-2 pr-8">
+                      <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 ring-1 text-[11px] font-bold uppercase tracking-wider ${c.bg} ${c.ring} ${c.label}`}>
+                        <span className="h-1.5 w-1.5 rounded-full bg-current" />
+                        {b.service_type}
+                      </span>
+                      {b.confirmed && (
+                        <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-green-500">
+                          <span className="h-1.5 w-1.5 rounded-full bg-green-500" /> Confirmed
+                        </span>
+                      )}
+                    </div>
+
+                    <div>
+                      <div className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground">Scheduled</div>
+                      <div className="font-display text-lg font-bold">
+                        {format(new Date(b.scheduled_date + "T00:00:00"), "EEE d MMM yyyy")}
+                        {b.drop_off_time && (
+                          <span className="ml-2 text-sm text-muted-foreground tabular-nums">
+                            <Clock className="inline h-3.5 w-3.5 mr-1" />
+                            {b.drop_off_time.slice(0, 5)}
+                          </span>
+                        )}
+                      </div>
+                      <div className="text-xs text-muted-foreground mt-0.5">
+                        {b.estimated_hours ?? 1}h estimated
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 gap-3 pt-1 border-t border-border/60">
+                      <div>
+                        <div className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground mb-1 flex items-center gap-1.5">
+                          <BikeIcon className="h-3 w-3" /> Motorcycle
+                        </div>
+                        <div className="text-sm font-semibold">{bike}</div>
+                        {b.motorcycles?.rego && (
+                          <div className="text-xs text-muted-foreground">Rego: {b.motorcycles.rego}</div>
+                        )}
+                      </div>
+
+                      <div>
+                        <div className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground mb-1 flex items-center gap-1.5">
+                          <UserIcon className="h-3 w-3" /> Customer
+                        </div>
+                        <div className="text-sm font-semibold">{customer}</div>
+                        {b.customers?.phone && (
+                          <a
+                            href={`tel:${b.customers.phone}`}
+                            className="text-xs text-primary hover:underline inline-flex items-center gap-1"
+                          >
+                            <Phone className="h-3 w-3" /> {b.customers.phone}
+                          </a>
+                        )}
+                      </div>
+
+                      {b.tech_name && (
+                        <div>
+                          <div className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground mb-1">Technician</div>
+                          <div className="text-sm font-semibold">{b.tech_name}</div>
+                        </div>
+                      )}
+
+                      {b.complaints && (
+                        <div>
+                          <div className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground mb-1">Complaints</div>
+                          <div className="text-sm">{b.complaints}</div>
+                        </div>
+                      )}
+
+                      {b.notes && (
+                        <div>
+                          <div className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground mb-1">Notes</div>
+                          <div className="text-sm">{b.notes}</div>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="flex flex-col sm:flex-row gap-2 pt-2 border-t border-border/60">
+                      <button
+                        onClick={() => {
+                          const id = b.id;
+                          setSelectedBooking(null);
+                          nav({ to: "/bookings/$bookingId", params: { bookingId: id } });
+                        }}
+                        className="flex-1 inline-flex items-center justify-center gap-2 rounded-lg border border-border px-3 py-2 text-sm font-semibold hover:border-primary/50 hover:bg-primary/5 transition-colors"
+                      >
+                        <FileText className="h-4 w-4" /> Booking
+                      </button>
+                      {b.job_id ? (
+                        <button
+                          onClick={() => {
+                            const jid = b.job_id;
+                            setSelectedBooking(null);
+                            nav({ to: "/jobs/$jobId", params: { jobId: jid } });
+                          }}
+                          className="flex-1 inline-flex items-center justify-center gap-2 rounded-lg red-surface px-3 py-2 text-sm font-semibold hover:scale-[1.02] transition-transform"
+                        >
+                          <Wrench className="h-4 w-4" /> Open Job Card
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => {
+                            const id = b.id;
+                            setSelectedBooking(null);
+                            nav({ to: "/bookings/$bookingId", params: { bookingId: id } });
+                          }}
+                          className="flex-1 inline-flex items-center justify-center gap-2 rounded-lg red-surface px-3 py-2 text-sm font-semibold hover:scale-[1.02] transition-transform"
+                        >
+                          <Wrench className="h-4 w-4" /> Create Job Card
+                        </button>
+                      )}
+                    </div>
+                  </>
+                );
+              })()}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
