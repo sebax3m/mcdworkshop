@@ -104,7 +104,7 @@ export const updateUserDetails = createServerFn({ method: "POST" })
       if (error) throw new Error(error.message);
     }
 
-    const profileUpdate: Record<string, string> = {};
+    const profileUpdate: { full_name?: string; email?: string } = {};
     if (data.full_name !== undefined) profileUpdate.full_name = data.full_name;
     if (data.email !== undefined) profileUpdate.email = data.email;
     if (Object.keys(profileUpdate).length > 0) {
