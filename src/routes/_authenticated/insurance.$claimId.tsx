@@ -9,7 +9,9 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   ArrowLeft, ShieldCheck, Phone, MessageSquare, Wrench, Printer, Send, Check, X,
   Bike as BikeIcon, ExternalLink, Trash2, Mail,
+  Inbox, ClipboardList, FileEdit, FileCheck2, ThumbsUp, Package, Hammer, PackageCheck, Archive, ChevronRight,
 } from "lucide-react";
+
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { fullBike } from "@/lib/format";
@@ -157,43 +159,9 @@ function ClaimDetail() {
         )}
       </header>
 
-      {/* Pipeline */}
-      <section className="card-surface p-4 print:hidden">
-        <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-2 font-bold">Pipeline</div>
-        <div className="flex gap-1.5 overflow-x-auto pb-1">
-          {CLAIM_PIPELINE.map((s) => {
-            const active = s === c.status;
-            const past = CLAIM_PIPELINE.indexOf(s) < CLAIM_PIPELINE.indexOf(c.status as ClaimStatus);
-            return (
-              <button
-                key={s}
-                onClick={() => setStatus(s)}
-                className={`shrink-0 rounded-lg border px-3 py-2 text-[11px] font-semibold uppercase tracking-wider transition-all ${
-                  active
-                    ? "border-primary bg-primary/15 text-primary"
-                    : past
-                      ? "border-status-ready/40 bg-status-ready/10 text-status-ready"
-                      : "border-border text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                {CLAIM_STATUS_META[s].short}
-              </button>
-            );
-          })}
-        </div>
-        <div className="mt-3 flex items-center gap-2 flex-wrap">
-          {next && (
-            <Button onClick={() => setStatus(next)} className="gold-surface gap-2">
-              <Check className="h-4 w-4" /> Advance → {CLAIM_STATUS_META[next].label}
-            </Button>
-          )}
-          {c.status !== "declined" && c.status !== "closed" && (
-            <Button onClick={() => setStatus("declined")} variant="outline" className="gap-2 text-destructive border-destructive/40">
-              <X className="h-4 w-4" /> Mark declined
-            </Button>
-          )}
-        </div>
-      </section>
+      {/* Pipeline flowchart */}
+      <PipelineFlow currentStatus={c.status as ClaimStatus} onPick={setStatus} next={next} />
+
 
       {/* Customer / bike / insurer */}
       <section className="grid sm:grid-cols-2 gap-4">
@@ -454,3 +422,143 @@ function PrintQuoteHeader({ c, bikeText }: { c: any; bikeText: string }) {
     </div>
   );
 }
+
+// ----- Pipeline flowchart ---------------------------------------------------
+
+const FLOW_STAGES: Array<{
+  key: ClaimStatus;
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+  /** Tailwind color group for this stage. */
+  hue: { ring: string; bg: string; text: string; border: string; soft: string };
+}> = [
+  { key: "intake",            label: "Intake",          icon: Inbox,         hue: { ring: "ring-sky-400/60",     bg: "bg-sky-500",      text: "text-sky-300",     border: "border-sky-400/50",     soft: "bg-sky-500/10" } },
+  { key: "assessing",         label: "Assessing",       icon: ClipboardList, hue: { ring: "ring-cyan-400/60",    bg: "bg-cyan-500",     text: "text-cyan-300",    border: "border-cyan-400/50",    soft: "bg-cyan-500/10" } },
+  { key: "quote_in_progress", label: "Quote drafting",  icon: FileEdit,      hue: { ring: "ring-violet-400/60",  bg: "bg-violet-500",   text: "text-violet-300",  border: "border-violet-400/50",  soft: "bg-violet-500/10" } },
+  { key: "quote_sent",        label: "Quote sent",      icon: FileCheck2,    hue: { ring: "ring-indigo-400/60",  bg: "bg-indigo-500",   text: "text-indigo-300",  border: "border-indigo-400/50",  soft: "bg-indigo-500/10" } },
+  { key: "approved",          label: "Approved",        icon: ThumbsUp,      hue: { ring: "ring-emerald-400/60", bg: "bg-emerald-500",  text: "text-emerald-300", border: "border-emerald-400/50", soft: "bg-emerald-500/10" } },
+  { key: "waiting_parts",     label: "Waiting parts",   icon: Package,       hue: { ring: "ring-amber-400/60",   bg: "bg-amber-500",    text: "text-amber-300",   border: "border-amber-400/50",   soft: "bg-amber-500/10" } },
+  { key: "in_repair",         label: "In repair",       icon: Hammer,        hue: { ring: "ring-orange-400/60",  bg: "bg-orange-500",   text: "text-orange-300",  border: "border-orange-400/50",  soft: "bg-orange-500/10" } },
+  { key: "ready_for_pickup",  label: "Ready",           icon: PackageCheck,  hue: { ring: "ring-lime-400/60",    bg: "bg-lime-500",     text: "text-lime-300",    border: "border-lime-400/50",    soft: "bg-lime-500/10" } },
+  { key: "closed",            label: "Closed",          icon: Archive,       hue: { ring: "ring-slate-400/60",   bg: "bg-slate-500",    text: "text-slate-300",   border: "border-slate-400/50",   soft: "bg-slate-500/10" } },
+];
+
+function PipelineFlow({
+  currentStatus,
+  onPick,
+  next,
+}: {
+  currentStatus: ClaimStatus;
+  onPick: (s: ClaimStatus) => void;
+  next: ClaimStatus | null;
+}) {
+  const declined = currentStatus === "declined";
+  const currentIdx = FLOW_STAGES.findIndex((s) => s.key === currentStatus);
+
+  return (
+    <section className="card-surface p-4 sm:p-5 print:hidden">
+      <div className="flex items-center justify-between mb-4">
+        <div>
+          <div className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground font-bold">Claim flow</div>
+          <h2 className="font-display text-lg font-semibold">Progress</h2>
+        </div>
+        <div className="flex items-center gap-2 flex-wrap">
+          {next && !declined && (
+            <Button onClick={() => onPick(next)} className="gold-surface gap-2">
+              <Check className="h-4 w-4" /> Advance → {CLAIM_STATUS_META[next].label}
+            </Button>
+          )}
+          {!declined && currentStatus !== "closed" && (
+            <Button onClick={() => onPick("declined")} variant="outline" size="sm" className="gap-1.5 text-destructive border-destructive/40">
+              <X className="h-3.5 w-3.5" /> Declined
+            </Button>
+          )}
+        </div>
+      </div>
+
+      {declined && (
+        <div className="mb-4 rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive flex items-center gap-2">
+          <X className="h-4 w-4" /> Claim was <b>declined</b> — pick a stage below to re-open.
+        </div>
+      )}
+
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+        {FLOW_STAGES.map((stage, i) => {
+          const active = !declined && stage.key === currentStatus;
+          const past = !declined && i < currentIdx;
+          const future = declined || i > currentIdx;
+          const Icon = stage.icon;
+
+          const nodeCls = active
+            ? `${stage.hue.bg} text-white ring-4 ${stage.hue.ring} shadow-lg scale-110`
+            : past
+              ? `${stage.hue.bg} text-white opacity-90`
+              : `bg-muted text-muted-foreground border border-border`;
+
+          const cardCls = active
+            ? `${stage.hue.border} ${stage.hue.soft} shadow-[0_8px_28px_-12px_oklch(0_0_0/0.6)]`
+            : past
+              ? `${stage.hue.border} ${stage.hue.soft} opacity-95`
+              : "border-border bg-card/40";
+
+          return (
+            <button
+              key={stage.key}
+              onClick={() => onPick(stage.key)}
+              className={`relative group rounded-xl border p-3 text-left transition-all hover:scale-[1.02] ${cardCls}`}
+            >
+              {/* connector arrow to next */}
+              {i < FLOW_STAGES.length - 1 && (
+                <ChevronRight
+                  className={`hidden lg:block absolute -right-2.5 top-1/2 -translate-y-1/2 h-5 w-5 ${
+                    past || active ? stage.hue.text : "text-border"
+                  }`}
+                />
+              )}
+              <div className="flex items-center gap-2.5">
+                <div className={`grid h-9 w-9 place-items-center rounded-full transition-all ${nodeCls}`}>
+                  <Icon className="h-4 w-4" />
+                </div>
+                <div className="min-w-0">
+                  <div className="text-[9px] uppercase tracking-wider text-muted-foreground font-bold">
+                    Step {i + 1}
+                  </div>
+                  <div className={`text-sm font-bold leading-tight truncate ${active ? stage.hue.text : past ? stage.hue.text : "text-foreground/80"}`}>
+                    {stage.label}
+                  </div>
+                </div>
+              </div>
+              {active && (
+                <div className="mt-2 inline-flex items-center gap-1 rounded-full bg-white/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white">
+                  <span className="h-1.5 w-1.5 rounded-full bg-white animate-pulse" /> Current
+                </div>
+              )}
+              {past && (
+                <div className={`mt-2 inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider ${stage.hue.text}`}>
+                  <Check className="h-3 w-3" /> Done
+                </div>
+              )}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Progress bar */}
+      {!declined && (
+        <div className="mt-5">
+          <div className="flex items-center justify-between text-[10px] uppercase tracking-wider text-muted-foreground font-bold mb-1.5">
+            <span>Progress</span>
+            <span>{Math.round(((currentIdx + 1) / FLOW_STAGES.length) * 100)}%</span>
+          </div>
+          <div className="h-2 rounded-full bg-muted overflow-hidden">
+            <div
+              className="h-full rounded-full bg-gradient-to-r from-sky-500 via-violet-500 via-emerald-500 to-lime-500 transition-all duration-500"
+              style={{ width: `${((currentIdx + 1) / FLOW_STAGES.length) * 100}%` }}
+            />
+          </div>
+        </div>
+      )}
+    </section>
+  );
+}
+
