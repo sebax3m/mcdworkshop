@@ -591,10 +591,42 @@ function PrintQuoteHeader({ c, bikeText }: { c: any; bikeText: string }) {
           <p className="whitespace-pre-wrap">{c.notes}</p>
         </div>
       )}
+      {Array.isArray(c.quote_items) && c.quote_items.length > 0 && (() => {
+        const items = c.quote_items as Array<{ kind: string; description: string; qty: number; unit_price: number }>;
+        const subtotal = items.reduce((s, it) => s + (Number(it.qty) || 0) * (Number(it.unit_price) || 0), 0);
+        const gst = subtotal * 0.15;
+        return (
+          <table className="w-full text-xs border border-gray-400 border-collapse mb-3">
+            <thead className="bg-gray-100">
+              <tr>
+                <th className="border border-gray-400 text-left px-2 py-1 w-16">Type</th>
+                <th className="border border-gray-400 text-left px-2 py-1">Description</th>
+                <th className="border border-gray-400 text-right px-2 py-1 w-16">Qty</th>
+                <th className="border border-gray-400 text-right px-2 py-1 w-20">Unit $</th>
+                <th className="border border-gray-400 text-right px-2 py-1 w-20">Line $</th>
+              </tr>
+            </thead>
+            <tbody>
+              {items.map((it, i) => (
+                <tr key={i}>
+                  <td className="border border-gray-400 px-2 py-1 capitalize">{it.kind}</td>
+                  <td className="border border-gray-400 px-2 py-1">{it.description || "—"}</td>
+                  <td className="border border-gray-400 px-2 py-1 text-right font-mono">{Number(it.qty).toFixed(2)}</td>
+                  <td className="border border-gray-400 px-2 py-1 text-right font-mono">${Number(it.unit_price).toFixed(2)}</td>
+                  <td className="border border-gray-400 px-2 py-1 text-right font-mono">${((Number(it.qty)||0)*(Number(it.unit_price)||0)).toFixed(2)}</td>
+                </tr>
+              ))}
+              <tr><td colSpan={4} className="border border-gray-400 px-2 py-1 text-right">Subtotal</td><td className="border border-gray-400 px-2 py-1 text-right font-mono">${subtotal.toFixed(2)}</td></tr>
+              <tr><td colSpan={4} className="border border-gray-400 px-2 py-1 text-right">GST (15%)</td><td className="border border-gray-400 px-2 py-1 text-right font-mono">${gst.toFixed(2)}</td></tr>
+              <tr className="bg-gray-100"><td colSpan={4} className="border border-gray-400 px-2 py-1 text-right font-bold">Total (incl. GST)</td><td className="border border-gray-400 px-2 py-1 text-right font-mono font-bold">${(subtotal+gst).toFixed(2)}</td></tr>
+            </tbody>
+          </table>
+        );
+      })()}
       <div className="text-xs">
         <b>Quote total:</b> <span className="font-mono">${c.quote_amount != null ? Number(c.quote_amount).toFixed(2) : "_______"}</span>
       </div>
-      <div className="mt-2 text-[10px] text-gray-600">Parts and labour breakdown is on the linked Collision Repair job card — print and attach.</div>
+
     </div>
   );
 }
