@@ -200,13 +200,14 @@ export function ClaimDamageSection({
       </div>
 
       {/* Interactive diagram (screen only) */}
-      <div className="relative rounded-xl border border-border bg-gradient-to-br from-background to-card overflow-hidden print:hidden">
+      <div className="relative rounded-xl border border-border bg-card overflow-hidden print:hidden">
         <svg
           viewBox="0 0 600 320"
           className={`w-full h-auto ${canEdit ? "cursor-crosshair" : ""}`}
           onClick={handleCanvasClick}
         >
-          {view === "side" ? <BikeSide /> : <BikeTop />}
+          <BikeImage view={view} />
+
           {viewMarks.map((m, i) => (
             <g key={m.id} className="pointer-events-auto">
               <circle cx={m.x * 600} cy={m.y * 320} r={14} fill={SEVERITY[m.severity].color} fillOpacity={0.85} stroke="white" strokeWidth={2} />
