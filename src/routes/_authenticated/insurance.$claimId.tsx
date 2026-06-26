@@ -193,91 +193,17 @@ function ClaimDetail() {
 
       <ClaimCustodyCard c={c} onUpdate={updateClaim} />
 
-      {/* Quote / linked job */}
-      <section className="card-surface p-4">
-        <div className="flex items-center gap-2 mb-2">
-          <Wrench className="h-4 w-4 text-primary" />
-          <h2 className="font-display text-lg font-semibold">Quote · Parts & Labour</h2>
-        </div>
-        {c.job_id ? (
-          <div className="space-y-3">
-            <div className="rounded-lg border border-border bg-background/40 p-3 flex items-center gap-3 flex-wrap">
-              <div className="min-w-0">
-                <div className="text-xs text-muted-foreground">Linked job card</div>
-                <div className="font-bold">#{c.jobs?.job_number} · {c.jobs?.title}</div>
-                <div className="text-[11px] text-muted-foreground uppercase tracking-wider">{c.jobs?.status}</div>
-              </div>
-              <Link
-                to="/jobs/$jobId"
-                params={{ jobId: c.job_id }}
-                className="ml-auto inline-flex items-center gap-1.5 rounded-lg red-surface px-3 py-2 text-sm font-bold"
-              >
-                Open job card <ExternalLink className="h-3.5 w-3.5" />
-              </Link>
-            </div>
-            <div className="grid sm:grid-cols-2 gap-3">
-              <div>
-                <Label>Quote total ($)</Label>
-                <Input
-                  type="number" step="0.01"
-                  defaultValue={c.quote_amount ?? ""}
-                  onBlur={(e) => {
-                    const v = e.target.value === "" ? null : Number(e.target.value);
-                    if (v !== (c.quote_amount ?? null)) updateClaim({ quote_amount: v });
-                  }}
-                  placeholder="0.00"
-                />
-              </div>
-              <div>
-                <Label>Approved amount ($)</Label>
-                <Input
-                  type="number" step="0.01"
-                  defaultValue={c.approved_amount ?? ""}
-                  onBlur={(e) => {
-                    const v = e.target.value === "" ? null : Number(e.target.value);
-                    if (v !== (c.approved_amount ?? null)) updateClaim({ approved_amount: v });
-                  }}
-                  placeholder="0.00"
-                />
-              </div>
-            </div>
-            <div className="flex gap-2 flex-wrap">
-              {c.status !== "quote_sent" && c.status !== "approved" && c.status !== "declined" && (
-                <Button onClick={markSent} className="gold-surface gap-2">
-                  <Send className="h-4 w-4" /> Mark as sent to insurer
-                </Button>
-              )}
-              {c.customers?.email && (
-                <a
-                  href={`mailto:?subject=${encodeURIComponent(`Quote ${c.claim_number} — ${c.insurer_name ?? ""}`)}&body=${encodeURIComponent(`Hi,\n\nPlease find attached our repair quote for claim ${c.claim_number} (${bikeText}).\n\nQuote total: $${c.quote_amount ?? ""}\n\nKind regards,\nMotorcycle Doctors`)}`}
-                  className="inline-flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-sm font-semibold hover:border-primary/40"
-                >
-                  <Mail className="h-4 w-4" /> Email customer
-                </a>
-              )}
-              {c.status === "quote_sent" && (
-                <>
-                  <Button onClick={() => setStatus("approved")} className="gap-2 bg-green-600 hover:bg-green-700 text-white">
-                    <Check className="h-4 w-4" /> Insurer approved
-                  </Button>
-                  <Button onClick={() => setStatus("declined")} variant="outline" className="gap-2 text-destructive border-destructive/40">
-                    <X className="h-4 w-4" /> Insurer declined
-                  </Button>
-                </>
-              )}
-            </div>
-          </div>
-        ) : (
-          <div className="space-y-3">
-            <p className="text-sm text-muted-foreground">
-              Start the quote — this creates a Collision Repair job card where you log parts and labour estimates. The job stays linked to this claim.
-            </p>
-            <Button onClick={startQuote} className="gold-surface gap-2 h-11 px-5 font-bold">
-              <Plus className="h-4 w-4" /> Start Quote (create job card)
-            </Button>
-          </div>
-        )}
-      </section>
+      {/* Quotation builder (parts + labour) */}
+      <QuoteBuilder
+        c={c}
+        bikeText={bikeText}
+        onUpdate={updateClaim}
+        onMarkSent={markSent}
+        onApprove={() => setStatus("approved")}
+        onDecline={() => setStatus("declined")}
+        onStartJob={startQuote}
+      />
+
 
       {/* Notes */}
       <ClaimNotesCard c={c} onUpdate={updateClaim} />
