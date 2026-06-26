@@ -36,6 +36,12 @@ const sections = [
     title: "Insurance Claims",
     desc: "Track collision repair claims, quotes, insurer approvals and parts.",
   },
+  {
+    to: "/users",
+    icon: UserCog,
+    title: "Users & Logins",
+    desc: "View sign-in history per user, emails, roles and switch the active user.",
+  },
 ] as const;
 
 function SettingsPage() {
