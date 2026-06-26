@@ -163,7 +163,7 @@ export function ClaimDamageSection({
       {/* Controls (screen only) */}
       <div className="flex items-center gap-2 flex-wrap mb-3 print:hidden">
         <div className="inline-flex rounded-lg border border-border p-0.5">
-          {(["side", "top"] as const).map((v) => (
+          {(["left", "right", "top"] as const).map((v) => (
             <button
               key={v}
               onClick={() => setView(v)}
@@ -171,7 +171,7 @@ export function ClaimDamageSection({
                 view === v ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"
               }`}
             >
-              {v === "side" ? "Side view" : "Top view"}
+              {v === "left" ? "Left side" : v === "right" ? "Right side" : "Top view"}
             </button>
           ))}
         </div>
