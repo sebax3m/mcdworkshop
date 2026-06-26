@@ -568,7 +568,7 @@ function ClaimNotesCard({ c, onUpdate }: { c: any; onUpdate: (p: any) => void })
 
 function PrintQuoteHeader({ c, bikeText }: { c: any; bikeText: string }) {
   return (
-    <div className="hidden print:block">
+    <div id="claim-print-area" className="hidden print:block">
       <div className="border-b-2 border-black pb-3 mb-4">
         <div className="text-[10px] uppercase tracking-[0.25em] text-gray-600">Motorcycle Doctors · Insurance Quote</div>
         <div className="flex items-end justify-between gap-4">
