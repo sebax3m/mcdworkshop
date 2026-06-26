@@ -621,7 +621,7 @@ export type Database = {
           caption: string | null
           created_at: string
           id: string
-          job_id: string
+          job_id: string | null
           storage_path: string
           uploaded_by: string
         }
@@ -629,7 +629,7 @@ export type Database = {
           caption?: string | null
           created_at?: string
           id?: string
-          job_id: string
+          job_id?: string | null
           storage_path: string
           uploaded_by: string
         }
@@ -637,7 +637,7 @@ export type Database = {
           caption?: string | null
           created_at?: string
           id?: string
-          job_id?: string
+          job_id?: string | null
           storage_path?: string
           uploaded_by?: string
         }
