@@ -11,6 +11,8 @@ import { toast } from "sonner";
 import { ArrowLeft, Play, Square, User, Bike as BikeIcon, ChevronDown, Check, Droplet, Wrench, Package, Plus, X, FileText, Printer } from "lucide-react";
 import { detectServiceKind, KIND_META, SERVICE_PARTS } from "@/lib/service-kinds";
 import { getValveSpec, formatRange, type ValveSpec } from "@/lib/valve-specs";
+import { DamageSection } from "@/components/DamageSection";
+
 
 export const Route = createFileRoute("/_authenticated/jobs/$jobId")({
   component: JobDetail,
@@ -380,6 +382,17 @@ function JobDetail() {
           )}
         </section>
       )}
+
+      {/* Damage report (collision repair jobs) */}
+      {kind === "collision" && (
+        <DamageSection
+          jobId={jobId}
+          canEdit={canEdit}
+          initialMarks={((j.service_data as any) ?? {}).damage_marks ?? []}
+          onMarksChanged={() => qc.invalidateQueries({ queryKey: ["job", jobId] })}
+        />
+      )}
+
 
       <section className="card-surface p-4">
         <h2 className="font-display text-lg font-semibold mb-3">Notes</h2>

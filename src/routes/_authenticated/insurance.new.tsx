@@ -27,6 +27,8 @@ function NewClaim() {
   const [expectedReturn, setExpectedReturn] = useState<string>("");
   const [search, setSearch] = useState("");
   const [saving, setSaving] = useState(false);
+  const [showCustomerPicker, setShowCustomerPicker] = useState(false);
+
 
   const customers = useQuery({
     queryKey: ["ins-customers"],
@@ -48,7 +50,6 @@ function NewClaim() {
   }, [customers.data, search]);
 
   async function save() {
-    if (!customerId || !bikeId) return toast.error("Pick a customer and bike");
     setSaving(true);
     try {
       const { data, error } = await (supabase as any)
@@ -76,6 +77,7 @@ function NewClaim() {
     }
   }
 
+
   return (
     <div className="space-y-5 max-w-3xl mx-auto">
       <header className="flex items-center gap-3">
@@ -92,50 +94,81 @@ function NewClaim() {
       </header>
 
       <section className="card-surface p-4 space-y-3">
-        <Label>Customer</Label>
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search customer…"
-            className="w-full rounded-xl bg-card border border-border pl-10 pr-3 py-2.5 text-sm"
-          />
+        <div className="flex items-center justify-between gap-2 flex-wrap">
+          <div>
+            <Label className="text-base">Customer & bike</Label>
+            <p className="text-xs text-muted-foreground">Optional — you can link them later.</p>
+          </div>
+          <button
+            type="button"
+            onClick={() => { setShowCustomerPicker((v) => !v); }}
+            className="text-xs font-semibold uppercase tracking-wider text-primary hover:underline"
+          >
+            {showCustomerPicker ? "Hide" : customerId ? "Change" : "Pick now"}
+          </button>
         </div>
-        <div className="max-h-48 overflow-y-auto rounded-lg border border-border divide-y divide-border">
-          {filteredCust.slice(0, 50).map((c: any) => (
-            <button
-              key={c.id}
-              onClick={() => { setCustomerId(c.id); setBikeId(null); }}
-              className={`w-full text-left px-3 py-2 text-sm hover:bg-muted/50 ${customerId === c.id ? "bg-primary/10 text-primary" : ""}`}
-            >
-              {c.first_name} {c.last_name} <span className="text-muted-foreground">· {c.phone ?? "—"}</span>
-            </button>
-          ))}
-          {filteredCust.length === 0 && <div className="px-3 py-2 text-sm text-muted-foreground">No customers.</div>}
-        </div>
-      </section>
-
-      {customerId && (
-        <section className="card-surface p-4 space-y-2">
-          <Label>Motorcycle</Label>
-          {(bikes.data ?? []).length === 0 ? (
-            <p className="text-sm text-muted-foreground">No bikes for this customer.</p>
-          ) : (
-            <div className="space-y-1.5">
-              {(bikes.data ?? []).map((b: any) => (
+        {customerId && !showCustomerPicker && (
+          <div className="rounded-lg border border-primary/40 bg-primary/5 px-3 py-2 text-sm">
+            {(() => {
+              const c = (customers.data ?? []).find((x: any) => x.id === customerId);
+              const b = (bikes.data ?? []).find((x: any) => x.id === bikeId);
+              return (
+                <div className="flex items-center justify-between gap-2 flex-wrap">
+                  <span>
+                    <b>{c?.first_name} {c?.last_name}</b>
+                    {b ? <span className="text-muted-foreground"> · {fullBike(b)}{b.rego ? ` · ${b.rego}` : ""}</span> : <span className="text-amber-400"> · no bike picked</span>}
+                  </span>
+                  <button onClick={() => { setCustomerId(null); setBikeId(null); }} className="text-[11px] uppercase tracking-wider text-destructive hover:underline">Clear</button>
+                </div>
+              );
+            })()}
+          </div>
+        )}
+        {showCustomerPicker && (
+          <>
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <input
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search customer…"
+                className="w-full rounded-xl bg-card border border-border pl-10 pr-3 py-2.5 text-sm"
+              />
+            </div>
+            <div className="max-h-48 overflow-y-auto rounded-lg border border-border divide-y divide-border">
+              {filteredCust.slice(0, 50).map((c: any) => (
                 <button
-                  key={b.id}
-                  onClick={() => setBikeId(b.id)}
-                  className={`w-full text-left rounded-lg border px-3 py-2 text-sm ${bikeId === b.id ? "border-primary bg-primary/10" : "border-border"}`}
+                  key={c.id}
+                  onClick={() => { setCustomerId(c.id); setBikeId(null); }}
+                  className={`w-full text-left px-3 py-2 text-sm hover:bg-muted/50 ${customerId === c.id ? "bg-primary/10 text-primary" : ""}`}
                 >
-                  {fullBike(b)} {b.rego ? <span className="text-muted-foreground">· {b.rego}</span> : null}
+                  {c.first_name} {c.last_name} <span className="text-muted-foreground">· {c.phone ?? "—"}</span>
                 </button>
               ))}
+              {filteredCust.length === 0 && <div className="px-3 py-2 text-sm text-muted-foreground">No customers.</div>}
             </div>
-          )}
-        </section>
-      )}
+            {customerId && (
+              <div className="space-y-1.5">
+                <Label>Motorcycle</Label>
+                {(bikes.data ?? []).length === 0 ? (
+                  <p className="text-sm text-muted-foreground">No bikes for this customer.</p>
+                ) : (
+                  (bikes.data ?? []).map((b: any) => (
+                    <button
+                      key={b.id}
+                      onClick={() => setBikeId(b.id)}
+                      className={`w-full text-left rounded-lg border px-3 py-2 text-sm ${bikeId === b.id ? "border-primary bg-primary/10" : "border-border"}`}
+                    >
+                      {fullBike(b)} {b.rego ? <span className="text-muted-foreground">· {b.rego}</span> : null}
+                    </button>
+                  ))
+                )}
+              </div>
+            )}
+          </>
+        )}
+      </section>
+
 
       <section className="card-surface p-4 grid sm:grid-cols-2 gap-3">
         <div>
