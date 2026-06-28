@@ -287,7 +287,17 @@ function JobDetail() {
 
       <div className="card-surface p-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
         <InfoRow icon={User} label="Customer" value={`${j.customers?.first_name ?? ""} ${j.customers?.last_name ?? ""}`} hint={j.customers?.phone} />
-        <InfoRow icon={BikeIcon} label="Motorcycle" value={fullBike(j.motorcycles as any)} hint={j.motorcycles?.rego ?? undefined} />
+        <div className="flex items-start gap-3">
+          <BikeIcon className="h-5 w-5 mt-0.5 text-muted-foreground shrink-0" />
+          <div className="min-w-0">
+            <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Motorcycle</div>
+            <div className="font-semibold truncate">{fullBike(j.motorcycles as any)}</div>
+            <div className="text-xs mt-0.5">
+              <span className="text-muted-foreground">REGO:</span>{" "}
+              <span className="font-mono font-bold tracking-wider text-foreground">{(j.motorcycles as any)?.rego ?? "—"}</span>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Kilometers / Odometer — technician entry */}
@@ -301,6 +311,27 @@ function JobDetail() {
           qc.invalidateQueries({ queryKey: ["job", jobId] });
         }}
       />
+
+      {/* REGO expiry & WOF expiry — technician entry */}
+      <ExpirySection
+        label="REGO expiry"
+        hint="Technician — enter the registration expiry date shown on the rego label."
+        bikeId={(j.motorcycles as any)?.id}
+        field="rego_expiry"
+        currentValue={(j.motorcycles as any)?.rego_expiry ?? null}
+        canEdit={canEdit}
+        onSaved={() => qc.invalidateQueries({ queryKey: ["job", jobId] })}
+      />
+      <ExpirySection
+        label="WOF expiry"
+        hint="Technician — enter the Warrant of Fitness expiry date."
+        bikeId={(j.motorcycles as any)?.id}
+        field="wof_expiry"
+        currentValue={(j.motorcycles as any)?.wof_expiry ?? null}
+        canEdit={canEdit}
+        onSaved={() => qc.invalidateQueries({ queryKey: ["job", jobId] })}
+      />
+
 
       {/* Live timer */}
       <div className="card-surface p-4">
@@ -1329,4 +1360,81 @@ function OdometerSection({
     </div>
   );
 }
+
+function ExpirySection({
+  label,
+  hint,
+  bikeId,
+  field,
+  currentValue,
+  canEdit,
+  onSaved,
+}: {
+  label: string;
+  hint: string;
+  bikeId?: string;
+  field: "rego_expiry" | "wof_expiry";
+  currentValue: string | null;
+  canEdit: boolean;
+  onSaved: () => void;
+}) {
+  const [value, setValue] = useState<string>(currentValue ?? "");
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    setValue(currentValue ?? "");
+  }, [currentValue]);
+
+  async function save() {
+    if (!bikeId) {
+      toast.error("No bike linked to this job");
+      return;
+    }
+    setSaving(true);
+    try {
+      const { error } = await supabase
+        .from("motorcycles")
+        .update({ [field]: value || null } as any)
+        .eq("id", bikeId);
+      if (error) throw error;
+      toast.success(`${label} saved`);
+      onSaved();
+    } catch (e: any) {
+      toast.error(e?.message ?? "Failed to save");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  const expired = value ? new Date(value) < new Date(new Date().toDateString()) : false;
+
+  return (
+    <div className="card-surface p-4 print:hidden">
+      <div className="flex items-center justify-between gap-3 flex-wrap">
+        <div>
+          <div className="text-[10px] uppercase tracking-wider text-muted-foreground">{label}</div>
+          <div className="text-xs text-muted-foreground mt-0.5">
+            {hint}
+            {currentValue && (
+              <> Current: <span className={`font-semibold ${expired ? "text-destructive" : "text-foreground"}`}>{currentValue}{expired ? " (expired)" : ""}</span></>
+            )}
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <Input
+            type="date"
+            value={value}
+            onChange={(e) => setValue(e.target.value)}
+            disabled={!canEdit || saving}
+            className="w-48 h-11 font-mono text-base"
+          />
+          <Button onClick={save} disabled={!canEdit || saving} className="h-11 px-4 font-bold">
+            {saving ? "Saving…" : "Save"}
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 
