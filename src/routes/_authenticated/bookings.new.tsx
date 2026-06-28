@@ -100,7 +100,7 @@ function NewBooking() {
         .from("customers")
         .insert({
           first_name: ncFirst.trim(),
-          last_name: ncLast.trim(),
+          last_name: ncLast.trim() || null,
           phone: ncPhone.trim() || null,
           email: ncEmail.trim() || null,
         })
