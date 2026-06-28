@@ -133,11 +133,15 @@ function EditableText({
 }
 
 export const Route = createFileRoute("/_authenticated/invoices/$invoiceId")({
+  validateSearch: (s: Record<string, unknown>) => ({
+    action: s.action === "print" || s.action === "email" ? (s.action as "print" | "email") : undefined,
+  }),
   component: InvoiceDetail,
 });
 
 function InvoiceDetail() {
   const { invoiceId } = Route.useParams();
+  const { action } = Route.useSearch();
   const nav = useNavigate();
   const qc = useQueryClient();
   const { isAdmin, user } = useCurrentUser();
