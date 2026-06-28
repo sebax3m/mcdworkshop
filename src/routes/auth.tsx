@@ -59,7 +59,8 @@ function AuthPage() {
     if (!selected) return;
     setLoading(true);
     try {
-      await signInWith(selected.email, password);
+      // PIN is padded with a fixed prefix to satisfy the auth min-length rule
+      await signInWith(selected.email, `mcd${password}`);
     } catch (err: any) {
       toast.error(err.message ?? "Sign-in failed");
     } finally {
