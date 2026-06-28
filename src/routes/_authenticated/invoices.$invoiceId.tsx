@@ -206,7 +206,7 @@ function InvoiceDetail() {
       if (error) return;
       const fresh = await supabase.from("parts").select("*").eq("job_id", jobId);
       const partsSum = (fresh.data ?? []).reduce(
-        (s: number, p: any) => s + Number(p.retail ?? 0) * Number(p.quantity ?? 1),
+        (s: number, p: any) => s + Number(p.retail ?? 0) * Number(p.quantity ?? 1) * (1 - Number(p.discount_pct ?? 0) / 100),
         0,
       );
       const subtotal = Number(invoice.data!.labour_total) + partsSum;
