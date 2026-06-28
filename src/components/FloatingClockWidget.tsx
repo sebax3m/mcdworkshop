@@ -125,8 +125,8 @@ export function FloatingClockWidget() {
 
   const handleClick = () => {
     if (didDragRef.current) return;
-    if (activeJobId) {
-      navigate({ to: "/jobs/$jobId", params: { jobId: activeJobId } });
+    if (resolvedJobId) {
+      navigate({ to: "/jobs/$jobId", params: { jobId: resolvedJobId } });
     } else {
       navigate({ to: "/clock" });
     }
