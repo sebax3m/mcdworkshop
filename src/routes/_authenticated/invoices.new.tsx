@@ -270,15 +270,23 @@ function NewInvoice() {
 
   return (
     <div className="space-y-5 max-w-5xl mx-auto">
-      <header className="flex items-center gap-3">
-        <button onClick={() => nav({ to: "/invoices" })} className="grid h-9 w-9 place-items-center rounded-lg border border-border">
+      <header className="flex items-start gap-3">
+        <button onClick={() => nav({ to: "/invoices" })} className="grid h-9 w-9 place-items-center rounded-lg border border-border mt-1">
           <ArrowLeft className="h-4 w-4" />
         </button>
-        <div className="min-w-0 flex-1">
-          <div className="text-xs uppercase tracking-[0.25em] text-muted-foreground">Billing</div>
-          <h1 className="font-display text-2xl sm:text-3xl font-bold truncate">New Invoice</h1>
-          <div className="text-sm text-muted-foreground mt-0.5">
-            Invoice # <span className="font-mono font-semibold text-foreground">{nextInvoiceNumber.data ?? "…"}</span>
+        <div className="flex items-center gap-3 min-w-0 flex-1">
+          <img src={logoAsset.url} alt="Motorcycle Doctors" className="h-12 w-12 rounded-lg object-contain bg-background/40 border border-border p-1 shrink-0" />
+          <div className="min-w-0">
+            <div className="text-xs uppercase tracking-[0.25em] text-muted-foreground">Billing</div>
+            <h1 className="font-display text-2xl sm:text-3xl font-bold truncate">New Invoice</h1>
+          </div>
+        </div>
+        <div className="text-right shrink-0">
+          <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Invoice #</div>
+          <div className="font-mono font-semibold text-sm">{nextInvoiceNumber.data ?? "…"}</div>
+          <div className="mt-2">
+            <Label className="text-[10px] uppercase tracking-wider text-muted-foreground">Invoice date</Label>
+            <Input type="date" value={invoiceDate} onChange={(e) => setInvoiceDate(e.target.value)} className="h-8 w-[160px] text-sm" />
           </div>
         </div>
       </header>
@@ -342,10 +350,41 @@ function NewInvoice() {
             )}
           </div>
         )}
+      </section>
 
-        {customerId && (
-          <div>
-            <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Bike (optional)</div>
+      {/* Bike */}
+      <section className="card-surface p-4 space-y-3">
+        <div className="flex items-center justify-between">
+          <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Bike (optional)</div>
+          {customerId && (
+            <button
+              type="button"
+              onClick={() => setShowNewBike((v) => !v)}
+              className="text-xs text-primary hover:underline"
+            >
+              {showNewBike ? "Cancel" : "+ New bike"}
+            </button>
+          )}
+        </div>
+
+        {!customerId ? (
+          <div className="text-xs text-muted-foreground">Select a customer above to assign a bike.</div>
+        ) : (
+          <>
+            {showNewBike && (
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 p-3 rounded-lg border border-border bg-muted/30">
+                <Input placeholder="Make *" value={nbMake} onChange={(e) => setNbMake(e.target.value)} />
+                <Input placeholder="Model *" value={nbModel} onChange={(e) => setNbModel(e.target.value)} />
+                <Input placeholder="Year" type="number" value={nbYear} onChange={(e) => setNbYear(e.target.value)} />
+                <Input placeholder="Rego" value={nbRego} onChange={(e) => setNbRego(e.target.value)} />
+                <Input placeholder="Colour" value={nbColor} onChange={(e) => setNbColor(e.target.value)} />
+                <div className="flex justify-end items-end">
+                  <Button size="sm" onClick={createBike} disabled={creatingBike}>
+                    {creatingBike ? "Saving…" : "Add bike"}
+                  </Button>
+                </div>
+              </div>
+            )}
             <select
               value={bikeId ?? ""}
               onChange={(e) => setBikeId(e.target.value || null)}
@@ -356,17 +395,10 @@ function NewInvoice() {
                 <option key={b.id} value={b.id}>{fullBike(b as any)}{b.rego ? ` · ${b.rego}` : ""}</option>
               ))}
             </select>
-          </div>
+          </>
         )}
       </section>
 
-      {/* Invoice meta */}
-      <section className="card-surface p-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <div>
-          <Label className="text-xs">Invoice date</Label>
-          <Input type="date" value={invoiceDate} onChange={(e) => setInvoiceDate(e.target.value)} />
-        </div>
-      </section>
 
       {/* Line items */}
       <section className="card-surface p-4">
