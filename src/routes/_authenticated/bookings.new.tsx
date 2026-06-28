@@ -57,6 +57,7 @@ function NewBooking() {
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [search$, setSearch$] = useState("");
+  const [searchMode, setSearchMode] = useState<"name" | "rego" | "mobile">("name");
   const [showNewCustomer, setShowNewCustomer] = useState(false);
   const [ncFirst, setNcFirst] = useState("");
   const [ncLast, setNcLast] = useState("");
