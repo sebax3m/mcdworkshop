@@ -861,6 +861,10 @@ function PartsSection({
         })}
       </div>
 
+      {canEdit && (
+        <AddCustomPart jobId={jobId} onAdded={onChanged} />
+      )}
+
       {parts.length > 0 && (
         <div className="mt-4 pt-3 border-t border-border">
           <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-2 font-semibold">Stock movements logged</div>
