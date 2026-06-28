@@ -42,7 +42,7 @@ export function AppShell() {
             <img
               src={logoAsset.url}
               alt="Motorcycle Doctors"
-              className="h-9 w-auto shrink-0 drop-shadow-[0_0_12px_oklch(0.58_0.22_25/0.35)] transition-transform group-hover:scale-105"
+              className="h-14 w-auto shrink-0 drop-shadow-[0_0_12px_oklch(0.58_0.22_25/0.35)] transition-transform group-hover:scale-105"
             />
             <div className="hidden sm:block min-w-0">
               <div className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground leading-none">Workshop OS</div>
