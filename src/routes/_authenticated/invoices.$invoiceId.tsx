@@ -133,11 +133,15 @@ function EditableText({
 }
 
 export const Route = createFileRoute("/_authenticated/invoices/$invoiceId")({
+  validateSearch: (s: Record<string, unknown>) => ({
+    action: s.action === "print" || s.action === "email" ? (s.action as "print" | "email") : undefined,
+  }),
   component: InvoiceDetail,
 });
 
 function InvoiceDetail() {
   const { invoiceId } = Route.useParams();
+  const { action } = Route.useSearch();
   const nav = useNavigate();
   const qc = useQueryClient();
   const { isAdmin, user } = useCurrentUser();
@@ -358,6 +362,20 @@ function InvoiceDetail() {
     ].join("\n");
     window.location.href = `mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
   }
+
+  // Handle ?action=print|email passed in from "Create & print/email" on the new-invoice page.
+  const actionFiredRef = useRef(false);
+  useEffect(() => {
+    if (!action || actionFiredRef.current) return;
+    actionFiredRef.current = true;
+    const t = setTimeout(() => {
+      if (action === "print") window.print();
+      else if (action === "email") emailInvoice();
+      nav({ to: "/invoices/$invoiceId", params: { invoiceId }, search: {}, replace: true });
+    }, 350);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [action]);
 
   const canDelete = isAdmin && (inv.status ?? "").toLowerCase() === "draft";
 

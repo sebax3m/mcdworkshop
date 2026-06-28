@@ -6,9 +6,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Plus, Trash2, Search, GripVertical, BookOpen, X } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, Search, GripVertical, BookOpen, X, Mail, Printer } from "lucide-react";
 import { toast } from "sonner";
 import { fullBike } from "@/lib/format";
+import logoAsset from "@/assets/motorcycle-doctors-logo.png.asset.json";
 
 export const Route = createFileRoute("/_authenticated/invoices/new")({
   component: NewInvoice,
@@ -42,6 +43,14 @@ function NewInvoice() {
   const [ncPhone, setNcPhone] = useState("");
   const [ncEmail, setNcEmail] = useState("");
   const [creatingCustomer, setCreatingCustomer] = useState(false);
+
+  const [showNewBike, setShowNewBike] = useState(false);
+  const [nbMake, setNbMake] = useState("");
+  const [nbModel, setNbModel] = useState("");
+  const [nbYear, setNbYear] = useState("");
+  const [nbRego, setNbRego] = useState("");
+  const [nbColor, setNbColor] = useState("");
+  const [creatingBike, setCreatingBike] = useState(false);
 
   const [invoiceDate, setInvoiceDate] = useState<string>(today);
   const [notes, setNotes] = useState<string>("");
@@ -169,7 +178,31 @@ function NewInvoice() {
     setNcFirst(""); setNcLast(""); setNcPhone(""); setNcEmail("");
   }
 
-  async function save() {
+  async function createBike() {
+    if (!customerId) { toast.error("Pick a customer first"); return; }
+    if (!nbMake.trim() || !nbModel.trim()) { toast.error("Make and model required"); return; }
+    setCreatingBike(true);
+    const { data, error } = await (supabase as any)
+      .from("motorcycles")
+      .insert({
+        customer_id: customerId,
+        make: nbMake.trim(),
+        model: nbModel.trim(),
+        year: nbYear ? Number(nbYear) : null,
+        rego: nbRego.trim().toUpperCase() || null,
+        color: nbColor.trim() || null,
+      })
+      .select("*").maybeSingle();
+    setCreatingBike(false);
+    if (error || !data) { toast.error(error?.message ?? "Failed"); return; }
+    toast.success("Bike added");
+    await bikes.refetch();
+    setBikeId(data.id);
+    setShowNewBike(false);
+    setNbMake(""); setNbModel(""); setNbYear(""); setNbRego(""); setNbColor("");
+  }
+
+  async function save(postAction: "view" | "print" | "email" = "view") {
     const cleanLines = lines
       .map((l) => ({
         item_code: l.item_code.trim(),
@@ -226,22 +259,34 @@ function NewInvoice() {
     setSaving(false);
     if (error || !data) { toast.error(error?.message ?? "Failed"); return; }
     toast.success(`Invoice ${data.invoice_number} created`);
-    nav({ to: "/invoices/$invoiceId", params: { invoiceId: data.id } });
+    nav({
+      to: "/invoices/$invoiceId",
+      params: { invoiceId: data.id },
+      search: postAction === "view" ? undefined : { action: postAction },
+    });
   }
 
   const selectedCustomer = (customers.data ?? []).find((c: any) => c.id === customerId);
 
   return (
     <div className="space-y-5 max-w-5xl mx-auto">
-      <header className="flex items-center gap-3">
-        <button onClick={() => nav({ to: "/invoices" })} className="grid h-9 w-9 place-items-center rounded-lg border border-border">
+      <header className="flex items-start gap-3">
+        <button onClick={() => nav({ to: "/invoices" })} className="grid h-9 w-9 place-items-center rounded-lg border border-border mt-1">
           <ArrowLeft className="h-4 w-4" />
         </button>
-        <div className="min-w-0 flex-1">
-          <div className="text-xs uppercase tracking-[0.25em] text-muted-foreground">Billing</div>
-          <h1 className="font-display text-2xl sm:text-3xl font-bold truncate">New Invoice</h1>
-          <div className="text-sm text-muted-foreground mt-0.5">
-            Invoice # <span className="font-mono font-semibold text-foreground">{nextInvoiceNumber.data ?? "…"}</span>
+        <div className="flex items-center gap-3 min-w-0 flex-1">
+          <img src={logoAsset.url} alt="Motorcycle Doctors" className="h-12 w-12 rounded-lg object-contain bg-background/40 border border-border p-1 shrink-0" />
+          <div className="min-w-0">
+            <div className="text-xs uppercase tracking-[0.25em] text-muted-foreground">Billing</div>
+            <h1 className="font-display text-2xl sm:text-3xl font-bold truncate">New Invoice</h1>
+          </div>
+        </div>
+        <div className="text-right shrink-0">
+          <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Invoice #</div>
+          <div className="font-mono font-semibold text-sm">{nextInvoiceNumber.data ?? "…"}</div>
+          <div className="mt-2">
+            <Label className="text-[10px] uppercase tracking-wider text-muted-foreground">Invoice date</Label>
+            <Input type="date" value={invoiceDate} onChange={(e) => setInvoiceDate(e.target.value)} className="h-8 w-[160px] text-sm" />
           </div>
         </div>
       </header>
@@ -305,10 +350,41 @@ function NewInvoice() {
             )}
           </div>
         )}
+      </section>
 
-        {customerId && (
-          <div>
-            <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Bike (optional)</div>
+      {/* Bike */}
+      <section className="card-surface p-4 space-y-3">
+        <div className="flex items-center justify-between">
+          <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Bike (optional)</div>
+          {customerId && (
+            <button
+              type="button"
+              onClick={() => setShowNewBike((v) => !v)}
+              className="text-xs text-primary hover:underline"
+            >
+              {showNewBike ? "Cancel" : "+ New bike"}
+            </button>
+          )}
+        </div>
+
+        {!customerId ? (
+          <div className="text-xs text-muted-foreground">Select a customer above to assign a bike.</div>
+        ) : (
+          <>
+            {showNewBike && (
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 p-3 rounded-lg border border-border bg-muted/30">
+                <Input placeholder="Make *" value={nbMake} onChange={(e) => setNbMake(e.target.value)} />
+                <Input placeholder="Model *" value={nbModel} onChange={(e) => setNbModel(e.target.value)} />
+                <Input placeholder="Year" type="number" value={nbYear} onChange={(e) => setNbYear(e.target.value)} />
+                <Input placeholder="Rego" value={nbRego} onChange={(e) => setNbRego(e.target.value)} />
+                <Input placeholder="Colour" value={nbColor} onChange={(e) => setNbColor(e.target.value)} />
+                <div className="flex justify-end items-end">
+                  <Button size="sm" onClick={createBike} disabled={creatingBike}>
+                    {creatingBike ? "Saving…" : "Add bike"}
+                  </Button>
+                </div>
+              </div>
+            )}
             <select
               value={bikeId ?? ""}
               onChange={(e) => setBikeId(e.target.value || null)}
@@ -319,17 +395,10 @@ function NewInvoice() {
                 <option key={b.id} value={b.id}>{fullBike(b as any)}{b.rego ? ` · ${b.rego}` : ""}</option>
               ))}
             </select>
-          </div>
+          </>
         )}
       </section>
 
-      {/* Invoice meta */}
-      <section className="card-surface p-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <div>
-          <Label className="text-xs">Invoice date</Label>
-          <Input type="date" value={invoiceDate} onChange={(e) => setInvoiceDate(e.target.value)} />
-        </div>
-      </section>
 
       {/* Line items */}
       <section className="card-surface p-4">
@@ -500,12 +569,19 @@ function NewInvoice() {
         <Textarea rows={3} value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Optional notes for the customer" />
       </section>
 
-      <div className="flex items-center justify-end gap-2">
-        <Link to="/invoices" className="text-sm text-muted-foreground hover:text-foreground">Cancel</Link>
-        <Button onClick={save} disabled={saving} className="red-surface">
+      <div className="flex items-center justify-end gap-2 flex-wrap">
+        <Link to="/invoices" className="text-sm text-muted-foreground hover:text-foreground mr-auto">Cancel</Link>
+        <Button onClick={() => save("email")} disabled={saving} variant="outline" className="gap-2">
+          <Mail className="h-4 w-4" /> Create & email
+        </Button>
+        <Button onClick={() => save("print")} disabled={saving} variant="outline" className="gap-2">
+          <Printer className="h-4 w-4" /> Create & print
+        </Button>
+        <Button onClick={() => save("view")} disabled={saving} className="red-surface">
           {saving ? "Creating…" : "Create invoice"}
         </Button>
       </div>
+
 
       {/* Inventory library picker */}
       {libraryOpenForIdx !== null && (
