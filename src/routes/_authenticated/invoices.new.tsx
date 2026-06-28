@@ -123,16 +123,17 @@ function NewInvoice() {
     const gstAmt = Math.round((subInc * GST_RATE / (1 + GST_RATE)) * 100) / 100;
     const totalAmt = Math.round(subInc * 100) / 100;
 
-    const year = new Date().getFullYear();
+    const yr = new Date().getFullYear();
     const { data: last } = await supabase
       .from("invoices")
       .select("invoice_number")
-      .like("invoice_number", `APX-${year}-%`)
+      .like("invoice_number", `APX-${yr}-%`)
       .order("invoice_number", { ascending: false })
       .limit(1)
       .maybeSingle();
-    const nextSeq = last?.invoice_number ? Number(last.invoice_number.split("-").pop()) + 1 : 1;
-    const invoice_number = `APX-${year}-${String(nextSeq).padStart(5, "0")}`;
+    const lastSeq = last?.invoice_number ? Number(last.invoice_number.split("-").pop()) : 0;
+    const nextSeq = Math.max(lastSeq + 1, 1000);
+    const invoice_number = `APX-${yr}-${String(nextSeq).padStart(5, "0")}`;
 
     const { data, error } = await supabase
       .from("invoices")
