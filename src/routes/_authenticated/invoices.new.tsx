@@ -49,6 +49,23 @@ function NewInvoice() {
     queryFn: async () => (await supabase.from("motorcycles").select("*").eq("customer_id", customerId!)).data ?? [],
   });
 
+  const year = new Date().getFullYear();
+  const nextInvoiceNumber = useQuery({
+    queryKey: ["next-invoice-number", year],
+    queryFn: async () => {
+      const { data: last } = await supabase
+        .from("invoices")
+        .select("invoice_number")
+        .like("invoice_number", `APX-${year}-%`)
+        .order("invoice_number", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      const lastSeq = last?.invoice_number ? Number(last.invoice_number.split("-").pop()) : 0;
+      const nextSeq = Math.max(lastSeq + 1, 1000);
+      return `APX-${year}-${String(nextSeq).padStart(5, "0")}`;
+    },
+  });
+
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     const list = customers.data ?? [];
