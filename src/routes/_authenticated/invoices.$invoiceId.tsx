@@ -810,12 +810,12 @@ function InvoiceDetail() {
                     <li key={it.id}>
                       <button
                         onClick={async () => {
-                          const price = Number(it.retail_price ?? it.cost_price ?? 0);
+                          const price = Number(it.unit_price ?? 0);
                           const name = [it.sku, it.name].filter(Boolean).join(" — ");
                           if (libraryTarget?.kind === "snapshot") {
                             await updateSnapshotLine(libraryTarget.idx, { description: name, unit: price });
                           } else if (libraryTarget?.kind === "part") {
-                            await updatePart(libraryTarget.id, { name, retail: price, supplier: it.brand ?? null });
+                            await updatePart(libraryTarget.id, { name, retail: price, supplier: it.brand ?? "" });
                           }
                           setLibraryTarget(null);
                         }}
@@ -828,7 +828,7 @@ function InvoiceDetail() {
                           </div>
                         </div>
                         <div className="text-sm font-semibold tabular-nums">
-                          ${Number(it.retail_price ?? 0).toFixed(2)}
+                          ${Number(it.unit_price ?? 0).toFixed(2)}
                         </div>
                       </button>
                     </li>
