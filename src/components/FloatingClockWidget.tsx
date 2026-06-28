@@ -53,14 +53,33 @@ export function FloatingClockWidget() {
     return null;
   })();
 
+  // Fallback: active timer from time_entries (in case clock_events hasn't synced yet)
+  const activeTimerJob = useQuery({
+    queryKey: ["clock-floating-timer-job", user?.id],
+    enabled: !!user && state !== "off",
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("time_entries")
+        .select("job_id")
+        .eq("technician_id", user!.id)
+        .is("ended_at", null)
+        .order("started_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      return data?.job_id as string | null;
+    },
+  });
+
+  const resolvedJobId = activeJobId ?? activeTimerJob.data ?? null;
+
   const job = useQuery({
-    queryKey: ["clock-floating-job", activeJobId],
-    enabled: !!activeJobId,
+    queryKey: ["clock-floating-job", resolvedJobId],
+    enabled: !!resolvedJobId,
     queryFn: async () => {
       const { data } = await supabase
         .from("jobs")
         .select("id, job_number, complaint, bikes(make, model)")
-        .eq("id", activeJobId!)
+        .eq("id", resolvedJobId!)
         .maybeSingle();
       return data;
     },
