@@ -93,7 +93,7 @@ function NewBooking() {
   }, [customers.data, search$]);
 
   async function createCustomer() {
-    if (!ncFirst.trim() || !ncLast.trim()) return toast.error("First and last name required");
+    if (!ncFirst.trim()) return toast.error("First name required");
     setCreatingCustomer(true);
     try {
       const { data, error } = await supabase
