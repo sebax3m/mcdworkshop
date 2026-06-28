@@ -153,28 +153,41 @@ export function FloatingClockWidget() {
             : "color-mix(in srgb, hsl(var(--primary)) 18%, transparent)",
         }}
       >
-        <Link
-          to={resolvedJobId ? "/jobs/$jobId" : "/clock"}
-          params={resolvedJobId ? { jobId: resolvedJobId } : undefined}
-          className="w-full text-left px-4 py-3 pr-10 cursor-pointer hover:bg-foreground/5 transition-colors"
-          aria-label={resolvedJobId ? `Open Job Card ${jobNumber ? `#${jobNumber}` : ""}` : "Open clock"}
-        >
-          <div className="flex items-center gap-2 text-[10px] uppercase tracking-widest text-foreground/80">
-            {isBreak ? <Coffee className="h-3 w-3" /> : <Clock className="h-3 w-3" />}
-            {isBreak ? "On break" : "Clocked in"}
-          </div>
-          <div className="font-display text-2xl font-bold tabular-nums leading-tight mt-0.5 text-foreground">
-            {time}
-          </div>
-          {resolvedJobId ? (
+        {resolvedJobId ? (
+          <Link
+            to="/jobs/$jobId"
+            params={{ jobId: resolvedJobId }}
+            className="block w-full text-left px-4 py-3 pr-10 cursor-pointer hover:bg-foreground/5 transition-colors"
+            aria-label={`Open Job Card ${jobNumber ? `#${jobNumber}` : ""}`}
+          >
+            <div className="flex items-center gap-2 text-[10px] uppercase tracking-widest text-foreground/80">
+              {isBreak ? <Coffee className="h-3 w-3" /> : <Clock className="h-3 w-3" />}
+              {isBreak ? "On break" : "Clocked in"}
+            </div>
+            <div className="font-display text-2xl font-bold tabular-nums leading-tight mt-0.5 text-foreground">
+              {time}
+            </div>
             <div className="mt-2 flex items-center gap-1.5 text-sm font-bold text-primary">
               <Wrench className="h-3.5 w-3.5" />
               <span className="truncate">Open Job Card {jobNumber ? `#${jobNumber}` : "#…"}</span>
             </div>
-          ) : (
+          </Link>
+        ) : (
+          <Link
+            to="/clock"
+            className="block w-full text-left px-4 py-3 pr-10 cursor-pointer hover:bg-foreground/5 transition-colors"
+            aria-label="Open clock"
+          >
+            <div className="flex items-center gap-2 text-[10px] uppercase tracking-widest text-foreground/80">
+              {isBreak ? <Coffee className="h-3 w-3" /> : <Clock className="h-3 w-3" />}
+              {isBreak ? "On break" : "Clocked in"}
+            </div>
+            <div className="font-display text-2xl font-bold tabular-nums leading-tight mt-0.5 text-foreground">
+              {time}
+            </div>
             <div className="mt-1 text-xs text-foreground/70">Select a job card</div>
-          )}
-        </Link>
+          </Link>
+        )}
         <button
           type="button"
           aria-label="Move floating clock"
