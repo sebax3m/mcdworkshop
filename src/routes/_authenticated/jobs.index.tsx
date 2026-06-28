@@ -164,7 +164,7 @@ function JobsList() {
           {filtered.map((j: any) => {
             const meta = STATUS_META[j.status];
             const isSelected = selected.has(j.id);
-            const rowClass = `card-surface p-4 flex items-center gap-3 transition-colors ${
+            const baseRowClass = `card-surface p-4 flex items-center gap-3 transition-colors ${
               selectMode
                 ? isSelected
                   ? "border-primary/60 bg-primary/5 cursor-pointer"
@@ -201,15 +201,31 @@ function JobsList() {
             );
             if (selectMode) {
               return (
-                <div key={j.id} className={rowClass} onClick={() => toggle(j.id)}>
+                <div key={j.id} className={baseRowClass} onClick={() => toggle(j.id)}>
                   {inner}
                 </div>
               );
             }
             return (
-              <Link key={j.id} to="/jobs/$jobId" params={{ jobId: j.id }} className={rowClass}>
-                {inner}
-              </Link>
+              <div key={j.id} className="relative group">
+                {isAdmin && (
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setDeleteJobId(j.id);
+                      setConfirmOpen(true);
+                    }}
+                    className="absolute right-2 top-2 z-10 rounded-full bg-destructive text-destructive-foreground p-1 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-destructive/90"
+                    title="Delete job"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                )}
+                <Link to="/jobs/$jobId" params={{ jobId: j.id }} className={baseRowClass}>
+                  {inner}
+                </Link>
+              </div>
             );
           })}
         </div>
