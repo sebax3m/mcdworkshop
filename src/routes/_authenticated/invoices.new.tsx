@@ -89,6 +89,16 @@ function NewInvoice() {
   function removeLine(idx: number) {
     setLines((arr) => arr.filter((_, i) => i !== idx));
   }
+  const [dragIdx, setDragIdx] = useState<number | null>(null);
+  function reorder(from: number, to: number) {
+    if (from === to) return;
+    setLines((arr) => {
+      const next = arr.slice();
+      const [item] = next.splice(from, 1);
+      next.splice(to, 0, item);
+      return next;
+    });
+  }
 
   async function createCustomer() {
     if (!ncFirst.trim()) { toast.error("First name required"); return; }
