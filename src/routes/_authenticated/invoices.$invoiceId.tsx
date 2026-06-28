@@ -270,6 +270,34 @@ function InvoiceDetail() {
     await supabase.from("invoices").update({ parts_total: partsSum, gst, total }).eq("id", invoiceId);
     qc.invalidateQueries({ queryKey: ["invoice", invoiceId] });
   }
+
+  async function saveSnapshotLines(items: { description: string; quantity: number; unit: number }[]) {
+    const partsSum = items.reduce((s, l) => s + Number(l.unit || 0) * Number(l.quantity || 0), 0);
+    const subtotal = partsSum; // labour stays 0 for standalone
+    const gst = Math.round((subtotal * GST_RATE / (1 + GST_RATE)) * 100) / 100;
+    const total = Math.round(subtotal * 100) / 100;
+    const newSnap = { ...((inv.snapshot as any) ?? {}), line_items: items };
+    const { error } = await supabase
+      .from("invoices")
+      .update({ snapshot: newSnap, parts_total: partsSum, gst, total })
+      .eq("id", invoiceId);
+    if (error) { toast.error(error.message); return; }
+    qc.invalidateQueries({ queryKey: ["invoice", invoiceId] });
+  }
+  function currentSnapshotLines(): { description: string; quantity: number; unit: number }[] {
+    const items = (inv.snapshot as any)?.line_items;
+    return Array.isArray(items) ? items : [];
+  }
+  async function addSnapshotLine() {
+    await saveSnapshotLines([...currentSnapshotLines(), { description: "New item", quantity: 1, unit: 0 }]);
+  }
+  async function updateSnapshotLine(idx: number, patch: Partial<{ description: string; quantity: number; unit: number }>) {
+    const items = currentSnapshotLines().map((it, i) => (i === idx ? { ...it, ...patch } : it));
+    await saveSnapshotLines(items);
+  }
+  async function removeSnapshotLine(idx: number) {
+    await saveSnapshotLines(currentSnapshotLines().filter((_, i) => i !== idx));
+  }
   const customer = inv.customers;
   const bike = inv.motorcycles;
   const issuedAt = new Date(inv.created_at);
@@ -457,7 +485,7 @@ function InvoiceDetail() {
                 </tr>
               </thead>
               <tbody>
-                {(() => {
+                {inv.job_id && (() => {
                   const rate = LABOUR_RATE;
                   const hours = Number(inv.labour_total) / rate;
                   const delta = hours - defaultHours;
@@ -493,7 +521,7 @@ function InvoiceDetail() {
                     </tr>
                   );
                 })()}
-                {(parts.data ?? []).map((p: any) => {
+                {inv.job_id && (parts.data ?? []).map((p: any) => {
                   const unit = Number(p.retail ?? 0);
                   const qty = Number(p.quantity ?? 1);
                   return (
@@ -518,10 +546,54 @@ function InvoiceDetail() {
                     </tr>
                   );
                 })}
-                {Number(inv.labour_total) === 0 && (parts.data ?? []).length === 0 && (
+                {!inv.job_id && (() => {
+                  const items: { description: string; quantity: number; unit: number }[] =
+                    Array.isArray((inv.snapshot as any)?.line_items) ? (inv.snapshot as any).line_items : [];
+                  if (items.length === 0) {
+                    return (
+                      <tr><td colSpan={4} className="py-6 text-center text-xs text-muted-foreground">
+                        No line items. <button onClick={() => addSnapshotLine()} className="text-primary underline no-print">Add one</button>
+                      </td></tr>
+                    );
+                  }
+                  return items.map((it, idx) => (
+                    <tr key={idx} className="border-b border-border/40 group">
+                      <td className="py-3">
+                        <EditableText value={it.description} onCommit={(v) => updateSnapshotLine(idx, { description: v })} className="font-medium" />
+                      </td>
+                      <td className="py-3 text-right">
+                        <EditableNumber value={Number(it.quantity)} decimals={0} onCommit={(n) => updateSnapshotLine(idx, { quantity: n })} />
+                      </td>
+                      <td className="py-3 text-right">
+                        <EditableNumber value={Number(it.unit)} prefix="$" onCommit={(n) => updateSnapshotLine(idx, { unit: n })} />
+                      </td>
+                      <td className="py-3 text-right font-semibold">
+                        <span className="tabular-nums">${(Number(it.unit) * Number(it.quantity)).toFixed(2)}</span>
+                        <button
+                          onClick={() => removeSnapshotLine(idx)}
+                          className="ml-2 no-print opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive"
+                          title="Remove line"
+                        >
+                          <Trash2 className="h-3.5 w-3.5 inline" />
+                        </button>
+                      </td>
+                    </tr>
+                  ));
+                })()}
+                {!inv.job_id && (
+                  <tr className="no-print">
+                    <td colSpan={4} className="pt-2">
+                      <button onClick={() => addSnapshotLine()} className="text-xs text-primary hover:underline inline-flex items-center gap-1">
+                        <Plus className="h-3 w-3" /> Add line item
+                      </button>
+                    </td>
+                  </tr>
+                )}
+                {inv.job_id && Number(inv.labour_total) === 0 && (parts.data ?? []).length === 0 && (
                   <tr><td colSpan={4} className="py-6 text-center text-xs text-muted-foreground">No line items</td></tr>
                 )}
               </tbody>
+
             </table>
           </div>
 

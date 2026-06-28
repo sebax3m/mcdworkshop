@@ -54,6 +54,14 @@ export function AppShell() {
             )}
             {isAdmin && (
               <Link
+                to="/invoices/new"
+                className="hidden sm:inline-flex items-center gap-1.5 rounded-lg red-surface px-3 py-2 text-sm font-semibold hover:scale-[1.02] transition-transform"
+              >
+                Invoice
+              </Link>
+            )}
+            {isAdmin && (
+              <Link
                 to="/jobs/new"
                 className="hidden sm:inline-flex items-center gap-1.5 rounded-lg red-surface px-3 py-2 text-sm font-semibold hover:scale-[1.02] transition-transform"
               >
