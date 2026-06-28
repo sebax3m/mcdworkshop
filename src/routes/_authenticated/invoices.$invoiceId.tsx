@@ -655,7 +655,16 @@ function InvoiceDetail() {
                     return (
                       <tr key={idx} className="border-b border-border/40 group">
                         <td className="py-3">
-                          <EditableText value={it.description} onCommit={(v) => updateSnapshotLine(idx, { description: v })} className="font-medium" />
+                          <div className="flex items-start gap-2">
+                            <div className="flex-1"><EditableText value={it.description} onCommit={(v) => updateSnapshotLine(idx, { description: v })} className="font-medium" /></div>
+                            <button
+                              onClick={() => { setLibrarySearch(""); setLibraryTarget({ kind: "snapshot", idx }); }}
+                              className="no-print shrink-0 rounded border border-border p-1 text-muted-foreground hover:text-foreground hover:border-primary"
+                              title="Pick from inventory library"
+                            >
+                              <BookOpen className="h-3.5 w-3.5" />
+                            </button>
+                          </div>
                         </td>
                         <td className="py-3 text-right">
                           <EditableNumber value={Number(it.quantity)} decimals={0} onCommit={(n) => updateSnapshotLine(idx, { quantity: n })} />
