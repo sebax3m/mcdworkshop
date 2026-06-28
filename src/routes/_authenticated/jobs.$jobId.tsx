@@ -145,7 +145,7 @@ function JobDetail() {
       : trackedHours;
     const labour = Math.round(billedHours * LABOUR_RATE * 100) / 100;
     const parts = (partsUsed.data ?? []).reduce(
-      (s, p: any) => s + Number(p.retail ?? 0) * Number(p.quantity ?? 1),
+      (s, p: any) => s + Number(p.retail ?? 0) * Number(p.quantity ?? 1) * (1 - Number(p.discount_pct ?? 0) / 100),
       0,
     );
     const subtotal = labour + parts; // inc GST
