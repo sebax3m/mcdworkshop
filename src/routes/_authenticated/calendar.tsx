@@ -675,6 +675,40 @@ function CalendarPage() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      <AlertDialog open={!!deleteBooking} onOpenChange={(o) => !o && setDeleteBooking(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete this booking?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {deleteBooking && (
+                <>
+                  Are you sure you want to delete the booking for{" "}
+                  <span className="font-semibold text-foreground">
+                    {deleteBooking.customers
+                      ? `${deleteBooking.customers.first_name} ${deleteBooking.customers.last_name}`
+                      : "this customer"}
+                  </span>{" "}
+                  on{" "}
+                  <span className="font-semibold text-foreground">
+                    {format(new Date(deleteBooking.scheduled_date + "T00:00:00"), "EEE d MMM yyyy")}
+                  </span>
+                  ? This cannot be undone.
+                </>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDeleteBooking}
+              className="bg-status-parts text-white hover:bg-status-parts/90"
+            >
+              Delete booking
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
