@@ -258,10 +258,11 @@ function JobDetail() {
             <div className="min-w-0">
               <div className="text-[10px] uppercase tracking-[0.25em] text-gray-600">Motorcycle Doctors · Job Card</div>
               <h1 className="font-display text-2xl font-bold leading-tight">{j.title}</h1>
-            <div className="text-xs text-gray-700 mt-1">
-              {kindMeta.label}
-              {j.estimated_hours ? ` · Est. ${j.estimated_hours}h` : ""}
-              {" · "}Booked {j.scheduled_at ? new Date(j.scheduled_at).toLocaleDateString() : "—"}
+              <div className="text-xs text-gray-700 mt-1">
+                {kindMeta.label}
+                {j.estimated_hours ? ` · Est. ${j.estimated_hours}h` : ""}
+                {" · "}Booked {j.scheduled_at ? new Date(j.scheduled_at).toLocaleDateString() : "—"}
+              </div>
             </div>
           </div>
           <div className="text-right shrink-0">
