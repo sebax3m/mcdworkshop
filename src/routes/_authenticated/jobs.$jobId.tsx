@@ -1252,3 +1252,81 @@ function ValveClearancePrintSheet({
     </div>
   );
 }
+
+function OdometerSection({
+  jobId,
+  bikeId,
+  currentOdo,
+  bikeMileage,
+  canEdit,
+  onSaved,
+}: {
+  jobId: string;
+  bikeId?: string;
+  currentOdo: number | null;
+  bikeMileage: number | null;
+  canEdit: boolean;
+  onSaved: () => void;
+}) {
+  const initial = currentOdo ?? bikeMileage ?? null;
+  const [value, setValue] = useState<string>(initial != null ? String(initial) : "");
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    const v = currentOdo ?? bikeMileage ?? null;
+    setValue(v != null ? String(v) : "");
+  }, [currentOdo, bikeMileage]);
+
+  async function save() {
+    const km = value ? parseInt(value.replace(/\D/g, "")) : null;
+    setSaving(true);
+    try {
+      const { error } = await supabase.from("jobs").update({ odometer: km }).eq("id", jobId);
+      if (error) throw error;
+      if (bikeId && km != null) {
+        await supabase.from("motorcycles").update({ mileage: km }).eq("id", bikeId);
+      }
+      toast.success("Kilometers saved");
+      onSaved();
+    } catch (e: any) {
+      toast.error(e?.message ?? "Failed to save");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  const display = value ? Number(value.replace(/\D/g, "")).toLocaleString() : "";
+
+  return (
+    <div className="card-surface p-4 print:hidden">
+      <div className="flex items-center justify-between gap-3 flex-wrap">
+        <div>
+          <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Kilometers (odometer)</div>
+          <div className="text-xs text-muted-foreground mt-0.5">
+            Technician — enter the bike's current km reading at intake.
+            {bikeMileage != null && (
+              <> Last recorded: <span className="font-semibold text-foreground">{bikeMileage.toLocaleString()} km</span></>
+            )}
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="relative">
+            <Input
+              inputMode="numeric"
+              placeholder="e.g. 24,500"
+              value={display}
+              onChange={(e) => setValue(e.target.value.replace(/\D/g, ""))}
+              disabled={!canEdit || saving}
+              className="pr-12 w-44 h-11 font-mono text-base"
+            />
+            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground font-semibold pointer-events-none">km</span>
+          </div>
+          <Button onClick={save} disabled={!canEdit || saving} className="h-11 px-4 font-bold">
+            {saving ? "Saving…" : "Save km"}
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
