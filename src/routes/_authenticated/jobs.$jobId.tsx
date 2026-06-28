@@ -717,7 +717,66 @@ function ServiceTemplateSection({
           <p className="text-sm text-muted-foreground text-center py-4">Pick a template above to load the checklist.</p>
         )}
       </div>
+
+      {canEdit && (
+        <AddCustomCheck
+          jobId={jobId}
+          nextOrder={tasks.length}
+          onAdded={onNoteSaved}
+        />
+      )}
     </section>
+  );
+}
+
+function AddCustomCheck({ jobId, nextOrder, onAdded }: { jobId: string; nextOrder: number; onAdded: () => void }) {
+  const [open, setOpen] = useState(false);
+  const [label, setLabel] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  async function save() {
+    const v = label.trim();
+    if (!v) return;
+    setSaving(true);
+    const { error } = await supabase.from("job_tasks").insert({
+      job_id: jobId, label: v, sort_order: nextOrder,
+    } as any);
+    setSaving(false);
+    if (error) return toast.error(error.message);
+    setLabel("");
+    setOpen(false);
+    onAdded();
+  }
+
+  if (!open) {
+    return (
+      <div className="mt-3 print:hidden">
+        <button
+          onClick={() => setOpen(true)}
+          className="text-xs font-semibold text-primary inline-flex items-center gap-1 hover:underline"
+        >
+          <Plus className="h-3 w-3" /> Add custom check (e.g. final drive)
+        </button>
+      </div>
+    );
+  }
+  return (
+    <div className="mt-3 flex items-center gap-2 print:hidden">
+      <Input
+        autoFocus
+        value={label}
+        onChange={(e) => setLabel(e.target.value)}
+        onKeyDown={(e) => { if (e.key === "Enter") save(); if (e.key === "Escape") setOpen(false); }}
+        placeholder="Custom check item…"
+        className="h-9 text-sm"
+      />
+      <Button onClick={save} disabled={saving || !label.trim()} size="sm" className="gold-surface">
+        <Check className="h-3.5 w-3.5 mr-1" /> Add
+      </Button>
+      <Button onClick={() => { setOpen(false); setLabel(""); }} variant="ghost" size="sm">
+        <X className="h-3.5 w-3.5" />
+      </Button>
+    </div>
   );
 }
 
