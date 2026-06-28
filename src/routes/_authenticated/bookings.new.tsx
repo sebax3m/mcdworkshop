@@ -577,9 +577,14 @@ function NewBooking() {
             )}
           </section>
 
-          <Button onClick={save} disabled={saving} className="w-full h-14 gold-surface text-base font-bold">
-            {saving ? "Saving…" : "Create Booking"}
-          </Button>
+          <div className="grid sm:grid-cols-2 gap-3">
+            <Button onClick={() => save(false)} disabled={saving} variant="outline" className="w-full h-14 text-base font-bold">
+              {saving ? "Saving…" : "Create Booking"}
+            </Button>
+            <Button onClick={() => save(true)} disabled={saving} className="w-full h-14 gold-surface text-base font-bold">
+              {saving ? "Saving…" : "Create & Open Job Card"}
+            </Button>
+          </div>
         </>
       )}
     </motion.div>
