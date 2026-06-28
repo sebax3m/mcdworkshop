@@ -397,7 +397,13 @@ function NewBooking() {
         <section className="card-surface p-4 space-y-3">
           <div className="flex items-center justify-between">
             <Label className="text-xs uppercase tracking-wider text-muted-foreground">Motorcycle</Label>
-            {bike && <button onClick={() => setBikeId(null)} className="text-xs text-muted-foreground hover:text-foreground">Change</button>}
+            {bike ? (
+              <button onClick={() => setBikeId(null)} className="text-xs text-muted-foreground hover:text-foreground">Change</button>
+            ) : (
+              <button onClick={() => setShowNewBike((v) => !v)} className="inline-flex items-center gap-1 text-xs text-primary font-semibold">
+                <Plus className="h-3 w-3" /> New bike
+              </button>
+            )}
           </div>
           {bike ? (
             <div className="flex items-center gap-3 rounded-xl bg-muted/60 p-3">
@@ -407,23 +413,47 @@ function NewBooking() {
                 <div className="text-xs text-muted-foreground truncate">{bike.rego ?? "no rego"}{bike.vin ? ` · VIN ${bike.vin.slice(-6)}` : ""}</div>
               </div>
             </div>
-          ) : bikes.isLoading ? (
-            <div className="text-sm text-muted-foreground">Loading bikes…</div>
-          ) : (bikes.data ?? []).length === 0 ? (
-            <Link to="/motorcycles" className="block text-center text-sm text-primary py-3">+ Add motorcycle for this customer</Link>
           ) : (
-            <div className="grid sm:grid-cols-2 gap-2">
-              {(bikes.data ?? []).map((b: any) => (
-                <button
-                  key={b.id}
-                  onClick={() => { setBikeId(b.id); if (b.mileage) setMileage(String(b.mileage)); if (b.wof_expiry) setWof(b.wof_expiry); }}
-                  className="text-left rounded-xl border border-border p-3 hover:border-primary/50 transition-colors"
-                >
-                  <div className="font-semibold text-sm truncate">{fullBike(b)}</div>
-                  <div className="text-xs text-muted-foreground truncate">{b.rego || "—"}</div>
-                </button>
-              ))}
-            </div>
+            <>
+              {showNewBike && (
+                <div className="rounded-xl border border-primary/40 bg-primary/5 p-3 space-y-2">
+                  <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Add motorcycle for {customer.first_name}</div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <Input placeholder="Make" value={nbMake} onChange={(e) => setNbMake(e.target.value)} />
+                    <Input placeholder="Model" value={nbModel} onChange={(e) => setNbModel(e.target.value)} />
+                    <Input placeholder="Year" inputMode="numeric" value={nbYear} onChange={(e) => setNbYear(e.target.value)} />
+                    <Input placeholder="Rego (plate)" value={nbRego} onChange={(e) => setNbRego(e.target.value)} />
+                    <Input placeholder="Colour (optional)" value={nbColor} onChange={(e) => setNbColor(e.target.value)} className="col-span-2" />
+                  </div>
+                  <div className="flex justify-end gap-2 pt-1">
+                    <button onClick={() => setShowNewBike(false)} className="text-xs px-3 py-1.5 rounded-lg text-muted-foreground hover:text-foreground">Cancel</button>
+                    <Button onClick={createBike} disabled={creatingBike} size="sm" className="gold-surface font-bold">
+                      {creatingBike ? "Saving…" : "Add Motorcycle"}
+                    </Button>
+                  </div>
+                </div>
+              )}
+              {bikes.isLoading ? (
+                <div className="text-sm text-muted-foreground">Loading bikes…</div>
+              ) : (bikes.data ?? []).length === 0 ? (
+                !showNewBike && (
+                  <button onClick={() => setShowNewBike(true)} className="block w-full text-center text-sm text-primary py-3">+ Add motorcycle for this customer</button>
+                )
+              ) : (
+                <div className="grid sm:grid-cols-2 gap-2">
+                  {(bikes.data ?? []).map((b: any) => (
+                    <button
+                      key={b.id}
+                      onClick={() => { setBikeId(b.id); if (b.mileage) setMileage(String(b.mileage)); if (b.wof_expiry) setWof(b.wof_expiry); }}
+                      className="text-left rounded-xl border border-border p-3 hover:border-primary/50 transition-colors"
+                    >
+                      <div className="font-semibold text-sm truncate">{fullBike(b)}</div>
+                      <div className="text-xs text-muted-foreground truncate">{b.rego || "—"}</div>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </>
           )}
         </section>
       )}
