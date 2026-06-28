@@ -44,7 +44,7 @@ function ClockPage() {
     queryFn: async () => {
       const { data } = await supabase
         .from("jobs")
-        .select("id, job_number, complaint, status, bikes(make, model, rego), customers(first_name, last_name)")
+        .select("id, job_number, complaint, status, motorcycles(make, model, rego), customers(first_name, last_name)")
         .neq("status", "completed")
         .order("job_number", { ascending: false })
         .limit(50);
@@ -75,7 +75,7 @@ function ClockPage() {
     queryFn: async () => {
       const { data } = await supabase
         .from("jobs")
-        .select("id, job_number, complaint, bikes(make, model)")
+        .select("id, job_number, complaint, motorcycles(make, model, rego)")
         .eq("id", activeJobId!)
         .maybeSingle();
       return data;
@@ -106,6 +106,31 @@ function ClockPage() {
       setPickingJob(true);
       return;
     }
+    if (type === "clock_in" && jobId) {
+      const { error: timerError } = await supabase
+        .from("time_entries")
+        .insert({ job_id: jobId, technician_id: user.id });
+      if (timerError) return toast.error(timerError.message);
+    }
+    if (type === "clock_out") {
+      const ended = new Date();
+      const { data: activeEntries } = await supabase
+        .from("time_entries")
+        .select("id, started_at")
+        .eq("technician_id", user.id)
+        .is("ended_at", null)
+        .order("started_at", { ascending: false })
+        .limit(1);
+      const activeEntry = activeEntries?.[0];
+      if (activeEntry) {
+        const minutes = Math.max(1, Math.round((+ended - +new Date(activeEntry.started_at)) / 60000));
+        const { error: timerError } = await supabase
+          .from("time_entries")
+          .update({ ended_at: ended.toISOString(), minutes })
+          .eq("id", activeEntry.id);
+        if (timerError) return toast.error(timerError.message);
+      }
+    }
     const payload: any = { user_id: user.id, event_type: type };
     if (type === "clock_in") payload.job_id = jobId;
     const { error } = await supabase.from("clock_events").insert(payload);
@@ -113,14 +138,40 @@ function ClockPage() {
     toast.success(type.replace("_", " "));
     qc.invalidateQueries({ queryKey: ["clock-events", user.id] });
     qc.invalidateQueries({ queryKey: ["clock-events-floating", user.id] });
+    qc.invalidateQueries({ queryKey: ["clock-floating-active-time-entry", user.id] });
     qc.invalidateQueries({ queryKey: ["dashboard-counts"] });
+  }
+
+  async function clockInFromSearch() {
+    const q = jobQuery.trim().replace(/^#/, "");
+    if (!q) return;
+
+    let pick = (openJobs.data ?? []).find((j: any) => String(j.job_number) === q)
+      ?? (filteredJobs.length === 1 ? filteredJobs[0] : null);
+
+    if (!pick && /^\d+$/.test(q)) {
+      const { data, error } = await supabase
+        .from("jobs")
+        .select("id, job_number, status")
+        .eq("job_number", Number(q))
+        .neq("status", "completed")
+        .maybeSingle();
+      if (error) return toast.error(error.message);
+      pick = data as any;
+    }
+
+    if (!pick) return toast.error("No active job card found for that number");
+    setPickingJob(false);
+    setJobQuery("");
+    await add("clock_in", pick.id);
   }
 
   const filteredJobs = (openJobs.data ?? []).filter((j: any) => {
     if (!jobQuery.trim()) return true;
     const q = jobQuery.toLowerCase();
-    const bike = j.bikes ? `${j.bikes.make ?? ""} ${j.bikes.model ?? ""}`.toLowerCase() : "";
-    const rego = j.bikes?.rego ? String(j.bikes.rego).toLowerCase() : "";
+    const bikeData = j.motorcycles ?? j.bikes;
+    const bike = bikeData ? `${bikeData.make ?? ""} ${bikeData.model ?? ""}`.toLowerCase() : "";
+    const rego = bikeData?.rego ? String(bikeData.rego).toLowerCase() : "";
     const cust = j.customers ? `${j.customers.first_name ?? ""} ${j.customers.last_name ?? ""}`.toLowerCase() : "";
     return String(j.job_number).includes(q) || bike.includes(q) || rego.includes(q.replace(/\s+/g, "")) || cust.includes(q) || (j.complaint ?? "").toLowerCase().includes(q);
   });
@@ -155,8 +206,8 @@ function ClockPage() {
           <div className="text-sm flex-1">
             <span className="text-muted-foreground">Working on </span>
             <span className="font-semibold">#{(activeJob.data as any).job_number}</span>
-            {(activeJob.data as any).bikes && (
-              <span className="text-muted-foreground"> · {(activeJob.data as any).bikes.make} {(activeJob.data as any).bikes.model}</span>
+            {((activeJob.data as any).motorcycles ?? (activeJob.data as any).bikes) && (
+              <span className="text-muted-foreground"> · {((activeJob.data as any).motorcycles ?? (activeJob.data as any).bikes).make} {((activeJob.data as any).motorcycles ?? (activeJob.data as any).bikes).model}</span>
             )}
           </div>
         </Link>
@@ -229,18 +280,8 @@ function ClockPage() {
             onChange={(e) => setJobQuery(e.target.value)}
             onKeyDown={async (e) => {
               if (e.key !== "Enter") return;
-              const q = jobQuery.trim();
-              if (!q) return;
-              // Exact job_number match first, then single filtered result
-              const exact = (openJobs.data ?? []).find((j: any) => String(j.job_number) === q);
-              const pick = exact ?? (filteredJobs.length === 1 ? filteredJobs[0] : null);
-              if (pick) {
-                setPickingJob(false);
-                setJobQuery("");
-                await add("clock_in", pick.id);
-              } else {
-                toast.error("No job found for that number");
-              }
+              e.preventDefault();
+              await clockInFromSearch();
             }}
           />
           <div className="max-h-[50vh] overflow-y-auto space-y-1 -mx-2">
@@ -260,9 +301,9 @@ function ClockPage() {
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex items-center gap-2 min-w-0">
                     <span className="font-semibold shrink-0">#{j.job_number}</span>
-                    {j.bikes?.rego && (
+                    {(j.motorcycles ?? j.bikes)?.rego && (
                       <span className="font-mono text-[11px] font-bold tracking-wider px-1.5 py-0.5 rounded bg-primary/15 text-primary border border-primary/30 shrink-0">
-                        {j.bikes.rego}
+                        {(j.motorcycles ?? j.bikes).rego}
                       </span>
                     )}
                   </div>
@@ -270,7 +311,7 @@ function ClockPage() {
                 </div>
                 <div className="text-xs text-muted-foreground truncate">
                   {j.customers ? `${j.customers.first_name ?? ""} ${j.customers.last_name ?? ""}` : ""}
-                  {j.bikes ? ` · ${j.bikes.make ?? ""} ${j.bikes.model ?? ""}` : ""}
+                  {(j.motorcycles ?? j.bikes) ? ` · ${(j.motorcycles ?? j.bikes).make ?? ""} ${(j.motorcycles ?? j.bikes).model ?? ""}` : ""}
                 </div>
                 {j.complaint && <div className="text-xs text-foreground/80 truncate mt-0.5">{j.complaint}</div>}
               </button>
@@ -279,6 +320,7 @@ function ClockPage() {
 
           <DialogFooter>
             <Button variant="ghost" onClick={() => setPickingJob(false)}>Cancel</Button>
+            <Button onClick={clockInFromSearch} disabled={!jobQuery.trim()}>Clock In</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

@@ -34,15 +34,33 @@ export function FloatingClockWidget() {
     return () => clearInterval(i);
   }, []);
 
+  const activeTimerJob = useQuery({
+    queryKey: ["clock-floating-active-time-entry", user?.id],
+    enabled: !!user,
+    refetchInterval: 5000,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("time_entries")
+        .select("job_id, started_at, jobs(id, job_number, complaint, motorcycles(make, model, rego))")
+        .eq("technician_id", user!.id)
+        .is("ended_at", null)
+        .order("started_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      return data;
+    },
+  });
+
   const list = events.data ?? [];
   const last = list[0];
-  const state: "off" | "on" | "break" = !last
+  const eventState: "off" | "on" | "break" = !last
     ? "off"
     : last.event_type === "clock_in" || last.event_type === "break_end"
     ? "on"
     : last.event_type === "break_start"
     ? "break"
     : "off";
+  const state: "off" | "on" | "break" = eventState === "off" && activeTimerJob.data ? "on" : eventState;
 
   // Find active job_id (latest clock_in in current shift)
   const activeJobId = (() => {
@@ -53,24 +71,8 @@ export function FloatingClockWidget() {
     return null;
   })();
 
-  // Fallback: active timer from time_entries (in case clock_events hasn't synced yet)
-  const activeTimerJob = useQuery({
-    queryKey: ["clock-floating-timer-job", user?.id],
-    enabled: !!user && state !== "off",
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("time_entries")
-        .select("job_id")
-        .eq("technician_id", user!.id)
-        .is("ended_at", null)
-        .order("started_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-      return data?.job_id as string | null;
-    },
-  });
-
-  const resolvedJobId = activeJobId ?? activeTimerJob.data ?? null;
+  const activeTimerData = activeTimerJob.data as any;
+  const resolvedJobId = activeJobId ?? activeTimerData?.job_id ?? null;
 
   const job = useQuery({
     queryKey: ["clock-floating-job", resolvedJobId],
@@ -78,16 +80,16 @@ export function FloatingClockWidget() {
     queryFn: async () => {
       const { data } = await supabase
         .from("jobs")
-        .select("id, job_number, complaint, bikes(make, model)")
+        .select("id, job_number, complaint, motorcycles(make, model, rego)")
         .eq("id", resolvedJobId!)
         .maybeSingle();
       return data;
     },
   });
 
-  if (state === "off" || !last) return null;
+  if (state === "off" || (!last && !activeTimerData)) return null;
 
-  const since = +new Date(last.occurred_at);
+  const since = +new Date(last?.occurred_at ?? activeTimerData?.started_at ?? Date.now());
   const sec = Math.max(0, Math.floor((now - since) / 1000));
   const h = Math.floor(sec / 3600);
   const m = Math.floor((sec % 3600) / 60);
@@ -95,6 +97,7 @@ export function FloatingClockWidget() {
   const time = `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
 
   const isBreak = state === "break";
+  const jobNumber = (job.data as any)?.job_number ?? activeTimerData?.jobs?.job_number;
 
   const handlePointerDown = (e: React.PointerEvent) => {
     didDragRef.current = false;
@@ -164,13 +167,13 @@ export function FloatingClockWidget() {
         <div className="font-display text-2xl font-bold tabular-nums leading-tight mt-0.5 text-foreground">
           {time}
         </div>
-        {resolvedJobId && job.data ? (
+        {resolvedJobId ? (
           <div className="mt-2 flex items-center gap-1.5 text-sm font-bold text-primary">
             <Wrench className="h-3.5 w-3.5" />
-            <span className="truncate">Open Job Card #{(job.data as any).job_number}</span>
+            <span className="truncate">Open Job Card {jobNumber ? `#${jobNumber}` : "#…"}</span>
           </div>
         ) : (
-          <div className="mt-1 text-xs text-foreground/70">Open clock →</div>
+          <div className="mt-1 text-xs text-foreground/70">Select a job card</div>
         )}
       </button>
     </div>
