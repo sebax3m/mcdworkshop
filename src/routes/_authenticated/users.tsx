@@ -75,14 +75,34 @@ function UsersPage() {
             See who has signed in, switch the active user, and edit their details.
           </p>
         </div>
-        <button
-          onClick={() => refetch()}
-          className="inline-flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-sm hover:border-foreground/30"
-        >
-          <RefreshCw className={cn("h-4 w-4", isFetching && "animate-spin")} />
-          Refresh
-        </button>
-      </header>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={async () => {
+              try {
+                const r = await seedStaff({ data: undefined });
+                const created = r.results.filter((x) => x.status === "created").length;
+                const exists = r.results.filter((x) => x.status === "exists").length;
+                const errs = r.results.filter((x) => x.status === "error");
+                toast.success(`Staff seeded — ${created} created, ${exists} already existed${errs.length ? `, ${errs.length} errors` : ""}`);
+                if (errs.length) console.error(errs);
+                refetch();
+              } catch (e: any) {
+                toast.error(e.message ?? "Failed to seed staff");
+              }
+            }}
+            className="inline-flex items-center gap-2 rounded-lg red-surface px-3 py-2 text-sm font-semibold"
+          >
+            <UserPlus className="h-4 w-4" />
+            Seed workshop staff
+          </button>
+          <button
+            onClick={() => refetch()}
+            className="inline-flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-sm hover:border-foreground/30"
+          >
+            <RefreshCw className={cn("h-4 w-4", isFetching && "animate-spin")} />
+            Refresh
+          </button>
+        </div>
 
       {error && (
         <div className="card-surface p-4 text-sm text-destructive">
