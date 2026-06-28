@@ -422,7 +422,7 @@ function CalendarPage() {
                             e.stopPropagation();
                             setSelectedBooking(b);
                           }}
-                          className={`relative w-full text-left rounded-lg p-2 pr-4 ring-1 ${c.bg} ${c.ring} hover:ring-2 transition-all cursor-grab active:cursor-grabbing`}
+                          className={`relative w-full text-left rounded-lg p-2 pr-4 ring-1 ${c.bg} ${c.ring} hover:ring-2 transition-all cursor-grab active:cursor-grabbing ${b.loan_bike ? "ring-2 !ring-amber-400 shadow-[0_0_0_2px_rgba(251,191,36,0.25)]" : ""}`}
                         >
                           <span
                             role="button"
