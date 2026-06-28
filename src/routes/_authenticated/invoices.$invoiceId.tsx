@@ -225,12 +225,16 @@ function InvoiceDetail() {
   const defaultHours =
     (timeEntries.data ?? []).reduce((s: number, t: any) => s + Number(t.minutes ?? 0), 0) / 60;
 
+  function lineNet(p: any) {
+    const unit = Number(p.retail ?? 0);
+    const qty = Number(p.quantity ?? 1);
+    const disc = Number(p.discount_pct ?? 0);
+    return unit * qty * (1 - disc / 100);
+  }
+
   async function recomputeInvoiceTotals(nextLabour?: number) {
     const labour = Number(nextLabour ?? inv.labour_total);
-    const partsSum = (parts.data ?? []).reduce(
-      (s: number, p: any) => s + Number(p.retail ?? 0) * Number(p.quantity ?? 1),
-      0,
-    );
+    const partsSum = (parts.data ?? []).reduce((s: number, p: any) => s + lineNet(p), 0);
     const subtotal = labour + partsSum; // inc GST
     const gst = Math.round((subtotal * GST_RATE / (1 + GST_RATE)) * 100) / 100;
     const total = Math.round(subtotal * 100) / 100;
@@ -254,7 +258,7 @@ function InvoiceDetail() {
     await recomputeInvoiceTotals(nextAmount);
   }
 
-  async function updatePart(id: string, patch: { quantity?: number; retail?: number; name?: string; supplier?: string }) {
+  async function updatePart(id: string, patch: { quantity?: number; retail?: number; name?: string; supplier?: string; discount_pct?: number }) {
     const { error } = await supabase.from("parts").update(patch).eq("id", id);
     if (error) { toast.error(error.message); return; }
     await refreshPartsTotals();
@@ -263,10 +267,7 @@ function InvoiceDetail() {
   async function refreshPartsTotals() {
     await qc.invalidateQueries({ queryKey: ["invoice-parts", invoiceId, inv.job_id] });
     const fresh = await supabase.from("parts").select("*").eq("job_id", inv.job_id!);
-    const partsSum = (fresh.data ?? []).reduce(
-      (s: number, p: any) => s + Number(p.retail ?? 0) * Number(p.quantity ?? 1),
-      0,
-    );
+    const partsSum = (fresh.data ?? []).reduce((s: number, p: any) => s + lineNet(p), 0);
     const subtotal = Number(inv.labour_total) + partsSum;
     const gst = Math.round((subtotal * GST_RATE / (1 + GST_RATE)) * 100) / 100;
     const total = Math.round(subtotal * 100) / 100;
@@ -282,6 +283,7 @@ function InvoiceDetail() {
       quantity: 1,
       cost: 0,
       retail: 0,
+      discount_pct: 0,
       added_by: user?.id,
     } as any);
     if (error) { toast.error(error.message); return; }
