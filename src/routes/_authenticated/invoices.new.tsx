@@ -16,7 +16,7 @@ export const Route = createFileRoute("/_authenticated/invoices/new")({
 
 const GST_RATE = 0.15;
 
-type Line = { description: string; quantity: number; unit: number };
+type Line = { description: string; quantity: number; unit: number; discount_pct: number };
 
 function NewInvoice() {
   const nav = useNavigate();
@@ -35,7 +35,7 @@ function NewInvoice() {
   const [invoiceDate, setInvoiceDate] = useState<string>(today);
   const [notes, setNotes] = useState<string>("");
   const [lines, setLines] = useState<Line[]>([
-    { description: "", quantity: 1, unit: 0 },
+    { description: "", quantity: 1, unit: 0, discount_pct: 0 },
   ]);
   const [saving, setSaving] = useState(false);
 
@@ -75,7 +75,16 @@ function NewInvoice() {
     );
   }, [customers.data, search]);
 
-  const subtotalInc = lines.reduce((s, l) => s + Number(l.unit || 0) * Number(l.quantity || 0), 0);
+  const subtotalInc = lines.reduce((s, l) => {
+    const gross = Number(l.unit || 0) * Number(l.quantity || 0);
+    const disc = Math.max(0, Math.min(100, Number(l.discount_pct || 0)));
+    return s + gross * (1 - disc / 100);
+  }, 0);
+  const totalDiscount = lines.reduce((s, l) => {
+    const gross = Number(l.unit || 0) * Number(l.quantity || 0);
+    const disc = Math.max(0, Math.min(100, Number(l.discount_pct || 0)));
+    return s + gross * (disc / 100);
+  }, 0);
   const gst = Math.round((subtotalInc * GST_RATE / (1 + GST_RATE)) * 100) / 100;
   const total = Math.round(subtotalInc * 100) / 100;
   const subtotalEx = total - gst;
@@ -84,7 +93,7 @@ function NewInvoice() {
     setLines((arr) => arr.map((l, i) => (i === idx ? { ...l, ...patch } : l)));
   }
   function addLine() {
-    setLines((arr) => [...arr, { description: "", quantity: 1, unit: 0 }]);
+    setLines((arr) => [...arr, { description: "", quantity: 1, unit: 0, discount_pct: 0 }]);
   }
   function removeLine(idx: number) {
     setLines((arr) => arr.filter((_, i) => i !== idx));
@@ -123,13 +132,18 @@ function NewInvoice() {
 
   async function save() {
     const cleanLines = lines
-      .map((l) => ({ description: l.description.trim(), quantity: Number(l.quantity) || 0, unit: Number(l.unit) || 0 }))
+      .map((l) => ({
+        description: l.description.trim(),
+        quantity: Number(l.quantity) || 0,
+        unit: Number(l.unit) || 0,
+        discount_pct: Math.max(0, Math.min(100, Number(l.discount_pct) || 0)),
+      }))
       .filter((l) => l.description && l.quantity > 0);
     if (cleanLines.length === 0) { toast.error("Add at least one line item"); return; }
     setSaving(true);
 
     const { data: u } = await supabase.auth.getUser();
-    const subInc = cleanLines.reduce((s, l) => s + l.unit * l.quantity, 0);
+    const subInc = cleanLines.reduce((s, l) => s + l.unit * l.quantity * (1 - l.discount_pct / 100), 0);
     const gstAmt = Math.round((subInc * GST_RATE / (1 + GST_RATE)) * 100) / 100;
     const totalAmt = Math.round(subInc * 100) / 100;
 
@@ -296,28 +310,42 @@ function NewInvoice() {
                 <GripVertical className="h-4 w-4" />
               </div>
               <Input
-                className="col-span-11 sm:col-span-5"
+                className="col-span-11 sm:col-span-4"
                 placeholder="Description (anything — labour, part, fee, callout…)"
                 value={l.description}
                 onChange={(e) => updateLine(idx, { description: e.target.value })}
               />
               <Input
-                className="col-span-4 sm:col-span-2"
+                className="col-span-3 sm:col-span-2"
                 type="number" step="0.01" min="0"
                 placeholder="Qty"
                 value={l.quantity}
                 onChange={(e) => updateLine(idx, { quantity: Number(e.target.value) })}
               />
               <Input
-                className="col-span-4 sm:col-span-2"
+                className="col-span-3 sm:col-span-2"
                 type="number" step="0.01" min="0"
                 placeholder="Unit $"
                 value={l.unit}
                 onChange={(e) => updateLine(idx, { unit: Number(e.target.value) })}
               />
-              <div className="col-span-3 sm:col-span-1 text-right text-sm tabular-nums pt-2 font-semibold">
-                ${(Number(l.unit) * Number(l.quantity) || 0).toFixed(2)}
+              <Input
+                className="col-span-3 sm:col-span-1"
+                type="number" step="1" min="0" max="100"
+                placeholder="Disc %"
+                title="Discount %"
+                value={l.discount_pct}
+                onChange={(e) => updateLine(idx, { discount_pct: Number(e.target.value) })}
+              />
+              <div className="col-span-3 sm:col-span-2 text-right text-sm tabular-nums pt-2 font-semibold">
+                {Number(l.discount_pct) > 0 && (
+                  <div className="text-[10px] text-muted-foreground line-through font-normal">
+                    ${(Number(l.unit) * Number(l.quantity) || 0).toFixed(2)}
+                  </div>
+                )}
+                ${((Number(l.unit) * Number(l.quantity) || 0) * (1 - (Number(l.discount_pct) || 0) / 100)).toFixed(2)}
               </div>
+
               <button
                 type="button"
                 onClick={() => removeLine(idx)}
@@ -332,6 +360,9 @@ function NewInvoice() {
 
         <div className="mt-4 pt-3 border-t border-border space-y-1 text-sm max-w-xs ml-auto">
           <div className="flex justify-between text-muted-foreground"><span>Subtotal (excl GST)</span><span className="tabular-nums">${subtotalEx.toFixed(2)}</span></div>
+          {totalDiscount > 0 && (
+            <div className="flex justify-between text-emerald-500"><span>Total discount</span><span className="tabular-nums">−${totalDiscount.toFixed(2)}</span></div>
+          )}
           <div className="flex justify-between text-muted-foreground"><span>GST 15% (incl.)</span><span className="tabular-nums">${gst.toFixed(2)}</span></div>
           <div className="flex justify-between pt-1.5 border-t border-border font-display text-lg font-black">
             <span>TOTAL</span><span className="red-gradient-text tabular-nums">${total.toFixed(2)}</span>
