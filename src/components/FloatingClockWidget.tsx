@@ -53,6 +53,10 @@ export function FloatingClockWidget() {
 
   const list = events.data ?? [];
   const last = list[0];
+  const activeTimerData = activeTimerJob.data as any;
+  const activeTimerStartedAt = activeTimerData?.started_at ? +new Date(activeTimerData.started_at) : 0;
+  const lastEventAt = last?.occurred_at ? +new Date(last.occurred_at) : 0;
+  const activeTimerIsCurrent = !!activeTimerData && (!last || activeTimerStartedAt > lastEventAt);
   const eventState: "off" | "on" | "break" = !last
     ? "off"
     : last.event_type === "clock_in" || last.event_type === "break_end"
@@ -60,7 +64,7 @@ export function FloatingClockWidget() {
     : last.event_type === "break_start"
     ? "break"
     : "off";
-  const state: "off" | "on" | "break" = eventState === "off" && activeTimerJob.data ? "on" : eventState;
+  const state: "off" | "on" | "break" = eventState === "off" && activeTimerIsCurrent ? "on" : eventState;
 
   // Find active job_id (latest clock_in in current shift)
   const activeJobId = (() => {
@@ -71,8 +75,7 @@ export function FloatingClockWidget() {
     return null;
   })();
 
-  const activeTimerData = activeTimerJob.data as any;
-  const resolvedJobId = activeJobId ?? activeTimerData?.job_id ?? null;
+  const resolvedJobId = activeJobId ?? (activeTimerIsCurrent ? activeTimerData?.job_id : null) ?? null;
 
   const job = useQuery({
     queryKey: ["clock-floating-job", resolvedJobId],
@@ -100,8 +103,10 @@ export function FloatingClockWidget() {
   const jobNumber = (job.data as any)?.job_number ?? activeTimerData?.jobs?.job_number;
 
   const handlePointerDown = (e: React.PointerEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
     didDragRef.current = false;
-    containerRef.current?.setPointerCapture(e.pointerId);
+    e.currentTarget.setPointerCapture(e.pointerId);
     dragRef.current = {
       startX: e.clientX,
       startY: e.clientY,
@@ -112,6 +117,8 @@ export function FloatingClockWidget() {
 
   const handlePointerMove = (e: React.PointerEvent) => {
     if (!dragRef.current) return;
+    e.preventDefault();
+    e.stopPropagation();
     const dx = e.clientX - dragRef.current.startX;
     const dy = e.clientY - dragRef.current.startY;
     if (Math.abs(dx) > 3 || Math.abs(dy) > 3) didDragRef.current = true;
@@ -122,12 +129,13 @@ export function FloatingClockWidget() {
     setPos({ x: nx, y: ny });
   };
 
-  const handlePointerUp = () => {
+  const handlePointerUp = (e: React.PointerEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
     dragRef.current = null;
   };
 
   const handleClick = () => {
-    if (didDragRef.current) return;
     if (resolvedJobId) {
       navigate({ to: "/jobs/$jobId", params: { jobId: resolvedJobId } });
     } else {
@@ -144,38 +152,48 @@ export function FloatingClockWidget() {
       ref={containerRef}
       className="fixed z-50 print:hidden select-none"
       style={{ pointerEvents: "auto", ...stylePos }}
-      onPointerDown={handlePointerDown}
-      onPointerMove={handlePointerMove}
-      onPointerUp={handlePointerUp}
     >
-      <button
-        onClick={handleClick}
-        className="text-left rounded-2xl border border-white/15 shadow-2xl backdrop-blur-xl px-4 py-3 min-w-[220px] cursor-grab active:cursor-grabbing"
+      <div
+        className="relative rounded-2xl border border-white/15 shadow-2xl backdrop-blur-xl min-w-[230px] overflow-hidden"
         style={{
           background: isBreak
             ? "color-mix(in srgb, hsl(var(--status-progress)) 18%, transparent)"
             : "color-mix(in srgb, hsl(var(--primary)) 18%, transparent)",
         }}
       >
-        <div className="flex items-center justify-between gap-2 text-[10px] uppercase tracking-widest text-foreground/80">
-          <div className="flex items-center gap-2">
+        <button
+          type="button"
+          onClick={handleClick}
+          className="w-full text-left px-4 py-3 pr-10 cursor-pointer hover:bg-foreground/5 transition-colors"
+          aria-label={resolvedJobId ? `Open Job Card ${jobNumber ? `#${jobNumber}` : ""}` : "Open clock"}
+        >
+          <div className="flex items-center gap-2 text-[10px] uppercase tracking-widest text-foreground/80">
             {isBreak ? <Coffee className="h-3 w-3" /> : <Clock className="h-3 w-3" />}
             {isBreak ? "On break" : "Clocked in"}
           </div>
-          <GripVertical className="h-3.5 w-3.5 opacity-50" />
-        </div>
-        <div className="font-display text-2xl font-bold tabular-nums leading-tight mt-0.5 text-foreground">
-          {time}
-        </div>
-        {resolvedJobId ? (
-          <div className="mt-2 flex items-center gap-1.5 text-sm font-bold text-primary">
-            <Wrench className="h-3.5 w-3.5" />
-            <span className="truncate">Open Job Card {jobNumber ? `#${jobNumber}` : "#…"}</span>
+          <div className="font-display text-2xl font-bold tabular-nums leading-tight mt-0.5 text-foreground">
+            {time}
           </div>
-        ) : (
-          <div className="mt-1 text-xs text-foreground/70">Select a job card</div>
-        )}
-      </button>
+          {resolvedJobId ? (
+            <div className="mt-2 flex items-center gap-1.5 text-sm font-bold text-primary">
+              <Wrench className="h-3.5 w-3.5" />
+              <span className="truncate">Open Job Card {jobNumber ? `#${jobNumber}` : "#…"}</span>
+            </div>
+          ) : (
+            <div className="mt-1 text-xs text-foreground/70">Select a job card</div>
+          )}
+        </button>
+        <button
+          type="button"
+          aria-label="Move floating clock"
+          className="absolute right-1.5 top-1.5 grid h-8 w-8 place-items-center rounded-lg text-foreground/55 cursor-grab active:cursor-grabbing hover:bg-foreground/10"
+          onPointerDown={handlePointerDown}
+          onPointerMove={handlePointerMove}
+          onPointerUp={handlePointerUp}
+        >
+          <GripVertical className="h-4 w-4" />
+        </button>
+      </div>
     </div>
   );
 }
