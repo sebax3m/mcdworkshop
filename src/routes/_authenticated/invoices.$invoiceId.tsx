@@ -676,7 +676,7 @@ function InvoiceDetail() {
                     Array.isArray((inv.snapshot as any)?.line_items) ? (inv.snapshot as any).line_items : [];
                   if (items.length === 0) {
                     return (
-                      <tr><td colSpan={5} className="py-6 text-center text-xs text-muted-foreground">
+                      <tr><td colSpan={hasDiscount ? 5 : 4} className="py-6 text-center text-xs text-muted-foreground">
                         No line items. <button onClick={() => addSnapshotLine()} className="text-primary underline no-print">Add one</button>
                       </td></tr>
                     );
