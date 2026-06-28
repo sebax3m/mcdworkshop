@@ -148,11 +148,10 @@ export function FloatingClockWidget() {
           {time}
         </div>
         {activeJobId && job.data ? (
-          <div className="mt-1 flex items-center gap-1.5 text-xs text-foreground/90">
+          <div className="mt-1.5 flex items-center gap-1.5 text-xs text-foreground/90">
             <Wrench className="h-3 w-3 text-primary" />
-            <span className="truncate">
-              <span className="font-semibold">Job #{(job.data as any).job_number}</span>
-              {bikeStr && <span className="text-foreground/70"> · {bikeStr}</span>}
+            <span className="truncate font-semibold underline underline-offset-2 text-primary">
+              Open Job Card #{(job.data as any).job_number}
             </span>
           </div>
         ) : (
