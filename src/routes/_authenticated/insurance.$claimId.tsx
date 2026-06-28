@@ -375,7 +375,9 @@ function QuoteBuilder({
     const partItem: QuoteItem = {
       id: (globalThis.crypto?.randomUUID?.() ?? Math.random().toString(36).slice(2)),
       kind: "part",
-      description: p.name,
+      item_code: "",
+      item_name: p.name,
+      description: "",
       qty: 1,
       unit_price: p.estPrice,
     };
@@ -383,7 +385,9 @@ function QuoteBuilder({
     const labourItem: QuoteItem = {
       id: (globalThis.crypto?.randomUUID?.() ?? Math.random().toString(36).slice(2)),
       kind: "labour",
-      description: `R&R ${p.name} (${damageLevel})`,
+      item_code: "",
+      item_name: `R&R ${p.name}`,
+      description: `Damage level: ${damageLevel}`,
       qty: hrs,
       unit_price: rate,
     };
