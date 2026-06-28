@@ -287,7 +287,17 @@ function JobDetail() {
 
       <div className="card-surface p-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
         <InfoRow icon={User} label="Customer" value={`${j.customers?.first_name ?? ""} ${j.customers?.last_name ?? ""}`} hint={j.customers?.phone} />
-        <InfoRow icon={BikeIcon} label="Motorcycle" value={fullBike(j.motorcycles as any)} hint={j.motorcycles?.rego ?? undefined} />
+        <div className="flex items-start gap-3">
+          <BikeIcon className="h-5 w-5 mt-0.5 text-muted-foreground shrink-0" />
+          <div className="min-w-0">
+            <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Motorcycle</div>
+            <div className="font-semibold truncate">{fullBike(j.motorcycles as any)}</div>
+            <div className="text-xs mt-0.5">
+              <span className="text-muted-foreground">REGO:</span>{" "}
+              <span className="font-mono font-bold tracking-wider text-foreground">{(j.motorcycles as any)?.rego ?? "—"}</span>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Kilometers / Odometer — technician entry */}
@@ -301,6 +311,27 @@ function JobDetail() {
           qc.invalidateQueries({ queryKey: ["job", jobId] });
         }}
       />
+
+      {/* REGO expiry & WOF expiry — technician entry */}
+      <ExpirySection
+        label="REGO expiry"
+        hint="Technician — enter the registration expiry date shown on the rego label."
+        bikeId={(j.motorcycles as any)?.id}
+        field="rego_expiry"
+        currentValue={(j.motorcycles as any)?.rego_expiry ?? null}
+        canEdit={canEdit}
+        onSaved={() => qc.invalidateQueries({ queryKey: ["job", jobId] })}
+      />
+      <ExpirySection
+        label="WOF expiry"
+        hint="Technician — enter the Warrant of Fitness expiry date."
+        bikeId={(j.motorcycles as any)?.id}
+        field="wof_expiry"
+        currentValue={(j.motorcycles as any)?.wof_expiry ?? null}
+        canEdit={canEdit}
+        onSaved={() => qc.invalidateQueries({ queryKey: ["job", jobId] })}
+      />
+
 
       {/* Live timer */}
       <div className="card-surface p-4">
