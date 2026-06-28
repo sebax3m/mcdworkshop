@@ -390,6 +390,12 @@ function InvoiceDetail() {
 
   const canDelete = isAdmin && (inv.status ?? "").toLowerCase() === "draft";
 
+  // Disc % column only appears when at least one line has a discount.
+  const snapshotItems: any[] = Array.isArray((inv.snapshot as any)?.line_items) ? (inv.snapshot as any).line_items : [];
+  const hasDiscount = inv.job_id
+    ? (parts.data ?? []).some((p: any) => Number(p.discount_pct ?? 0) > 0)
+    : snapshotItems.some((it) => Number(it?.discount_pct ?? 0) > 0);
+
   async function deleteInvoice() {
     const { error } = await supabase.from("invoices").delete().eq("id", invoiceId);
     if (error) { toast.error(error.message); return; }
@@ -532,13 +538,14 @@ function InvoiceDetail() {
 
           {/* Line items */}
           <div className="pt-5 border-t border-border">
+            
             <table className="w-full text-sm">
               <thead>
                 <tr className="text-left text-[10px] uppercase tracking-wider text-muted-foreground border-b border-border">
                   <th className="py-2.5">Description</th>
                   <th className="py-2.5 text-right w-16">Qty</th>
                   <th className="py-2.5 text-right w-24">Unit</th>
-                  <th className="py-2.5 text-right w-20">Disc %</th>
+                  {hasDiscount && <th className="py-2.5 text-right w-20">Disc %</th>}
                   <th className="py-2.5 text-right w-28">Amount</th>
                 </tr>
               </thead>
@@ -573,7 +580,7 @@ function InvoiceDetail() {
                       <td className="py-3 text-right">
                         <EditableNumber value={rate} onCommit={(n) => updateLabour({ unit: n })} prefix="$" />
                       </td>
-                      <td className="py-3 text-right text-muted-foreground">—</td>
+                      {hasDiscount && <td className="py-3 text-right text-muted-foreground">—</td>}
                       <td className="py-3 text-right font-semibold">
                         <EditableNumber value={Number(inv.labour_total)} onCommit={(n) => updateLabour({ amount: n })} prefix="$" />
                       </td>
@@ -611,16 +618,29 @@ function InvoiceDetail() {
                         <EditableNumber value={qty} decimals={0} onCommit={(n) => updatePart(p.id, { quantity: n })} />
                       </td>
                       <td className="py-3 text-right">
-                        <EditableNumber value={unit} prefix="$" onCommit={(n) => updatePart(p.id, { retail: n })} />
-                      </td>
-                      <td className="py-3 text-right">
                         <EditableNumber
-                          value={disc}
-                          suffix="%"
-                          onCommit={(n) => updatePart(p.id, { discount_pct: Math.max(0, Math.min(100, n)) })}
-                          className={disc > 0 ? "text-emerald-500 font-semibold" : ""}
+                          value={unit}
+                          prefix="$"
+                          onCommit={(n) => updatePart(p.id, { retail: n })}
                         />
+                        {!hasDiscount && (
+                          <button
+                            onClick={() => updatePart(p.id, { discount_pct: 10 })}
+                            className="no-print block ml-auto mt-0.5 text-[10px] text-muted-foreground hover:text-primary opacity-0 group-hover:opacity-100"
+                            title="Add a discount on this line"
+                          >+ Disc</button>
+                        )}
                       </td>
+                      {hasDiscount && (
+                        <td className="py-3 text-right">
+                          <EditableNumber
+                            value={disc}
+                            suffix="%"
+                            onCommit={(n) => updatePart(p.id, { discount_pct: Math.max(0, Math.min(100, n)) })}
+                            className={disc > 0 ? "text-emerald-500 font-semibold" : ""}
+                          />
+                        </td>
+                      )}
                       <td className="py-3 text-right font-semibold">
                         {disc > 0 && (
                           <div className="text-[10px] text-muted-foreground line-through tabular-nums">${gross.toFixed(2)}</div>
@@ -642,7 +662,7 @@ function InvoiceDetail() {
                 })}
                 {inv.job_id && (
                   <tr className="no-print">
-                    <td colSpan={5} className="pt-2">
+                    <td colSpan={hasDiscount ? 5 : 4} className="pt-2">
                       <button onClick={addJobPart} className="text-xs text-primary hover:underline inline-flex items-center gap-1">
                         <Plus className="h-3 w-3" /> Add line item
                       </button>
@@ -654,7 +674,7 @@ function InvoiceDetail() {
                     Array.isArray((inv.snapshot as any)?.line_items) ? (inv.snapshot as any).line_items : [];
                   if (items.length === 0) {
                     return (
-                      <tr><td colSpan={5} className="py-6 text-center text-xs text-muted-foreground">
+                      <tr><td colSpan={hasDiscount ? 5 : 4} className="py-6 text-center text-xs text-muted-foreground">
                         No line items. <button onClick={() => addSnapshotLine()} className="text-primary underline no-print">Add one</button>
                       </td></tr>
                     );
@@ -682,15 +702,24 @@ function InvoiceDetail() {
                         </td>
                         <td className="py-3 text-right">
                           <EditableNumber value={Number(it.unit)} prefix="$" onCommit={(n) => updateSnapshotLine(idx, { unit: n })} />
+                          {!hasDiscount && (
+                            <button
+                              onClick={() => updateSnapshotLine(idx, { discount_pct: 10 })}
+                              className="no-print block ml-auto mt-0.5 text-[10px] text-muted-foreground hover:text-primary opacity-0 group-hover:opacity-100"
+                              title="Add a discount on this line"
+                            >+ Disc</button>
+                          )}
                         </td>
-                        <td className="py-3 text-right">
-                          <EditableNumber
-                            value={disc}
-                            suffix="%"
-                            onCommit={(n) => updateSnapshotLine(idx, { discount_pct: Math.max(0, Math.min(100, n)) })}
-                            className={disc > 0 ? "text-emerald-500 font-semibold" : ""}
-                          />
-                        </td>
+                        {hasDiscount && (
+                          <td className="py-3 text-right">
+                            <EditableNumber
+                              value={disc}
+                              suffix="%"
+                              onCommit={(n) => updateSnapshotLine(idx, { discount_pct: Math.max(0, Math.min(100, n)) })}
+                              className={disc > 0 ? "text-emerald-500 font-semibold" : ""}
+                            />
+                          </td>
+                        )}
                         <td className="py-3 text-right font-semibold">
                           {disc > 0 && (
                             <div className="text-[10px] text-muted-foreground line-through tabular-nums">${gross.toFixed(2)}</div>
@@ -713,7 +742,7 @@ function InvoiceDetail() {
                 })()}
                 {!inv.job_id && (
                   <tr className="no-print">
-                    <td colSpan={5} className="pt-2">
+                    <td colSpan={hasDiscount ? 5 : 4} className="pt-2">
                       <button onClick={() => addSnapshotLine()} className="text-xs text-primary hover:underline inline-flex items-center gap-1">
                         <Plus className="h-3 w-3" /> Add line item
                       </button>
@@ -721,7 +750,7 @@ function InvoiceDetail() {
                   </tr>
                 )}
                 {inv.job_id && Number(inv.labour_total) === 0 && (parts.data ?? []).length === 0 && (
-                  <tr><td colSpan={5} className="py-6 text-center text-xs text-muted-foreground">No line items</td></tr>
+                  <tr><td colSpan={hasDiscount ? 5 : 4} className="py-6 text-center text-xs text-muted-foreground">No line items</td></tr>
                 )}
               </tbody>
 
