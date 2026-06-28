@@ -28,7 +28,8 @@ function Customers() {
 
   async function save() {
     if (!f.first_name.trim()) return toast.error("First name required");
-    const { error } = await supabase.from("customers").insert(f);
+    const payload = { ...f, last_name: f.last_name.trim() || null };
+    const { error } = await supabase.from("customers").insert(payload);
     if (error) return toast.error(error.message);
     setF({ first_name: "", last_name: "", phone: "", email: "", address: "", notes: "" });
     setOpen(false);
