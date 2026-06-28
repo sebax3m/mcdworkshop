@@ -75,7 +75,16 @@ function NewInvoice() {
     );
   }, [customers.data, search]);
 
-  const subtotalInc = lines.reduce((s, l) => s + Number(l.unit || 0) * Number(l.quantity || 0), 0);
+  const subtotalInc = lines.reduce((s, l) => {
+    const gross = Number(l.unit || 0) * Number(l.quantity || 0);
+    const disc = Math.max(0, Math.min(100, Number(l.discount_pct || 0)));
+    return s + gross * (1 - disc / 100);
+  }, 0);
+  const totalDiscount = lines.reduce((s, l) => {
+    const gross = Number(l.unit || 0) * Number(l.quantity || 0);
+    const disc = Math.max(0, Math.min(100, Number(l.discount_pct || 0)));
+    return s + gross * (disc / 100);
+  }, 0);
   const gst = Math.round((subtotalInc * GST_RATE / (1 + GST_RATE)) * 100) / 100;
   const total = Math.round(subtotalInc * 100) / 100;
   const subtotalEx = total - gst;
