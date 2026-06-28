@@ -41,7 +41,7 @@ export function FloatingClockWidget() {
     ? "on"
     : last.event_type === "break_start"
     ? "break"
- className: "off";
+ : "off";
 
   // Find active job_id (latest clock_in in current shift)
   const activeJobId = (() => {
