@@ -2,8 +2,10 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
-import { ArrowLeft, Check, RefreshCw, Mail, Clock, Pencil, Star } from "lucide-react";
+import { toast } from "sonner";
+import { ArrowLeft, Check, RefreshCw, Mail, Clock, Pencil, Star, UserPlus } from "lucide-react";
 import { listUsersWithLogins, updateUserDetails, type UserLoginRow } from "@/lib/users.functions";
+import { seedStaff } from "@/lib/seed-staff.functions";
 import { initials } from "@/lib/format";
 import {
   useActiveTechnicianId,
