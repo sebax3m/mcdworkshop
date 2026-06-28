@@ -74,6 +74,10 @@ function NewBooking() {
     enabled: !!customerId,
     queryFn: async () => (await supabase.from("motorcycles").select("*").eq("customer_id", customerId!)).data ?? [],
   });
+  const allBikes = useQuery({
+    queryKey: ["bk-all-bikes"],
+    queryFn: async () => (await supabase.from("motorcycles").select("id, customer_id, rego, year, make, model")).data ?? [],
+  });
   const techs = useQuery({
     queryKey: ["bk-techs"],
     queryFn: async () => {
