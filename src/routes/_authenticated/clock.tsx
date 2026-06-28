@@ -136,10 +136,19 @@ function ClockPage() {
         )}
       </header>
 
-      <ClockHero state={state} since={last?.occurred_at} />
+      <ClockHero
+        state={state}
+        since={last?.occurred_at}
+        jobId={activeJobId ?? undefined}
+        jobNumber={(activeJob.data as any)?.job_number}
+      />
 
       {activeJobId && activeJob.data && state !== "off" && (
-        <div className="card-surface p-3 flex items-center gap-3">
+        <Link
+          to="/jobs/$jobId"
+          params={{ jobId: activeJobId }}
+          className="card-surface p-3 flex items-center gap-3 hover:border-primary/40 transition"
+        >
           <Wrench className="h-4 w-4 text-primary" />
           <div className="text-sm flex-1">
             <span className="text-muted-foreground">Working on </span>
@@ -148,7 +157,7 @@ function ClockPage() {
               <span className="text-muted-foreground"> · {(activeJob.data as any).bikes.make} {(activeJob.data as any).bikes.model}</span>
             )}
           </div>
-        </div>
+        </Link>
       )}
 
       <div className="grid grid-cols-2 gap-3">
