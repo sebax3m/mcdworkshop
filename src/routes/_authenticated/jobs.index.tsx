@@ -231,16 +231,20 @@ function JobsList() {
         </div>
       )}
 
-      <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+      <AlertDialog open={confirmOpen} onOpenChange={(open) => { setConfirmOpen(open); if (!open) setDeleteJobId(null); }}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete {selected.size} job{selected.size === 1 ? "" : "s"}?</AlertDialogTitle>
+            <AlertDialogTitle>
+              {deleteJobId
+                ? `Delete job #${jobs.find((j: any) => j.id === deleteJobId)?.job_number ?? ""}?`
+                : `Delete ${selected.size} job${selected.size === 1 ? "" : "s"}?`}
+            </AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently remove the selected job{selected.size === 1 ? "" : "s"} and any related tasks, time entries, photos and invoices. This action cannot be undone.
+              This will permanently remove the {deleteJobId ? "job" : `selected job${selected.size === 1 ? "" : "s"}`} and any related tasks, time entries, photos and invoices. This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
+            <AlertDialogCancel disabled={deleting} onClick={() => setDeleteJobId(null)}>Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={(e) => {
                 e.preventDefault();
