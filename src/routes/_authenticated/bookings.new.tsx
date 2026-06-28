@@ -234,7 +234,7 @@ function NewBooking() {
                 <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Add new customer</div>
                 <div className="grid grid-cols-2 gap-2">
                   <Input placeholder="First name" value={ncFirst} onChange={(e) => setNcFirst(e.target.value)} />
-                  <Input placeholder="Last name" value={ncLast} onChange={(e) => setNcLast(e.target.value)} />
+                  <Input placeholder="Last name (optional)" value={ncLast} onChange={(e) => setNcLast(e.target.value)} />
                   <Input placeholder="Phone" value={ncPhone} onChange={(e) => setNcPhone(e.target.value)} />
                   <Input placeholder="Email" type="email" value={ncEmail} onChange={(e) => setNcEmail(e.target.value)} />
                 </div>
