@@ -64,6 +64,13 @@ function NewBooking() {
   const [ncPhone, setNcPhone] = useState("");
   const [ncEmail, setNcEmail] = useState("");
   const [creatingCustomer, setCreatingCustomer] = useState(false);
+  const [showNewBike, setShowNewBike] = useState(false);
+  const [nbMake, setNbMake] = useState("");
+  const [nbModel, setNbModel] = useState("");
+  const [nbYear, setNbYear] = useState("");
+  const [nbRego, setNbRego] = useState("");
+  const [nbColor, setNbColor] = useState("");
+  const [creatingBike, setCreatingBike] = useState(false);
 
   const customers = useQuery({
     queryKey: ["bk-customers"],
@@ -133,11 +140,39 @@ function NewBooking() {
       setCustomerId(data.id);
       setShowNewCustomer(false);
       setNcFirst(""); setNcLast(""); setNcPhone(""); setNcEmail("");
-      toast.success("Customer created");
+      setShowNewBike(true);
+      toast.success("Customer created — now add their motorcycle");
     } catch (err: any) {
       toast.error(err.message ?? "Failed to create customer");
     } finally {
       setCreatingCustomer(false);
+    }
+  }
+
+  async function createBike() {
+    if (!customerId) return toast.error("Pick a customer first");
+    if (!nbMake.trim() || !nbModel.trim()) return toast.error("Make and model required");
+    setCreatingBike(true);
+    try {
+      const { data, error } = await (supabase as any).from("motorcycles").insert({
+        customer_id: customerId,
+        make: nbMake.trim(),
+        model: nbModel.trim(),
+        year: nbYear ? Number(nbYear) : null,
+        rego: nbRego.trim().toUpperCase() || null,
+        color: nbColor.trim() || null,
+      }).select("id").single();
+      if (error) throw error;
+      await qc.invalidateQueries({ queryKey: ["bk-bikes", customerId] });
+      await qc.invalidateQueries({ queryKey: ["bk-all-bikes"] });
+      setBikeId(data.id);
+      setNbMake(""); setNbModel(""); setNbYear(""); setNbRego(""); setNbColor("");
+      setShowNewBike(false);
+      toast.success("Motorcycle added");
+    } catch (err: any) {
+      toast.error(err.message ?? "Failed to add motorcycle");
+    } finally {
+      setCreatingBike(false);
     }
   }
 
@@ -159,7 +194,7 @@ function NewBooking() {
     }
   }
 
-  async function save() {
+  async function save(openJobCard = false) {
     if (!customer) return toast.error("Pick a customer");
     if (!bike) return toast.error("Pick a motorcycle");
     if (!scheduledDate) return toast.error("Pick a date");
@@ -182,12 +217,49 @@ function NewBooking() {
           vin: bike.vin ?? null,
           instructions,
           arrival_photos: arrivalPhotos,
-          status: "booked",
+          status: openJobCard ? "checked_in" : "booked",
         })
         .select("id")
         .single();
       if (error) throw error;
       if (mileage) await supabase.from("motorcycles").update({ mileage: parseInt(mileage) }).eq("id", bike.id);
+
+      if (openJobCard) {
+        const { data: tmpl } = await supabase
+          .from("service_templates")
+          .select("*")
+          .ilike("name", `%${serviceType.split(" ")[0]}%`)
+          .limit(1)
+          .maybeSingle();
+        const { data: job, error: jerr } = await supabase
+          .from("jobs")
+          .insert({
+            customer_id: customer.id,
+            motorcycle_id: bike.id,
+            template_id: (tmpl as any)?.id ?? null,
+            technician_id: techId,
+            assigned_tech_id: techId,
+            title: serviceType,
+            description: (tmpl as any)?.description ?? null,
+            complaint: instructions || null,
+            estimated_hours: Number(estHours) || 1,
+            status: techId ? "assigned" : "new",
+            scheduled_at: scheduledDate,
+            odometer: mileage ? parseInt(mileage) : null,
+          })
+          .select("id")
+          .single();
+        if (jerr) throw jerr;
+        if ((tmpl as any)?.tasks) {
+          const tasks = ((tmpl as any).tasks as any[]).map((t: any, i: number) => ({ job_id: job.id, label: t.label, sort_order: i }));
+          if (tasks.length) await supabase.from("job_tasks").insert(tasks);
+        }
+        await supabase.from("bookings").update({ job_id: job.id }).eq("id", data.id);
+        toast.success("Booking + job card created");
+        nav({ to: "/jobs/$jobId", params: { jobId: job.id } });
+        return;
+      }
+
       toast.success("Booking created");
       nav({ to: "/calendar" });
     } catch (err: any) {
@@ -325,7 +397,13 @@ function NewBooking() {
         <section className="card-surface p-4 space-y-3">
           <div className="flex items-center justify-between">
             <Label className="text-xs uppercase tracking-wider text-muted-foreground">Motorcycle</Label>
-            {bike && <button onClick={() => setBikeId(null)} className="text-xs text-muted-foreground hover:text-foreground">Change</button>}
+            {bike ? (
+              <button onClick={() => setBikeId(null)} className="text-xs text-muted-foreground hover:text-foreground">Change</button>
+            ) : (
+              <button onClick={() => setShowNewBike((v) => !v)} className="inline-flex items-center gap-1 text-xs text-primary font-semibold">
+                <Plus className="h-3 w-3" /> New bike
+              </button>
+            )}
           </div>
           {bike ? (
             <div className="flex items-center gap-3 rounded-xl bg-muted/60 p-3">
@@ -335,23 +413,47 @@ function NewBooking() {
                 <div className="text-xs text-muted-foreground truncate">{bike.rego ?? "no rego"}{bike.vin ? ` · VIN ${bike.vin.slice(-6)}` : ""}</div>
               </div>
             </div>
-          ) : bikes.isLoading ? (
-            <div className="text-sm text-muted-foreground">Loading bikes…</div>
-          ) : (bikes.data ?? []).length === 0 ? (
-            <Link to="/motorcycles" className="block text-center text-sm text-primary py-3">+ Add motorcycle for this customer</Link>
           ) : (
-            <div className="grid sm:grid-cols-2 gap-2">
-              {(bikes.data ?? []).map((b: any) => (
-                <button
-                  key={b.id}
-                  onClick={() => { setBikeId(b.id); if (b.mileage) setMileage(String(b.mileage)); if (b.wof_expiry) setWof(b.wof_expiry); }}
-                  className="text-left rounded-xl border border-border p-3 hover:border-primary/50 transition-colors"
-                >
-                  <div className="font-semibold text-sm truncate">{fullBike(b)}</div>
-                  <div className="text-xs text-muted-foreground truncate">{b.rego || "—"}</div>
-                </button>
-              ))}
-            </div>
+            <>
+              {showNewBike && (
+                <div className="rounded-xl border border-primary/40 bg-primary/5 p-3 space-y-2">
+                  <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Add motorcycle for {customer.first_name}</div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <Input placeholder="Make" value={nbMake} onChange={(e) => setNbMake(e.target.value)} />
+                    <Input placeholder="Model" value={nbModel} onChange={(e) => setNbModel(e.target.value)} />
+                    <Input placeholder="Year" inputMode="numeric" value={nbYear} onChange={(e) => setNbYear(e.target.value)} />
+                    <Input placeholder="Rego (plate)" value={nbRego} onChange={(e) => setNbRego(e.target.value)} />
+                    <Input placeholder="Colour (optional)" value={nbColor} onChange={(e) => setNbColor(e.target.value)} className="col-span-2" />
+                  </div>
+                  <div className="flex justify-end gap-2 pt-1">
+                    <button onClick={() => setShowNewBike(false)} className="text-xs px-3 py-1.5 rounded-lg text-muted-foreground hover:text-foreground">Cancel</button>
+                    <Button onClick={createBike} disabled={creatingBike} size="sm" className="gold-surface font-bold">
+                      {creatingBike ? "Saving…" : "Add Motorcycle"}
+                    </Button>
+                  </div>
+                </div>
+              )}
+              {bikes.isLoading ? (
+                <div className="text-sm text-muted-foreground">Loading bikes…</div>
+              ) : (bikes.data ?? []).length === 0 ? (
+                !showNewBike && (
+                  <button onClick={() => setShowNewBike(true)} className="block w-full text-center text-sm text-primary py-3">+ Add motorcycle for this customer</button>
+                )
+              ) : (
+                <div className="grid sm:grid-cols-2 gap-2">
+                  {(bikes.data ?? []).map((b: any) => (
+                    <button
+                      key={b.id}
+                      onClick={() => { setBikeId(b.id); if (b.mileage) setMileage(String(b.mileage)); if (b.wof_expiry) setWof(b.wof_expiry); }}
+                      className="text-left rounded-xl border border-border p-3 hover:border-primary/50 transition-colors"
+                    >
+                      <div className="font-semibold text-sm truncate">{fullBike(b)}</div>
+                      <div className="text-xs text-muted-foreground truncate">{b.rego || "—"}</div>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </>
           )}
         </section>
       )}
@@ -475,9 +577,14 @@ function NewBooking() {
             )}
           </section>
 
-          <Button onClick={save} disabled={saving} className="w-full h-14 gold-surface text-base font-bold">
-            {saving ? "Saving…" : "Create Booking"}
-          </Button>
+          <div className="grid sm:grid-cols-2 gap-3">
+            <Button onClick={() => save(false)} disabled={saving} variant="outline" className="w-full h-14 text-base font-bold">
+              {saving ? "Saving…" : "Create Booking"}
+            </Button>
+            <Button onClick={() => save(true)} disabled={saving} className="w-full h-14 gold-surface text-base font-bold">
+              {saving ? "Saving…" : "Create & Open Job Card"}
+            </Button>
+          </div>
         </>
       )}
     </motion.div>
