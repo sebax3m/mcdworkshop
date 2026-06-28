@@ -162,14 +162,14 @@ function JobDetail() {
     const { data: last } = await supabase
       .from("invoices")
       .select("invoice_number")
-      .like("invoice_number", `APX-${year}-%`)
+      .like("invoice_number", `MCD-${year}-%`)
       .order("invoice_number", { ascending: false })
       .limit(1)
       .maybeSingle();
     const nextSeq = last?.invoice_number
       ? Number(last.invoice_number.split("-").pop()) + 1
       : 1;
-    const invoice_number = `APX-${year}-${String(nextSeq).padStart(5, "0")}`;
+    const invoice_number = `MCD-${year}-${String(nextSeq).padStart(5, "0")}`;
     const { data, error } = await supabase.from("invoices").insert({
       job_id: jobId,
       invoice_number,

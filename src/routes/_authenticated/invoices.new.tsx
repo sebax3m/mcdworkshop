@@ -56,13 +56,13 @@ function NewInvoice() {
       const { data: last } = await supabase
         .from("invoices")
         .select("invoice_number")
-        .like("invoice_number", `APX-${year}-%`)
+        .like("invoice_number", `MCD-${year}-%`)
         .order("invoice_number", { ascending: false })
         .limit(1)
         .maybeSingle();
       const lastSeq = last?.invoice_number ? Number(last.invoice_number.split("-").pop()) : 0;
       const nextSeq = Math.max(lastSeq + 1, 1000);
-      return `APX-${year}-${String(nextSeq).padStart(5, "0")}`;
+      return `MCD-${year}-${String(nextSeq).padStart(5, "0")}`;
     },
   });
 
@@ -151,13 +151,13 @@ function NewInvoice() {
     const { data: last } = await supabase
       .from("invoices")
       .select("invoice_number")
-      .like("invoice_number", `APX-${yr}-%`)
+      .like("invoice_number", `MCD-${yr}-%`)
       .order("invoice_number", { ascending: false })
       .limit(1)
       .maybeSingle();
     const lastSeq = last?.invoice_number ? Number(last.invoice_number.split("-").pop()) : 0;
     const nextSeq = Math.max(lastSeq + 1, 1000);
-    const invoice_number = `APX-${yr}-${String(nextSeq).padStart(5, "0")}`;
+    const invoice_number = `MCD-${yr}-${String(nextSeq).padStart(5, "0")}`;
 
     const { data, error } = await supabase
       .from("invoices")
