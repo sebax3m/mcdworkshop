@@ -390,6 +390,12 @@ function InvoiceDetail() {
 
   const canDelete = isAdmin && (inv.status ?? "").toLowerCase() === "draft";
 
+  // Disc % column only appears when at least one line has a discount.
+  const snapshotItems: any[] = Array.isArray((inv.snapshot as any)?.line_items) ? (inv.snapshot as any).line_items : [];
+  const hasDiscount = inv.job_id
+    ? (parts.data ?? []).some((p: any) => Number(p.discount_pct ?? 0) > 0)
+    : snapshotItems.some((it) => Number(it?.discount_pct ?? 0) > 0);
+
   async function deleteInvoice() {
     const { error } = await supabase.from("invoices").delete().eq("id", invoiceId);
     if (error) { toast.error(error.message); return; }
