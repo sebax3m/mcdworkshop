@@ -33,7 +33,7 @@ function ClockPage() {
     enabled: !!user,
     queryFn: async () => {
       const since = new Date(); since.setDate(since.getDate() - 7); since.setHours(0,0,0,0);
-      const { data } = await supabase.from("clock_events").select("*").eq("user_id", user!.id).gte("occurred_at", since.toISOString()).order("occurred_at", { ascending: false });
+      const { data } = await supabase.from("clock_events").select("*, jobs(job_number)").eq("user_id", user!.id).gte("occurred_at", since.toISOString()).order("occurred_at", { ascending: false });
       return data ?? [];
     },
   });
