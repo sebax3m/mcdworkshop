@@ -44,7 +44,7 @@ function ClockPage() {
     queryFn: async () => {
       const { data } = await supabase
         .from("jobs")
-        .select("id, job_number, complaint, status, bikes(make, model, rego), customers(first_name, last_name)")
+        .select("id, job_number, complaint, status, motorcycles(make, model, rego), customers(first_name, last_name)")
         .neq("status", "completed")
         .order("job_number", { ascending: false })
         .limit(50);
@@ -75,7 +75,7 @@ function ClockPage() {
     queryFn: async () => {
       const { data } = await supabase
         .from("jobs")
-        .select("id, job_number, complaint, bikes(make, model)")
+        .select("id, job_number, complaint, motorcycles(make, model, rego)")
         .eq("id", activeJobId!)
         .maybeSingle();
       return data;
@@ -169,8 +169,9 @@ function ClockPage() {
   const filteredJobs = (openJobs.data ?? []).filter((j: any) => {
     if (!jobQuery.trim()) return true;
     const q = jobQuery.toLowerCase();
-    const bike = j.bikes ? `${j.bikes.make ?? ""} ${j.bikes.model ?? ""}`.toLowerCase() : "";
-    const rego = j.bikes?.rego ? String(j.bikes.rego).toLowerCase() : "";
+    const bikeData = j.motorcycles ?? j.bikes;
+    const bike = bikeData ? `${bikeData.make ?? ""} ${bikeData.model ?? ""}`.toLowerCase() : "";
+    const rego = bikeData?.rego ? String(bikeData.rego).toLowerCase() : "";
     const cust = j.customers ? `${j.customers.first_name ?? ""} ${j.customers.last_name ?? ""}`.toLowerCase() : "";
     return String(j.job_number).includes(q) || bike.includes(q) || rego.includes(q.replace(/\s+/g, "")) || cust.includes(q) || (j.complaint ?? "").toLowerCase().includes(q);
   });
@@ -205,8 +206,8 @@ function ClockPage() {
           <div className="text-sm flex-1">
             <span className="text-muted-foreground">Working on </span>
             <span className="font-semibold">#{(activeJob.data as any).job_number}</span>
-            {(activeJob.data as any).bikes && (
-              <span className="text-muted-foreground"> · {(activeJob.data as any).bikes.make} {(activeJob.data as any).bikes.model}</span>
+            {((activeJob.data as any).motorcycles ?? (activeJob.data as any).bikes) && (
+              <span className="text-muted-foreground"> · {((activeJob.data as any).motorcycles ?? (activeJob.data as any).bikes).make} {((activeJob.data as any).motorcycles ?? (activeJob.data as any).bikes).model}</span>
             )}
           </div>
         </Link>
@@ -300,9 +301,9 @@ function ClockPage() {
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex items-center gap-2 min-w-0">
                     <span className="font-semibold shrink-0">#{j.job_number}</span>
-                    {j.bikes?.rego && (
+                    {(j.motorcycles ?? j.bikes)?.rego && (
                       <span className="font-mono text-[11px] font-bold tracking-wider px-1.5 py-0.5 rounded bg-primary/15 text-primary border border-primary/30 shrink-0">
-                        {j.bikes.rego}
+                        {(j.motorcycles ?? j.bikes).rego}
                       </span>
                     )}
                   </div>
@@ -310,7 +311,7 @@ function ClockPage() {
                 </div>
                 <div className="text-xs text-muted-foreground truncate">
                   {j.customers ? `${j.customers.first_name ?? ""} ${j.customers.last_name ?? ""}` : ""}
-                  {j.bikes ? ` · ${j.bikes.make ?? ""} ${j.bikes.model ?? ""}` : ""}
+                  {(j.motorcycles ?? j.bikes) ? ` · ${(j.motorcycles ?? j.bikes).make ?? ""} ${(j.motorcycles ?? j.bikes).model ?? ""}` : ""}
                 </div>
                 {j.complaint && <div className="text-xs text-foreground/80 truncate mt-0.5">{j.complaint}</div>}
               </button>
