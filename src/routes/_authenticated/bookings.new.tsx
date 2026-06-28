@@ -194,7 +194,7 @@ function NewBooking() {
     }
   }
 
-  async function save() {
+  async function save(openJobCard = false) {
     if (!customer) return toast.error("Pick a customer");
     if (!bike) return toast.error("Pick a motorcycle");
     if (!scheduledDate) return toast.error("Pick a date");
@@ -217,12 +217,49 @@ function NewBooking() {
           vin: bike.vin ?? null,
           instructions,
           arrival_photos: arrivalPhotos,
-          status: "booked",
+          status: openJobCard ? "checked_in" : "booked",
         })
         .select("id")
         .single();
       if (error) throw error;
       if (mileage) await supabase.from("motorcycles").update({ mileage: parseInt(mileage) }).eq("id", bike.id);
+
+      if (openJobCard) {
+        const { data: tmpl } = await supabase
+          .from("service_templates")
+          .select("*")
+          .ilike("name", `%${serviceType.split(" ")[0]}%`)
+          .limit(1)
+          .maybeSingle();
+        const { data: job, error: jerr } = await supabase
+          .from("jobs")
+          .insert({
+            customer_id: customer.id,
+            motorcycle_id: bike.id,
+            template_id: (tmpl as any)?.id ?? null,
+            technician_id: techId,
+            assigned_tech_id: techId,
+            title: serviceType,
+            description: (tmpl as any)?.description ?? null,
+            complaint: instructions || null,
+            estimated_hours: Number(estHours) || 1,
+            status: techId ? "assigned" : "new",
+            scheduled_at: scheduledDate,
+            odometer: mileage ? parseInt(mileage) : null,
+          })
+          .select("id")
+          .single();
+        if (jerr) throw jerr;
+        if ((tmpl as any)?.tasks) {
+          const tasks = ((tmpl as any).tasks as any[]).map((t: any, i: number) => ({ job_id: job.id, label: t.label, sort_order: i }));
+          if (tasks.length) await supabase.from("job_tasks").insert(tasks);
+        }
+        await supabase.from("bookings").update({ job_id: job.id }).eq("id", data.id);
+        toast.success("Booking + job card created");
+        nav({ to: "/jobs/$jobId", params: { jobId: job.id } });
+        return;
+      }
+
       toast.success("Booking created");
       nav({ to: "/calendar" });
     } catch (err: any) {
