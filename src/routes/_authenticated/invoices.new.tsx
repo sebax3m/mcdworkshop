@@ -49,6 +49,23 @@ function NewInvoice() {
     queryFn: async () => (await supabase.from("motorcycles").select("*").eq("customer_id", customerId!)).data ?? [],
   });
 
+  const year = new Date().getFullYear();
+  const nextInvoiceNumber = useQuery({
+    queryKey: ["next-invoice-number", year],
+    queryFn: async () => {
+      const { data: last } = await supabase
+        .from("invoices")
+        .select("invoice_number")
+        .like("invoice_number", `APX-${year}-%`)
+        .order("invoice_number", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      const lastSeq = last?.invoice_number ? Number(last.invoice_number.split("-").pop()) : 0;
+      const nextSeq = Math.max(lastSeq + 1, 1000);
+      return `APX-${year}-${String(nextSeq).padStart(5, "0")}`;
+    },
+  });
+
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     const list = customers.data ?? [];
@@ -106,16 +123,17 @@ function NewInvoice() {
     const gstAmt = Math.round((subInc * GST_RATE / (1 + GST_RATE)) * 100) / 100;
     const totalAmt = Math.round(subInc * 100) / 100;
 
-    const year = new Date().getFullYear();
+    const yr = new Date().getFullYear();
     const { data: last } = await supabase
       .from("invoices")
       .select("invoice_number")
-      .like("invoice_number", `APX-${year}-%`)
+      .like("invoice_number", `APX-${yr}-%`)
       .order("invoice_number", { ascending: false })
       .limit(1)
       .maybeSingle();
-    const nextSeq = last?.invoice_number ? Number(last.invoice_number.split("-").pop()) + 1 : 1;
-    const invoice_number = `APX-${year}-${String(nextSeq).padStart(5, "0")}`;
+    const lastSeq = last?.invoice_number ? Number(last.invoice_number.split("-").pop()) : 0;
+    const nextSeq = Math.max(lastSeq + 1, 1000);
+    const invoice_number = `APX-${yr}-${String(nextSeq).padStart(5, "0")}`;
 
     const { data, error } = await supabase
       .from("invoices")
@@ -151,6 +169,9 @@ function NewInvoice() {
         <div className="min-w-0 flex-1">
           <div className="text-xs uppercase tracking-[0.25em] text-muted-foreground">Billing</div>
           <h1 className="font-display text-2xl sm:text-3xl font-bold truncate">New Invoice</h1>
+          <div className="text-sm text-muted-foreground mt-0.5">
+            Invoice # <span className="font-mono font-semibold text-foreground">{nextInvoiceNumber.data ?? "…"}</span>
+          </div>
         </div>
       </header>
 
