@@ -3,13 +3,15 @@ import { useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useCurrentUser } from "@/hooks/use-current-user";
-import { Clock, Coffee, ExternalLink, GripVertical } from "lucide-react";
+import { Clock, Coffee, GripVertical, Wrench } from "lucide-react";
 
 export function FloatingClockWidget() {
   const { user } = useCurrentUser();
+  const navigate = useNavigate();
   const [now, setNow] = useState(Date.now());
   const [pos, setPos] = useState<{ x: number; y: number } | null>(null);
   const dragRef = useRef<{ startX: number; startY: number; initX: number; initY: number } | null>(null);
+  const didDragRef = useRef(false);
 
   const events = useQuery({
     queryKey: ["clock-events-floating", user?.id],
@@ -39,7 +41,7 @@ export function FloatingClockWidget() {
     ? "on"
     : last.event_type === "break_start"
     ? "break"
-    : "off";
+ className: "off";
 
   // Find active job_id (latest clock_in in current shift)
   const activeJobId = (() => {
@@ -77,6 +79,7 @@ export function FloatingClockWidget() {
   const bikeStr = bike ? `${bike.make ?? ""} ${bike.model ?? ""}`.trim() : "";
 
   const handlePointerDown = (e: React.PointerEvent) => {
+    didDragRef.current = false;
     (e.target as HTMLElement).setPointerCapture(e.pointerId);
     dragRef.current = {
       startX: e.clientX,
@@ -90,6 +93,7 @@ export function FloatingClockWidget() {
     if (!dragRef.current) return;
     const dx = e.clientX - dragRef.current.startX;
     const dy = e.clientY - dragRef.current.startY;
+    if (Math.abs(dx) > 3 || Math.abs(dy) > 3) didDragRef.current = true;
     let nx = dragRef.current.initX + dx;
     let ny = dragRef.current.initY + dy;
     nx = Math.max(8, Math.min(nx, window.innerWidth - 240));
@@ -99,6 +103,15 @@ export function FloatingClockWidget() {
 
   const handlePointerUp = () => {
     dragRef.current = null;
+  };
+
+  const handleClick = () => {
+    if (didDragRef.current) return;
+    if (activeJobId) {
+      navigate({ to: "/jobs/$jobId", params: { jobId: activeJobId } });
+    } else {
+      navigate({ to: "/clock" });
+    }
   };
 
   const stylePos = pos
@@ -113,8 +126,9 @@ export function FloatingClockWidget() {
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
     >
-      <div
-        className="rounded-2xl border border-white/15 shadow-2xl backdrop-blur-xl px-4 py-3 min-w-[220px] cursor-grab active:cursor-grabbing"
+      <button
+        onClick={handleClick}
+        className="text-left rounded-2xl border border-white/15 shadow-2xl backdrop-blur-xl px-4 py-3 min-w-[220px] cursor-grab active:cursor-grabbing transition hover:brightness-110"
         style={{
           background: isBreak
             ? "color-mix(in srgb, hsl(var(--status-progress)) 18%, transparent)"
@@ -132,24 +146,17 @@ export function FloatingClockWidget() {
           {time}
         </div>
         {activeJobId && job.data ? (
-          <Link
-            to="/jobs/$jobId"
-            params={{ jobId: activeJobId }}
-            className="mt-1 flex items-center justify-between gap-2 text-xs text-foreground/90 hover:text-primary group"
-            onPointerDown={(e) => e.stopPropagation()}
-          >
+          <div className="mt-1 flex items-center gap-1.5 text-xs text-foreground/90">
+            <Wrench className="h-3 w-3 text-primary" />
             <span className="truncate">
-              <span className="font-semibold">#{(job.data as any).job_number}</span>
+              <span className="font-semibold">Job #{(job.data as any).job_number}</span>
               {bikeStr && <span className="text-foreground/70"> · {bikeStr}</span>}
             </span>
-            <ExternalLink className="h-3 w-3 opacity-60 group-hover:opacity-100 shrink-0" />
-          </Link>
+          </div>
         ) : (
-          <Link to="/clock" className="mt-1 block text-xs text-foreground/70 hover:text-primary" onPointerDown={(e) => e.stopPropagation()}>
-            Open clock →
-          </Link>
+          <div className="mt-1 text-xs text-foreground/70">Open clock →</div>
         )}
-      </div>
+      </button>
     </div>
   );
 }
