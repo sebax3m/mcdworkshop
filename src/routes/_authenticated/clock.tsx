@@ -120,9 +120,11 @@ function ClockPage() {
     if (!jobQuery.trim()) return true;
     const q = jobQuery.toLowerCase();
     const bike = j.bikes ? `${j.bikes.make ?? ""} ${j.bikes.model ?? ""}`.toLowerCase() : "";
+    const rego = j.bikes?.rego ? String(j.bikes.rego).toLowerCase() : "";
     const cust = j.customers ? `${j.customers.first_name ?? ""} ${j.customers.last_name ?? ""}`.toLowerCase() : "";
-    return String(j.job_number).includes(q) || bike.includes(q) || cust.includes(q) || (j.complaint ?? "").toLowerCase().includes(q);
+    return String(j.job_number).includes(q) || bike.includes(q) || rego.includes(q.replace(/\s+/g, "")) || cust.includes(q) || (j.complaint ?? "").toLowerCase().includes(q);
   });
+
 
   return (
     <div className="space-y-5 max-w-2xl mx-auto">
