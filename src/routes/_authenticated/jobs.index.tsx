@@ -29,6 +29,7 @@ function JobsList() {
   const [selectMode, setSelectMode] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [deleteJobId, setDeleteJobId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
 
   const { data: jobs = [], isLoading } = useQuery({
@@ -68,10 +69,11 @@ function JobsList() {
 
   const handleDelete = async () => {
     setDeleting(true);
-    const ids = Array.from(selected);
+    const ids = deleteJobId ? [deleteJobId] : Array.from(selected);
     const { error } = await supabase.from("jobs").delete().in("id", ids);
     setDeleting(false);
     setConfirmOpen(false);
+    setDeleteJobId(null);
     if (error) {
       toast.error(`Failed to delete: ${error.message}`);
       return;
@@ -162,7 +164,7 @@ function JobsList() {
           {filtered.map((j: any) => {
             const meta = STATUS_META[j.status];
             const isSelected = selected.has(j.id);
-            const rowClass = `card-surface p-4 flex items-center gap-3 transition-colors ${
+            const baseRowClass = `card-surface p-4 flex items-center gap-3 transition-colors ${
               selectMode
                 ? isSelected
                   ? "border-primary/60 bg-primary/5 cursor-pointer"
@@ -199,30 +201,50 @@ function JobsList() {
             );
             if (selectMode) {
               return (
-                <div key={j.id} className={rowClass} onClick={() => toggle(j.id)}>
+                <div key={j.id} className={baseRowClass} onClick={() => toggle(j.id)}>
                   {inner}
                 </div>
               );
             }
             return (
-              <Link key={j.id} to="/jobs/$jobId" params={{ jobId: j.id }} className={rowClass}>
-                {inner}
-              </Link>
+              <div key={j.id} className="relative group">
+                {isAdmin && (
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setDeleteJobId(j.id);
+                      setConfirmOpen(true);
+                    }}
+                    className="absolute right-2 top-2 z-10 rounded-full bg-destructive text-destructive-foreground p-1 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-destructive/90"
+                    title="Delete job"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                )}
+                <Link to="/jobs/$jobId" params={{ jobId: j.id }} className={baseRowClass}>
+                  {inner}
+                </Link>
+              </div>
             );
           })}
         </div>
       )}
 
-      <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+      <AlertDialog open={confirmOpen} onOpenChange={(open) => { setConfirmOpen(open); if (!open) setDeleteJobId(null); }}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete {selected.size} job{selected.size === 1 ? "" : "s"}?</AlertDialogTitle>
+            <AlertDialogTitle>
+              {deleteJobId
+                ? `Delete job #${jobs.find((j: any) => j.id === deleteJobId)?.job_number ?? ""}?`
+                : `Delete ${selected.size} job${selected.size === 1 ? "" : "s"}?`}
+            </AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently remove the selected job{selected.size === 1 ? "" : "s"} and any related tasks, time entries, photos and invoices. This action cannot be undone.
+              This will permanently remove the {deleteJobId ? "job" : `selected job${selected.size === 1 ? "" : "s"}`} and any related tasks, time entries, photos and invoices. This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
+            <AlertDialogCancel disabled={deleting} onClick={() => setDeleteJobId(null)}>Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={(e) => {
                 e.preventDefault();
