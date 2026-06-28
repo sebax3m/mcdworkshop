@@ -107,6 +107,20 @@ function ClockPage() {
       return;
     }
     if (type === "clock_in" && jobId) {
+      const ended = new Date();
+      const { data: openEntries } = await supabase
+        .from("time_entries")
+        .select("id, started_at")
+        .eq("technician_id", user.id)
+        .is("ended_at", null);
+      for (const entry of openEntries ?? []) {
+        const minutes = Math.max(1, Math.round((+ended - +new Date(entry.started_at)) / 60000));
+        const { error: closeError } = await supabase
+          .from("time_entries")
+          .update({ ended_at: ended.toISOString(), minutes })
+          .eq("id", entry.id);
+        if (closeError) return toast.error(closeError.message);
+      }
       const { error: timerError } = await supabase
         .from("time_entries")
         .insert({ job_id: jobId, technician_id: user.id });
@@ -118,11 +132,8 @@ function ClockPage() {
         .from("time_entries")
         .select("id, started_at")
         .eq("technician_id", user.id)
-        .is("ended_at", null)
-        .order("started_at", { ascending: false })
-        .limit(1);
-      const activeEntry = activeEntries?.[0];
-      if (activeEntry) {
+        .is("ended_at", null);
+      for (const activeEntry of activeEntries ?? []) {
         const minutes = Math.max(1, Math.round((+ended - +new Date(activeEntry.started_at)) / 60000));
         const { error: timerError } = await supabase
           .from("time_entries")
@@ -139,6 +150,7 @@ function ClockPage() {
     qc.invalidateQueries({ queryKey: ["clock-events", user.id] });
     qc.invalidateQueries({ queryKey: ["clock-events-floating", user.id] });
     qc.invalidateQueries({ queryKey: ["clock-floating-active-time-entry", user.id] });
+    qc.invalidateQueries({ queryKey: ["clock-floating-job"] });
     qc.invalidateQueries({ queryKey: ["dashboard-counts"] });
   }
 
