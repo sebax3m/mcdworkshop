@@ -44,6 +44,14 @@ function NewInvoice() {
   const [ncEmail, setNcEmail] = useState("");
   const [creatingCustomer, setCreatingCustomer] = useState(false);
 
+  const [showNewBike, setShowNewBike] = useState(false);
+  const [nbMake, setNbMake] = useState("");
+  const [nbModel, setNbModel] = useState("");
+  const [nbYear, setNbYear] = useState("");
+  const [nbRego, setNbRego] = useState("");
+  const [nbColor, setNbColor] = useState("");
+  const [creatingBike, setCreatingBike] = useState(false);
+
   const [invoiceDate, setInvoiceDate] = useState<string>(today);
   const [notes, setNotes] = useState<string>("");
   const [lines, setLines] = useState<Line[]>([emptyLine()]);
