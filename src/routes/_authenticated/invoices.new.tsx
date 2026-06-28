@@ -266,7 +266,92 @@ function NewInvoice() {
     });
   }
 
+  // ── Auto-save as draft on leave ───────────────────────────────────────────
+  // If the user navigates away (or closes the tab) with any meaningful content
+  // entered, silently persist a draft invoice so it shows up in /invoices.
+  const finalizedRef = useRef(false);    // set true when user clicks Create
+  const draftSavedRef = useRef(false);   // prevents double-save on unmount
+  const stateRef = useRef({ customerId, bikeId, invoiceDate, notes, lines });
+  stateRef.current = { customerId, bikeId, invoiceDate, notes, lines };
+
+  async function persistDraftIfNeeded() {
+    if (finalizedRef.current || draftSavedRef.current) return;
+    const s = stateRef.current;
+    const cleanLines = s.lines
+      .map((l) => ({
+        item_code: l.item_code.trim(),
+        item_name: l.item_name.trim(),
+        description: l.description.trim(),
+        quantity: Number(l.quantity) || 0,
+        unit: Number(l.unit) || 0,
+        discount_pct: Math.max(0, Math.min(100, Number(l.discount_pct) || 0)),
+      }))
+      .filter((l) => l.item_name || l.description || l.item_code);
+    const hasContent =
+      !!s.customerId || cleanLines.length > 0 || s.notes.trim().length > 0;
+    if (!hasContent) return;
+    draftSavedRef.current = true;
+
+    const subInc = cleanLines.reduce(
+      (sum, l) => sum + l.unit * l.quantity * (1 - l.discount_pct / 100),
+      0,
+    );
+    const gstAmt = Math.round((subInc * GST_RATE / (1 + GST_RATE)) * 100) / 100;
+    const totalAmt = Math.round(subInc * 100) / 100;
+
+    const yr = new Date().getFullYear();
+    const { data: last } = await supabase
+      .from("invoices")
+      .select("invoice_number")
+      .like("invoice_number", `MCD-${yr}-%`)
+      .order("invoice_number", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    const lastSeq = last?.invoice_number ? Number(last.invoice_number.split("-").pop()) : 0;
+    const nextSeq = Math.max(lastSeq + 1, 1000);
+    const invoice_number = `MCD-${yr}-${String(nextSeq).padStart(5, "0")}`;
+
+    const snapshotLines = cleanLines.map((l) => ({
+      ...l,
+      description: [l.item_code, l.item_name, l.description].filter(Boolean).join(" — "),
+    }));
+    const { data: u } = await supabase.auth.getUser();
+
+    await supabase.from("invoices").insert({
+      invoice_number,
+      customer_id: s.customerId,
+      motorcycle_id: s.bikeId,
+      labour_total: 0,
+      parts_total: subInc,
+      gst: gstAmt,
+      total: totalAmt,
+      status: "draft",
+      notes: s.notes.trim() || null,
+      invoice_date: s.invoiceDate,
+      snapshot: { line_items: snapshotLines },
+      created_by: u.user?.id,
+    });
+  }
+
+  useEffect(() => {
+    const onBeforeUnload = () => { void persistDraftIfNeeded(); };
+    window.addEventListener("beforeunload", onBeforeUnload);
+    return () => {
+      window.removeEventListener("beforeunload", onBeforeUnload);
+      void persistDraftIfNeeded();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Wrap save() so finalize flag is set before navigation triggers cleanup.
+  const saveExplicit = (action: "view" | "print" | "email") => {
+    finalizedRef.current = true;
+    return save(action);
+  };
+
   const selectedCustomer = (customers.data ?? []).find((c: any) => c.id === customerId);
+
+
 
   return (
     <div className="space-y-5 max-w-5xl mx-auto">
