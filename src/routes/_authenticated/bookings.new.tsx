@@ -90,12 +90,29 @@ function NewBooking() {
 
   const customer = (customers.data as any[] | undefined)?.find((c) => c.id === customerId);
   const bike = (bikes.data as any[] | undefined)?.find((b) => b.id === bikeId);
-  const filteredCustomers = useMemo(() => {
-    const s = search$.toLowerCase();
-    return (customers.data ?? []).filter((c: any) =>
-      `${c.first_name} ${c.last_name} ${c.phone ?? ""}`.toLowerCase().includes(s),
-    );
-  }, [customers.data, search$]);
+  const searchResults = useMemo(() => {
+    const s = search$.trim().toLowerCase();
+    const allC: any[] = customers.data ?? [];
+    const allB: any[] = allBikes.data ?? [];
+    if (!s) return allC.slice(0, 20).map((c) => ({ customer: c, bike: null as any }));
+    if (searchMode === "rego") {
+      const matches = allB.filter((b) => (b.rego ?? "").toLowerCase().includes(s));
+      return matches
+        .map((b) => ({ customer: allC.find((c) => c.id === b.customer_id), bike: b }))
+        .filter((r) => r.customer)
+        .slice(0, 20);
+    }
+    if (searchMode === "mobile") {
+      return allC
+        .filter((c) => (c.phone ?? "").toLowerCase().replace(/\s/g, "").includes(s.replace(/\s/g, "")))
+        .slice(0, 20)
+        .map((c) => ({ customer: c, bike: null }));
+    }
+    return allC
+      .filter((c) => `${c.first_name ?? ""} ${c.last_name ?? ""}`.toLowerCase().includes(s))
+      .slice(0, 20)
+      .map((c) => ({ customer: c, bike: null }));
+  }, [customers.data, allBikes.data, search$, searchMode]);
 
   async function createCustomer() {
     if (!ncFirst.trim()) return toast.error("First name required");
