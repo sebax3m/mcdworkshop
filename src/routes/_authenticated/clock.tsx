@@ -44,7 +44,7 @@ function ClockPage() {
     queryFn: async () => {
       const { data } = await supabase
         .from("jobs")
-        .select("id, job_number, complaint, status, bikes(make, model), customers(first_name, last_name)")
+        .select("id, job_number, complaint, status, bikes(make, model, rego), customers(first_name, last_name)")
         .neq("status", "completed")
         .order("job_number", { ascending: false })
         .limit(50);
