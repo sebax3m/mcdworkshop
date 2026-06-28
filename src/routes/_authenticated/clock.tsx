@@ -157,7 +157,7 @@ function ClockPage() {
         .neq("status", "completed")
         .maybeSingle();
       if (error) return toast.error(error.message);
-      pick = data;
+      pick = data as any;
     }
 
     if (!pick) return toast.error("No active job card found for that number");
