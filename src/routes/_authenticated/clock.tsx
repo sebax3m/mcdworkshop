@@ -23,7 +23,7 @@ export const Route = createFileRoute("/_authenticated/clock")({
 type EventType = "clock_in" | "clock_out" | "break_start" | "break_end";
 
 function ClockPage() {
-  const { user } = useCurrentUser();
+  const { user, fullName } = useCurrentUser();
   const qc = useQueryClient();
   const [pickingJob, setPickingJob] = useState(false);
   const [jobQuery, setJobQuery] = useState("");
@@ -129,6 +129,11 @@ function ClockPage() {
       <header>
         <div className="text-xs uppercase tracking-[0.25em] text-muted-foreground">Time Clock</div>
         <h1 className="font-display text-2xl sm:text-3xl font-bold">Your shift</h1>
+        {user && (
+          <div className="text-sm text-muted-foreground mt-1">
+            Logged in as <span className="font-semibold text-foreground">{fullName || user?.email}</span>
+          </div>
+        )}
       </header>
 
       <ClockHero state={state} since={last?.occurred_at} />
