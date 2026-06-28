@@ -12,6 +12,7 @@ import { ArrowLeft, Play, Square, User, Bike as BikeIcon, ChevronDown, Check, Dr
 import { detectServiceKind, KIND_META, SERVICE_PARTS } from "@/lib/service-kinds";
 import { getValveSpec, formatRange, type ValveSpec } from "@/lib/valve-specs";
 import { DamageSection } from "@/components/DamageSection";
+import logoAsset from "@/assets/motorcycle-doctors-logo.png.asset.json";
 
 
 export const Route = createFileRoute("/_authenticated/jobs/$jobId")({
@@ -252,13 +253,16 @@ function JobDetail() {
       <div className="hidden print:block">
 
         <div className="flex items-start justify-between gap-4 border-b-2 border-black pb-3 mb-4">
-          <div className="min-w-0">
-            <div className="text-[10px] uppercase tracking-[0.25em] text-gray-600">Motorcycle Doctors · Job Card</div>
-            <h1 className="font-display text-2xl font-bold leading-tight">{j.title}</h1>
-            <div className="text-xs text-gray-700 mt-1">
-              {kindMeta.label}
-              {j.estimated_hours ? ` · Est. ${j.estimated_hours}h` : ""}
-              {" · "}Booked {j.scheduled_at ? new Date(j.scheduled_at).toLocaleDateString() : "—"}
+          <div className="flex items-center gap-3 min-w-0">
+            <img src={logoAsset.url} alt="Motorcycle Doctors" className="h-14 w-14 rounded-md object-contain bg-black/10 p-1" />
+            <div className="min-w-0">
+              <div className="text-[10px] uppercase tracking-[0.25em] text-gray-600">Motorcycle Doctors · Job Card</div>
+              <h1 className="font-display text-2xl font-bold leading-tight">{j.title}</h1>
+              <div className="text-xs text-gray-700 mt-1">
+                {kindMeta.label}
+                {j.estimated_hours ? ` · Est. ${j.estimated_hours}h` : ""}
+                {" · "}Booked {j.scheduled_at ? new Date(j.scheduled_at).toLocaleDateString() : "—"}
+              </div>
             </div>
           </div>
           <div className="text-right shrink-0">
