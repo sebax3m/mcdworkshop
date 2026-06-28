@@ -19,9 +19,9 @@ export function FloatingClockWidget() {
         .select("id, event_type, occurred_at, job_id")
         .eq("user_id", user!.id)
         .order("occurred_at", { ascending: false })
-        .limit: undefined as never;
+        .limit(20);
       return data ?? [];
-    } as any,
+    },
   });
 
   useEffect(() => {
