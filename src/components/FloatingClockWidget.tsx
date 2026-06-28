@@ -95,8 +95,6 @@ export function FloatingClockWidget() {
   const time = `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
 
   const isBreak = state === "break";
-  const bike = (job.data as any)?.bikes;
-  const bikeStr = bike ? `${bike.make ?? ""} ${bike.model ?? ""}`.trim() : "";
 
   const handlePointerDown = (e: React.PointerEvent) => {
     didDragRef.current = false;
