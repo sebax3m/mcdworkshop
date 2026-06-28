@@ -140,11 +140,39 @@ function NewBooking() {
       setCustomerId(data.id);
       setShowNewCustomer(false);
       setNcFirst(""); setNcLast(""); setNcPhone(""); setNcEmail("");
-      toast.success("Customer created");
+      setShowNewBike(true);
+      toast.success("Customer created — now add their motorcycle");
     } catch (err: any) {
       toast.error(err.message ?? "Failed to create customer");
     } finally {
       setCreatingCustomer(false);
+    }
+  }
+
+  async function createBike() {
+    if (!customerId) return toast.error("Pick a customer first");
+    if (!nbMake.trim() || !nbModel.trim()) return toast.error("Make and model required");
+    setCreatingBike(true);
+    try {
+      const { data, error } = await (supabase as any).from("motorcycles").insert({
+        customer_id: customerId,
+        make: nbMake.trim(),
+        model: nbModel.trim(),
+        year: nbYear ? Number(nbYear) : null,
+        rego: nbRego.trim().toUpperCase() || null,
+        color: nbColor.trim() || null,
+      }).select("id").single();
+      if (error) throw error;
+      await qc.invalidateQueries({ queryKey: ["bk-bikes", customerId] });
+      await qc.invalidateQueries({ queryKey: ["bk-all-bikes"] });
+      setBikeId(data.id);
+      setNbMake(""); setNbModel(""); setNbYear(""); setNbRego(""); setNbColor("");
+      setShowNewBike(false);
+      toast.success("Motorcycle added");
+    } catch (err: any) {
+      toast.error(err.message ?? "Failed to add motorcycle");
+    } finally {
+      setCreatingBike(false);
     }
   }
 
