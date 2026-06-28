@@ -46,7 +46,6 @@ function ClockPage() {
         .from("jobs")
         .select("id, job_number, complaint, status, bikes(make, model), customers(first_name, last_name)")
         .neq("status", "completed")
-        .neq("status", "invoiced")
         .order("job_number", { ascending: false })
         .limit(50);
       return data ?? [];
