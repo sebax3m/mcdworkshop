@@ -214,7 +214,7 @@ function NewClaim() {
                   <Input placeholder="First name *" value={newCust.first_name} onChange={(e) => setNewCust({ ...newCust, first_name: e.target.value })} />
                   <Input placeholder="Last name (optional)" value={newCust.last_name} onChange={(e) => setNewCust({ ...newCust, last_name: e.target.value })} />
                   <Input placeholder="Phone" inputMode="tel" value={newCust.phone} onChange={(e) => setNewCust({ ...newCust, phone: e.target.value })} />
-                  <Input placeholder="Email" inputMode="email" value={newCust.email} onChange={(e) => setNewCust({ ...newCust, email: e.target.value })} />
+                  <Input placeholder="Email (optional)" inputMode="email" value={newCust.email} onChange={(e) => setNewCust({ ...newCust, email: e.target.value })} />
                 </div>
                 <div className="flex gap-2">
                   <Button onClick={saveNewCustomer} disabled={savingCust} className="gold-surface flex-1">{savingCust ? "Saving…" : "Save customer"}</Button>
