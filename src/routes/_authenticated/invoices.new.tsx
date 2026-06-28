@@ -290,7 +290,7 @@ function NewInvoice() {
               className={`grid grid-cols-12 gap-2 items-start rounded-md transition-opacity ${dragIdx === idx ? "opacity-40" : ""}`}
             >
               <div
-                className="col-span-1 sm:col-span-[0.5] grid place-items-center h-9 text-muted-foreground cursor-grab active:cursor-grabbing"
+                className="col-span-1 grid place-items-center h-9 text-muted-foreground cursor-grab active:cursor-grabbing"
                 title="Drag to reorder"
               >
                 <GripVertical className="h-4 w-4" />
