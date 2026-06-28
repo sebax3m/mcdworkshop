@@ -67,7 +67,7 @@ function NewClaim() {
     try {
       const { data, error } = await supabase.from("customers").insert({
         first_name: newCust.first_name.trim(),
-        last_name: newCust.last_name.trim(),
+        last_name: newCust.last_name.trim() || null,
         phone: newCust.phone.trim() || null,
         email: newCust.email.trim() || null,
       }).select("id").single();
