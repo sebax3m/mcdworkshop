@@ -185,6 +185,8 @@ export function AppShell() {
         <Outlet />
       </main>
 
+      <FloatingClockWidget />
+
       {/* ===== MOBILE BOTTOM NAV ===== */}
       <nav className="fixed bottom-0 inset-x-0 z-40 sm:hidden border-t border-border bg-background/95 backdrop-blur-xl">
         <div className="grid grid-cols-5">
