@@ -461,6 +461,11 @@ function CalendarPage() {
                           </div>
                           <div className="text-xs font-semibold truncate mt-0.5">{bike}</div>
                           <div className="text-[10px] text-muted-foreground truncate">{customer}</div>
+                          {b.loan_bike && (
+                            <div className="mt-1 inline-flex items-center gap-1 rounded-full bg-amber-400/20 border border-amber-400/60 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-amber-300">
+                              🏍️ Loan bike
+                            </div>
+                          )}
                           <div className="mt-1 flex items-center justify-between">
                             <span className="text-[10px] text-muted-foreground tabular-nums">{b.estimated_hours ?? 1}h</span>
                             {b.tech_name ? (
