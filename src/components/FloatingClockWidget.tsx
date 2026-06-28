@@ -10,6 +10,7 @@ export function FloatingClockWidget() {
   const navigate = useNavigate();
   const [now, setNow] = useState(Date.now());
   const [pos, setPos] = useState<{ x: number; y: number } | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const dragRef = useRef<{ startX: number; startY: number; initX: number; initY: number } | null>(null);
   const didDragRef = useRef(false);
 
@@ -41,7 +42,7 @@ export function FloatingClockWidget() {
     ? "on"
     : last.event_type === "break_start"
     ? "break"
- : "off";
+    : "off";
 
   // Find active job_id (latest clock_in in current shift)
   const activeJobId = (() => {
@@ -80,7 +81,7 @@ export function FloatingClockWidget() {
 
   const handlePointerDown = (e: React.PointerEvent) => {
     didDragRef.current = false;
-    (e.target as HTMLElement).setPointerCapture(e.pointerId);
+    containerRef.current?.setPointerCapture(e.pointerId);
     dragRef.current = {
       startX: e.clientX,
       startY: e.clientY,
@@ -120,6 +121,7 @@ export function FloatingClockWidget() {
 
   return (
     <div
+      ref={containerRef}
       className="fixed z-50 print:hidden select-none"
       style={{ pointerEvents: "auto", ...stylePos }}
       onPointerDown={handlePointerDown}
