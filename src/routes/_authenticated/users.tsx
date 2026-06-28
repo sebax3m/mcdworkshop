@@ -2,8 +2,10 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
-import { ArrowLeft, Check, RefreshCw, Mail, Clock, Pencil, Star } from "lucide-react";
+import { toast } from "sonner";
+import { ArrowLeft, Check, RefreshCw, Mail, Clock, Pencil, Star, UserPlus } from "lucide-react";
 import { listUsersWithLogins, updateUserDetails, type UserLoginRow } from "@/lib/users.functions";
+import { seedStaff } from "@/lib/seed-staff.functions";
 import { initials } from "@/lib/format";
 import {
   useActiveTechnicianId,
@@ -73,14 +75,36 @@ function UsersPage() {
             See who has signed in, switch the active user, and edit their details.
           </p>
         </div>
-        <button
-          onClick={() => refetch()}
-          className="inline-flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-sm hover:border-foreground/30"
-        >
-          <RefreshCw className={cn("h-4 w-4", isFetching && "animate-spin")} />
-          Refresh
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={async () => {
+              try {
+                const r = await seedStaff({ data: undefined });
+                const created = r.results.filter((x) => x.status === "created").length;
+                const exists = r.results.filter((x) => x.status === "exists").length;
+                const errs = r.results.filter((x) => x.status === "error");
+                toast.success(`Staff seeded — ${created} created, ${exists} already existed${errs.length ? `, ${errs.length} errors` : ""}`);
+                if (errs.length) console.error(errs);
+                refetch();
+              } catch (e: any) {
+                toast.error(e.message ?? "Failed to seed staff");
+              }
+            }}
+            className="inline-flex items-center gap-2 rounded-lg red-surface px-3 py-2 text-sm font-semibold"
+          >
+            <UserPlus className="h-4 w-4" />
+            Seed workshop staff
+          </button>
+          <button
+            onClick={() => refetch()}
+            className="inline-flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-sm hover:border-foreground/30"
+          >
+            <RefreshCw className={cn("h-4 w-4", isFetching && "animate-spin")} />
+            Refresh
+          </button>
+        </div>
       </header>
+
 
       {error && (
         <div className="card-surface p-4 text-sm text-destructive">

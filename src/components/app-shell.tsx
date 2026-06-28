@@ -14,13 +14,19 @@ export function AppShell() {
   const roleLabel = isAdmin ? "Admin" : isTechnician ? "Technician" : "No Role";
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
-  const tabs = [
-    { to: "/calendar", label: "Calendar", icon: CalendarDays },
-    { to: "/bookings", label: "Bookings", icon: ClipboardList },
-    { to: "/jobs", label: "Jobs", icon: Wrench },
-    { to: "/motorcycles", label: "Bikes", icon: Bike },
-    { to: "/clock", label: "Clock", icon: Timer },
-  ];
+  const tabs = isAdmin
+    ? [
+        { to: "/calendar", label: "Calendar", icon: CalendarDays },
+        { to: "/bookings", label: "Bookings", icon: ClipboardList },
+        { to: "/jobs", label: "Jobs", icon: Wrench },
+        { to: "/motorcycles", label: "Bikes", icon: Bike },
+        { to: "/clock", label: "Clock", icon: Timer },
+      ]
+    : [
+        { to: "/calendar", label: "Calendar", icon: CalendarDays },
+        { to: "/jobs", label: "Job Cards", icon: Wrench },
+        { to: "/clock", label: "Clock", icon: Timer },
+      ];
 
   async function signOut() {
     await supabase.auth.signOut();
