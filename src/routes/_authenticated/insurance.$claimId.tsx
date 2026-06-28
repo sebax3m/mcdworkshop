@@ -87,10 +87,16 @@ function ClaimDetail() {
     }
     // Build quote summary from current quote_items so the technician sees
     // exactly which parts to replace/repair and the labour budget.
-    const items: Array<{ kind: "part" | "labour"; description: string; qty: number; unit_price: number }> =
+    const items: Array<{ kind: "part" | "labour"; item_code?: string; item_name?: string; description: string; qty: number; unit_price: number }> =
       Array.isArray(c.quote_items) ? c.quote_items : [];
-    const parts = items.filter((it) => it.kind === "part" && (it.description ?? "").trim());
-    const labours = items.filter((it) => it.kind === "labour" && (it.description ?? "").trim());
+    const label = (it: { item_code?: string; item_name?: string; description: string }) => {
+      const code = (it.item_code ?? "").trim();
+      const name = (it.item_name ?? "").trim();
+      const desc = (it.description ?? "").trim();
+      return [code && `[${code}]`, name || desc, name && desc ? `— ${desc}` : ""].filter(Boolean).join(" ").trim();
+    };
+    const parts = items.filter((it) => it.kind === "part" && label(it));
+    const labours = items.filter((it) => it.kind === "labour" && label(it));
     const estimatedHours = labours.reduce((s, it) => s + (Number(it.qty) || 0), 0);
 
     const lines: string[] = [];
@@ -98,13 +104,13 @@ function ClaimDetail() {
     if (parts.length) {
       lines.push("", "PARTS TO REPLACE / REPAIR:");
       for (const p of parts) {
-        lines.push(`  • ${p.description}${Number(p.qty) > 1 ? ` ×${p.qty}` : ""}`);
+        lines.push(`  • ${label(p)}${Number(p.qty) > 1 ? ` ×${p.qty}` : ""}`);
       }
     }
     if (labours.length) {
       lines.push("", `LABOUR (est. ${estimatedHours.toFixed(2)} hrs):`);
       for (const l of labours) {
-        lines.push(`  • ${l.description} — ${Number(l.qty).toFixed(2)} hrs`);
+        lines.push(`  • ${label(l)} — ${Number(l.qty).toFixed(2)} hrs`);
       }
     }
     const description = lines.join("\n");
@@ -131,7 +137,7 @@ function ClaimDetail() {
     for (const p of parts) {
       tasks.push({
         job_id: job.id,
-        label: `Replace / repair: ${p.description}${Number(p.qty) > 1 ? ` ×${p.qty}` : ""}`,
+        label: `Replace / repair: ${label(p)}${Number(p.qty) > 1 ? ` ×${p.qty}` : ""}`,
         sort_order: order++,
         note: "Part (from insurance quote)",
       });
@@ -139,7 +145,7 @@ function ClaimDetail() {
     for (const l of labours) {
       tasks.push({
         job_id: job.id,
-        label: `${l.description} (${Number(l.qty).toFixed(2)} hrs est.)`,
+        label: `${label(l)} (${Number(l.qty).toFixed(2)} hrs est.)`,
         sort_order: order++,
         note: "Labour (from insurance quote)",
       });
