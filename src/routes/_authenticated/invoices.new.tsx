@@ -310,28 +310,42 @@ function NewInvoice() {
                 <GripVertical className="h-4 w-4" />
               </div>
               <Input
-                className="col-span-11 sm:col-span-5"
+                className="col-span-11 sm:col-span-4"
                 placeholder="Description (anything — labour, part, fee, callout…)"
                 value={l.description}
                 onChange={(e) => updateLine(idx, { description: e.target.value })}
               />
               <Input
-                className="col-span-4 sm:col-span-2"
+                className="col-span-3 sm:col-span-2"
                 type="number" step="0.01" min="0"
                 placeholder="Qty"
                 value={l.quantity}
                 onChange={(e) => updateLine(idx, { quantity: Number(e.target.value) })}
               />
               <Input
-                className="col-span-4 sm:col-span-2"
+                className="col-span-3 sm:col-span-2"
                 type="number" step="0.01" min="0"
                 placeholder="Unit $"
                 value={l.unit}
                 onChange={(e) => updateLine(idx, { unit: Number(e.target.value) })}
               />
-              <div className="col-span-3 sm:col-span-1 text-right text-sm tabular-nums pt-2 font-semibold">
-                ${(Number(l.unit) * Number(l.quantity) || 0).toFixed(2)}
+              <Input
+                className="col-span-3 sm:col-span-1"
+                type="number" step="1" min="0" max="100"
+                placeholder="Disc %"
+                title="Discount %"
+                value={l.discount_pct}
+                onChange={(e) => updateLine(idx, { discount_pct: Number(e.target.value) })}
+              />
+              <div className="col-span-3 sm:col-span-2 text-right text-sm tabular-nums pt-2 font-semibold">
+                {Number(l.discount_pct) > 0 && (
+                  <div className="text-[10px] text-muted-foreground line-through font-normal">
+                    ${(Number(l.unit) * Number(l.quantity) || 0).toFixed(2)}
+                  </div>
+                )}
+                ${((Number(l.unit) * Number(l.quantity) || 0) * (1 - (Number(l.discount_pct) || 0) / 100)).toFixed(2)}
               </div>
+
               <button
                 type="button"
                 onClick={() => removeLine(idx)}
