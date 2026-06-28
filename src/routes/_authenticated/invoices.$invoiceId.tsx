@@ -532,13 +532,16 @@ function InvoiceDetail() {
 
           {/* Line items */}
           <div className="pt-5 border-t border-border">
+            {(() => null)()}
+            {/* hasDiscount controls whether the Disc % column appears */}
+            {(() => { return null; })()}
             <table className="w-full text-sm">
               <thead>
                 <tr className="text-left text-[10px] uppercase tracking-wider text-muted-foreground border-b border-border">
                   <th className="py-2.5">Description</th>
                   <th className="py-2.5 text-right w-16">Qty</th>
                   <th className="py-2.5 text-right w-24">Unit</th>
-                  <th className="py-2.5 text-right w-20">Disc %</th>
+                  {hasDiscount && <th className="py-2.5 text-right w-20">Disc %</th>}
                   <th className="py-2.5 text-right w-28">Amount</th>
                 </tr>
               </thead>
