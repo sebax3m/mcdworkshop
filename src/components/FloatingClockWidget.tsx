@@ -41,7 +41,7 @@ export function FloatingClockWidget() {
     queryFn: async () => {
       const { data } = await supabase
         .from("time_entries")
-        .select("job_id, started_at, jobs(id, job_number, complaint, bikes(make, model, rego))")
+        .select("job_id, started_at, jobs(id, job_number, complaint, motorcycles(make, model, rego))")
         .eq("technician_id", user!.id)
         .is("ended_at", null)
         .order("started_at", { ascending: false })
@@ -80,7 +80,7 @@ export function FloatingClockWidget() {
     queryFn: async () => {
       const { data } = await supabase
         .from("jobs")
-        .select("id, job_number, complaint, bikes(make, model)")
+        .select("id, job_number, complaint, motorcycles(make, model, rego)")
         .eq("id", resolvedJobId!)
         .maybeSingle();
       return data;
