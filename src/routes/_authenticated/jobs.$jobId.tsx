@@ -307,8 +307,9 @@ function JobDetail() {
                 <LiveTimerButton startedAt={activeTimer.started_at} onStop={stopTimer} />
               ) : (
                 <Button onClick={startTimer} className="gold-surface h-12 px-5 font-bold gap-2">
-                  <Play className="h-4 w-4" /> Start Job
+                  <Play className="h-4 w-4" /> Clock In
                 </Button>
+
               )}
               {j.status !== "completed" && (
                 <Button
