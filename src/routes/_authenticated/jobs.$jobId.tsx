@@ -290,6 +290,18 @@ function JobDetail() {
         <InfoRow icon={BikeIcon} label="Motorcycle" value={fullBike(j.motorcycles as any)} hint={j.motorcycles?.rego ?? undefined} />
       </div>
 
+      {/* Kilometers / Odometer — technician entry */}
+      <OdometerSection
+        jobId={jobId}
+        bikeId={(j.motorcycles as any)?.id}
+        currentOdo={j.odometer ?? null}
+        bikeMileage={(j.motorcycles as any)?.mileage ?? null}
+        canEdit={canEdit}
+        onSaved={() => {
+          qc.invalidateQueries({ queryKey: ["job", jobId] });
+        }}
+      />
+
       {/* Live timer */}
       <div className="card-surface p-4">
         <div className="flex items-center justify-between gap-3 flex-wrap">
