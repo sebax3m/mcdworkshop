@@ -110,8 +110,8 @@ export function FloatingClockWidget() {
     dragRef.current = {
       startX: e.clientX,
       startY: e.clientY,
-      initX: pos?.x ?? window.innerWidth - 24 - 220,
-      initY: pos?.y ?? 80,
+      initX: pos?.x ?? 16,
+      initY: pos?.y ?? (typeof window !== 'undefined' ? window.innerHeight - 140 : 600),
     };
   };
 
@@ -137,7 +137,7 @@ export function FloatingClockWidget() {
 
   const stylePos = pos
     ? { left: pos.x, top: pos.y, right: "auto" as const }
-    : { right: 16, top: 80 };
+    : { left: 16, bottom: 24 };
 
   return (
     <div
