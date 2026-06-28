@@ -280,9 +280,23 @@ function NewInvoice() {
         </div>
         <div className="space-y-2">
           {lines.map((l, idx) => (
-            <div key={idx} className="grid grid-cols-12 gap-2 items-start">
+            <div
+              key={idx}
+              draggable
+              onDragStart={() => setDragIdx(idx)}
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={() => { if (dragIdx !== null) reorder(dragIdx, idx); setDragIdx(null); }}
+              onDragEnd={() => setDragIdx(null)}
+              className={`grid grid-cols-12 gap-2 items-start rounded-md transition-opacity ${dragIdx === idx ? "opacity-40" : ""}`}
+            >
+              <div
+                className="col-span-1 sm:col-span-[0.5] grid place-items-center h-9 text-muted-foreground cursor-grab active:cursor-grabbing"
+                title="Drag to reorder"
+              >
+                <GripVertical className="h-4 w-4" />
+              </div>
               <Input
-                className="col-span-12 sm:col-span-6"
+                className="col-span-11 sm:col-span-5"
                 placeholder="Description (anything — labour, part, fee, callout…)"
                 value={l.description}
                 onChange={(e) => updateLine(idx, { description: e.target.value })}
