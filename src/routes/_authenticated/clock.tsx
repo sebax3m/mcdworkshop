@@ -261,7 +261,7 @@ function ClockPage() {
   );
 }
 
-function ClockHero({ state, since }: { state: "off" | "on" | "break"; since?: string }) {
+function ClockHero({ state, since, jobId, jobNumber }: { state: "off" | "on" | "break"; since?: string; jobId?: string; jobNumber?: number }) {
   const [now, setNow] = useState(Date.now());
   useEffect(() => { const i = setInterval(() => setNow(Date.now()), 1000); return () => clearInterval(i); }, []);
   const sec = since ? Math.max(0, Math.floor((now - +new Date(since)) / 1000)) : 0;
@@ -278,9 +278,20 @@ function ClockHero({ state, since }: { state: "off" | "on" | "break"; since?: st
       ) : (
         <div className="font-display text-5xl font-bold mt-2 text-muted-foreground">—:—:—</div>
       )}
-      <div className="text-xs text-muted-foreground mt-1">
-        {since ? `Since ${new Date(since).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}` : "Tap clock in to start your shift"}
-      </div>
+      {jobId && jobNumber ? (
+        <Link
+          to="/jobs/$jobId"
+          params={{ jobId }}
+          className="inline-flex items-center gap-1.5 mt-2 text-sm font-semibold text-primary hover:underline"
+        >
+          <Wrench className="h-3.5 w-3.5" />
+          Job #{jobNumber}
+        </Link>
+      ) : (
+        <div className="text-xs text-muted-foreground mt-1">
+          {since ? `Since ${new Date(since).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}` : "Tap clock in to start your shift"}
+        </div>
+      )}
     </div>
   );
 }
