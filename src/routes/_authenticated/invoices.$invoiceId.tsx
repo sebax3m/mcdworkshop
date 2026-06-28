@@ -589,12 +589,23 @@ function InvoiceDetail() {
                   return (
                     <tr key={p.id} className="border-b border-border/40 group">
                       <td className="py-3">
-                        <EditableText value={p.name ?? ""} onCommit={(v) => updatePart(p.id, { name: v })} className="font-medium" />
-                        <EditableText
-                          value={p.supplier ?? ""}
-                          onCommit={(v) => updatePart(p.id, { supplier: v })}
-                          className="text-xs text-muted-foreground block"
-                        />
+                        <div className="flex items-start gap-2">
+                          <div className="flex-1">
+                            <EditableText value={p.name ?? ""} onCommit={(v) => updatePart(p.id, { name: v })} className="font-medium" />
+                            <EditableText
+                              value={p.supplier ?? ""}
+                              onCommit={(v) => updatePart(p.id, { supplier: v })}
+                              className="text-xs text-muted-foreground block"
+                            />
+                          </div>
+                          <button
+                            onClick={() => { setLibrarySearch(""); setLibraryTarget({ kind: "part", id: p.id }); }}
+                            className="no-print shrink-0 rounded border border-border p-1 text-muted-foreground hover:text-foreground hover:border-primary"
+                            title="Pick from inventory library"
+                          >
+                            <BookOpen className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
                       </td>
                       <td className="py-3 text-right">
                         <EditableNumber value={qty} decimals={0} onCommit={(n) => updatePart(p.id, { quantity: n })} />
