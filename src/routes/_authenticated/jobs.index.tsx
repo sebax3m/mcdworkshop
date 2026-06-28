@@ -69,10 +69,11 @@ function JobsList() {
 
   const handleDelete = async () => {
     setDeleting(true);
-    const ids = Array.from(selected);
+    const ids = deleteJobId ? [deleteJobId] : Array.from(selected);
     const { error } = await supabase.from("jobs").delete().in("id", ids);
     setDeleting(false);
     setConfirmOpen(false);
+    setDeleteJobId(null);
     if (error) {
       toast.error(`Failed to delete: ${error.message}`);
       return;
