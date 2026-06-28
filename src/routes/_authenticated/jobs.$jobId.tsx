@@ -531,7 +531,7 @@ function LiveTimerButton({ startedAt, onStop }: { startedAt: string; onStop: () 
     <Button onClick={onStop} className="bg-status-parts hover:bg-status-parts/90 text-white h-12 px-5 font-bold gap-2">
       <Square className="h-4 w-4 fill-white" />
       <span className="tabular-nums">{String(h).padStart(2,"0")}:{String(m).padStart(2,"0")}:{String(s).padStart(2,"0")}</span>
-      <span>Stop</span>
+      <span>Clock Out</span>
     </Button>
   );
 }
