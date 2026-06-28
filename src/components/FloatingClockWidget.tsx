@@ -76,22 +76,57 @@ export function FloatingClockWidget() {
   const bike = (job.data as any)?.bikes;
   const bikeStr = bike ? `${bike.make ?? ""} ${bike.model ?? ""}`.trim() : "";
 
+  const handlePointerDown = (e: React.PointerEvent) => {
+    (e.target as HTMLElement).setPointerCapture(e.pointerId);
+    dragRef.current = {
+      startX: e.clientX,
+      startY: e.clientY,
+      initX: pos?.x ?? window.innerWidth - 24 - 220,
+      initY: pos?.y ?? 80,
+    };
+  };
+
+  const handlePointerMove = (e: React.PointerEvent) => {
+    if (!dragRef.current) return;
+    const dx = e.clientX - dragRef.current.startX;
+    const dy = e.clientY - dragRef.current.startY;
+    let nx = dragRef.current.initX + dx;
+    let ny = dragRef.current.initY + dy;
+    nx = Math.max(8, Math.min(nx, window.innerWidth - 240));
+    ny = Math.max(8, Math.min(ny, window.innerHeight - 120));
+    setPos({ x: nx, y: ny });
+  };
+
+  const handlePointerUp = () => {
+    dragRef.current = null;
+  };
+
+  const stylePos = pos
+    ? { left: pos.x, top: pos.y, right: "auto" as const }
+    : { right: 16, top: 80 };
+
   return (
     <div
-      className="fixed top-20 right-4 sm:right-6 z-50 print:hidden"
-      style={{ pointerEvents: "auto" }}
+      className="fixed z-50 print:hidden select-none"
+      style={{ pointerEvents: "auto", ...stylePos }}
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
+      onPointerUp={handlePointerUp}
     >
       <div
-        className="rounded-2xl border border-white/15 shadow-2xl backdrop-blur-xl px-4 py-3 min-w-[220px]"
+        className="rounded-2xl border border-white/15 shadow-2xl backdrop-blur-xl px-4 py-3 min-w-[220px] cursor-grab active:cursor-grabbing"
         style={{
           background: isBreak
             ? "color-mix(in srgb, hsl(var(--status-progress)) 18%, transparent)"
             : "color-mix(in srgb, hsl(var(--primary)) 18%, transparent)",
         }}
       >
-        <div className="flex items-center gap-2 text-[10px] uppercase tracking-widest text-foreground/80">
-          {isBreak ? <Coffee className="h-3 w-3" /> : <Clock className="h-3 w-3" />}
-          {isBreak ? "On break" : "Clocked in"}
+        <div className="flex items-center justify-between gap-2 text-[10px] uppercase tracking-widest text-foreground/80">
+          <div className="flex items-center gap-2">
+            {isBreak ? <Coffee className="h-3 w-3" /> : <Clock className="h-3 w-3" />}
+            {isBreak ? "On break" : "Clocked in"}
+          </div>
+          <GripVertical className="h-3.5 w-3.5 opacity-50" />
         </div>
         <div className="font-display text-2xl font-bold tabular-nums leading-tight mt-0.5 text-foreground">
           {time}
@@ -101,6 +136,7 @@ export function FloatingClockWidget() {
             to="/jobs/$jobId"
             params={{ jobId: activeJobId }}
             className="mt-1 flex items-center justify-between gap-2 text-xs text-foreground/90 hover:text-primary group"
+            onPointerDown={(e) => e.stopPropagation()}
           >
             <span className="truncate">
               <span className="font-semibold">#{(job.data as any).job_number}</span>
@@ -109,7 +145,7 @@ export function FloatingClockWidget() {
             <ExternalLink className="h-3 w-3 opacity-60 group-hover:opacity-100 shrink-0" />
           </Link>
         ) : (
-          <Link to="/clock" className="mt-1 block text-xs text-foreground/70 hover:text-primary">
+          <Link to="/clock" className="mt-1 block text-xs text-foreground/70 hover:text-primary" onPointerDown={(e) => e.stopPropagation()}>
             Open clock →
           </Link>
         )}
