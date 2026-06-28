@@ -12,6 +12,7 @@ import { ArrowLeft, Play, Square, User, Bike as BikeIcon, ChevronDown, Check, Dr
 import { detectServiceKind, KIND_META, SERVICE_PARTS } from "@/lib/service-kinds";
 import { getValveSpec, formatRange, type ValveSpec } from "@/lib/valve-specs";
 import { DamageSection } from "@/components/DamageSection";
+import logoAsset from "@/assets/motorcycle-doctors-logo.png.asset.json";
 
 
 export const Route = createFileRoute("/_authenticated/jobs/$jobId")({
