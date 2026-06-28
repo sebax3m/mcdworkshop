@@ -633,12 +633,23 @@ function InvoiceDetail() {
                       </td>
                       {hasDiscount && (
                         <td className="py-3 text-right">
-                          <EditableNumber
-                            value={disc}
-                            suffix="%"
-                            onCommit={(n) => updatePart(p.id, { discount_pct: Math.max(0, Math.min(100, n)) })}
-                            className={disc > 0 ? "text-emerald-500 font-semibold" : ""}
-                          />
+                          <div className="inline-flex items-center gap-1">
+                            <EditableNumber
+                              value={disc}
+                              suffix="%"
+                              onCommit={(n) => updatePart(p.id, { discount_pct: Math.max(0, Math.min(100, n)) })}
+                              className={disc > 0 ? "text-emerald-500 font-semibold" : ""}
+                            />
+                            {disc > 0 && (
+                              <button
+                                onClick={() => updatePart(p.id, { discount_pct: 0 })}
+                                className="no-print text-muted-foreground hover:text-destructive"
+                                title="Remove discount"
+                              >
+                                <X className="h-3.5 w-3.5" />
+                              </button>
+                            )}
+                          </div>
                         </td>
                       )}
                       <td className="py-3 text-right font-semibold">
