@@ -202,7 +202,7 @@ function NewInvoice() {
     setNbMake(""); setNbModel(""); setNbYear(""); setNbRego(""); setNbColor("");
   }
 
-  async function save() {
+  async function save(postAction: "view" | "print" | "email" = "view") {
     const cleanLines = lines
       .map((l) => ({
         item_code: l.item_code.trim(),
@@ -259,7 +259,11 @@ function NewInvoice() {
     setSaving(false);
     if (error || !data) { toast.error(error?.message ?? "Failed"); return; }
     toast.success(`Invoice ${data.invoice_number} created`);
-    nav({ to: "/invoices/$invoiceId", params: { invoiceId: data.id } });
+    nav({
+      to: "/invoices/$invoiceId",
+      params: { invoiceId: data.id },
+      search: postAction === "view" ? undefined : { action: postAction },
+    });
   }
 
   const selectedCustomer = (customers.data ?? []).find((c: any) => c.id === customerId);
