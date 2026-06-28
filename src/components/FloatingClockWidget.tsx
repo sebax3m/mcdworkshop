@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { useNavigate } from "@tanstack/react-router";
+import { Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useCurrentUser } from "@/hooks/use-current-user";
@@ -7,7 +7,6 @@ import { Clock, Coffee, GripVertical, Wrench } from "lucide-react";
 
 export function FloatingClockWidget() {
   const { user } = useCurrentUser();
-  const navigate = useNavigate();
   const [now, setNow] = useState(Date.now());
   const [pos, setPos] = useState<{ x: number; y: number } | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -100,7 +99,8 @@ export function FloatingClockWidget() {
   const time = `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
 
   const isBreak = state === "break";
-  const jobNumber = (job.data as any)?.job_number ?? activeTimerData?.jobs?.job_number;
+  const timerMatchesResolvedJob = !!resolvedJobId && activeTimerData?.job_id === resolvedJobId;
+  const jobNumber = (job.data as any)?.job_number ?? (timerMatchesResolvedJob ? activeTimerData?.jobs?.job_number : null);
 
   const handlePointerDown = (e: React.PointerEvent) => {
     e.preventDefault();
@@ -135,14 +135,6 @@ export function FloatingClockWidget() {
     dragRef.current = null;
   };
 
-  const handleClick = () => {
-    if (resolvedJobId) {
-      navigate({ to: "/jobs/$jobId", params: { jobId: resolvedJobId } });
-    } else {
-      navigate({ to: "/clock" });
-    }
-  };
-
   const stylePos = pos
     ? { left: pos.x, top: pos.y, right: "auto" as const }
     : { right: 16, top: 80 };
@@ -161,9 +153,9 @@ export function FloatingClockWidget() {
             : "color-mix(in srgb, hsl(var(--primary)) 18%, transparent)",
         }}
       >
-        <button
-          type="button"
-          onClick={handleClick}
+        <Link
+          to={resolvedJobId ? "/jobs/$jobId" : "/clock"}
+          params={resolvedJobId ? { jobId: resolvedJobId } : undefined}
           className="w-full text-left px-4 py-3 pr-10 cursor-pointer hover:bg-foreground/5 transition-colors"
           aria-label={resolvedJobId ? `Open Job Card ${jobNumber ? `#${jobNumber}` : ""}` : "Open clock"}
         >
@@ -182,7 +174,7 @@ export function FloatingClockWidget() {
           ) : (
             <div className="mt-1 text-xs text-foreground/70">Select a job card</div>
           )}
-        </button>
+        </Link>
         <button
           type="button"
           aria-label="Move floating clock"
