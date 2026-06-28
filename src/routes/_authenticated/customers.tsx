@@ -28,7 +28,8 @@ function Customers() {
 
   async function save() {
     if (!f.first_name.trim()) return toast.error("First name required");
-    const { error } = await supabase.from("customers").insert(f);
+    const payload = { ...f, last_name: f.last_name.trim() || null };
+    const { error } = await supabase.from("customers").insert(payload);
     if (error) return toast.error(error.message);
     setF({ first_name: "", last_name: "", phone: "", email: "", address: "", notes: "" });
     setOpen(false);
@@ -59,7 +60,7 @@ function Customers() {
         <div className="card-surface p-4 space-y-3">
           <div className="grid grid-cols-2 gap-2">
             <Input placeholder="First name *" value={f.first_name} onChange={(e) => setF({ ...f, first_name: e.target.value })} />
-            <Input placeholder="Last name" value={f.last_name} onChange={(e) => setF({ ...f, last_name: e.target.value })} />
+            <Input placeholder="Last name (optional)" value={f.last_name} onChange={(e) => setF({ ...f, last_name: e.target.value })} />
           </div>
           <Input placeholder="Phone" value={f.phone} onChange={(e) => setF({ ...f, phone: e.target.value })} />
           <Input placeholder="Email" type="email" value={f.email} onChange={(e) => setF({ ...f, email: e.target.value })} />

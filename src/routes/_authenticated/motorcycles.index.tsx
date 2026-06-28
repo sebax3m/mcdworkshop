@@ -97,7 +97,7 @@ function Bikes() {
     try {
       const { data, error } = await supabase.from("customers").insert({
         first_name: newCust.first_name.trim(),
-        last_name: newCust.last_name.trim(),
+        last_name: newCust.last_name.trim() || null,
         phone: newCust.phone.trim() || null,
         email: newCust.email.trim() || null,
       }).select("id, first_name, last_name").single();
@@ -151,7 +151,7 @@ function Bikes() {
               <div className="text-xs uppercase tracking-wider text-muted-foreground">New customer</div>
               <div className="grid grid-cols-2 gap-2">
                 <Input placeholder="First name *" value={newCust.first_name} onChange={(e) => setNewCust({ ...newCust, first_name: e.target.value })} />
-                <Input placeholder="Last name" value={newCust.last_name} onChange={(e) => setNewCust({ ...newCust, last_name: e.target.value })} />
+                <Input placeholder="Last name (optional)" value={newCust.last_name} onChange={(e) => setNewCust({ ...newCust, last_name: e.target.value })} />
                 <Input placeholder="Phone" inputMode="tel" value={newCust.phone} onChange={(e) => setNewCust({ ...newCust, phone: e.target.value })} />
                 <Input placeholder="Email" inputMode="email" value={newCust.email} onChange={(e) => setNewCust({ ...newCust, email: e.target.value })} />
               </div>
