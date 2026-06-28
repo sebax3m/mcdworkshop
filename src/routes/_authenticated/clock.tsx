@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useCurrentUser } from "@/hooks/use-current-user";
@@ -136,10 +136,19 @@ function ClockPage() {
         )}
       </header>
 
-      <ClockHero state={state} since={last?.occurred_at} />
+      <ClockHero
+        state={state}
+        since={last?.occurred_at}
+        jobId={activeJobId ?? undefined}
+        jobNumber={(activeJob.data as any)?.job_number}
+      />
 
       {activeJobId && activeJob.data && state !== "off" && (
-        <div className="card-surface p-3 flex items-center gap-3">
+        <Link
+          to="/jobs/$jobId"
+          params={{ jobId: activeJobId }}
+          className="card-surface p-3 flex items-center gap-3 hover:border-primary/40 transition"
+        >
           <Wrench className="h-4 w-4 text-primary" />
           <div className="text-sm flex-1">
             <span className="text-muted-foreground">Working on </span>
@@ -148,7 +157,7 @@ function ClockPage() {
               <span className="text-muted-foreground"> · {(activeJob.data as any).bikes.make} {(activeJob.data as any).bikes.model}</span>
             )}
           </div>
-        </div>
+        </Link>
       )}
 
       <div className="grid grid-cols-2 gap-3">
@@ -252,7 +261,7 @@ function ClockPage() {
   );
 }
 
-function ClockHero({ state, since }: { state: "off" | "on" | "break"; since?: string }) {
+function ClockHero({ state, since, jobId, jobNumber }: { state: "off" | "on" | "break"; since?: string; jobId?: string; jobNumber?: number }) {
   const [now, setNow] = useState(Date.now());
   useEffect(() => { const i = setInterval(() => setNow(Date.now()), 1000); return () => clearInterval(i); }, []);
   const sec = since ? Math.max(0, Math.floor((now - +new Date(since)) / 1000)) : 0;
@@ -269,9 +278,20 @@ function ClockHero({ state, since }: { state: "off" | "on" | "break"; since?: st
       ) : (
         <div className="font-display text-5xl font-bold mt-2 text-muted-foreground">—:—:—</div>
       )}
-      <div className="text-xs text-muted-foreground mt-1">
-        {since ? `Since ${new Date(since).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}` : "Tap clock in to start your shift"}
-      </div>
+      {jobId && jobNumber ? (
+        <Link
+          to="/jobs/$jobId"
+          params={{ jobId }}
+          className="inline-flex items-center gap-1.5 mt-2 text-sm font-semibold text-primary hover:underline"
+        >
+          <Wrench className="h-3.5 w-3.5" />
+          Job #{jobNumber}
+        </Link>
+      ) : (
+        <div className="text-xs text-muted-foreground mt-1">
+          {since ? `Since ${new Date(since).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}` : "Tap clock in to start your shift"}
+        </div>
+      )}
     </div>
   );
 }
