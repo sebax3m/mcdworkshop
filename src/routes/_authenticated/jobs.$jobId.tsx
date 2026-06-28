@@ -275,9 +275,11 @@ function JobDetail() {
               <div><span className="text-gray-500">Rego:</span> {(j.motorcycles as any)?.rego ?? "—"}</div>
               <div><span className="text-gray-500">Year:</span> {(j.motorcycles as any)?.year ?? "—"}</div>
               <div><span className="text-gray-500">VIN:</span> {(j.motorcycles as any)?.vin ?? "—"}</div>
-              <div><span className="text-gray-500">Odo:</span> {(j.motorcycles as any)?.odometer ?? "—"}</div>
+              <div><span className="text-gray-500">Odo:</span> {(j.odometer ?? (j.motorcycles as any)?.mileage) != null ? `${Number(j.odometer ?? (j.motorcycles as any)?.mileage).toLocaleString()} km` : "—"}</div>
               <div><span className="text-gray-500">Cyl:</span> {cylinders}</div>
               <div><span className="text-gray-500">Colour:</span> {(j.motorcycles as any)?.color ?? "—"}</div>
+              <div><span className="text-gray-500">REGO exp:</span> {(j.motorcycles as any)?.rego_expiry ? new Date((j.motorcycles as any).rego_expiry).toLocaleDateString() : "—"}</div>
+              <div><span className="text-gray-500">WOF exp:</span> {(j.motorcycles as any)?.wof_expiry ? new Date((j.motorcycles as any).wof_expiry).toLocaleDateString() : "—"}</div>
             </div>
           </div>
           <div className="border border-gray-400 rounded p-2">
@@ -296,6 +298,7 @@ function JobDetail() {
             <p className="whitespace-pre-wrap">{j.complaint}</p>
           </div>
         )}
+
 
         <div className="text-[9px] uppercase tracking-wider text-gray-500 mb-1">Instructions — follow checklist below</div>
       </div>
@@ -407,6 +410,7 @@ function JobDetail() {
 
       {/* Parts used (service-kind aware) */}
       {SERVICE_PARTS[kind].length > 0 && (
+        <>
         <div className="print:hidden"><PartsSection
           jobId={jobId}
           canEdit={canEdit}
@@ -419,7 +423,34 @@ function JobDetail() {
             qc.invalidateQueries({ queryKey: ["inventory"] });
           }}
         /></div>
+        {(partsUsed.data ?? []).length > 0 && (
+          <div className="hidden print:block mt-3">
+            <h2 className="font-display text-base font-bold uppercase tracking-wider border-b border-black pb-1 mb-2">Parts Used</h2>
+            <table className="w-full text-[11px] border-collapse">
+              <thead>
+                <tr className="border-b border-gray-400 text-left">
+                  <th className="py-1 pr-2">Item</th>
+                  <th className="py-1 pr-2 w-16 text-right">Qty</th>
+                  <th className="py-1 pr-2 w-24">Code</th>
+                  <th className="py-1 w-20 text-right">Unit</th>
+                </tr>
+              </thead>
+              <tbody>
+                {(partsUsed.data ?? []).map((p: any) => (
+                  <tr key={p.id} className="border-b border-gray-200">
+                    <td className="py-1 pr-2">{p.name ?? p.description ?? "—"}</td>
+                    <td className="py-1 pr-2 text-right">{p.quantity ?? 1}</td>
+                    <td className="py-1 pr-2">{p.sku ?? p.part_number ?? "—"}</td>
+                    <td className="py-1 text-right">{p.unit_price != null ? `$${Number(p.unit_price).toFixed(2)}` : "—"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+        </>
       )}
+
 
       {/* Valve clearance diagram for Full service — also prints as a worksheet page */}
       {kind === "full" && (
@@ -661,6 +692,8 @@ function TaskRow({ task, canEdit, onToggle, onNoteSaved }: { task: any; canEdit:
         </div>
       )}
       {!canEdit && note && <p className="mt-0 pl-5 text-[11px] text-muted-foreground italic">{note}</p>}
+      {note && <p className="hidden print:block pl-5 text-[11px] text-black italic">↳ {note}</p>}
+
     </div>
   );
 }
