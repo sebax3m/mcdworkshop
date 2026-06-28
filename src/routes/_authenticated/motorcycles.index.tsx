@@ -170,7 +170,7 @@ function Bikes() {
             <Input placeholder="Rego" value={f.rego} onChange={(e) => setF({ ...f, rego: e.target.value.toUpperCase() })} />
             <div className="relative">
               <Input
-                placeholder="Mileage"
+                placeholder="Mileage (optional)"
                 inputMode="numeric"
                 value={f.mileage ? Number(f.mileage.replace(/\D/g, "")).toLocaleString() : ""}
                 onChange={(e) => setF({ ...f, mileage: e.target.value.replace(/\D/g, "") })}
