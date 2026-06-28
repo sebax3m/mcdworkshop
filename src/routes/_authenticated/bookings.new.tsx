@@ -239,7 +239,11 @@ function NewBooking() {
                 <input
                   value={search$}
                   onChange={(e) => setSearch$(e.target.value)}
-                  placeholder="Search customer"
+                  placeholder={
+                    searchMode === "name" ? "Search by name…" :
+                    searchMode === "rego" ? "Search by rego (plate)…" :
+                    "Search by mobile number…"
+                  }
                   className="w-full rounded-xl bg-input border border-border pl-10 pr-3 py-2.5 text-sm focus:outline-none focus:border-primary/50"
                 />
               </div>
@@ -249,6 +253,24 @@ function NewBooking() {
               >
                 <Plus className="h-3.5 w-3.5" /> New
               </button>
+            </div>
+
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <span className="text-[10px] uppercase tracking-wider text-muted-foreground mr-1">Search by:</span>
+              {(["name", "rego", "mobile"] as const).map((m) => (
+                <button
+                  key={m}
+                  type="button"
+                  onClick={() => setSearchMode(m)}
+                  className={`px-2.5 py-1 rounded-full text-[11px] font-semibold border transition-colors ${
+                    searchMode === m
+                      ? "bg-primary text-primary-foreground border-primary"
+                      : "border-border text-muted-foreground hover:border-primary/50"
+                  }`}
+                >
+                  {m === "name" ? "Name" : m === "rego" ? "Rego" : "Mobile"}
+                </button>
+              ))}
             </div>
 
             {showNewCustomer && (
@@ -270,22 +292,27 @@ function NewBooking() {
             )}
 
             <div className="max-h-52 overflow-y-auto space-y-1.5">
-              {filteredCustomers.slice(0, 20).map((c: any) => (
+              {searchResults.map(({ customer: c, bike: b }: any) => (
                 <button
-                  key={c.id}
-                  onClick={() => setCustomerId(c.id)}
+                  key={`${c.id}-${b?.id ?? "none"}`}
+                  onClick={() => {
+                    setCustomerId(c.id);
+                    if (b?.id) setBikeId(b.id);
+                  }}
                   className="w-full text-left flex items-center gap-3 rounded-lg p-2 hover:bg-muted/50 transition-colors"
                 >
                   <span className="grid h-8 w-8 place-items-center rounded-full bg-muted text-xs font-semibold">
-                    {initials(`${c.first_name} ${c.last_name}`)}
+                    {initials(`${c.first_name} ${c.last_name ?? ""}`)}
                   </span>
-                  <span className="min-w-0">
-                    <span className="block text-sm font-semibold truncate">{c.first_name} {c.last_name}</span>
-                    <span className="block text-xs text-muted-foreground truncate">{c.phone || c.email}</span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-sm font-semibold truncate">{c.first_name} {c.last_name ?? ""}</span>
+                    <span className="block text-xs text-muted-foreground truncate">
+                      {b ? `${b.rego ?? "—"} · ${[b.year, b.make, b.model].filter(Boolean).join(" ")}` : (c.phone || c.email || "—")}
+                    </span>
                   </span>
                 </button>
               ))}
-              {filteredCustomers.length === 0 && (
+              {searchResults.length === 0 && (
                 <button onClick={() => setShowNewCustomer(true)} className="block w-full text-center text-sm text-primary py-3">+ Add new customer</button>
               )}
             </div>
