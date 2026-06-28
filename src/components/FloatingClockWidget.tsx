@@ -110,8 +110,8 @@ export function FloatingClockWidget() {
     dragRef.current = {
       startX: e.clientX,
       startY: e.clientY,
-      initX: pos?.x ?? window.innerWidth - 24 - 220,
-      initY: pos?.y ?? 80,
+      initX: pos?.x ?? 16,
+      initY: pos?.y ?? (typeof window !== 'undefined' ? window.innerHeight - 140 : 600),
     };
   };
 
