@@ -137,7 +137,7 @@ export function FloatingClockWidget() {
 
   const stylePos = pos
     ? { left: pos.x, top: pos.y, right: "auto" as const }
-    : { right: 16, top: 80 };
+    : { left: 16, bottom: 24 };
 
   return (
     <div
