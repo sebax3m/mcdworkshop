@@ -1361,3 +1361,80 @@ function OdometerSection({
   );
 }
 
+function ExpirySection({
+  label,
+  hint,
+  bikeId,
+  field,
+  currentValue,
+  canEdit,
+  onSaved,
+}: {
+  label: string;
+  hint: string;
+  bikeId?: string;
+  field: "rego_expiry" | "wof_expiry";
+  currentValue: string | null;
+  canEdit: boolean;
+  onSaved: () => void;
+}) {
+  const [value, setValue] = useState<string>(currentValue ?? "");
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    setValue(currentValue ?? "");
+  }, [currentValue]);
+
+  async function save() {
+    if (!bikeId) {
+      toast.error("No bike linked to this job");
+      return;
+    }
+    setSaving(true);
+    try {
+      const { error } = await supabase
+        .from("motorcycles")
+        .update({ [field]: value || null } as any)
+        .eq("id", bikeId);
+      if (error) throw error;
+      toast.success(`${label} saved`);
+      onSaved();
+    } catch (e: any) {
+      toast.error(e?.message ?? "Failed to save");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  const expired = value ? new Date(value) < new Date(new Date().toDateString()) : false;
+
+  return (
+    <div className="card-surface p-4 print:hidden">
+      <div className="flex items-center justify-between gap-3 flex-wrap">
+        <div>
+          <div className="text-[10px] uppercase tracking-wider text-muted-foreground">{label}</div>
+          <div className="text-xs text-muted-foreground mt-0.5">
+            {hint}
+            {currentValue && (
+              <> Current: <span className={`font-semibold ${expired ? "text-destructive" : "text-foreground"}`}>{currentValue}{expired ? " (expired)" : ""}</span></>
+            )}
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <Input
+            type="date"
+            value={value}
+            onChange={(e) => setValue(e.target.value)}
+            disabled={!canEdit || saving}
+            className="w-48 h-11 font-mono text-base"
+          />
+          <Button onClick={save} disabled={!canEdit || saving} className="h-11 px-4 font-bold">
+            {saving ? "Saving…" : "Save"}
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
