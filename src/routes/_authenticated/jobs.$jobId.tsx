@@ -253,9 +253,11 @@ function JobDetail() {
       <div className="hidden print:block">
 
         <div className="flex items-start justify-between gap-4 border-b-2 border-black pb-3 mb-4">
-          <div className="min-w-0">
-            <div className="text-[10px] uppercase tracking-[0.25em] text-gray-600">Motorcycle Doctors · Job Card</div>
-            <h1 className="font-display text-2xl font-bold leading-tight">{j.title}</h1>
+          <div className="flex items-center gap-3 min-w-0">
+            <img src={logoAsset.url} alt="Motorcycle Doctors" className="h-14 w-14 rounded-md object-contain bg-black/10 p-1" />
+            <div className="min-w-0">
+              <div className="text-[10px] uppercase tracking-[0.25em] text-gray-600">Motorcycle Doctors · Job Card</div>
+              <h1 className="font-display text-2xl font-bold leading-tight">{j.title}</h1>
             <div className="text-xs text-gray-700 mt-1">
               {kindMeta.label}
               {j.estimated_hours ? ` · Est. ${j.estimated_hours}h` : ""}
