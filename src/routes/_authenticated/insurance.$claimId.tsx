@@ -87,10 +87,16 @@ function ClaimDetail() {
     }
     // Build quote summary from current quote_items so the technician sees
     // exactly which parts to replace/repair and the labour budget.
-    const items: Array<{ kind: "part" | "labour"; description: string; qty: number; unit_price: number }> =
+    const items: Array<{ kind: "part" | "labour"; item_code?: string; item_name?: string; description: string; qty: number; unit_price: number }> =
       Array.isArray(c.quote_items) ? c.quote_items : [];
-    const parts = items.filter((it) => it.kind === "part" && (it.description ?? "").trim());
-    const labours = items.filter((it) => it.kind === "labour" && (it.description ?? "").trim());
+    const label = (it: { item_code?: string; item_name?: string; description: string }) => {
+      const code = (it.item_code ?? "").trim();
+      const name = (it.item_name ?? "").trim();
+      const desc = (it.description ?? "").trim();
+      return [code && `[${code}]`, name || desc, name && desc ? `— ${desc}` : ""].filter(Boolean).join(" ").trim();
+    };
+    const parts = items.filter((it) => it.kind === "part" && label(it));
+    const labours = items.filter((it) => it.kind === "labour" && label(it));
     const estimatedHours = labours.reduce((s, it) => s + (Number(it.qty) || 0), 0);
 
     const lines: string[] = [];
@@ -98,13 +104,13 @@ function ClaimDetail() {
     if (parts.length) {
       lines.push("", "PARTS TO REPLACE / REPAIR:");
       for (const p of parts) {
-        lines.push(`  • ${p.description}${Number(p.qty) > 1 ? ` ×${p.qty}` : ""}`);
+        lines.push(`  • ${label(p)}${Number(p.qty) > 1 ? ` ×${p.qty}` : ""}`);
       }
     }
     if (labours.length) {
       lines.push("", `LABOUR (est. ${estimatedHours.toFixed(2)} hrs):`);
       for (const l of labours) {
-        lines.push(`  • ${l.description} — ${Number(l.qty).toFixed(2)} hrs`);
+        lines.push(`  • ${label(l)} — ${Number(l.qty).toFixed(2)} hrs`);
       }
     }
     const description = lines.join("\n");
@@ -131,7 +137,7 @@ function ClaimDetail() {
     for (const p of parts) {
       tasks.push({
         job_id: job.id,
-        label: `Replace / repair: ${p.description}${Number(p.qty) > 1 ? ` ×${p.qty}` : ""}`,
+        label: `Replace / repair: ${label(p)}${Number(p.qty) > 1 ? ` ×${p.qty}` : ""}`,
         sort_order: order++,
         note: "Part (from insurance quote)",
       });
@@ -139,7 +145,7 @@ function ClaimDetail() {
     for (const l of labours) {
       tasks.push({
         job_id: job.id,
-        label: `${l.description} (${Number(l.qty).toFixed(2)} hrs est.)`,
+        label: `${label(l)} (${Number(l.qty).toFixed(2)} hrs est.)`,
         sort_order: order++,
         note: "Labour (from insurance quote)",
       });
@@ -312,6 +318,8 @@ import { CRASH_PARTS, PART_CATEGORIES, LABOUR_PRESETS, type DamageLevel } from "
 type QuoteItem = {
   id: string;
   kind: "part" | "labour";
+  item_code?: string;
+  item_name?: string;
   description: string;
   qty: number; // qty for parts, hours for labour
   unit_price: number; // $ per unit / $ per hour
@@ -321,6 +329,8 @@ function newItem(kind: QuoteItem["kind"], unit_price = 0): QuoteItem {
   return {
     id: (globalThis.crypto?.randomUUID?.() ?? Math.random().toString(36).slice(2)),
     kind,
+    item_code: "",
+    item_name: "",
     description: "",
     qty: kind === "labour" ? 1 : 1,
     unit_price,
@@ -371,7 +381,9 @@ function QuoteBuilder({
     const partItem: QuoteItem = {
       id: (globalThis.crypto?.randomUUID?.() ?? Math.random().toString(36).slice(2)),
       kind: "part",
-      description: p.name,
+      item_code: "",
+      item_name: p.name,
+      description: "",
       qty: 1,
       unit_price: p.estPrice,
     };
@@ -379,7 +391,9 @@ function QuoteBuilder({
     const labourItem: QuoteItem = {
       id: (globalThis.crypto?.randomUUID?.() ?? Math.random().toString(36).slice(2)),
       kind: "labour",
-      description: `R&R ${p.name} (${damageLevel})`,
+      item_code: "",
+      item_name: `R&R ${p.name}`,
+      description: `Damage level: ${damageLevel}`,
       qty: hrs,
       unit_price: rate,
     };
@@ -391,7 +405,9 @@ function QuoteBuilder({
     setItems((arr) => [...arr, {
       id: (globalThis.crypto?.randomUUID?.() ?? Math.random().toString(36).slice(2)),
       kind: "labour",
-      description: preset.name,
+      item_code: "",
+      item_name: preset.name,
+      description: "",
       qty: preset.hrs,
       unit_price: rate,
     }]);
@@ -449,6 +465,8 @@ function QuoteBuilder({
           <thead className="text-[10px] uppercase tracking-wider text-muted-foreground">
             <tr className="border-b border-border">
               <th className="text-left py-2 pr-2 w-20">Type</th>
+              <th className="text-left py-2 pr-2 w-28">Item code</th>
+              <th className="text-left py-2 pr-2 w-48">Item name</th>
               <th className="text-left py-2 pr-2">Description</th>
               <th className="text-right py-2 px-2 w-20">Qty/Hrs</th>
               <th className="text-right py-2 px-2 w-24">Unit $</th>
@@ -458,7 +476,7 @@ function QuoteBuilder({
           </thead>
           <tbody>
             {items.length === 0 && (
-              <tr><td colSpan={6} className="py-6 text-center text-sm text-muted-foreground">
+              <tr><td colSpan={8} className="py-6 text-center text-sm text-muted-foreground">
                 No line items yet. Add parts or labour below.
               </td></tr>
             )}
@@ -475,9 +493,25 @@ function QuoteBuilder({
                   </td>
                   <td className="py-1.5 pr-2">
                     <Input
+                      value={it.item_code ?? ""}
+                      onChange={(e) => patch(it.id, { item_code: e.target.value })}
+                      placeholder="OEM #"
+                      className="h-8 text-sm font-mono print:border-0 print:bg-transparent print:px-0"
+                    />
+                  </td>
+                  <td className="py-1.5 pr-2">
+                    <Input
+                      value={it.item_name ?? ""}
+                      onChange={(e) => patch(it.id, { item_name: e.target.value })}
+                      placeholder={it.kind === "labour" ? "Labour task" : "Part name"}
+                      className="h-8 text-sm print:border-0 print:bg-transparent print:px-0"
+                    />
+                  </td>
+                  <td className="py-1.5 pr-2">
+                    <Input
                       value={it.description}
                       onChange={(e) => patch(it.id, { description: e.target.value })}
-                      placeholder={it.kind === "labour" ? "e.g. Fairing R&R, paint blend" : "e.g. LH fairing panel OEM"}
+                      placeholder={it.kind === "labour" ? "Notes, severity, paint blend…" : "Details / condition / fitment"}
                       className="h-8 text-sm print:border-0 print:bg-transparent print:px-0"
                     />
                   </td>
@@ -512,17 +546,17 @@ function QuoteBuilder({
           </tbody>
           <tfoot className="text-sm">
             <tr>
-              <td colSpan={4} className="pt-3 pr-3 text-right text-muted-foreground">Subtotal</td>
+              <td colSpan={6} className="pt-3 pr-3 text-right text-muted-foreground">Subtotal</td>
               <td className="pt-3 pl-2 pr-3 text-right font-mono tabular-nums whitespace-nowrap">${subtotal.toFixed(2)}</td>
               <td className="print:hidden" />
             </tr>
             <tr>
-              <td colSpan={4} className="pr-3 text-right text-muted-foreground">GST (15%)</td>
+              <td colSpan={6} className="pr-3 text-right text-muted-foreground">GST (15%)</td>
               <td className="pl-2 pr-3 text-right font-mono tabular-nums whitespace-nowrap">${gst.toFixed(2)}</td>
               <td className="print:hidden" />
             </tr>
             <tr className="border-t border-border">
-              <td colSpan={4} className="pt-2 pr-3 text-right font-bold uppercase tracking-wider text-xs">Quote total</td>
+              <td colSpan={6} className="pt-2 pr-3 text-right font-bold uppercase tracking-wider text-xs">Quote total</td>
               <td className="pt-2 pl-2 pr-3 text-right font-mono font-bold text-base tabular-nums text-primary whitespace-nowrap">${total.toFixed(2)}</td>
               <td className="print:hidden" />
             </tr>
@@ -822,16 +856,18 @@ function PrintQuoteHeader({ c, bikeText }: { c: any; bikeText: string }) {
         </div>
       )}
       {Array.isArray(c.quote_items) && c.quote_items.length > 0 && (() => {
-        const items = c.quote_items as Array<{ kind: string; description: string; qty: number; unit_price: number }>;
+        const items = c.quote_items as Array<{ kind: string; item_code?: string; item_name?: string; description: string; qty: number; unit_price: number }>;
         const subtotal = items.reduce((s, it) => s + (Number(it.qty) || 0) * (Number(it.unit_price) || 0), 0);
         const gst = subtotal * 0.15;
         return (
           <table className="w-full text-xs border border-gray-400 border-collapse mb-3">
             <thead className="bg-gray-100">
               <tr>
-                <th className="border border-gray-400 text-left px-2 py-1 w-16">Type</th>
+                <th className="border border-gray-400 text-left px-2 py-1 w-14">Type</th>
+                <th className="border border-gray-400 text-left px-2 py-1 w-20">Item code</th>
+                <th className="border border-gray-400 text-left px-2 py-1 w-40">Item name</th>
                 <th className="border border-gray-400 text-left px-2 py-1">Description</th>
-                <th className="border border-gray-400 text-right px-2 py-1 w-16">Qty</th>
+                <th className="border border-gray-400 text-right px-2 py-1 w-12">Qty</th>
                 <th className="border border-gray-400 text-right px-2 py-1 w-20">Unit $</th>
                 <th className="border border-gray-400 text-right px-2 py-1 w-20">Line $</th>
               </tr>
@@ -840,15 +876,17 @@ function PrintQuoteHeader({ c, bikeText }: { c: any; bikeText: string }) {
               {items.map((it, i) => (
                 <tr key={i}>
                   <td className="border border-gray-400 px-2 py-1 capitalize">{it.kind}</td>
+                  <td className="border border-gray-400 px-2 py-1 font-mono">{it.item_code || "—"}</td>
+                  <td className="border border-gray-400 px-2 py-1">{it.item_name || "—"}</td>
                   <td className="border border-gray-400 px-2 py-1">{it.description || "—"}</td>
                   <td className="border border-gray-400 px-2 py-1 text-right font-mono">{Number(it.qty).toFixed(2)}</td>
                   <td className="border border-gray-400 px-2 py-1 text-right font-mono">${Number(it.unit_price).toFixed(2)}</td>
                   <td className="border border-gray-400 px-2 py-1 text-right font-mono">${((Number(it.qty)||0)*(Number(it.unit_price)||0)).toFixed(2)}</td>
                 </tr>
               ))}
-              <tr><td colSpan={4} className="border border-gray-400 px-2 py-1 text-right">Subtotal</td><td className="border border-gray-400 px-2 py-1 text-right font-mono">${subtotal.toFixed(2)}</td></tr>
-              <tr><td colSpan={4} className="border border-gray-400 px-2 py-1 text-right">GST (15%)</td><td className="border border-gray-400 px-2 py-1 text-right font-mono">${gst.toFixed(2)}</td></tr>
-              <tr className="bg-gray-100"><td colSpan={4} className="border border-gray-400 px-2 py-1 text-right font-bold">Total (incl. GST)</td><td className="border border-gray-400 px-2 py-1 text-right font-mono font-bold">${(subtotal+gst).toFixed(2)}</td></tr>
+              <tr><td colSpan={6} className="border border-gray-400 px-2 py-1 text-right">Subtotal</td><td className="border border-gray-400 px-2 py-1 text-right font-mono">${subtotal.toFixed(2)}</td></tr>
+              <tr><td colSpan={6} className="border border-gray-400 px-2 py-1 text-right">GST (15%)</td><td className="border border-gray-400 px-2 py-1 text-right font-mono">${gst.toFixed(2)}</td></tr>
+              <tr className="bg-gray-100"><td colSpan={6} className="border border-gray-400 px-2 py-1 text-right font-bold">Total (incl. GST)</td><td className="border border-gray-400 px-2 py-1 text-right font-mono font-bold">${(subtotal+gst).toFixed(2)}</td></tr>
             </tbody>
           </table>
         );

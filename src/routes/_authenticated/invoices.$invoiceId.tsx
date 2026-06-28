@@ -140,7 +140,7 @@ function InvoiceDetail() {
   const { invoiceId } = Route.useParams();
   const nav = useNavigate();
   const qc = useQueryClient();
-  const { isAdmin } = useCurrentUser();
+  const { isAdmin, user } = useCurrentUser();
 
   const invoice = useQuery({
     queryKey: ["invoice", invoiceId],
@@ -254,11 +254,14 @@ function InvoiceDetail() {
     await recomputeInvoiceTotals(nextAmount);
   }
 
-  async function updatePart(id: string, patch: { quantity?: number; retail?: number }) {
+  async function updatePart(id: string, patch: { quantity?: number; retail?: number; name?: string; supplier?: string }) {
     const { error } = await supabase.from("parts").update(patch).eq("id", id);
     if (error) { toast.error(error.message); return; }
+    await refreshPartsTotals();
+  }
+
+  async function refreshPartsTotals() {
     await qc.invalidateQueries({ queryKey: ["invoice-parts", invoiceId, inv.job_id] });
-    // Re-fetch then recompute via fresh parts list
     const fresh = await supabase.from("parts").select("*").eq("job_id", inv.job_id!);
     const partsSum = (fresh.data ?? []).reduce(
       (s: number, p: any) => s + Number(p.retail ?? 0) * Number(p.quantity ?? 1),
@@ -269,6 +272,26 @@ function InvoiceDetail() {
     const total = Math.round(subtotal * 100) / 100;
     await supabase.from("invoices").update({ parts_total: partsSum, gst, total }).eq("id", invoiceId);
     qc.invalidateQueries({ queryKey: ["invoice", invoiceId] });
+  }
+
+  async function addJobPart() {
+    if (!inv.job_id) return;
+    const { error } = await supabase.from("parts").insert({
+      job_id: inv.job_id,
+      name: "New item",
+      quantity: 1,
+      cost: 0,
+      retail: 0,
+      added_by: user?.id,
+    } as any);
+    if (error) { toast.error(error.message); return; }
+    await refreshPartsTotals();
+  }
+
+  async function deletePart(id: string) {
+    const { error } = await supabase.from("parts").delete().eq("id", id);
+    if (error) { toast.error(error.message); return; }
+    await refreshPartsTotals();
   }
 
   async function saveSnapshotLines(items: { description: string; quantity: number; unit: number }[]) {
@@ -525,10 +548,14 @@ function InvoiceDetail() {
                   const unit = Number(p.retail ?? 0);
                   const qty = Number(p.quantity ?? 1);
                   return (
-                    <tr key={p.id} className="border-b border-border/40">
+                    <tr key={p.id} className="border-b border-border/40 group">
                       <td className="py-3">
-                        <div className="font-medium">{p.name}</div>
-                        {p.supplier && <div className="text-xs text-muted-foreground">{p.supplier}</div>}
+                        <EditableText value={p.name ?? ""} onCommit={(v) => updatePart(p.id, { name: v })} className="font-medium" />
+                        <EditableText
+                          value={p.supplier ?? ""}
+                          onCommit={(v) => updatePart(p.id, { supplier: v })}
+                          className="text-xs text-muted-foreground block"
+                        />
                       </td>
                       <td className="py-3 text-right">
                         <EditableNumber value={qty} decimals={0} onCommit={(n) => updatePart(p.id, { quantity: n })} />
@@ -542,10 +569,26 @@ function InvoiceDetail() {
                           prefix="$"
                           onCommit={(n) => updatePart(p.id, { retail: qty > 0 ? n / qty : n })}
                         />
+                        <button
+                          onClick={() => deletePart(p.id)}
+                          className="ml-2 no-print opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive"
+                          title="Remove line"
+                        >
+                          <Trash2 className="h-3.5 w-3.5 inline" />
+                        </button>
                       </td>
                     </tr>
                   );
                 })}
+                {inv.job_id && (
+                  <tr className="no-print">
+                    <td colSpan={4} className="pt-2">
+                      <button onClick={addJobPart} className="text-xs text-primary hover:underline inline-flex items-center gap-1">
+                        <Plus className="h-3 w-3" /> Add line item
+                      </button>
+                    </td>
+                  </tr>
+                )}
                 {!inv.job_id && (() => {
                   const items: { description: string; quantity: number; unit: number }[] =
                     Array.isArray((inv.snapshot as any)?.line_items) ? (inv.snapshot as any).line_items : [];
