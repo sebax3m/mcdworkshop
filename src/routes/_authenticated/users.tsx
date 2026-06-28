@@ -103,6 +103,8 @@ function UsersPage() {
             Refresh
           </button>
         </div>
+      </header>
+
 
       {error && (
         <div className="card-surface p-4 text-sm text-destructive">
