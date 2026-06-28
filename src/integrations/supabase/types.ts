@@ -137,6 +137,7 @@ export type Database = {
         Row: {
           event_type: Database["public"]["Enums"]["clock_event_type"]
           id: string
+          job_id: string | null
           note: string | null
           occurred_at: string
           user_id: string
@@ -144,6 +145,7 @@ export type Database = {
         Insert: {
           event_type: Database["public"]["Enums"]["clock_event_type"]
           id?: string
+          job_id?: string | null
           note?: string | null
           occurred_at?: string
           user_id: string
@@ -151,11 +153,20 @@ export type Database = {
         Update: {
           event_type?: Database["public"]["Enums"]["clock_event_type"]
           id?: string
+          job_id?: string | null
           note?: string | null
           occurred_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "clock_events_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       customers: {
         Row: {

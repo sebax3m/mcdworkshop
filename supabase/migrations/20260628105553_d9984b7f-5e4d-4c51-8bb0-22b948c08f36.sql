@@ -1,0 +1,2 @@
+ALTER TABLE public.clock_events ADD COLUMN IF NOT EXISTS job_id uuid REFERENCES public.jobs(id) ON DELETE SET NULL;
+CREATE INDEX IF NOT EXISTS idx_clock_events_user_recent ON public.clock_events(user_id, occurred_at DESC);
