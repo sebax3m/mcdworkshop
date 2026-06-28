@@ -52,6 +52,7 @@ function NewBooking() {
   const [mileage, setMileage] = useState<string>("");
   const [wof, setWof] = useState<string>("");
   const [instructions, setInstructions] = useState<string>("");
+  const [loanBike, setLoanBike] = useState<boolean>(false);
   const [techId, setTechId] = useState<string | null>(null);
   const [arrivalPhotos, setArrivalPhotos] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
@@ -217,6 +218,7 @@ function NewBooking() {
           vin: bike.vin ?? null,
           instructions,
           arrival_photos: arrivalPhotos,
+          loan_bike: loanBike,
           status: openJobCard ? "checked_in" : "booked",
         })
         .select("id")
@@ -549,6 +551,13 @@ function NewBooking() {
           <section className="card-surface p-4 space-y-3">
             <Label className="text-xs uppercase tracking-wider text-muted-foreground">Instructions</Label>
             <Textarea value={instructions} onChange={(e) => setInstructions(e.target.value)} placeholder="Step-by-step instructions for the technician — shown on the Job Card" rows={3} />
+            <label className="flex items-center gap-3 rounded-xl border border-border p-3 cursor-pointer hover:border-primary/50">
+              <input type="checkbox" className="h-5 w-5 accent-amber-500" checked={loanBike} onChange={(e) => setLoanBike(e.target.checked)} />
+              <span className="flex-1">
+                <span className="block text-sm font-semibold">🏍️ Customer needs a loan bike</span>
+                <span className="block text-xs text-muted-foreground">Highlighted on the calendar so the workshop can arrange one</span>
+              </span>
+            </label>
           </section>
 
           <section className="card-surface p-4 space-y-3">

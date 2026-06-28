@@ -31,6 +31,7 @@ export type Database = {
           id: string
           instructions: string | null
           job_id: string | null
+          loan_bike: boolean
           mileage: number | null
           motorcycle_id: string
           notes: string | null
@@ -60,6 +61,7 @@ export type Database = {
           id?: string
           instructions?: string | null
           job_id?: string | null
+          loan_bike?: boolean
           mileage?: number | null
           motorcycle_id: string
           notes?: string | null
@@ -89,6 +91,7 @@ export type Database = {
           id?: string
           instructions?: string | null
           job_id?: string | null
+          loan_bike?: boolean
           mileage?: number | null
           motorcycle_id?: string
           notes?: string | null

@@ -114,7 +114,7 @@ function CalendarPage() {
       const { data, error } = await supabase
         .from("bookings")
         .select(
-          "id, service_type, scheduled_date, drop_off_time, estimated_hours, status, color, complaints, notes, assigned_tech_id, customer_id, motorcycle_id, confirmed, job_id, customers(first_name,last_name,phone,email), motorcycles(year,make,model,rego)",
+          "id, service_type, scheduled_date, drop_off_time, estimated_hours, status, color, complaints, notes, assigned_tech_id, customer_id, motorcycle_id, confirmed, loan_bike, job_id, customers(first_name,last_name,phone,email), motorcycles(year,make,model,rego)",
         )
         .gte("scheduled_date", format(visibleRange.start, "yyyy-MM-dd"))
         .lte("scheduled_date", format(visibleRange.end, "yyyy-MM-dd"))
@@ -422,7 +422,7 @@ function CalendarPage() {
                             e.stopPropagation();
                             setSelectedBooking(b);
                           }}
-                          className={`relative w-full text-left rounded-lg p-2 pr-4 ring-1 ${c.bg} ${c.ring} hover:ring-2 transition-all cursor-grab active:cursor-grabbing`}
+                          className={`relative w-full text-left rounded-lg p-2 pr-4 ring-1 ${c.bg} ${c.ring} hover:ring-2 transition-all cursor-grab active:cursor-grabbing ${b.loan_bike ? "ring-2 !ring-amber-400 shadow-[0_0_0_2px_rgba(251,191,36,0.25)]" : ""}`}
                         >
                           <span
                             role="button"
@@ -461,6 +461,11 @@ function CalendarPage() {
                           </div>
                           <div className="text-xs font-semibold truncate mt-0.5">{bike}</div>
                           <div className="text-[10px] text-muted-foreground truncate">{customer}</div>
+                          {b.loan_bike && (
+                            <div className="mt-1 inline-flex items-center gap-1 rounded-full bg-amber-400/20 border border-amber-400/60 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-amber-300">
+                              🏍️ Loan bike
+                            </div>
+                          )}
                           <div className="mt-1 flex items-center justify-between">
                             <span className="text-[10px] text-muted-foreground tabular-nums">{b.estimated_hours ?? 1}h</span>
                             {b.tech_name ? (
@@ -565,6 +570,11 @@ function CalendarPage() {
                       {b.confirmed && (
                         <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-green-500">
                           <span className="h-1.5 w-1.5 rounded-full bg-green-500" /> Confirmed
+                        </span>
+                      )}
+                      {b.loan_bike && (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-amber-400/20 border border-amber-400/60 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-amber-300">
+                          🏍️ Loan bike
                         </span>
                       )}
                     </div>
