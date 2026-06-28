@@ -206,7 +206,7 @@ function InvoiceDetail() {
       if (error) return;
       const fresh = await supabase.from("parts").select("*").eq("job_id", jobId);
       const partsSum = (fresh.data ?? []).reduce(
-        (s: number, p: any) => s + Number(p.retail ?? 0) * Number(p.quantity ?? 1),
+        (s: number, p: any) => s + Number(p.retail ?? 0) * Number(p.quantity ?? 1) * (1 - Number(p.discount_pct ?? 0) / 100),
         0,
       );
       const subtotal = Number(invoice.data!.labour_total) + partsSum;
@@ -225,12 +225,16 @@ function InvoiceDetail() {
   const defaultHours =
     (timeEntries.data ?? []).reduce((s: number, t: any) => s + Number(t.minutes ?? 0), 0) / 60;
 
+  function lineNet(p: any) {
+    const unit = Number(p.retail ?? 0);
+    const qty = Number(p.quantity ?? 1);
+    const disc = Number(p.discount_pct ?? 0);
+    return unit * qty * (1 - disc / 100);
+  }
+
   async function recomputeInvoiceTotals(nextLabour?: number) {
     const labour = Number(nextLabour ?? inv.labour_total);
-    const partsSum = (parts.data ?? []).reduce(
-      (s: number, p: any) => s + Number(p.retail ?? 0) * Number(p.quantity ?? 1),
-      0,
-    );
+    const partsSum = (parts.data ?? []).reduce((s: number, p: any) => s + lineNet(p), 0);
     const subtotal = labour + partsSum; // inc GST
     const gst = Math.round((subtotal * GST_RATE / (1 + GST_RATE)) * 100) / 100;
     const total = Math.round(subtotal * 100) / 100;
@@ -254,7 +258,7 @@ function InvoiceDetail() {
     await recomputeInvoiceTotals(nextAmount);
   }
 
-  async function updatePart(id: string, patch: { quantity?: number; retail?: number; name?: string; supplier?: string }) {
+  async function updatePart(id: string, patch: { quantity?: number; retail?: number; name?: string; supplier?: string; discount_pct?: number }) {
     const { error } = await supabase.from("parts").update(patch).eq("id", id);
     if (error) { toast.error(error.message); return; }
     await refreshPartsTotals();
@@ -263,10 +267,7 @@ function InvoiceDetail() {
   async function refreshPartsTotals() {
     await qc.invalidateQueries({ queryKey: ["invoice-parts", invoiceId, inv.job_id] });
     const fresh = await supabase.from("parts").select("*").eq("job_id", inv.job_id!);
-    const partsSum = (fresh.data ?? []).reduce(
-      (s: number, p: any) => s + Number(p.retail ?? 0) * Number(p.quantity ?? 1),
-      0,
-    );
+    const partsSum = (fresh.data ?? []).reduce((s: number, p: any) => s + lineNet(p), 0);
     const subtotal = Number(inv.labour_total) + partsSum;
     const gst = Math.round((subtotal * GST_RATE / (1 + GST_RATE)) * 100) / 100;
     const total = Math.round(subtotal * 100) / 100;
@@ -282,6 +283,7 @@ function InvoiceDetail() {
       quantity: 1,
       cost: 0,
       retail: 0,
+      discount_pct: 0,
       added_by: user?.id,
     } as any);
     if (error) { toast.error(error.message); return; }
@@ -294,8 +296,11 @@ function InvoiceDetail() {
     await refreshPartsTotals();
   }
 
-  async function saveSnapshotLines(items: { description: string; quantity: number; unit: number }[]) {
-    const partsSum = items.reduce((s, l) => s + Number(l.unit || 0) * Number(l.quantity || 0), 0);
+  async function saveSnapshotLines(items: { description: string; quantity: number; unit: number; discount_pct?: number }[]) {
+    const partsSum = items.reduce(
+      (s, l) => s + Number(l.unit || 0) * Number(l.quantity || 0) * (1 - Number(l.discount_pct ?? 0) / 100),
+      0,
+    );
     const subtotal = partsSum; // labour stays 0 for standalone
     const gst = Math.round((subtotal * GST_RATE / (1 + GST_RATE)) * 100) / 100;
     const total = Math.round(subtotal * 100) / 100;
@@ -307,14 +312,14 @@ function InvoiceDetail() {
     if (error) { toast.error(error.message); return; }
     qc.invalidateQueries({ queryKey: ["invoice", invoiceId] });
   }
-  function currentSnapshotLines(): { description: string; quantity: number; unit: number }[] {
+  function currentSnapshotLines(): { description: string; quantity: number; unit: number; discount_pct?: number }[] {
     const items = (inv.snapshot as any)?.line_items;
     return Array.isArray(items) ? items : [];
   }
   async function addSnapshotLine() {
-    await saveSnapshotLines([...currentSnapshotLines(), { description: "New item", quantity: 1, unit: 0 }]);
+    await saveSnapshotLines([...currentSnapshotLines(), { description: "New item", quantity: 1, unit: 0, discount_pct: 0 }]);
   }
-  async function updateSnapshotLine(idx: number, patch: Partial<{ description: string; quantity: number; unit: number }>) {
+  async function updateSnapshotLine(idx: number, patch: Partial<{ description: string; quantity: number; unit: number; discount_pct: number }>) {
     const items = currentSnapshotLines().map((it, i) => (i === idx ? { ...it, ...patch } : it));
     await saveSnapshotLines(items);
   }
@@ -504,6 +509,7 @@ function InvoiceDetail() {
                   <th className="py-2.5">Description</th>
                   <th className="py-2.5 text-right w-16">Qty</th>
                   <th className="py-2.5 text-right w-24">Unit</th>
+                  <th className="py-2.5 text-right w-20">Disc %</th>
                   <th className="py-2.5 text-right w-28">Amount</th>
                 </tr>
               </thead>
@@ -538,6 +544,7 @@ function InvoiceDetail() {
                       <td className="py-3 text-right">
                         <EditableNumber value={rate} onCommit={(n) => updateLabour({ unit: n })} prefix="$" />
                       </td>
+                      <td className="py-3 text-right text-muted-foreground">—</td>
                       <td className="py-3 text-right font-semibold">
                         <EditableNumber value={Number(inv.labour_total)} onCommit={(n) => updateLabour({ amount: n })} prefix="$" />
                       </td>
@@ -547,6 +554,9 @@ function InvoiceDetail() {
                 {inv.job_id && (parts.data ?? []).map((p: any) => {
                   const unit = Number(p.retail ?? 0);
                   const qty = Number(p.quantity ?? 1);
+                  const disc = Number(p.discount_pct ?? 0);
+                  const gross = unit * qty;
+                  const net = gross * (1 - disc / 100);
                   return (
                     <tr key={p.id} className="border-b border-border/40 group">
                       <td className="py-3">
@@ -563,12 +573,22 @@ function InvoiceDetail() {
                       <td className="py-3 text-right">
                         <EditableNumber value={unit} prefix="$" onCommit={(n) => updatePart(p.id, { retail: n })} />
                       </td>
-                      <td className="py-3 text-right font-semibold">
+                      <td className="py-3 text-right">
                         <EditableNumber
-                          value={unit * qty}
-                          prefix="$"
-                          onCommit={(n) => updatePart(p.id, { retail: qty > 0 ? n / qty : n })}
+                          value={disc}
+                          suffix="%"
+                          onCommit={(n) => updatePart(p.id, { discount_pct: Math.max(0, Math.min(100, n)) })}
+                          className={disc > 0 ? "text-emerald-500 font-semibold" : ""}
                         />
+                      </td>
+                      <td className="py-3 text-right font-semibold">
+                        {disc > 0 && (
+                          <div className="text-[10px] text-muted-foreground line-through tabular-nums">${gross.toFixed(2)}</div>
+                        )}
+                        <span className="tabular-nums">${net.toFixed(2)}</span>
+                        {disc > 0 && (
+                          <div className="text-[10px] text-emerald-500 font-semibold">−${(gross - net).toFixed(2)} ({disc}% off)</div>
+                        )}
                         <button
                           onClick={() => deletePart(p.id)}
                           className="ml-2 no-print opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive"
@@ -582,7 +602,7 @@ function InvoiceDetail() {
                 })}
                 {inv.job_id && (
                   <tr className="no-print">
-                    <td colSpan={4} className="pt-2">
+                    <td colSpan={5} className="pt-2">
                       <button onClick={addJobPart} className="text-xs text-primary hover:underline inline-flex items-center gap-1">
                         <Plus className="h-3 w-3" /> Add line item
                       </button>
@@ -590,42 +610,61 @@ function InvoiceDetail() {
                   </tr>
                 )}
                 {!inv.job_id && (() => {
-                  const items: { description: string; quantity: number; unit: number }[] =
+                  const items: { description: string; quantity: number; unit: number; discount_pct?: number }[] =
                     Array.isArray((inv.snapshot as any)?.line_items) ? (inv.snapshot as any).line_items : [];
                   if (items.length === 0) {
                     return (
-                      <tr><td colSpan={4} className="py-6 text-center text-xs text-muted-foreground">
+                      <tr><td colSpan={5} className="py-6 text-center text-xs text-muted-foreground">
                         No line items. <button onClick={() => addSnapshotLine()} className="text-primary underline no-print">Add one</button>
                       </td></tr>
                     );
                   }
-                  return items.map((it, idx) => (
-                    <tr key={idx} className="border-b border-border/40 group">
-                      <td className="py-3">
-                        <EditableText value={it.description} onCommit={(v) => updateSnapshotLine(idx, { description: v })} className="font-medium" />
-                      </td>
-                      <td className="py-3 text-right">
-                        <EditableNumber value={Number(it.quantity)} decimals={0} onCommit={(n) => updateSnapshotLine(idx, { quantity: n })} />
-                      </td>
-                      <td className="py-3 text-right">
-                        <EditableNumber value={Number(it.unit)} prefix="$" onCommit={(n) => updateSnapshotLine(idx, { unit: n })} />
-                      </td>
-                      <td className="py-3 text-right font-semibold">
-                        <span className="tabular-nums">${(Number(it.unit) * Number(it.quantity)).toFixed(2)}</span>
-                        <button
-                          onClick={() => removeSnapshotLine(idx)}
-                          className="ml-2 no-print opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive"
-                          title="Remove line"
-                        >
-                          <Trash2 className="h-3.5 w-3.5 inline" />
-                        </button>
-                      </td>
-                    </tr>
-                  ));
+                  return items.map((it, idx) => {
+                    const disc = Number(it.discount_pct ?? 0);
+                    const gross = Number(it.unit) * Number(it.quantity);
+                    const net = gross * (1 - disc / 100);
+                    return (
+                      <tr key={idx} className="border-b border-border/40 group">
+                        <td className="py-3">
+                          <EditableText value={it.description} onCommit={(v) => updateSnapshotLine(idx, { description: v })} className="font-medium" />
+                        </td>
+                        <td className="py-3 text-right">
+                          <EditableNumber value={Number(it.quantity)} decimals={0} onCommit={(n) => updateSnapshotLine(idx, { quantity: n })} />
+                        </td>
+                        <td className="py-3 text-right">
+                          <EditableNumber value={Number(it.unit)} prefix="$" onCommit={(n) => updateSnapshotLine(idx, { unit: n })} />
+                        </td>
+                        <td className="py-3 text-right">
+                          <EditableNumber
+                            value={disc}
+                            suffix="%"
+                            onCommit={(n) => updateSnapshotLine(idx, { discount_pct: Math.max(0, Math.min(100, n)) })}
+                            className={disc > 0 ? "text-emerald-500 font-semibold" : ""}
+                          />
+                        </td>
+                        <td className="py-3 text-right font-semibold">
+                          {disc > 0 && (
+                            <div className="text-[10px] text-muted-foreground line-through tabular-nums">${gross.toFixed(2)}</div>
+                          )}
+                          <span className="tabular-nums">${net.toFixed(2)}</span>
+                          {disc > 0 && (
+                            <div className="text-[10px] text-emerald-500 font-semibold">−${(gross - net).toFixed(2)} ({disc}% off)</div>
+                          )}
+                          <button
+                            onClick={() => removeSnapshotLine(idx)}
+                            className="ml-2 no-print opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive"
+                            title="Remove line"
+                          >
+                            <Trash2 className="h-3.5 w-3.5 inline" />
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  });
                 })()}
                 {!inv.job_id && (
                   <tr className="no-print">
-                    <td colSpan={4} className="pt-2">
+                    <td colSpan={5} className="pt-2">
                       <button onClick={() => addSnapshotLine()} className="text-xs text-primary hover:underline inline-flex items-center gap-1">
                         <Plus className="h-3 w-3" /> Add line item
                       </button>
@@ -633,7 +672,7 @@ function InvoiceDetail() {
                   </tr>
                 )}
                 {inv.job_id && Number(inv.labour_total) === 0 && (parts.data ?? []).length === 0 && (
-                  <tr><td colSpan={4} className="py-6 text-center text-xs text-muted-foreground">No line items</td></tr>
+                  <tr><td colSpan={5} className="py-6 text-center text-xs text-muted-foreground">No line items</td></tr>
                 )}
               </tbody>
 

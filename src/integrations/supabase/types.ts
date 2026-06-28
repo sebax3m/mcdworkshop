@@ -888,6 +888,7 @@ export type Database = {
           added_by: string | null
           cost: number | null
           created_at: string
+          discount_pct: number
           id: string
           job_id: string
           name: string
@@ -900,6 +901,7 @@ export type Database = {
           added_by?: string | null
           cost?: number | null
           created_at?: string
+          discount_pct?: number
           id?: string
           job_id: string
           name: string
@@ -912,6 +914,7 @@ export type Database = {
           added_by?: string | null
           cost?: number | null
           created_at?: string
+          discount_pct?: number
           id?: string
           job_id?: string
           name?: string

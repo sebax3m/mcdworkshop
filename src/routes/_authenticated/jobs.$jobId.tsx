@@ -145,7 +145,7 @@ function JobDetail() {
       : trackedHours;
     const labour = Math.round(billedHours * LABOUR_RATE * 100) / 100;
     const parts = (partsUsed.data ?? []).reduce(
-      (s, p: any) => s + Number(p.retail ?? 0) * Number(p.quantity ?? 1),
+      (s, p: any) => s + Number(p.retail ?? 0) * Number(p.quantity ?? 1) * (1 - Number(p.discount_pct ?? 0) / 100),
       0,
     );
     const subtotal = labour + parts; // inc GST
@@ -1014,14 +1014,12 @@ function AddCustomPart({ jobId, onAdded }: { jobId: string; onAdded: () => void 
 
   if (!open) {
     return (
-      <div className="mt-3">
-        <button
-          onClick={() => setOpen(true)}
-          className="text-xs font-semibold text-primary inline-flex items-center gap-1 hover:underline"
-        >
-          <Plus className="h-3 w-3" /> Add custom part / item
-        </button>
-      </div>
+      <button
+        onClick={() => setOpen(true)}
+        className="mt-3 w-full rounded-lg border border-dashed border-primary/50 bg-primary/5 hover:bg-primary/10 px-3 py-2.5 text-sm font-semibold text-primary inline-flex items-center justify-center gap-2 transition-colors"
+      >
+        <Plus className="h-4 w-4" /> Add another part / fluid
+      </button>
     );
   }
   return (
