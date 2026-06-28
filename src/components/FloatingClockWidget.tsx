@@ -53,14 +53,33 @@ export function FloatingClockWidget() {
     return null;
   })();
 
+  // Fallback: active timer from time_entries (in case clock_events hasn't synced yet)
+  const activeTimerJob = useQuery({
+    queryKey: ["clock-floating-timer-job", user?.id],
+    enabled: !!user && state !== "off",
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("time_entries")
+        .select("job_id")
+        .eq("technician_id", user!.id)
+        .is("ended_at", null)
+        .order("started_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      return data?.job_id as string | null;
+    },
+  });
+
+  const resolvedJobId = activeJobId ?? activeTimerJob.data ?? null;
+
   const job = useQuery({
-    queryKey: ["clock-floating-job", activeJobId],
-    enabled: !!activeJobId,
+    queryKey: ["clock-floating-job", resolvedJobId],
+    enabled: !!resolvedJobId,
     queryFn: async () => {
       const { data } = await supabase
         .from("jobs")
         .select("id, job_number, complaint, bikes(make, model)")
-        .eq("id", activeJobId!)
+        .eq("id", resolvedJobId!)
         .maybeSingle();
       return data;
     },
@@ -76,8 +95,6 @@ export function FloatingClockWidget() {
   const time = `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
 
   const isBreak = state === "break";
-  const bike = (job.data as any)?.bikes;
-  const bikeStr = bike ? `${bike.make ?? ""} ${bike.model ?? ""}`.trim() : "";
 
   const handlePointerDown = (e: React.PointerEvent) => {
     didDragRef.current = false;
@@ -108,8 +125,8 @@ export function FloatingClockWidget() {
 
   const handleClick = () => {
     if (didDragRef.current) return;
-    if (activeJobId) {
-      navigate({ to: "/jobs/$jobId", params: { jobId: activeJobId } });
+    if (resolvedJobId) {
+      navigate({ to: "/jobs/$jobId", params: { jobId: resolvedJobId } });
     } else {
       navigate({ to: "/clock" });
     }
@@ -130,7 +147,7 @@ export function FloatingClockWidget() {
     >
       <button
         onClick={handleClick}
-        className="text-left rounded-2xl border border-white/15 shadow-2xl backdrop-blur-xl px-4 py-3 min-w-[220px] cursor-grab active:cursor-grabbing transition hover:brightness-110"
+        className="text-left rounded-2xl border border-white/15 shadow-2xl backdrop-blur-xl px-4 py-3 min-w-[220px] cursor-grab active:cursor-grabbing"
         style={{
           background: isBreak
             ? "color-mix(in srgb, hsl(var(--status-progress)) 18%, transparent)"
@@ -147,15 +164,18 @@ export function FloatingClockWidget() {
         <div className="font-display text-2xl font-bold tabular-nums leading-tight mt-0.5 text-foreground">
           {time}
         </div>
-        {activeJobId && job.data ? (
-          <div className="mt-1.5 flex items-center gap-1.5 text-xs text-foreground/90">
+        {resolvedJobId && job.data ? (
+          <div className="mt-2 flex items-center gap-1.5 text-xs text-foreground/90">
             <Wrench className="h-3 w-3 text-primary" />
-            <span className="truncate font-semibold underline underline-offset-2 text-primary">
-              Open Job Card #{(job.data as any).job_number}
-            </span>
+            <span className="truncate font-medium">Open Job Card</span>
           </div>
         ) : (
           <div className="mt-1 text-xs text-foreground/70">Open clock →</div>
+        )}
+        {resolvedJobId && job.data && (
+          <div className="text-sm font-bold text-primary mt-0.5">
+            #{(job.data as any).job_number}
+          </div>
         )}
       </button>
     </div>
