@@ -275,9 +275,11 @@ function JobDetail() {
               <div><span className="text-gray-500">Rego:</span> {(j.motorcycles as any)?.rego ?? "—"}</div>
               <div><span className="text-gray-500">Year:</span> {(j.motorcycles as any)?.year ?? "—"}</div>
               <div><span className="text-gray-500">VIN:</span> {(j.motorcycles as any)?.vin ?? "—"}</div>
-              <div><span className="text-gray-500">Odo:</span> {(j.motorcycles as any)?.odometer ?? "—"}</div>
+              <div><span className="text-gray-500">Odo:</span> {(j.odometer ?? (j.motorcycles as any)?.mileage) != null ? `${Number(j.odometer ?? (j.motorcycles as any)?.mileage).toLocaleString()} km` : "—"}</div>
               <div><span className="text-gray-500">Cyl:</span> {cylinders}</div>
               <div><span className="text-gray-500">Colour:</span> {(j.motorcycles as any)?.color ?? "—"}</div>
+              <div><span className="text-gray-500">REGO exp:</span> {(j.motorcycles as any)?.rego_expiry ? new Date((j.motorcycles as any).rego_expiry).toLocaleDateString() : "—"}</div>
+              <div><span className="text-gray-500">WOF exp:</span> {(j.motorcycles as any)?.wof_expiry ? new Date((j.motorcycles as any).wof_expiry).toLocaleDateString() : "—"}</div>
             </div>
           </div>
           <div className="border border-gray-400 rounded p-2">
@@ -296,6 +298,7 @@ function JobDetail() {
             <p className="whitespace-pre-wrap">{j.complaint}</p>
           </div>
         )}
+
 
         <div className="text-[9px] uppercase tracking-wider text-gray-500 mb-1">Instructions — follow checklist below</div>
       </div>
