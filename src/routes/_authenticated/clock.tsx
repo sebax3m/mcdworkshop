@@ -224,9 +224,24 @@ function ClockPage() {
           </DialogHeader>
           <Input
             autoFocus
-            placeholder="Search job #, rego, customer, bike…"
+            placeholder="Type job # (e.g. 1, 3) or search rego, customer, bike…"
             value={jobQuery}
             onChange={(e) => setJobQuery(e.target.value)}
+            onKeyDown={async (e) => {
+              if (e.key !== "Enter") return;
+              const q = jobQuery.trim();
+              if (!q) return;
+              // Exact job_number match first, then single filtered result
+              const exact = (openJobs.data ?? []).find((j: any) => String(j.job_number) === q);
+              const pick = exact ?? (filteredJobs.length === 1 ? filteredJobs[0] : null);
+              if (pick) {
+                setPickingJob(false);
+                setJobQuery("");
+                await add("clock_in", pick.id);
+              } else {
+                toast.error("No job found for that number");
+              }
+            }}
           />
           <div className="max-h-[50vh] overflow-y-auto space-y-1 -mx-2">
             {filteredJobs.length === 0 && (
