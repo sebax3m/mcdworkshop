@@ -254,11 +254,14 @@ function InvoiceDetail() {
     await recomputeInvoiceTotals(nextAmount);
   }
 
-  async function updatePart(id: string, patch: { quantity?: number; retail?: number }) {
+  async function updatePart(id: string, patch: { quantity?: number; retail?: number; name?: string; supplier?: string }) {
     const { error } = await supabase.from("parts").update(patch).eq("id", id);
     if (error) { toast.error(error.message); return; }
+    await refreshPartsTotals();
+  }
+
+  async function refreshPartsTotals() {
     await qc.invalidateQueries({ queryKey: ["invoice-parts", invoiceId, inv.job_id] });
-    // Re-fetch then recompute via fresh parts list
     const fresh = await supabase.from("parts").select("*").eq("job_id", inv.job_id!);
     const partsSum = (fresh.data ?? []).reduce(
       (s: number, p: any) => s + Number(p.retail ?? 0) * Number(p.quantity ?? 1),
@@ -269,6 +272,26 @@ function InvoiceDetail() {
     const total = Math.round(subtotal * 100) / 100;
     await supabase.from("invoices").update({ parts_total: partsSum, gst, total }).eq("id", invoiceId);
     qc.invalidateQueries({ queryKey: ["invoice", invoiceId] });
+  }
+
+  async function addJobPart() {
+    if (!inv.job_id) return;
+    const { error } = await supabase.from("parts").insert({
+      job_id: inv.job_id,
+      name: "New item",
+      quantity: 1,
+      cost: 0,
+      retail: 0,
+      added_by: user?.id,
+    } as any);
+    if (error) { toast.error(error.message); return; }
+    await refreshPartsTotals();
+  }
+
+  async function deletePart(id: string) {
+    const { error } = await supabase.from("parts").delete().eq("id", id);
+    if (error) { toast.error(error.message); return; }
+    await refreshPartsTotals();
   }
 
   async function saveSnapshotLines(items: { description: string; quantity: number; unit: number }[]) {
