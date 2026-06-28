@@ -212,7 +212,7 @@ function NewClaim() {
                 <div className="text-xs uppercase tracking-wider text-muted-foreground">New customer</div>
                 <div className="grid grid-cols-2 gap-2">
                   <Input placeholder="First name *" value={newCust.first_name} onChange={(e) => setNewCust({ ...newCust, first_name: e.target.value })} />
-                  <Input placeholder="Last name" value={newCust.last_name} onChange={(e) => setNewCust({ ...newCust, last_name: e.target.value })} />
+                  <Input placeholder="Last name (optional)" value={newCust.last_name} onChange={(e) => setNewCust({ ...newCust, last_name: e.target.value })} />
                   <Input placeholder="Phone" inputMode="tel" value={newCust.phone} onChange={(e) => setNewCust({ ...newCust, phone: e.target.value })} />
                   <Input placeholder="Email" inputMode="email" value={newCust.email} onChange={(e) => setNewCust({ ...newCust, email: e.target.value })} />
                 </div>
