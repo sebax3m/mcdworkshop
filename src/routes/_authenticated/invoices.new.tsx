@@ -178,6 +178,30 @@ function NewInvoice() {
     setNcFirst(""); setNcLast(""); setNcPhone(""); setNcEmail("");
   }
 
+  async function createBike() {
+    if (!customerId) { toast.error("Pick a customer first"); return; }
+    if (!nbMake.trim() || !nbModel.trim()) { toast.error("Make and model required"); return; }
+    setCreatingBike(true);
+    const { data, error } = await (supabase as any)
+      .from("motorcycles")
+      .insert({
+        customer_id: customerId,
+        make: nbMake.trim(),
+        model: nbModel.trim(),
+        year: nbYear ? Number(nbYear) : null,
+        rego: nbRego.trim().toUpperCase() || null,
+        color: nbColor.trim() || null,
+      })
+      .select("*").maybeSingle();
+    setCreatingBike(false);
+    if (error || !data) { toast.error(error?.message ?? "Failed"); return; }
+    toast.success("Bike added");
+    await bikes.refetch();
+    setBikeId(data.id);
+    setShowNewBike(false);
+    setNbMake(""); setNbModel(""); setNbYear(""); setNbRego(""); setNbColor("");
+  }
+
   async function save() {
     const cleanLines = lines
       .map((l) => ({
