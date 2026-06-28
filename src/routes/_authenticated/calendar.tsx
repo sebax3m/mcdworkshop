@@ -78,6 +78,16 @@ function CalendarPage() {
   const [weekStart, setWeekStart] = useState<Date>(() => startOfWeek(new Date(), { weekStartsOn: 1 }));
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [selectedBooking, setSelectedBooking] = useState<any | null>(null);
+  const [deleteBooking, setDeleteBooking] = useState<any | null>(null);
+
+  async function confirmDeleteBooking() {
+    if (!deleteBooking) return;
+    const { error } = await supabase.from("bookings").delete().eq("id", deleteBooking.id);
+    if (error) return toast.error(error.message);
+    toast.success("Booking deleted");
+    setDeleteBooking(null);
+    qc.invalidateQueries({ queryKey: ["calendar-bookings"] });
+  }
 
   const visibleRange = useMemo(() => {
     if (viewMode === "week") {
