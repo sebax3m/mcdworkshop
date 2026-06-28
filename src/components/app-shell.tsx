@@ -6,6 +6,7 @@ import { initials } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import logoAsset from "@/assets/motorcycle-doctors-logo.png.asset.json";
 import { ActiveUserSwitcher } from "@/components/ActiveUserSwitcher";
+import { FloatingClockWidget } from "@/components/FloatingClockWidget";
 
 export function AppShell() {
   const nav = useNavigate();
