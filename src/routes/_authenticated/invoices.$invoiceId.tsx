@@ -624,12 +624,28 @@ function InvoiceDetail() {
                       </td>
                       <td className="py-3 text-right">
                         <EditableNumber
-                          value={disc}
-                          suffix="%"
-                          onCommit={(n) => updatePart(p.id, { discount_pct: Math.max(0, Math.min(100, n)) })}
-                          className={disc > 0 ? "text-emerald-500 font-semibold" : ""}
+                          value={unit}
+                          prefix="$"
+                          onCommit={(n) => updatePart(p.id, { retail: n })}
                         />
+                        {!hasDiscount && (
+                          <button
+                            onClick={() => updatePart(p.id, { discount_pct: 10 })}
+                            className="no-print block ml-auto mt-0.5 text-[10px] text-muted-foreground hover:text-primary opacity-0 group-hover:opacity-100"
+                            title="Add a discount on this line"
+                          >+ Disc</button>
+                        )}
                       </td>
+                      {hasDiscount && (
+                        <td className="py-3 text-right">
+                          <EditableNumber
+                            value={disc}
+                            suffix="%"
+                            onCommit={(n) => updatePart(p.id, { discount_pct: Math.max(0, Math.min(100, n)) })}
+                            className={disc > 0 ? "text-emerald-500 font-semibold" : ""}
+                          />
+                        </td>
+                      )}
                       <td className="py-3 text-right font-semibold">
                         {disc > 0 && (
                           <div className="text-[10px] text-muted-foreground line-through tabular-nums">${gross.toFixed(2)}</div>
