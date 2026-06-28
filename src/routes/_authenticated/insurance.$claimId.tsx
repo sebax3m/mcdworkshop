@@ -312,6 +312,8 @@ import { CRASH_PARTS, PART_CATEGORIES, LABOUR_PRESETS, type DamageLevel } from "
 type QuoteItem = {
   id: string;
   kind: "part" | "labour";
+  item_code?: string;
+  item_name?: string;
   description: string;
   qty: number; // qty for parts, hours for labour
   unit_price: number; // $ per unit / $ per hour
@@ -321,6 +323,8 @@ function newItem(kind: QuoteItem["kind"], unit_price = 0): QuoteItem {
   return {
     id: (globalThis.crypto?.randomUUID?.() ?? Math.random().toString(36).slice(2)),
     kind,
+    item_code: "",
+    item_name: "",
     description: "",
     qty: kind === "labour" ? 1 : 1,
     unit_price,
