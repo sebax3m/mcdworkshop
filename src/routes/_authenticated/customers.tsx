@@ -63,7 +63,7 @@ function Customers() {
             <Input placeholder="Last name (optional)" value={f.last_name} onChange={(e) => setF({ ...f, last_name: e.target.value })} />
           </div>
           <Input placeholder="Phone" value={f.phone} onChange={(e) => setF({ ...f, phone: e.target.value })} />
-          <Input placeholder="Email" type="email" value={f.email} onChange={(e) => setF({ ...f, email: e.target.value })} />
+          <Input placeholder="Email (optional)" type="email" value={f.email} onChange={(e) => setF({ ...f, email: e.target.value })} />
           <Input placeholder="Address" value={f.address} onChange={(e) => setF({ ...f, address: e.target.value })} />
           <Textarea placeholder="Notes" rows={2} value={f.notes} onChange={(e) => setF({ ...f, notes: e.target.value })} />
           <Button onClick={save} className="gold-surface w-full">Save customer</Button>
