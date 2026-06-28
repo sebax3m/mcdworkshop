@@ -360,6 +360,9 @@ function NewInvoice() {
 
         <div className="mt-4 pt-3 border-t border-border space-y-1 text-sm max-w-xs ml-auto">
           <div className="flex justify-between text-muted-foreground"><span>Subtotal (excl GST)</span><span className="tabular-nums">${subtotalEx.toFixed(2)}</span></div>
+          {totalDiscount > 0 && (
+            <div className="flex justify-between text-emerald-500"><span>Total discount</span><span className="tabular-nums">−${totalDiscount.toFixed(2)}</span></div>
+          )}
           <div className="flex justify-between text-muted-foreground"><span>GST 15% (incl.)</span><span className="tabular-nums">${gst.toFixed(2)}</span></div>
           <div className="flex justify-between pt-1.5 border-t border-border font-display text-lg font-black">
             <span>TOTAL</span><span className="red-gradient-text tabular-nums">${total.toFixed(2)}</span>
