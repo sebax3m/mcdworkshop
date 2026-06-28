@@ -459,6 +459,8 @@ function QuoteBuilder({
           <thead className="text-[10px] uppercase tracking-wider text-muted-foreground">
             <tr className="border-b border-border">
               <th className="text-left py-2 pr-2 w-20">Type</th>
+              <th className="text-left py-2 pr-2 w-28">Item code</th>
+              <th className="text-left py-2 pr-2 w-48">Item name</th>
               <th className="text-left py-2 pr-2">Description</th>
               <th className="text-right py-2 px-2 w-20">Qty/Hrs</th>
               <th className="text-right py-2 px-2 w-24">Unit $</th>
@@ -468,7 +470,7 @@ function QuoteBuilder({
           </thead>
           <tbody>
             {items.length === 0 && (
-              <tr><td colSpan={6} className="py-6 text-center text-sm text-muted-foreground">
+              <tr><td colSpan={8} className="py-6 text-center text-sm text-muted-foreground">
                 No line items yet. Add parts or labour below.
               </td></tr>
             )}
@@ -485,9 +487,25 @@ function QuoteBuilder({
                   </td>
                   <td className="py-1.5 pr-2">
                     <Input
+                      value={it.item_code ?? ""}
+                      onChange={(e) => patch(it.id, { item_code: e.target.value })}
+                      placeholder="OEM #"
+                      className="h-8 text-sm font-mono print:border-0 print:bg-transparent print:px-0"
+                    />
+                  </td>
+                  <td className="py-1.5 pr-2">
+                    <Input
+                      value={it.item_name ?? ""}
+                      onChange={(e) => patch(it.id, { item_name: e.target.value })}
+                      placeholder={it.kind === "labour" ? "Labour task" : "Part name"}
+                      className="h-8 text-sm print:border-0 print:bg-transparent print:px-0"
+                    />
+                  </td>
+                  <td className="py-1.5 pr-2">
+                    <Input
                       value={it.description}
                       onChange={(e) => patch(it.id, { description: e.target.value })}
-                      placeholder={it.kind === "labour" ? "e.g. Fairing R&R, paint blend" : "e.g. LH fairing panel OEM"}
+                      placeholder={it.kind === "labour" ? "Notes, severity, paint blend…" : "Details / condition / fitment"}
                       className="h-8 text-sm print:border-0 print:bg-transparent print:px-0"
                     />
                   </td>
