@@ -6,9 +6,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Plus, Trash2, Search, GripVertical, BookOpen, X } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, Search, GripVertical, BookOpen, X, Mail, Printer } from "lucide-react";
 import { toast } from "sonner";
 import { fullBike } from "@/lib/format";
+import logoAsset from "@/assets/motorcycle-doctors-logo.png.asset.json";
 
 export const Route = createFileRoute("/_authenticated/invoices/new")({
   component: NewInvoice,
