@@ -572,6 +572,11 @@ function CalendarPage() {
                           <span className="h-1.5 w-1.5 rounded-full bg-green-500" /> Confirmed
                         </span>
                       )}
+                      {b.loan_bike && (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-amber-400/20 border border-amber-400/60 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-amber-300">
+                          🏍️ Loan bike
+                        </span>
+                      )}
                     </div>
 
                     <div>
