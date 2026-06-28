@@ -16,7 +16,7 @@ export const Route = createFileRoute("/_authenticated/invoices/new")({
 
 const GST_RATE = 0.15;
 
-type Line = { description: string; quantity: number; unit: number };
+type Line = { description: string; quantity: number; unit: number; discount_pct: number };
 
 function NewInvoice() {
   const nav = useNavigate();
