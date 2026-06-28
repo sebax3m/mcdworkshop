@@ -296,8 +296,11 @@ function InvoiceDetail() {
     await refreshPartsTotals();
   }
 
-  async function saveSnapshotLines(items: { description: string; quantity: number; unit: number }[]) {
-    const partsSum = items.reduce((s, l) => s + Number(l.unit || 0) * Number(l.quantity || 0), 0);
+  async function saveSnapshotLines(items: { description: string; quantity: number; unit: number; discount_pct?: number }[]) {
+    const partsSum = items.reduce(
+      (s, l) => s + Number(l.unit || 0) * Number(l.quantity || 0) * (1 - Number(l.discount_pct ?? 0) / 100),
+      0,
+    );
     const subtotal = partsSum; // labour stays 0 for standalone
     const gst = Math.round((subtotal * GST_RATE / (1 + GST_RATE)) * 100) / 100;
     const total = Math.round(subtotal * 100) / 100;
@@ -309,14 +312,14 @@ function InvoiceDetail() {
     if (error) { toast.error(error.message); return; }
     qc.invalidateQueries({ queryKey: ["invoice", invoiceId] });
   }
-  function currentSnapshotLines(): { description: string; quantity: number; unit: number }[] {
+  function currentSnapshotLines(): { description: string; quantity: number; unit: number; discount_pct?: number }[] {
     const items = (inv.snapshot as any)?.line_items;
     return Array.isArray(items) ? items : [];
   }
   async function addSnapshotLine() {
-    await saveSnapshotLines([...currentSnapshotLines(), { description: "New item", quantity: 1, unit: 0 }]);
+    await saveSnapshotLines([...currentSnapshotLines(), { description: "New item", quantity: 1, unit: 0, discount_pct: 0 }]);
   }
-  async function updateSnapshotLine(idx: number, patch: Partial<{ description: string; quantity: number; unit: number }>) {
+  async function updateSnapshotLine(idx: number, patch: Partial<{ description: string; quantity: number; unit: number; discount_pct: number }>) {
     const items = currentSnapshotLines().map((it, i) => (i === idx ? { ...it, ...patch } : it));
     await saveSnapshotLines(items);
   }
