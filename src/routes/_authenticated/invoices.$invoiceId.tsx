@@ -270,6 +270,34 @@ function InvoiceDetail() {
     await supabase.from("invoices").update({ parts_total: partsSum, gst, total }).eq("id", invoiceId);
     qc.invalidateQueries({ queryKey: ["invoice", invoiceId] });
   }
+
+  async function saveSnapshotLines(items: { description: string; quantity: number; unit: number }[]) {
+    const partsSum = items.reduce((s, l) => s + Number(l.unit || 0) * Number(l.quantity || 0), 0);
+    const subtotal = partsSum; // labour stays 0 for standalone
+    const gst = Math.round((subtotal * GST_RATE / (1 + GST_RATE)) * 100) / 100;
+    const total = Math.round(subtotal * 100) / 100;
+    const newSnap = { ...((inv.snapshot as any) ?? {}), line_items: items };
+    const { error } = await supabase
+      .from("invoices")
+      .update({ snapshot: newSnap, parts_total: partsSum, gst, total })
+      .eq("id", invoiceId);
+    if (error) { toast.error(error.message); return; }
+    qc.invalidateQueries({ queryKey: ["invoice", invoiceId] });
+  }
+  function currentSnapshotLines(): { description: string; quantity: number; unit: number }[] {
+    const items = (inv.snapshot as any)?.line_items;
+    return Array.isArray(items) ? items : [];
+  }
+  async function addSnapshotLine() {
+    await saveSnapshotLines([...currentSnapshotLines(), { description: "New item", quantity: 1, unit: 0 }]);
+  }
+  async function updateSnapshotLine(idx: number, patch: Partial<{ description: string; quantity: number; unit: number }>) {
+    const items = currentSnapshotLines().map((it, i) => (i === idx ? { ...it, ...patch } : it));
+    await saveSnapshotLines(items);
+  }
+  async function removeSnapshotLine(idx: number) {
+    await saveSnapshotLines(currentSnapshotLines().filter((_, i) => i !== idx));
+  }
   const customer = inv.customers;
   const bike = inv.motorcycles;
   const issuedAt = new Date(inv.created_at);
