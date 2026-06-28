@@ -25,6 +25,8 @@ export type DamageMark = {
 
 export type QuoteItem = {
   kind: "part" | "labour";
+  item_code?: string;
+  item_name?: string;
   description: string;
   qty: number;
   unit_price: number;
