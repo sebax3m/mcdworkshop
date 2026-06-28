@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Plus, Trash2, Search } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, Search, GripVertical } from "lucide-react";
 import { toast } from "sonner";
 import { fullBike } from "@/lib/format";
 
@@ -88,6 +88,16 @@ function NewInvoice() {
   }
   function removeLine(idx: number) {
     setLines((arr) => arr.filter((_, i) => i !== idx));
+  }
+  const [dragIdx, setDragIdx] = useState<number | null>(null);
+  function reorder(from: number, to: number) {
+    if (from === to) return;
+    setLines((arr) => {
+      const next = arr.slice();
+      const [item] = next.splice(from, 1);
+      next.splice(to, 0, item);
+      return next;
+    });
   }
 
   async function createCustomer() {
@@ -270,9 +280,23 @@ function NewInvoice() {
         </div>
         <div className="space-y-2">
           {lines.map((l, idx) => (
-            <div key={idx} className="grid grid-cols-12 gap-2 items-start">
+            <div
+              key={idx}
+              draggable
+              onDragStart={() => setDragIdx(idx)}
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={() => { if (dragIdx !== null) reorder(dragIdx, idx); setDragIdx(null); }}
+              onDragEnd={() => setDragIdx(null)}
+              className={`grid grid-cols-12 gap-2 items-start rounded-md transition-opacity ${dragIdx === idx ? "opacity-40" : ""}`}
+            >
+              <div
+                className="col-span-1 grid place-items-center h-9 text-muted-foreground cursor-grab active:cursor-grabbing"
+                title="Drag to reorder"
+              >
+                <GripVertical className="h-4 w-4" />
+              </div>
               <Input
-                className="col-span-12 sm:col-span-6"
+                className="col-span-11 sm:col-span-5"
                 placeholder="Description (anything — labour, part, fee, callout…)"
                 value={l.description}
                 onChange={(e) => updateLine(idx, { description: e.target.value })}
