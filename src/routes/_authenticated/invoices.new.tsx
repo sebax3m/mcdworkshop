@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Plus, Trash2, Search, GripVertical } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, Search, GripVertical, BookOpen, X } from "lucide-react";
 import { toast } from "sonner";
 import { fullBike } from "@/lib/format";
 
@@ -16,7 +16,18 @@ export const Route = createFileRoute("/_authenticated/invoices/new")({
 
 const GST_RATE = 0.15;
 
-type Line = { description: string; quantity: number; unit: number; discount_pct: number };
+type Line = {
+  item_code: string;
+  item_name: string;
+  description: string;
+  quantity: number;
+  unit: number;
+  discount_pct: number;
+};
+
+function emptyLine(): Line {
+  return { item_code: "", item_name: "", description: "", quantity: 1, unit: 0, discount_pct: 0 };
+}
 
 function NewInvoice() {
   const nav = useNavigate();
@@ -34,10 +45,10 @@ function NewInvoice() {
 
   const [invoiceDate, setInvoiceDate] = useState<string>(today);
   const [notes, setNotes] = useState<string>("");
-  const [lines, setLines] = useState<Line[]>([
-    { description: "", quantity: 1, unit: 0, discount_pct: 0 },
-  ]);
+  const [lines, setLines] = useState<Line[]>([emptyLine()]);
   const [saving, setSaving] = useState(false);
+  const [libraryOpenForIdx, setLibraryOpenForIdx] = useState<number | null>(null);
+  const [librarySearch, setLibrarySearch] = useState("");
 
   const customers = useQuery({
     queryKey: ["new-inv-customers"],
@@ -47,6 +58,10 @@ function NewInvoice() {
     queryKey: ["new-inv-bikes", customerId],
     enabled: !!customerId,
     queryFn: async () => (await supabase.from("motorcycles").select("*").eq("customer_id", customerId!)).data ?? [],
+  });
+  const library = useQuery({
+    queryKey: ["inv-library"],
+    queryFn: async () => (await supabase.from("inventory_items").select("*").order("name")).data ?? [],
   });
 
   const year = new Date().getFullYear();
@@ -75,16 +90,30 @@ function NewInvoice() {
     );
   }, [customers.data, search]);
 
-  const subtotalInc = lines.reduce((s, l) => {
-    const gross = Number(l.unit || 0) * Number(l.quantity || 0);
+  const filteredLibrary = useMemo(() => {
+    const q = librarySearch.trim().toLowerCase();
+    const list = library.data ?? [];
+    if (!q) return list.slice(0, 50);
+    return list
+      .filter((i: any) =>
+        `${i.sku ?? ""} ${i.name ?? ""} ${i.brand ?? ""} ${i.category ?? ""}`.toLowerCase().includes(q),
+      )
+      .slice(0, 50);
+  }, [library.data, librarySearch]);
+
+  function lineGross(l: Line) {
+    return Number(l.unit || 0) * Number(l.quantity || 0);
+  }
+  function lineDiscAmt(l: Line) {
     const disc = Math.max(0, Math.min(100, Number(l.discount_pct || 0)));
-    return s + gross * (1 - disc / 100);
-  }, 0);
-  const totalDiscount = lines.reduce((s, l) => {
-    const gross = Number(l.unit || 0) * Number(l.quantity || 0);
-    const disc = Math.max(0, Math.min(100, Number(l.discount_pct || 0)));
-    return s + gross * (disc / 100);
-  }, 0);
+    return lineGross(l) * (disc / 100);
+  }
+  function lineNet(l: Line) {
+    return lineGross(l) - lineDiscAmt(l);
+  }
+
+  const subtotalInc = lines.reduce((s, l) => s + lineNet(l), 0);
+  const totalDiscount = lines.reduce((s, l) => s + lineDiscAmt(l), 0);
   const gst = Math.round((subtotalInc * GST_RATE / (1 + GST_RATE)) * 100) / 100;
   const total = Math.round(subtotalInc * 100) / 100;
   const subtotalEx = total - gst;
@@ -93,10 +122,20 @@ function NewInvoice() {
     setLines((arr) => arr.map((l, i) => (i === idx ? { ...l, ...patch } : l)));
   }
   function addLine() {
-    setLines((arr) => [...arr, { description: "", quantity: 1, unit: 0, discount_pct: 0 }]);
+    setLines((arr) => [...arr, emptyLine()]);
   }
   function removeLine(idx: number) {
     setLines((arr) => arr.filter((_, i) => i !== idx));
+  }
+  function pickFromLibrary(idx: number, item: any) {
+    updateLine(idx, {
+      item_code: item.sku ?? "",
+      item_name: item.name ?? "",
+      description: [item.brand, item.type].filter(Boolean).join(" · "),
+      unit: Number(item.unit_price ?? 0),
+    });
+    setLibraryOpenForIdx(null);
+    setLibrarySearch("");
   }
   const [dragIdx, setDragIdx] = useState<number | null>(null);
   function reorder(from: number, to: number) {
@@ -133,12 +172,14 @@ function NewInvoice() {
   async function save() {
     const cleanLines = lines
       .map((l) => ({
+        item_code: l.item_code.trim(),
+        item_name: l.item_name.trim(),
         description: l.description.trim(),
         quantity: Number(l.quantity) || 0,
         unit: Number(l.unit) || 0,
         discount_pct: Math.max(0, Math.min(100, Number(l.discount_pct) || 0)),
       }))
-      .filter((l) => l.description && l.quantity > 0);
+      .filter((l) => (l.item_name || l.description || l.item_code) && l.quantity > 0);
     if (cleanLines.length === 0) { toast.error("Add at least one line item"); return; }
     setSaving(true);
 
@@ -159,6 +200,12 @@ function NewInvoice() {
     const nextSeq = Math.max(lastSeq + 1, 1000);
     const invoice_number = `MCD-${yr}-${String(nextSeq).padStart(5, "0")}`;
 
+    // Build legacy `description` for backwards-compatible rendering
+    const snapshotLines = cleanLines.map((l) => ({
+      ...l,
+      description: [l.item_code, l.item_name, l.description].filter(Boolean).join(" — "),
+    }));
+
     const { data, error } = await supabase
       .from("invoices")
       .insert({
@@ -172,7 +219,7 @@ function NewInvoice() {
         status: "draft",
         notes: notes.trim() || null,
         invoice_date: invoiceDate,
-        snapshot: { line_items: cleanLines },
+        snapshot: { line_items: snapshotLines },
         created_by: u.user?.id,
       })
       .select("id, invoice_number").maybeSingle();
@@ -185,7 +232,7 @@ function NewInvoice() {
   const selectedCustomer = (customers.data ?? []).find((c: any) => c.id === customerId);
 
   return (
-    <div className="space-y-5 max-w-3xl mx-auto">
+    <div className="space-y-5 max-w-5xl mx-auto">
       <header className="flex items-center gap-3">
         <button onClick={() => nav({ to: "/invoices" })} className="grid h-9 w-9 place-items-center rounded-lg border border-border">
           <ArrowLeft className="h-4 w-4" />
@@ -286,13 +333,27 @@ function NewInvoice() {
 
       {/* Line items */}
       <section className="card-surface p-4">
-        <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center justify-between mb-3">
           <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Line items</div>
           <Button type="button" size="sm" variant="outline" onClick={addLine} className="gap-1.5">
             <Plus className="h-3.5 w-3.5" /> Add line
           </Button>
         </div>
-        <div className="space-y-2">
+
+        {/* Column headers */}
+        <div className="hidden md:grid grid-cols-24 gap-2 px-1 pb-2 text-[10px] uppercase tracking-wider text-muted-foreground font-semibold border-b border-border mb-2">
+          <div className="col-span-1"></div>
+          <div className="col-span-3">Item code</div>
+          <div className="col-span-5">Item name</div>
+          <div className="col-span-5">Description</div>
+          <div className="col-span-2 text-center">Qty</div>
+          <div className="col-span-2 text-right">Unit price</div>
+          <div className="col-span-2 text-center">Discount %</div>
+          <div className="col-span-3 text-right">Line total</div>
+          <div className="col-span-1"></div>
+        </div>
+
+        <div className="space-y-3">
           {lines.map((l, idx) => (
             <div
               key={idx}
@@ -301,7 +362,7 @@ function NewInvoice() {
               onDragOver={(e) => e.preventDefault()}
               onDrop={() => { if (dragIdx !== null) reorder(dragIdx, idx); setDragIdx(null); }}
               onDragEnd={() => setDragIdx(null)}
-              className={`grid grid-cols-12 gap-2 items-start rounded-md transition-opacity ${dragIdx === idx ? "opacity-40" : ""}`}
+              className={`grid grid-cols-24 gap-2 items-start rounded-md transition-opacity ${dragIdx === idx ? "opacity-40" : ""}`}
             >
               <div
                 className="col-span-1 grid place-items-center h-9 text-muted-foreground cursor-grab active:cursor-grabbing"
@@ -309,41 +370,98 @@ function NewInvoice() {
               >
                 <GripVertical className="h-4 w-4" />
               </div>
-              <Input
-                className="col-span-11 sm:col-span-4"
-                placeholder="Description (anything — labour, part, fee, callout…)"
-                value={l.description}
-                onChange={(e) => updateLine(idx, { description: e.target.value })}
-              />
-              <Input
-                className="col-span-3 sm:col-span-2"
-                type="number" step="0.01" min="0"
-                placeholder="Qty"
-                value={l.quantity}
-                onChange={(e) => updateLine(idx, { quantity: Number(e.target.value) })}
-              />
-              <Input
-                className="col-span-3 sm:col-span-2"
-                type="number" step="0.01" min="0"
-                placeholder="Unit $"
-                value={l.unit}
-                onChange={(e) => updateLine(idx, { unit: Number(e.target.value) })}
-              />
-              <Input
-                className="col-span-3 sm:col-span-1"
-                type="number" step="1" min="0" max="100"
-                placeholder="Disc %"
-                title="Discount %"
-                value={l.discount_pct}
-                onChange={(e) => updateLine(idx, { discount_pct: Number(e.target.value) })}
-              />
-              <div className="col-span-3 sm:col-span-2 text-right text-sm tabular-nums pt-2 font-semibold">
+
+              {/* Item code (with library picker) */}
+              <div className="col-span-24 md:col-span-3 relative">
+                <div className="md:hidden text-[10px] uppercase tracking-wider text-muted-foreground mb-0.5">Item code</div>
+                <div className="flex gap-1">
+                  <Input
+                    placeholder="SKU / code"
+                    value={l.item_code}
+                    onChange={(e) => updateLine(idx, { item_code: e.target.value })}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => { setLibraryOpenForIdx(idx); setLibrarySearch(""); }}
+                    className="shrink-0 grid place-items-center h-9 w-9 rounded-md border border-border hover:bg-muted text-muted-foreground"
+                    title="Pick from inventory library"
+                  >
+                    <BookOpen className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Item name */}
+              <div className="col-span-24 md:col-span-5">
+                <div className="md:hidden text-[10px] uppercase tracking-wider text-muted-foreground mb-0.5">Item name</div>
+                <Input
+                  placeholder="Item name"
+                  value={l.item_name}
+                  onChange={(e) => updateLine(idx, { item_name: e.target.value })}
+                />
+              </div>
+
+              {/* Description */}
+              <div className="col-span-24 md:col-span-5">
+                <div className="md:hidden text-[10px] uppercase tracking-wider text-muted-foreground mb-0.5">Description</div>
+                <Input
+                  placeholder="Description / notes"
+                  value={l.description}
+                  onChange={(e) => updateLine(idx, { description: e.target.value })}
+                />
+              </div>
+
+              {/* Qty */}
+              <div className="col-span-6 md:col-span-2">
+                <div className="md:hidden text-[10px] uppercase tracking-wider text-muted-foreground mb-0.5">Qty</div>
+                <Input
+                  type="number" step="0.01" min="0"
+                  placeholder="Qty"
+                  value={l.quantity}
+                  onChange={(e) => updateLine(idx, { quantity: Number(e.target.value) })}
+                />
+              </div>
+
+              {/* Unit $ */}
+              <div className="col-span-6 md:col-span-2">
+                <div className="md:hidden text-[10px] uppercase tracking-wider text-muted-foreground mb-0.5">Unit $</div>
+                <Input
+                  type="number" step="0.01" min="0"
+                  placeholder="0.00"
+                  value={l.unit}
+                  onChange={(e) => updateLine(idx, { unit: Number(e.target.value) })}
+                />
+              </div>
+
+              {/* Discount % */}
+              <div className="col-span-6 md:col-span-2">
+                <div className="md:hidden text-[10px] uppercase tracking-wider text-muted-foreground mb-0.5">Discount %</div>
+                <div className="relative">
+                  <Input
+                    type="number" step="1" min="0" max="100"
+                    placeholder="0"
+                    value={l.discount_pct}
+                    onChange={(e) => updateLine(idx, { discount_pct: Number(e.target.value) })}
+                    className="pr-7 text-center"
+                  />
+                  <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground pointer-events-none">%</span>
+                </div>
                 {Number(l.discount_pct) > 0 && (
-                  <div className="text-[10px] text-muted-foreground line-through font-normal">
-                    ${(Number(l.unit) * Number(l.quantity) || 0).toFixed(2)}
+                  <div className="text-[10px] text-emerald-500 mt-0.5 text-center">
+                    −${lineDiscAmt(l).toFixed(2)}
                   </div>
                 )}
-                ${((Number(l.unit) * Number(l.quantity) || 0) * (1 - (Number(l.discount_pct) || 0) / 100)).toFixed(2)}
+              </div>
+
+              {/* Line total */}
+              <div className="col-span-5 md:col-span-3 text-right text-sm tabular-nums pt-2 font-semibold">
+                <div className="md:hidden text-[10px] uppercase tracking-wider text-muted-foreground font-normal">Line total</div>
+                {Number(l.discount_pct) > 0 && (
+                  <div className="text-[10px] text-muted-foreground line-through font-normal">
+                    ${lineGross(l).toFixed(2)}
+                  </div>
+                )}
+                ${lineNet(l).toFixed(2)}
               </div>
 
               <button
@@ -356,6 +474,12 @@ function NewInvoice() {
               </button>
             </div>
           ))}
+        </div>
+
+        <div className="mt-4">
+          <Button type="button" variant="outline" size="sm" onClick={addLine} className="gap-1.5 w-full">
+            <Plus className="h-3.5 w-3.5" /> Add another line
+          </Button>
         </div>
 
         <div className="mt-4 pt-3 border-t border-border space-y-1 text-sm max-w-xs ml-auto">
@@ -382,6 +506,68 @@ function NewInvoice() {
           {saving ? "Creating…" : "Create invoice"}
         </Button>
       </div>
+
+      {/* Inventory library picker */}
+      {libraryOpenForIdx !== null && (
+        <div
+          className="fixed inset-0 z-50 grid place-items-center bg-black/60 backdrop-blur-sm p-4"
+          onClick={() => setLibraryOpenForIdx(null)}
+        >
+          <div
+            className="card-surface w-full max-w-2xl max-h-[80vh] overflow-hidden flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="p-4 border-b border-border flex items-center justify-between gap-3">
+              <div>
+                <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Inventory library</div>
+                <div className="font-semibold">Pick an item</div>
+              </div>
+              <button
+                onClick={() => setLibraryOpenForIdx(null)}
+                className="grid h-8 w-8 place-items-center rounded-md border border-border hover:bg-muted"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+            <div className="p-3 border-b border-border">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  className="pl-9"
+                  placeholder="Search by code, name, brand…"
+                  value={librarySearch}
+                  onChange={(e) => setLibrarySearch(e.target.value)}
+                  autoFocus
+                />
+              </div>
+            </div>
+            <div className="overflow-y-auto divide-y divide-border">
+              {filteredLibrary.length === 0 && (
+                <div className="p-4 text-sm text-muted-foreground">No items found.</div>
+              )}
+              {filteredLibrary.map((item: any) => (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() => pickFromLibrary(libraryOpenForIdx, item)}
+                  className="w-full text-left p-3 hover:bg-muted grid grid-cols-12 gap-2 items-center"
+                >
+                  <div className="col-span-3 font-mono text-xs text-muted-foreground">{item.sku ?? "—"}</div>
+                  <div className="col-span-6">
+                    <div className="text-sm font-semibold">{item.name}</div>
+                    <div className="text-[11px] text-muted-foreground">
+                      {[item.brand, item.category, item.type].filter(Boolean).join(" · ")}
+                    </div>
+                  </div>
+                  <div className="col-span-3 text-right text-sm font-semibold tabular-nums">
+                    ${Number(item.unit_price ?? 0).toFixed(2)}
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
