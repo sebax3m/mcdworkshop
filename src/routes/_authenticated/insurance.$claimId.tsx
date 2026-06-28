@@ -399,7 +399,9 @@ function QuoteBuilder({
     setItems((arr) => [...arr, {
       id: (globalThis.crypto?.randomUUID?.() ?? Math.random().toString(36).slice(2)),
       kind: "labour",
-      description: preset.name,
+      item_code: "",
+      item_name: preset.name,
+      description: "",
       qty: preset.hrs,
       unit_price: rate,
     }]);
