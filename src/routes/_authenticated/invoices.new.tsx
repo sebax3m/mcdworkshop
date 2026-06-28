@@ -35,7 +35,7 @@ function NewInvoice() {
   const [invoiceDate, setInvoiceDate] = useState<string>(today);
   const [notes, setNotes] = useState<string>("");
   const [lines, setLines] = useState<Line[]>([
-    { description: "", quantity: 1, unit: 0 },
+    { description: "", quantity: 1, unit: 0, discount_pct: 0 },
   ]);
   const [saving, setSaving] = useState(false);
 
@@ -84,7 +84,7 @@ function NewInvoice() {
     setLines((arr) => arr.map((l, i) => (i === idx ? { ...l, ...patch } : l)));
   }
   function addLine() {
-    setLines((arr) => [...arr, { description: "", quantity: 1, unit: 0 }]);
+    setLines((arr) => [...arr, { description: "", quantity: 1, unit: 0, discount_pct: 0 }]);
   }
   function removeLine(idx: number) {
     setLines((arr) => arr.filter((_, i) => i !== idx));
