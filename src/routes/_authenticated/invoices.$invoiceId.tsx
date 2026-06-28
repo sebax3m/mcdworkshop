@@ -775,6 +775,70 @@ function InvoiceDetail() {
           </Link>
         </div>
       )}
+
+      {/* Inventory library picker — used by both job-linked parts and standalone snapshot lines */}
+      <Dialog open={!!libraryTarget} onOpenChange={(o) => !o && setLibraryTarget(null)}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
+          <DialogHeader>
+            <DialogTitle>Pick from inventory library</DialogTitle>
+          </DialogHeader>
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <input
+              autoFocus
+              value={librarySearch}
+              onChange={(e) => setLibrarySearch(e.target.value)}
+              placeholder="Search by name, SKU, brand…"
+              className="w-full pl-9 pr-3 py-2 rounded-lg border border-border bg-background text-sm outline-none focus:border-primary"
+            />
+          </div>
+          <div className="overflow-y-auto flex-1 -mx-1 px-1">
+            {(() => {
+              const q = librarySearch.toLowerCase().trim();
+              const items = (library.data ?? []).filter((it: any) =>
+                !q ||
+                (it.name ?? "").toLowerCase().includes(q) ||
+                (it.sku ?? "").toLowerCase().includes(q) ||
+                (it.brand ?? "").toLowerCase().includes(q),
+              );
+              if (items.length === 0) {
+                return <div className="py-8 text-center text-sm text-muted-foreground">No items found.</div>;
+              }
+              return (
+                <ul className="divide-y divide-border">
+                  {items.map((it: any) => (
+                    <li key={it.id}>
+                      <button
+                        onClick={async () => {
+                          const price = Number(it.retail_price ?? it.cost_price ?? 0);
+                          const name = [it.sku, it.name].filter(Boolean).join(" — ");
+                          if (libraryTarget?.kind === "snapshot") {
+                            await updateSnapshotLine(libraryTarget.idx, { description: name, unit: price });
+                          } else if (libraryTarget?.kind === "part") {
+                            await updatePart(libraryTarget.id, { name, retail: price, supplier: it.brand ?? null });
+                          }
+                          setLibraryTarget(null);
+                        }}
+                        className="w-full text-left p-3 hover:bg-muted/40 rounded-md flex items-center gap-3"
+                      >
+                        <div className="flex-1 min-w-0">
+                          <div className="font-medium text-sm truncate">{it.name}</div>
+                          <div className="text-xs text-muted-foreground truncate">
+                            {[it.sku, it.brand].filter(Boolean).join(" · ")}
+                          </div>
+                        </div>
+                        <div className="text-sm font-semibold tabular-nums">
+                          ${Number(it.retail_price ?? 0).toFixed(2)}
+                        </div>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              );
+            })()}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
