@@ -33,7 +33,7 @@ function ClockPage() {
     enabled: !!user,
     queryFn: async () => {
       const since = new Date(); since.setDate(since.getDate() - 7); since.setHours(0,0,0,0);
-      const { data } = await supabase.from("clock_events").select("*").eq("user_id", user!.id).gte("occurred_at", since.toISOString()).order("occurred_at", { ascending: false });
+      const { data } = await supabase.from("clock_events").select("*, jobs(job_number)").eq("user_id", user!.id).gte("occurred_at", since.toISOString()).order("occurred_at", { ascending: false });
       return data ?? [];
     },
   });
@@ -188,9 +188,12 @@ function ClockPage() {
       <section className="card-surface p-4">
         <h2 className="font-display text-lg font-semibold mb-3">Recent activity</h2>
         <div className="space-y-1.5">
-          {(events.data ?? []).slice(0, 10).map((e) => (
+          {(events.data ?? []).slice(0, 10).map((e: any) => (
             <div key={e.id} className="flex items-center justify-between text-sm border-b border-border/40 last:border-0 py-1.5">
-              <span className="capitalize font-medium">{e.event_type.replace("_", " ")}</span>
+              <span className="capitalize font-medium">
+                {e.event_type.replace("_", " ")}
+                {e.jobs?.job_number ? <span className="ml-1.5 text-muted-foreground font-normal">· Job #{e.jobs.job_number}</span> : null}
+              </span>
               <span className="text-muted-foreground text-xs">{new Date(e.occurred_at).toLocaleString()}</span>
             </div>
           ))}
