@@ -664,7 +664,7 @@ function InvoiceDetail() {
                 })}
                 {inv.job_id && (
                   <tr className="no-print">
-                    <td colSpan={5} className="pt-2">
+                    <td colSpan={hasDiscount ? 5 : 4} className="pt-2">
                       <button onClick={addJobPart} className="text-xs text-primary hover:underline inline-flex items-center gap-1">
                         <Plus className="h-3 w-3" /> Add line item
                       </button>
