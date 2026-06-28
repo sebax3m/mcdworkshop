@@ -582,7 +582,7 @@ function InvoiceDetail() {
                       <td className="py-3 text-right">
                         <EditableNumber value={rate} onCommit={(n) => updateLabour({ unit: n })} prefix="$" />
                       </td>
-                      <td className="py-3 text-right text-muted-foreground">—</td>
+                      {hasDiscount && <td className="py-3 text-right text-muted-foreground">—</td>}
                       <td className="py-3 text-right font-semibold">
                         <EditableNumber value={Number(inv.labour_total)} onCommit={(n) => updateLabour({ amount: n })} prefix="$" />
                       </td>
