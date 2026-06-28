@@ -57,6 +57,7 @@ function NewBooking() {
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [search$, setSearch$] = useState("");
+  const [searchMode, setSearchMode] = useState<"name" | "rego" | "mobile">("name");
   const [showNewCustomer, setShowNewCustomer] = useState(false);
   const [ncFirst, setNcFirst] = useState("");
   const [ncLast, setNcLast] = useState("");
@@ -73,6 +74,10 @@ function NewBooking() {
     enabled: !!customerId,
     queryFn: async () => (await supabase.from("motorcycles").select("*").eq("customer_id", customerId!)).data ?? [],
   });
+  const allBikes = useQuery({
+    queryKey: ["bk-all-bikes"],
+    queryFn: async () => (await supabase.from("motorcycles").select("id, customer_id, rego, year, make, model")).data ?? [],
+  });
   const techs = useQuery({
     queryKey: ["bk-techs"],
     queryFn: async () => {
@@ -85,12 +90,29 @@ function NewBooking() {
 
   const customer = (customers.data as any[] | undefined)?.find((c) => c.id === customerId);
   const bike = (bikes.data as any[] | undefined)?.find((b) => b.id === bikeId);
-  const filteredCustomers = useMemo(() => {
-    const s = search$.toLowerCase();
-    return (customers.data ?? []).filter((c: any) =>
-      `${c.first_name} ${c.last_name} ${c.phone ?? ""}`.toLowerCase().includes(s),
-    );
-  }, [customers.data, search$]);
+  const searchResults = useMemo(() => {
+    const s = search$.trim().toLowerCase();
+    const allC: any[] = customers.data ?? [];
+    const allB: any[] = allBikes.data ?? [];
+    if (!s) return allC.slice(0, 20).map((c) => ({ customer: c, bike: null as any }));
+    if (searchMode === "rego") {
+      const matches = allB.filter((b) => (b.rego ?? "").toLowerCase().includes(s));
+      return matches
+        .map((b) => ({ customer: allC.find((c) => c.id === b.customer_id), bike: b }))
+        .filter((r) => r.customer)
+        .slice(0, 20);
+    }
+    if (searchMode === "mobile") {
+      return allC
+        .filter((c) => (c.phone ?? "").toLowerCase().replace(/\s/g, "").includes(s.replace(/\s/g, "")))
+        .slice(0, 20)
+        .map((c) => ({ customer: c, bike: null }));
+    }
+    return allC
+      .filter((c) => `${c.first_name ?? ""} ${c.last_name ?? ""}`.toLowerCase().includes(s))
+      .slice(0, 20)
+      .map((c) => ({ customer: c, bike: null }));
+  }, [customers.data, allBikes.data, search$, searchMode]);
 
   async function createCustomer() {
     if (!ncFirst.trim()) return toast.error("First name required");
@@ -217,7 +239,11 @@ function NewBooking() {
                 <input
                   value={search$}
                   onChange={(e) => setSearch$(e.target.value)}
-                  placeholder="Search customer"
+                  placeholder={
+                    searchMode === "name" ? "Search by name…" :
+                    searchMode === "rego" ? "Search by rego (plate)…" :
+                    "Search by mobile number…"
+                  }
                   className="w-full rounded-xl bg-input border border-border pl-10 pr-3 py-2.5 text-sm focus:outline-none focus:border-primary/50"
                 />
               </div>
@@ -227,6 +253,24 @@ function NewBooking() {
               >
                 <Plus className="h-3.5 w-3.5" /> New
               </button>
+            </div>
+
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <span className="text-[10px] uppercase tracking-wider text-muted-foreground mr-1">Search by:</span>
+              {(["name", "rego", "mobile"] as const).map((m) => (
+                <button
+                  key={m}
+                  type="button"
+                  onClick={() => setSearchMode(m)}
+                  className={`px-2.5 py-1 rounded-full text-[11px] font-semibold border transition-colors ${
+                    searchMode === m
+                      ? "bg-primary text-primary-foreground border-primary"
+                      : "border-border text-muted-foreground hover:border-primary/50"
+                  }`}
+                >
+                  {m === "name" ? "Name" : m === "rego" ? "Rego" : "Mobile"}
+                </button>
+              ))}
             </div>
 
             {showNewCustomer && (
@@ -248,22 +292,27 @@ function NewBooking() {
             )}
 
             <div className="max-h-52 overflow-y-auto space-y-1.5">
-              {filteredCustomers.slice(0, 20).map((c: any) => (
+              {searchResults.map(({ customer: c, bike: b }: any) => (
                 <button
-                  key={c.id}
-                  onClick={() => setCustomerId(c.id)}
+                  key={`${c.id}-${b?.id ?? "none"}`}
+                  onClick={() => {
+                    setCustomerId(c.id);
+                    if (b?.id) setBikeId(b.id);
+                  }}
                   className="w-full text-left flex items-center gap-3 rounded-lg p-2 hover:bg-muted/50 transition-colors"
                 >
                   <span className="grid h-8 w-8 place-items-center rounded-full bg-muted text-xs font-semibold">
-                    {initials(`${c.first_name} ${c.last_name}`)}
+                    {initials(`${c.first_name} ${c.last_name ?? ""}`)}
                   </span>
-                  <span className="min-w-0">
-                    <span className="block text-sm font-semibold truncate">{c.first_name} {c.last_name}</span>
-                    <span className="block text-xs text-muted-foreground truncate">{c.phone || c.email}</span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-sm font-semibold truncate">{c.first_name} {c.last_name ?? ""}</span>
+                    <span className="block text-xs text-muted-foreground truncate">
+                      {b ? `${b.rego ?? "—"} · ${[b.year, b.make, b.model].filter(Boolean).join(" ")}` : (c.phone || c.email || "—")}
+                    </span>
                   </span>
                 </button>
               ))}
-              {filteredCustomers.length === 0 && (
+              {searchResults.length === 0 && (
                 <button onClick={() => setShowNewCustomer(true)} className="block w-full text-center text-sm text-primary py-3">+ Add new customer</button>
               )}
             </div>
