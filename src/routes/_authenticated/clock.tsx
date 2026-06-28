@@ -23,7 +23,7 @@ export const Route = createFileRoute("/_authenticated/clock")({
 type EventType = "clock_in" | "clock_out" | "break_start" | "break_end";
 
 function ClockPage() {
-  const { user } = useCurrentUser();
+  const { user, fullName } = useCurrentUser();
   const qc = useQueryClient();
   const [pickingJob, setPickingJob] = useState(false);
   const [jobQuery, setJobQuery] = useState("");
