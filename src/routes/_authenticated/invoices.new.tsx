@@ -132,13 +132,18 @@ function NewInvoice() {
 
   async function save() {
     const cleanLines = lines
-      .map((l) => ({ description: l.description.trim(), quantity: Number(l.quantity) || 0, unit: Number(l.unit) || 0 }))
+      .map((l) => ({
+        description: l.description.trim(),
+        quantity: Number(l.quantity) || 0,
+        unit: Number(l.unit) || 0,
+        discount_pct: Math.max(0, Math.min(100, Number(l.discount_pct) || 0)),
+      }))
       .filter((l) => l.description && l.quantity > 0);
     if (cleanLines.length === 0) { toast.error("Add at least one line item"); return; }
     setSaving(true);
 
     const { data: u } = await supabase.auth.getUser();
-    const subInc = cleanLines.reduce((s, l) => s + l.unit * l.quantity, 0);
+    const subInc = cleanLines.reduce((s, l) => s + l.unit * l.quantity * (1 - l.discount_pct / 100), 0);
     const gstAmt = Math.round((subInc * GST_RATE / (1 + GST_RATE)) * 100) / 100;
     const totalAmt = Math.round(subInc * 100) / 100;
 
