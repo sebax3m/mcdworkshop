@@ -692,6 +692,8 @@ function TaskRow({ task, canEdit, onToggle, onNoteSaved }: { task: any; canEdit:
         </div>
       )}
       {!canEdit && note && <p className="mt-0 pl-5 text-[11px] text-muted-foreground italic">{note}</p>}
+      {note && <p className="hidden print:block pl-5 text-[11px] text-black italic">↳ {note}</p>}
+
     </div>
   );
 }
