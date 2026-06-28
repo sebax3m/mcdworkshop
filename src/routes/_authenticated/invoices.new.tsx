@@ -341,7 +341,7 @@ function NewInvoice() {
         </div>
 
         {/* Column headers */}
-        <div className="hidden md:grid grid-cols-24 gap-2 px-1 pb-2 text-[10px] uppercase tracking-wider text-muted-foreground font-semibold border-b border-border mb-2">
+        <div className="hidden md:grid grid-cols-[repeat(24,minmax(0,1fr))] gap-2 px-1 pb-2 text-[10px] uppercase tracking-wider text-muted-foreground font-semibold border-b border-border mb-2">
           <div className="col-span-1"></div>
           <div className="col-span-3">Item code</div>
           <div className="col-span-5">Item name</div>
@@ -362,7 +362,7 @@ function NewInvoice() {
               onDragOver={(e) => e.preventDefault()}
               onDrop={() => { if (dragIdx !== null) reorder(dragIdx, idx); setDragIdx(null); }}
               onDragEnd={() => setDragIdx(null)}
-              className={`grid grid-cols-24 gap-2 items-start rounded-md transition-opacity ${dragIdx === idx ? "opacity-40" : ""}`}
+              className={`grid grid-cols-[repeat(24,minmax(0,1fr))] gap-2 items-start rounded-md transition-opacity ${dragIdx === idx ? "opacity-40" : ""}`}
             >
               <div
                 className="col-span-1 grid place-items-center h-9 text-muted-foreground cursor-grab active:cursor-grabbing"
