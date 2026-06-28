@@ -744,7 +744,7 @@ function InvoiceDetail() {
                 })()}
                 {!inv.job_id && (
                   <tr className="no-print">
-                    <td colSpan={5} className="pt-2">
+                    <td colSpan={hasDiscount ? 5 : 4} className="pt-2">
                       <button onClick={() => addSnapshotLine()} className="text-xs text-primary hover:underline inline-flex items-center gap-1">
                         <Plus className="h-3 w-3" /> Add line item
                       </button>
@@ -752,7 +752,7 @@ function InvoiceDetail() {
                   </tr>
                 )}
                 {inv.job_id && Number(inv.labour_total) === 0 && (parts.data ?? []).length === 0 && (
-                  <tr><td colSpan={5} className="py-6 text-center text-xs text-muted-foreground">No line items</td></tr>
+                  <tr><td colSpan={hasDiscount ? 5 : 4} className="py-6 text-center text-xs text-muted-foreground">No line items</td></tr>
                 )}
               </tbody>
 
