@@ -80,7 +80,7 @@ function NewInvoice() {
       .from("customers")
       .insert({
         first_name: ncFirst.trim(),
-        last_name: ncLast.trim() || null,
+        last_name: ncLast.trim() || "",
         phone: ncPhone.trim() || null,
         email: ncEmail.trim() || null,
       })
