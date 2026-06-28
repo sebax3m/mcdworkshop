@@ -10,7 +10,7 @@ export const STAFF_ROSTER = [
   { email: "boris@mcd.co.nz", full_name: "Boris" },
 ] as const;
 
-const DEFAULT_PASSWORD = "1234";
+const DEFAULT_PASSWORD = "mcd1234";
 
 export const seedStaff = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -43,6 +43,15 @@ export const seedStaff = createServerFn({ method: "POST" })
     for (const member of STAFF_ROSTER) {
       const found = existing.get(member.email.toLowerCase());
       if (found) {
+        const { error: passwordError } = await supabaseAdmin.auth.admin.updateUserById(found, {
+          password: DEFAULT_PASSWORD,
+          email_confirm: true,
+          user_metadata: { full_name: member.full_name },
+        });
+        if (passwordError) {
+          results.push({ email: member.email, status: "error", message: passwordError.message });
+          continue;
+        }
         // Ensure profile name + technician role exist
         await supabaseAdmin.from("profiles").upsert({
           id: found,

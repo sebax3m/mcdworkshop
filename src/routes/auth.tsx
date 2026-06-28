@@ -59,8 +59,12 @@ function AuthPage() {
     if (!selected) return;
     setLoading(true);
     try {
-      // PIN is padded with a fixed prefix to satisfy the auth min-length rule
-      await signInWith(selected.email, `mcd${password}`);
+      const cleanedPassword = password.trim();
+      const loginPassword =
+        selected.role === "mechanic" && /^\d{4}$/.test(cleanedPassword)
+          ? `mcd${cleanedPassword}`
+          : cleanedPassword;
+      await signInWith(selected.email, loginPassword);
     } catch (err: any) {
       toast.error(err.message ?? "Sign-in failed");
     } finally {
@@ -172,7 +176,7 @@ function AuthPage() {
             </div>
             <form onSubmit={onTileSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="pwd">Password</Label>
+                <Label htmlFor="pwd">{selected.role === "mechanic" ? "PIN" : "Password"}</Label>
                 <Input
                   id="pwd"
                   type="password"
