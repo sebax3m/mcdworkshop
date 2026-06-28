@@ -1,7 +1,8 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { ArrowLeft, Printer, Mail, FileDown, Pencil, Check, X, Plus, Trash2 } from "lucide-react";
+import { ArrowLeft, Printer, Mail, FileDown, Pencil, Check, X, Plus, Trash2, BookOpen, Search } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { fullBike } from "@/lib/format";
 import logoAsset from "@/assets/motorcycle-doctors-logo.png.asset.json";
