@@ -679,18 +679,27 @@ function TaskRow({ task, canEdit, onToggle, onNoteSaved }: { task: any; canEdit:
         </span>
       </button>
       {canEdit && (
-        <div className="mt-0 pl-5 no-print">
+        <div className="mt-0 pl-5 no-print flex items-center gap-2">
           <input
             value={note}
             onChange={(e) => { setNote(e.target.value); setDirty(true); }}
-            onBlur={() => dirty && saveNote()}
-            onKeyDown={(e) => { if (e.key === "Enter") (e.currentTarget as HTMLInputElement).blur(); }}
+            onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); if (dirty) saveNote(); } }}
             placeholder="Quick note…"
             maxLength={140}
-            className="w-full bg-transparent border-0 border-b border-border/30 text-[11px] py-0 focus:outline-none focus:border-primary placeholder:text-muted-foreground/40"
+            className="flex-1 bg-transparent border-0 border-b border-border/30 text-[11px] py-0 focus:outline-none focus:border-primary placeholder:text-muted-foreground/40"
           />
+          {dirty && (
+            <button
+              type="button"
+              onClick={saveNote}
+              className="text-[10px] font-bold uppercase tracking-wider rounded px-2 py-0.5 bg-primary text-primary-foreground hover:opacity-90"
+            >
+              Save
+            </button>
+          )}
         </div>
       )}
+
       {!canEdit && note && <p className="mt-0 pl-5 text-[11px] text-muted-foreground italic">{note}</p>}
       {note && <p className="hidden print:block pl-5 text-[11px] text-black italic">↳ {note}</p>}
 
