@@ -182,7 +182,7 @@ function AuthPage() {
                   autoFocus
                 />
                 {selected.role === "mechanic" && (
-                  <p className="text-[11px] text-muted-foreground">Default password is <span className="font-mono font-bold">1234</span> until you change it.</p>
+                  <p className="text-[11px] text-muted-foreground">Default password is <span className="font-mono font-bold">Workshop2026!</span> until you change it.</p>
                 )}
               </div>
               <Button type="submit" className="w-full red-surface h-11 font-semibold" disabled={loading}>
