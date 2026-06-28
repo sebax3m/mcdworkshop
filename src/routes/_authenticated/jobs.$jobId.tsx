@@ -112,17 +112,24 @@ function JobDetail() {
     if (!user) return;
     const { error } = await supabase.from("time_entries").insert({ job_id: jobId, technician_id: user.id });
     if (error) return toast.error(error.message);
+    // Also log a clock_in event so it appears on the Clock page and floating widget
+    await supabase.from("clock_events").insert({ user_id: user.id, event_type: "clock_in", job_id: jobId });
     if (j.status === "new" || j.status === "assigned") await setStatus("in_progress");
     qc.invalidateQueries({ queryKey: ["job-time", jobId] });
+    qc.invalidateQueries({ queryKey: ["clock-events-floating", user.id] });
+    qc.invalidateQueries({ queryKey: ["clock-events"] });
   }
 
   async function stopTimer() {
-    if (!activeTimer) return;
+    if (!activeTimer || !user) return;
     const ended = new Date();
     const minutes = Math.max(1, Math.round((+ended - +new Date(activeTimer.started_at)) / 60000));
     const { error } = await supabase.from("time_entries").update({ ended_at: ended.toISOString(), minutes }).eq("id", activeTimer.id);
     if (error) return toast.error(error.message);
+    await supabase.from("clock_events").insert({ user_id: user.id, event_type: "clock_out", job_id: jobId });
     qc.invalidateQueries({ queryKey: ["job-time", jobId] });
+    qc.invalidateQueries({ queryKey: ["clock-events-floating", user.id] });
+    qc.invalidateQueries({ queryKey: ["clock-events"] });
     toast.success(`Logged ${formatMinutes(minutes)}`);
   }
 
@@ -300,8 +307,9 @@ function JobDetail() {
                 <LiveTimerButton startedAt={activeTimer.started_at} onStop={stopTimer} />
               ) : (
                 <Button onClick={startTimer} className="gold-surface h-12 px-5 font-bold gap-2">
-                  <Play className="h-4 w-4" /> Start Job
+                  <Play className="h-4 w-4" /> Clock In
                 </Button>
+
               )}
               {j.status !== "completed" && (
                 <Button
@@ -523,7 +531,7 @@ function LiveTimerButton({ startedAt, onStop }: { startedAt: string; onStop: () 
     <Button onClick={onStop} className="bg-status-parts hover:bg-status-parts/90 text-white h-12 px-5 font-bold gap-2">
       <Square className="h-4 w-4 fill-white" />
       <span className="tabular-nums">{String(h).padStart(2,"0")}:{String(m).padStart(2,"0")}:{String(s).padStart(2,"0")}</span>
-      <span>Stop</span>
+      <span>Clock Out</span>
     </Button>
   );
 }

@@ -76,7 +76,7 @@ export function FloatingClockWidget() {
 
   return (
     <div
-      className="fixed bottom-24 sm:bottom-6 right-4 sm:right-6 z-50 print:hidden"
+      className="fixed top-20 right-4 sm:right-6 z-50 print:hidden"
       style={{ pointerEvents: "auto" }}
     >
       <div
