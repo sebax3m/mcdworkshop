@@ -218,6 +218,7 @@ function NewBooking() {
           vin: bike.vin ?? null,
           instructions,
           arrival_photos: arrivalPhotos,
+          loan_bike: loanBike,
           status: openJobCard ? "checked_in" : "booked",
         })
         .select("id")
