@@ -131,7 +131,7 @@ function ClockPage() {
         <h1 className="font-display text-2xl sm:text-3xl font-bold">Your shift</h1>
         {user && (
           <div className="text-sm text-muted-foreground mt-1">
-            Logged in as <span className="font-semibold text-foreground">{user.fullName || user.user?.email}</span>
+            Logged in as <span className="font-semibold text-foreground">{fullName || user?.email}</span>
           </div>
         )}
       </header>
