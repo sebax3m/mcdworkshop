@@ -299,7 +299,12 @@ export async function buildClaimPdf(d: ClaimPdfData): Promise<Blob> {
     }
     pdf.setFontSize(8);
     pdf.text(it.kind.toUpperCase(), cols.type + 1, y);
-    const desc = pdf.splitTextToSize(it.description || "—", cols.qty - cols.desc - 2);
+    const descParts = [
+      (it.item_code ?? "").trim() && `[${(it.item_code ?? "").trim()}]`,
+      (it.item_name ?? "").trim(),
+      (it.description ?? "").trim() && ((it.item_name ?? "").trim() ? `— ${it.description}` : it.description),
+    ].filter(Boolean).join(" ");
+    const desc = pdf.splitTextToSize(descParts || "—", cols.qty - cols.desc - 2);
     pdf.text(desc, cols.desc, y);
     pdf.text(Number(it.qty).toFixed(2), cols.qty, y, { align: "right" });
     pdf.text(`$${Number(it.unit_price).toFixed(2)}`, cols.unit, y, { align: "right" });
