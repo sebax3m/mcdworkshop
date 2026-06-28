@@ -569,12 +569,19 @@ function NewInvoice() {
         <Textarea rows={3} value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Optional notes for the customer" />
       </section>
 
-      <div className="flex items-center justify-end gap-2">
-        <Link to="/invoices" className="text-sm text-muted-foreground hover:text-foreground">Cancel</Link>
-        <Button onClick={save} disabled={saving} className="red-surface">
+      <div className="flex items-center justify-end gap-2 flex-wrap">
+        <Link to="/invoices" className="text-sm text-muted-foreground hover:text-foreground mr-auto">Cancel</Link>
+        <Button onClick={() => save("email")} disabled={saving} variant="outline" className="gap-2">
+          <Mail className="h-4 w-4" /> Create & email
+        </Button>
+        <Button onClick={() => save("print")} disabled={saving} variant="outline" className="gap-2">
+          <Printer className="h-4 w-4" /> Create & print
+        </Button>
+        <Button onClick={() => save("view")} disabled={saving} className="red-surface">
           {saving ? "Creating…" : "Create invoice"}
         </Button>
       </div>
+
 
       {/* Inventory library picker */}
       {libraryOpenForIdx !== null && (
