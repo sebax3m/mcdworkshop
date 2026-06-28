@@ -169,6 +169,9 @@ function NewInvoice() {
         <div className="min-w-0 flex-1">
           <div className="text-xs uppercase tracking-[0.25em] text-muted-foreground">Billing</div>
           <h1 className="font-display text-2xl sm:text-3xl font-bold truncate">New Invoice</h1>
+          <div className="text-sm text-muted-foreground mt-0.5">
+            Invoice # <span className="font-mono font-semibold text-foreground">{nextInvoiceNumber.data ?? "…"}</span>
+          </div>
         </div>
       </header>
 
