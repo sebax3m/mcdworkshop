@@ -1,13 +1,15 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useCurrentUser } from "@/hooks/use-current-user";
-import { Clock, Coffee, ExternalLink } from "lucide-react";
+import { Clock, Coffee, ExternalLink, GripVertical } from "lucide-react";
 
 export function FloatingClockWidget() {
   const { user } = useCurrentUser();
   const [now, setNow] = useState(Date.now());
+  const [pos, setPos] = useState<{ x: number; y: number } | null>(null);
+  const dragRef = useRef<{ startX: number; startY: number; initX: number; initY: number } | null>(null);
 
   const events = useQuery({
     queryKey: ["clock-events-floating", user?.id],
