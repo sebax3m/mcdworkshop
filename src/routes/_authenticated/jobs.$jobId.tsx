@@ -110,6 +110,20 @@ function JobDetail() {
 
   async function startTimer() {
     if (!user) return;
+    const ended = new Date();
+    const { data: openEntries } = await supabase
+      .from("time_entries")
+      .select("id, started_at")
+      .eq("technician_id", user.id)
+      .is("ended_at", null);
+    for (const entry of openEntries ?? []) {
+      const minutes = Math.max(1, Math.round((+ended - +new Date(entry.started_at)) / 60000));
+      const { error: closeError } = await supabase
+        .from("time_entries")
+        .update({ ended_at: ended.toISOString(), minutes })
+        .eq("id", entry.id);
+      if (closeError) return toast.error(closeError.message);
+    }
     const { error } = await supabase.from("time_entries").insert({ job_id: jobId, technician_id: user.id });
     if (error) return toast.error(error.message);
     // Also log a clock_in event so it appears on the Clock page and floating widget
@@ -117,6 +131,8 @@ function JobDetail() {
     if (j.status === "new" || j.status === "assigned") await setStatus("in_progress");
     qc.invalidateQueries({ queryKey: ["job-time", jobId] });
     qc.invalidateQueries({ queryKey: ["clock-events-floating", user.id] });
+    qc.invalidateQueries({ queryKey: ["clock-floating-active-time-entry", user.id] });
+    qc.invalidateQueries({ queryKey: ["clock-floating-job"] });
     qc.invalidateQueries({ queryKey: ["clock-events"] });
   }
 
@@ -129,6 +145,8 @@ function JobDetail() {
     await supabase.from("clock_events").insert({ user_id: user.id, event_type: "clock_out", job_id: jobId });
     qc.invalidateQueries({ queryKey: ["job-time", jobId] });
     qc.invalidateQueries({ queryKey: ["clock-events-floating", user.id] });
+    qc.invalidateQueries({ queryKey: ["clock-floating-active-time-entry", user.id] });
+    qc.invalidateQueries({ queryKey: ["clock-floating-job"] });
     qc.invalidateQueries({ queryKey: ["clock-events"] });
     toast.success(`Logged ${formatMinutes(minutes)}`);
   }
