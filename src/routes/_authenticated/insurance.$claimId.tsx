@@ -540,17 +540,17 @@ function QuoteBuilder({
           </tbody>
           <tfoot className="text-sm">
             <tr>
-              <td colSpan={4} className="pt-3 pr-3 text-right text-muted-foreground">Subtotal</td>
+              <td colSpan={6} className="pt-3 pr-3 text-right text-muted-foreground">Subtotal</td>
               <td className="pt-3 pl-2 pr-3 text-right font-mono tabular-nums whitespace-nowrap">${subtotal.toFixed(2)}</td>
               <td className="print:hidden" />
             </tr>
             <tr>
-              <td colSpan={4} className="pr-3 text-right text-muted-foreground">GST (15%)</td>
+              <td colSpan={6} className="pr-3 text-right text-muted-foreground">GST (15%)</td>
               <td className="pl-2 pr-3 text-right font-mono tabular-nums whitespace-nowrap">${gst.toFixed(2)}</td>
               <td className="print:hidden" />
             </tr>
             <tr className="border-t border-border">
-              <td colSpan={4} className="pt-2 pr-3 text-right font-bold uppercase tracking-wider text-xs">Quote total</td>
+              <td colSpan={6} className="pt-2 pr-3 text-right font-bold uppercase tracking-wider text-xs">Quote total</td>
               <td className="pt-2 pl-2 pr-3 text-right font-mono font-bold text-base tabular-nums text-primary whitespace-nowrap">${total.toFixed(2)}</td>
               <td className="print:hidden" />
             </tr>
