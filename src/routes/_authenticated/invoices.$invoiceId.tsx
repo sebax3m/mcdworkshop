@@ -620,9 +620,6 @@ function InvoiceDetail() {
                         <EditableNumber value={qty} decimals={0} onCommit={(n) => updatePart(p.id, { quantity: n })} />
                       </td>
                       <td className="py-3 text-right">
-                        <EditableNumber value={unit} prefix="$" onCommit={(n) => updatePart(p.id, { retail: n })} />
-                      </td>
-                      <td className="py-3 text-right">
                         <EditableNumber
                           value={unit}
                           prefix="$"
