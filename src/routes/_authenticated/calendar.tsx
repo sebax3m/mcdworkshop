@@ -29,6 +29,16 @@ import {
   Phone,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { initials } from "@/lib/format";
 
@@ -78,6 +88,16 @@ function CalendarPage() {
   const [weekStart, setWeekStart] = useState<Date>(() => startOfWeek(new Date(), { weekStartsOn: 1 }));
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [selectedBooking, setSelectedBooking] = useState<any | null>(null);
+  const [deleteBooking, setDeleteBooking] = useState<any | null>(null);
+
+  async function confirmDeleteBooking() {
+    if (!deleteBooking) return;
+    const { error } = await supabase.from("bookings").delete().eq("id", deleteBooking.id);
+    if (error) return toast.error(error.message);
+    toast.success("Booking deleted");
+    setDeleteBooking(null);
+    qc.invalidateQueries({ queryKey: ["calendar-bookings"] });
+  }
 
   const visibleRange = useMemo(() => {
     if (viewMode === "week") {
@@ -404,6 +424,24 @@ function CalendarPage() {
                           }}
                           className={`relative w-full text-left rounded-lg p-2 pr-4 ring-1 ${c.bg} ${c.ring} hover:ring-2 transition-all cursor-grab active:cursor-grabbing`}
                         >
+                          <span
+                            role="button"
+                            tabIndex={0}
+                            title="Delete booking"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setDeleteBooking(b);
+                            }}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter" || e.key === " ") {
+                                e.stopPropagation();
+                                setDeleteBooking(b);
+                              }
+                            }}
+                            className="absolute -top-1.5 -left-1.5 z-10 grid h-5 w-5 place-items-center rounded-full bg-background border border-border text-muted-foreground hover:text-white hover:bg-status-parts hover:border-status-parts transition-colors shadow-sm cursor-pointer"
+                          >
+                            <X className="h-3 w-3" />
+                          </span>
                           {b.confirmed && (
                             <span
                               title="Confirmed"
@@ -637,6 +675,40 @@ function CalendarPage() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      <AlertDialog open={!!deleteBooking} onOpenChange={(o) => !o && setDeleteBooking(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete this booking?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {deleteBooking && (
+                <>
+                  Are you sure you want to delete the booking for{" "}
+                  <span className="font-semibold text-foreground">
+                    {deleteBooking.customers
+                      ? `${deleteBooking.customers.first_name} ${deleteBooking.customers.last_name}`
+                      : "this customer"}
+                  </span>{" "}
+                  on{" "}
+                  <span className="font-semibold text-foreground">
+                    {format(new Date(deleteBooking.scheduled_date + "T00:00:00"), "EEE d MMM yyyy")}
+                  </span>
+                  ? This cannot be undone.
+                </>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDeleteBooking}
+              className="bg-status-parts text-white hover:bg-status-parts/90"
+            >
+              Delete booking
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
