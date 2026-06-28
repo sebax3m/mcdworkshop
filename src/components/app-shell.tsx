@@ -6,6 +6,7 @@ import { initials } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import logoAsset from "@/assets/motorcycle-doctors-logo.png.asset.json";
 import { ActiveUserSwitcher } from "@/components/ActiveUserSwitcher";
+import { FloatingClockWidget } from "@/components/FloatingClockWidget";
 
 export function AppShell() {
   const nav = useNavigate();
@@ -184,6 +185,8 @@ export function AppShell() {
       <main className="flex-1 px-4 pt-5 pb-28 sm:pb-5 sm:ml-[200px]">
         <Outlet />
       </main>
+
+      <FloatingClockWidget />
 
       {/* ===== MOBILE BOTTOM NAV ===== */}
       <nav className="fixed bottom-0 inset-x-0 z-40 sm:hidden border-t border-border bg-background/95 backdrop-blur-xl">

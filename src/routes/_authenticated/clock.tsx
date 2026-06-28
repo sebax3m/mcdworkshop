@@ -5,8 +5,16 @@ import { useCurrentUser } from "@/hooks/use-current-user";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { useEffect, useMemo, useState } from "react";
-import { Coffee, LogIn, LogOut, Play } from "lucide-react";
+import { Coffee, LogIn, LogOut, Play, Wrench } from "lucide-react";
 import { formatMinutes } from "@/lib/format";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 
 export const Route = createFileRoute("/_authenticated/clock")({
   component: ClockPage,
@@ -17,6 +25,8 @@ type EventType = "clock_in" | "clock_out" | "break_start" | "break_end";
 function ClockPage() {
   const { user } = useCurrentUser();
   const qc = useQueryClient();
+  const [pickingJob, setPickingJob] = useState(false);
+  const [jobQuery, setJobQuery] = useState("");
 
   const events = useQuery({
     queryKey: ["clock-events", user?.id],
@@ -24,6 +34,20 @@ function ClockPage() {
     queryFn: async () => {
       const since = new Date(); since.setDate(since.getDate() - 7); since.setHours(0,0,0,0);
       const { data } = await supabase.from("clock_events").select("*").eq("user_id", user!.id).gte("occurred_at", since.toISOString()).order("occurred_at", { ascending: false });
+      return data ?? [];
+    },
+  });
+
+  const openJobs = useQuery({
+    queryKey: ["clock-open-jobs"],
+    enabled: pickingJob,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("jobs")
+        .select("id, job_number, complaint, status, bikes(make, model), customers(first_name, last_name)")
+        .neq("status", "completed")
+        .order("job_number", { ascending: false })
+        .limit(50);
       return data ?? [];
     },
   });
@@ -36,7 +60,28 @@ function ClockPage() {
     return "off";
   }, [last]);
 
-  // Week totals
+  // active job for current shift
+  const activeJobId = useMemo(() => {
+    for (const e of (events.data ?? [])) {
+      if (e.event_type === "clock_out") return null;
+      if (e.event_type === "clock_in") return (e as any).job_id as string | null;
+    }
+    return null;
+  }, [events.data]);
+
+  const activeJob = useQuery({
+    queryKey: ["clock-active-job", activeJobId],
+    enabled: !!activeJobId,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("jobs")
+        .select("id, job_number, complaint, bikes(make, model)")
+        .eq("id", activeJobId!)
+        .maybeSingle();
+      return data;
+    },
+  });
+
   const week = useMemo(() => {
     const list = [...(events.data ?? [])].reverse();
     let total = 0, breakMin = 0;
@@ -55,14 +100,29 @@ function ClockPage() {
     return { workMin: Math.round(total - breakMin), breakMin: Math.round(breakMin) };
   }, [events.data]);
 
-  async function add(type: EventType) {
+  async function add(type: EventType, jobId?: string | null) {
     if (!user) return;
-    const { error } = await supabase.from("clock_events").insert({ user_id: user.id, event_type: type });
+    if (type === "clock_in" && !jobId) {
+      setPickingJob(true);
+      return;
+    }
+    const payload: any = { user_id: user.id, event_type: type };
+    if (type === "clock_in") payload.job_id = jobId;
+    const { error } = await supabase.from("clock_events").insert(payload);
     if (error) return toast.error(error.message);
     toast.success(type.replace("_", " "));
     qc.invalidateQueries({ queryKey: ["clock-events", user.id] });
+    qc.invalidateQueries({ queryKey: ["clock-events-floating", user.id] });
     qc.invalidateQueries({ queryKey: ["dashboard-counts"] });
   }
+
+  const filteredJobs = (openJobs.data ?? []).filter((j: any) => {
+    if (!jobQuery.trim()) return true;
+    const q = jobQuery.toLowerCase();
+    const bike = j.bikes ? `${j.bikes.make ?? ""} ${j.bikes.model ?? ""}`.toLowerCase() : "";
+    const cust = j.customers ? `${j.customers.first_name ?? ""} ${j.customers.last_name ?? ""}`.toLowerCase() : "";
+    return String(j.job_number).includes(q) || bike.includes(q) || cust.includes(q) || (j.complaint ?? "").toLowerCase().includes(q);
+  });
 
   return (
     <div className="space-y-5 max-w-2xl mx-auto">
@@ -73,10 +133,23 @@ function ClockPage() {
 
       <ClockHero state={state} since={last?.occurred_at} />
 
+      {activeJobId && activeJob.data && state !== "off" && (
+        <div className="card-surface p-3 flex items-center gap-3">
+          <Wrench className="h-4 w-4 text-primary" />
+          <div className="text-sm flex-1">
+            <span className="text-muted-foreground">Working on </span>
+            <span className="font-semibold">#{(activeJob.data as any).job_number}</span>
+            {(activeJob.data as any).bikes && (
+              <span className="text-muted-foreground"> · {(activeJob.data as any).bikes.make} {(activeJob.data as any).bikes.model}</span>
+            )}
+          </div>
+        </div>
+      )}
+
       <div className="grid grid-cols-2 gap-3">
         {state === "off" && (
-          <Button onClick={() => add("clock_in")} className="col-span-2 h-20 text-lg gold-surface font-bold gap-2">
-            <LogIn className="h-5 w-5" /> Clock In
+          <Button onClick={() => setPickingJob(true)} className="col-span-2 h-20 text-lg gold-surface font-bold gap-2">
+            <LogIn className="h-5 w-5" /> Clock In on Job
           </Button>
         )}
         {state === "on" && (
@@ -124,6 +197,49 @@ function ClockPage() {
           {(!events.data || events.data.length === 0) && <p className="text-sm text-muted-foreground">No clock activity yet.</p>}
         </div>
       </section>
+
+      <Dialog open={pickingJob} onOpenChange={setPickingJob}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Select a job card to clock in</DialogTitle>
+          </DialogHeader>
+          <Input
+            autoFocus
+            placeholder="Search job #, customer, bike…"
+            value={jobQuery}
+            onChange={(e) => setJobQuery(e.target.value)}
+          />
+          <div className="max-h-[50vh] overflow-y-auto space-y-1 -mx-2">
+            {filteredJobs.length === 0 && (
+              <p className="text-sm text-muted-foreground text-center py-6">No matching open jobs.</p>
+            )}
+            {filteredJobs.map((j: any) => (
+              <button
+                key={j.id}
+                onClick={async () => {
+                  setPickingJob(false);
+                  setJobQuery("");
+                  await add("clock_in", j.id);
+                }}
+                className="w-full text-left px-3 py-2 rounded-lg hover:bg-secondary/60 border border-transparent hover:border-border transition"
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <span className="font-semibold">#{j.job_number}</span>
+                  <span className="text-[10px] uppercase tracking-wider text-muted-foreground">{j.status}</span>
+                </div>
+                <div className="text-xs text-muted-foreground truncate">
+                  {j.customers ? `${j.customers.first_name ?? ""} ${j.customers.last_name ?? ""}` : ""}
+                  {j.bikes ? ` · ${j.bikes.make ?? ""} ${j.bikes.model ?? ""}` : ""}
+                </div>
+                {j.complaint && <div className="text-xs text-foreground/80 truncate mt-0.5">{j.complaint}</div>}
+              </button>
+            ))}
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setPickingJob(false)}>Cancel</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
