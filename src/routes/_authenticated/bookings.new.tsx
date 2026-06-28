@@ -236,7 +236,7 @@ function NewBooking() {
                   <Input placeholder="First name" value={ncFirst} onChange={(e) => setNcFirst(e.target.value)} />
                   <Input placeholder="Last name (optional)" value={ncLast} onChange={(e) => setNcLast(e.target.value)} />
                   <Input placeholder="Phone" value={ncPhone} onChange={(e) => setNcPhone(e.target.value)} />
-                  <Input placeholder="Email" type="email" value={ncEmail} onChange={(e) => setNcEmail(e.target.value)} />
+                  <Input placeholder="Email (optional)" type="email" value={ncEmail} onChange={(e) => setNcEmail(e.target.value)} />
                 </div>
                 <div className="flex justify-end gap-2 pt-1">
                   <button onClick={() => setShowNewCustomer(false)} className="text-xs px-3 py-1.5 rounded-lg text-muted-foreground hover:text-foreground">Cancel</button>
