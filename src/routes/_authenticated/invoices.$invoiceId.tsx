@@ -166,6 +166,16 @@ function InvoiceDetail() {
     queryFn: async () => (await supabase.from("parts").select("*").eq("job_id", invoice.data!.job_id!).order("created_at")).data ?? [],
   });
 
+  // Inventory library picker (re-used by snapshot lines AND job parts)
+  const [libraryTarget, setLibraryTarget] = useState<
+    { kind: "snapshot"; idx: number } | { kind: "part"; id: string } | null
+  >(null);
+  const [librarySearch, setLibrarySearch] = useState("");
+  const library = useQuery({
+    queryKey: ["inv-detail-library"],
+    queryFn: async () => (await supabase.from("inventory_items").select("*").order("name")).data ?? [],
+  });
+
   const timeEntries = useQuery({
     queryKey: ["invoice-time", invoiceId, invoice.data?.job_id],
     enabled: !!invoice.data?.job_id,
