@@ -1,7 +1,8 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { ArrowLeft, Printer, Mail, FileDown, Pencil, Check, X, Plus, Trash2 } from "lucide-react";
+import { ArrowLeft, Printer, Mail, FileDown, Pencil, Check, X, Plus, Trash2, BookOpen, Search } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { fullBike } from "@/lib/format";
 import logoAsset from "@/assets/motorcycle-doctors-logo.png.asset.json";
@@ -163,6 +164,16 @@ function InvoiceDetail() {
     queryKey: ["invoice-parts", invoiceId, invoice.data?.job_id],
     enabled: !!invoice.data?.job_id,
     queryFn: async () => (await supabase.from("parts").select("*").eq("job_id", invoice.data!.job_id!).order("created_at")).data ?? [],
+  });
+
+  // Inventory library picker (re-used by snapshot lines AND job parts)
+  const [libraryTarget, setLibraryTarget] = useState<
+    { kind: "snapshot"; idx: number } | { kind: "part"; id: string } | null
+  >(null);
+  const [librarySearch, setLibrarySearch] = useState("");
+  const library = useQuery({
+    queryKey: ["inv-detail-library"],
+    queryFn: async () => (await supabase.from("inventory_items").select("*").order("name")).data ?? [],
   });
 
   const timeEntries = useQuery({
@@ -578,12 +589,23 @@ function InvoiceDetail() {
                   return (
                     <tr key={p.id} className="border-b border-border/40 group">
                       <td className="py-3">
-                        <EditableText value={p.name ?? ""} onCommit={(v) => updatePart(p.id, { name: v })} className="font-medium" />
-                        <EditableText
-                          value={p.supplier ?? ""}
-                          onCommit={(v) => updatePart(p.id, { supplier: v })}
-                          className="text-xs text-muted-foreground block"
-                        />
+                        <div className="flex items-start gap-2">
+                          <div className="flex-1">
+                            <EditableText value={p.name ?? ""} onCommit={(v) => updatePart(p.id, { name: v })} className="font-medium" />
+                            <EditableText
+                              value={p.supplier ?? ""}
+                              onCommit={(v) => updatePart(p.id, { supplier: v })}
+                              className="text-xs text-muted-foreground block"
+                            />
+                          </div>
+                          <button
+                            onClick={() => { setLibrarySearch(""); setLibraryTarget({ kind: "part", id: p.id }); }}
+                            className="no-print shrink-0 rounded border border-border p-1 text-muted-foreground hover:text-foreground hover:border-primary"
+                            title="Pick from inventory library"
+                          >
+                            <BookOpen className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
                       </td>
                       <td className="py-3 text-right">
                         <EditableNumber value={qty} decimals={0} onCommit={(n) => updatePart(p.id, { quantity: n })} />
@@ -644,7 +666,16 @@ function InvoiceDetail() {
                     return (
                       <tr key={idx} className="border-b border-border/40 group">
                         <td className="py-3">
-                          <EditableText value={it.description} onCommit={(v) => updateSnapshotLine(idx, { description: v })} className="font-medium" />
+                          <div className="flex items-start gap-2">
+                            <div className="flex-1"><EditableText value={it.description} onCommit={(v) => updateSnapshotLine(idx, { description: v })} className="font-medium" /></div>
+                            <button
+                              onClick={() => { setLibrarySearch(""); setLibraryTarget({ kind: "snapshot", idx }); }}
+                              className="no-print shrink-0 rounded border border-border p-1 text-muted-foreground hover:text-foreground hover:border-primary"
+                              title="Pick from inventory library"
+                            >
+                              <BookOpen className="h-3.5 w-3.5" />
+                            </button>
+                          </div>
                         </td>
                         <td className="py-3 text-right">
                           <EditableNumber value={Number(it.quantity)} decimals={0} onCommit={(n) => updateSnapshotLine(idx, { quantity: n })} />
@@ -744,6 +775,70 @@ function InvoiceDetail() {
           </Link>
         </div>
       )}
+
+      {/* Inventory library picker — used by both job-linked parts and standalone snapshot lines */}
+      <Dialog open={!!libraryTarget} onOpenChange={(o) => !o && setLibraryTarget(null)}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
+          <DialogHeader>
+            <DialogTitle>Pick from inventory library</DialogTitle>
+          </DialogHeader>
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <input
+              autoFocus
+              value={librarySearch}
+              onChange={(e) => setLibrarySearch(e.target.value)}
+              placeholder="Search by name, SKU, brand…"
+              className="w-full pl-9 pr-3 py-2 rounded-lg border border-border bg-background text-sm outline-none focus:border-primary"
+            />
+          </div>
+          <div className="overflow-y-auto flex-1 -mx-1 px-1">
+            {(() => {
+              const q = librarySearch.toLowerCase().trim();
+              const items = (library.data ?? []).filter((it: any) =>
+                !q ||
+                (it.name ?? "").toLowerCase().includes(q) ||
+                (it.sku ?? "").toLowerCase().includes(q) ||
+                (it.brand ?? "").toLowerCase().includes(q),
+              );
+              if (items.length === 0) {
+                return <div className="py-8 text-center text-sm text-muted-foreground">No items found.</div>;
+              }
+              return (
+                <ul className="divide-y divide-border">
+                  {items.map((it: any) => (
+                    <li key={it.id}>
+                      <button
+                        onClick={async () => {
+                          const price = Number(it.unit_price ?? 0);
+                          const name = [it.sku, it.name].filter(Boolean).join(" — ");
+                          if (libraryTarget?.kind === "snapshot") {
+                            await updateSnapshotLine(libraryTarget.idx, { description: name, unit: price });
+                          } else if (libraryTarget?.kind === "part") {
+                            await updatePart(libraryTarget.id, { name, retail: price, supplier: it.brand ?? "" });
+                          }
+                          setLibraryTarget(null);
+                        }}
+                        className="w-full text-left p-3 hover:bg-muted/40 rounded-md flex items-center gap-3"
+                      >
+                        <div className="flex-1 min-w-0">
+                          <div className="font-medium text-sm truncate">{it.name}</div>
+                          <div className="text-xs text-muted-foreground truncate">
+                            {[it.sku, it.brand].filter(Boolean).join(" · ")}
+                          </div>
+                        </div>
+                        <div className="text-sm font-semibold tabular-nums">
+                          ${Number(it.unit_price ?? 0).toFixed(2)}
+                        </div>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              );
+            })()}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
