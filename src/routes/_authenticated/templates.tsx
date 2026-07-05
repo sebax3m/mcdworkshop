@@ -78,6 +78,9 @@ function Templates() {
                   <div className="font-display text-xl font-bold leading-tight">{t.name}</div>
                   <div className="text-xs text-muted-foreground mt-0.5">~{t.estimated_hours}h estimated</div>
                 </div>
+                <Button size="sm" variant="outline" onClick={() => setPrinting(t)}>
+                  <Printer className="h-3.5 w-3.5 mr-1" /> Print
+                </Button>
                 <Button size="sm" variant="outline" onClick={() => setEditing(t)}>
                   <Pencil className="h-3.5 w-3.5 mr-1" /> Edit
                 </Button>
