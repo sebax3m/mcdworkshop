@@ -405,6 +405,12 @@ function JobDetail() {
             </div>
           )}
         </div>
+        <TimeEntriesEditor
+          entries={time.data ?? []}
+          jobId={jobId}
+          currentUserId={user?.id}
+          isAdmin={isAdmin}
+        />
       </div>
       </div>
 
