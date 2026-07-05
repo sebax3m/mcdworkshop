@@ -574,7 +574,8 @@ function CalendarPage() {
                       )}
                       {b.loan_bike && (
                         <span className="inline-flex items-center gap-1 rounded-full bg-amber-400/20 border border-amber-400/60 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-amber-300">
-                          🏍️ Loan bike
+                          🏍️ Loan bike {b.loan_bikes?.name ? `· ${b.loan_bikes.name}` : ""}
+                          {b.loan_bike_expected_return ? ` · back ${format(new Date(b.loan_bike_expected_return + "T00:00:00"), "d MMM")}` : ""}
                         </span>
                       )}
                     </div>
