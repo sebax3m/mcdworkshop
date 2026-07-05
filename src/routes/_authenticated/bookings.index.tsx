@@ -26,7 +26,7 @@ function BookingsList() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("bookings")
-        .select("id, service_type, scheduled_date, drop_off_time, estimated_hours, status, priority, confirmed, confirmed_at, customers(first_name,last_name,phone), motorcycles(year,make,model,rego)")
+        .select("id, service_type, scheduled_date, drop_off_time, estimated_hours, status, priority, confirmed, confirmed_at, job_id, customers(first_name,last_name,phone), motorcycles(year,make,model,rego), jobs(id,job_number,title,status)")
         .order("scheduled_date", { ascending: false })
         .limit(200);
       if (error) throw error;
@@ -163,6 +163,17 @@ function BookingsList() {
                     )}
                   </div>
                   <div className="text-xs text-muted-foreground truncate">{customer} · {b.service_type}{b.motorcycles?.rego ? ` · ${b.motorcycles.rego}` : ""}</div>
+                  {b.jobs ? (
+                    <div className="text-xs mt-1 flex items-center gap-1.5 flex-wrap">
+                      <span className="inline-flex items-center gap-1 rounded-md border border-primary/40 bg-primary/10 text-primary px-1.5 py-0.5 font-mono font-semibold tracking-wider">
+                        #{b.jobs.job_number ?? b.jobs.id?.slice(0, 6)}
+                      </span>
+                      <span className="truncate text-foreground/80">{b.jobs.title ?? "Job card"}</span>
+                      <span className="text-[10px] uppercase tracking-wider text-muted-foreground">· {b.jobs.status}</span>
+                    </div>
+                  ) : (
+                    <div className="text-xs mt-1 text-muted-foreground italic">No job card yet</div>
+                  )}
                   {phone && (
                     <div className="text-xs text-foreground/80 mt-0.5 flex items-center gap-1">
                       <Phone className="h-3 w-3" /> {phone}
