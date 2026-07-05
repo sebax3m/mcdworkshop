@@ -157,6 +157,19 @@ export function AppShell() {
           )}
           {isAdmin && (
             <Link
+              to="/loan-bikes"
+              className={cn(
+                "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
+                pathname.startsWith("/loan-bikes")
+                  ? "bg-primary text-primary-foreground"
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted",
+              )}
+            >
+              <KeyRound className="h-5 w-5 shrink-0" /> Loan Bikes
+            </Link>
+          )}
+          {isAdmin && (
+            <Link
               to="/analytics"
               className={cn(
                 "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
