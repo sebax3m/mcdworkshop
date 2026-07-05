@@ -190,143 +190,152 @@ function BikeProfile() {
         )}
       </div>
 
-      <div className="card-surface overflow-hidden">
-        {hero ? (
-          <img src={hero} alt={fullBike(b)} className="w-full aspect-[16/9] object-cover" />
-        ) : (
-          <div className="w-full aspect-[16/9] grid place-items-center bg-muted">
-            <BikeIcon className="h-10 w-10 text-primary" />
-          </div>
-        )}
-        <div className="p-4 space-y-2">
-          {editing && form ? (
-            <div className="space-y-2">
-              <BikeMakeModelYear
-                value={{ make: form.make, model: form.model, year: String(form.year ?? "") }}
-                onChange={(v) => setForm({ ...form, make: v.make, model: v.model, year: v.year })}
-              />
-              <Input placeholder="Rego" value={form.rego} onChange={(e) => setForm({ ...form, rego: e.target.value.toUpperCase() })} />
-            </div>
-          ) : (
-            <>
-              <div className="text-xs uppercase tracking-[0.25em] text-muted-foreground">{b.make}</div>
-              <h1 className="font-display text-2xl font-bold">{b.model}</h1>
-              <div className="text-sm text-muted-foreground">
-                {b.year ?? "—"}{b.rego ? ` · ${b.rego}` : ""}
+      <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] gap-5">
+        {/* LEFT — Image + thumbnails */}
+        <div className="space-y-3">
+          <div className="card-surface overflow-hidden">
+            {hero ? (
+              <img src={hero} alt={fullBike(b)} className="w-full aspect-square object-cover" />
+            ) : (
+              <div className="w-full aspect-square grid place-items-center bg-muted">
+                <BikeIcon className="h-10 w-10 text-primary" />
               </div>
-            </>
-          )}
+            )}
+          </div>
 
-          <div className="flex flex-wrap items-center gap-2 pt-2">
+          <div className="flex flex-wrap items-center gap-2">
             <button
               type="button"
               onClick={autoGeneratePhoto}
               disabled={generating}
               className="inline-flex items-center gap-1.5 rounded-lg border border-primary/40 bg-primary/10 text-primary px-3 py-1.5 text-xs font-semibold hover:bg-primary/20 disabled:opacity-50"
             >
-              <Sparkles className="h-3.5 w-3.5" /> {generating ? "Generating…" : "AI generate photo"}
+              <Sparkles className="h-3.5 w-3.5" /> {generating ? "Generating…" : "AI photo"}
             </button>
             <label className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-xs font-semibold hover:border-primary/50 cursor-pointer">
-              <Camera className="h-3.5 w-3.5" /> {uploading ? "Uploading…" : "Upload photo"}
+              <Camera className="h-3.5 w-3.5" /> {uploading ? "Uploading…" : "Upload"}
               <input type="file" accept="image/*" multiple capture="environment" className="hidden" onChange={(e) => handlePhotos(e.target.files)} />
             </label>
           </div>
-        </div>
-      </div>
 
-      {photos.length > 1 && (
-        <div className="grid grid-cols-3 gap-2">
-          {photos.slice(1).map((p, i) => (
-            <div key={i} className="relative">
-              <img src={p} alt="" loading="lazy" className="rounded-lg border border-border object-cover aspect-square w-full" />
-              {editing && (
-                <button
-                  onClick={() => setPhotos((arr) => arr.filter((x) => x !== p))}
-                  className="absolute top-1 right-1 grid h-5 w-5 place-items-center rounded-full bg-background/80 text-foreground"
-                >
-                  <X className="h-3 w-3" />
-                </button>
-              )}
+          {photos.length > 1 && (
+            <div className="grid grid-cols-3 gap-2">
+              {photos.slice(1).map((p, i) => (
+                <div key={i} className="relative">
+                  <img src={p} alt="" loading="lazy" className="rounded-lg border border-border object-cover aspect-square w-full" />
+                  {editing && (
+                    <button
+                      onClick={() => setPhotos((arr) => arr.filter((x) => x !== p))}
+                      className="absolute top-1 right-1 grid h-5 w-5 place-items-center rounded-full bg-background/80 text-foreground"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  )}
+                </div>
+              ))}
             </div>
-          ))}
+          )}
         </div>
-      )}
 
-      {editing && form ? (
-        <div className="card-surface p-4 grid grid-cols-2 gap-2">
-          <div>
-            <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Mileage</div>
-            <div className="relative">
-              <Input inputMode="numeric" value={form.mileage ? Number(String(form.mileage).replace(/\D/g, "")).toLocaleString() : ""} onChange={(e) => setForm({ ...form, mileage: e.target.value.replace(/\D/g, "") })} className="pr-12" />
-              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground font-semibold pointer-events-none">km</span>
+        {/* RIGHT — All bike info */}
+        <div className="space-y-5">
+          <div className="card-surface p-4 space-y-2">
+            {editing && form ? (
+              <div className="space-y-2">
+                <BikeMakeModelYear
+                  value={{ make: form.make, model: form.model, year: String(form.year ?? "") }}
+                  onChange={(v) => setForm({ ...form, make: v.make, model: v.model, year: v.year })}
+                />
+                <Input placeholder="Rego" value={form.rego} onChange={(e) => setForm({ ...form, rego: e.target.value.toUpperCase() })} />
+              </div>
+            ) : (
+              <>
+                <div className="text-xs uppercase tracking-[0.25em] text-muted-foreground">{b.make}</div>
+                <h1 className="font-display text-2xl font-bold">{b.model}</h1>
+                <div className="text-sm text-muted-foreground">
+                  {b.year ?? "—"}{b.rego ? ` · ${b.rego}` : ""}
+                </div>
+              </>
+            )}
+          </div>
+
+          {editing && form ? (
+            <div className="card-surface p-4 grid grid-cols-2 gap-2">
+              <div>
+                <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Mileage</div>
+                <div className="relative">
+                  <Input inputMode="numeric" value={form.mileage ? Number(String(form.mileage).replace(/\D/g, "")).toLocaleString() : ""} onChange={(e) => setForm({ ...form, mileage: e.target.value.replace(/\D/g, "") })} className="pr-12" />
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground font-semibold pointer-events-none">km</span>
+                </div>
+              </div>
+              <div>
+                <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">VIN</div>
+                <Input value={form.vin} onChange={(e) => setForm({ ...form, vin: e.target.value })} />
+              </div>
             </div>
-          </div>
-          <div>
-            <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">VIN</div>
-            <Input value={form.vin} onChange={(e) => setForm({ ...form, vin: e.target.value })} />
-          </div>
-        </div>
-      ) : (
-        <div className="grid grid-cols-2 gap-2">
-          <Stat icon={<Gauge className="h-4 w-4" />} label="Mileage" value={b.mileage ? `${b.mileage.toLocaleString()} km` : "—"} />
-          <Stat icon={<Hash className="h-4 w-4" />} label="VIN" value={b.vin || "—"} />
-        </div>
-      )}
-
-      {b.customers && (
-        <div className="card-surface p-4 space-y-1">
-          <div className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground flex items-center gap-1"><User className="h-3 w-3" /> Owner</div>
-          <div className="font-semibold">{b.customers.first_name} {b.customers.last_name}</div>
-          <div className="text-sm text-muted-foreground">{b.customers.phone || b.customers.email || ""}</div>
-        </div>
-      )}
-
-      {editing && form ? (
-        <div className="card-surface p-4 space-y-3">
-          <div>
-            <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Modifications</div>
-            <Textarea rows={2} value={form.modifications} onChange={(e) => setForm({ ...form, modifications: e.target.value })} />
-          </div>
-          <div>
-            <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">ECU info</div>
-            <Input value={form.ecu_info} onChange={(e) => setForm({ ...form, ecu_info: e.target.value })} />
-          </div>
-          <div>
-            <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Notes</div>
-            <Textarea rows={2} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
-          </div>
-        </div>
-      ) : (
-        (b.ecu_info || b.modifications || b.notes) && (
-          <div className="card-surface p-4 space-y-3">
-            {b.modifications && <Field label="Modifications" value={b.modifications} />}
-            {b.ecu_info && <Field label="ECU" value={b.ecu_info} />}
-            {b.notes && <Field label="Notes" value={b.notes} />}
-          </div>
-        )
-      )}
-
-      <div className="space-y-2">
-        <div className="flex items-center gap-2 text-xs uppercase tracking-[0.25em] text-muted-foreground">
-          <Wrench className="h-3 w-3" /> Service history
-        </div>
-        {(jobs.data ?? []).length === 0 && (
-          <div className="card-surface p-4 text-sm text-muted-foreground">No jobs yet.</div>
-        )}
-        {(jobs.data ?? []).map((j: any) => (
-          <Link
-            key={j.id}
-            to="/jobs/$jobId"
-            params={{ jobId: j.id }}
-            className="card-surface p-3 flex items-center justify-between hover:border-primary/40"
-          >
-            <div className="min-w-0">
-              <div className="font-semibold truncate text-sm">{j.title || j.job_number}</div>
-              <div className="text-xs text-muted-foreground">{j.job_number} · {new Date(j.created_at).toLocaleDateString()}</div>
+          ) : (
+            <div className="grid grid-cols-2 gap-2">
+              <Stat icon={<Gauge className="h-4 w-4" />} label="Mileage" value={b.mileage ? `${b.mileage.toLocaleString()} km` : "—"} />
+              <Stat icon={<Hash className="h-4 w-4" />} label="VIN" value={b.vin || "—"} />
             </div>
-            <span className="text-[10px] uppercase tracking-wider px-2 py-1 rounded-md bg-muted">{j.status}</span>
-          </Link>
-        ))}
+          )}
+
+          {b.customers && (
+            <div className="card-surface p-4 space-y-1">
+              <div className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground flex items-center gap-1"><User className="h-3 w-3" /> Owner</div>
+              <div className="font-semibold">{b.customers.first_name} {b.customers.last_name}</div>
+              <div className="text-sm text-muted-foreground">{b.customers.phone || b.customers.email || ""}</div>
+            </div>
+          )}
+
+          {editing && form ? (
+            <div className="card-surface p-4 space-y-3">
+              <div>
+                <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Modifications</div>
+                <Textarea rows={2} value={form.modifications} onChange={(e) => setForm({ ...form, modifications: e.target.value })} />
+              </div>
+              <div>
+                <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">ECU info</div>
+                <Input value={form.ecu_info} onChange={(e) => setForm({ ...form, ecu_info: e.target.value })} />
+              </div>
+              <div>
+                <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Notes</div>
+                <Textarea rows={2} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
+              </div>
+            </div>
+          ) : (
+            (b.ecu_info || b.modifications || b.notes) && (
+              <div className="card-surface p-4 space-y-3">
+                {b.modifications && <Field label="Modifications" value={b.modifications} />}
+                {b.ecu_info && <Field label="ECU" value={b.ecu_info} />}
+                {b.notes && <Field label="Notes" value={b.notes} />}
+              </div>
+            )
+          )}
+
+          <div className="space-y-2">
+            <div className="flex items-center gap-2 text-xs uppercase tracking-[0.25em] text-muted-foreground">
+              <Wrench className="h-3 w-3" /> Service history
+            </div>
+            {(jobs.data ?? []).length === 0 && (
+              <div className="card-surface p-4 text-sm text-muted-foreground">No jobs yet.</div>
+            )}
+            {(jobs.data ?? []).map((j: any) => (
+              <Link
+                key={j.id}
+                to="/jobs/$jobId"
+                params={{ jobId: j.id }}
+                className="card-surface p-3 flex items-center justify-between hover:border-primary/40"
+              >
+                <div className="min-w-0">
+                  <div className="font-semibold truncate text-sm">{j.title || j.job_number}</div>
+                  <div className="text-xs text-muted-foreground">{j.job_number} · {new Date(j.created_at).toLocaleDateString()}</div>
+                </div>
+                <span className="text-[10px] uppercase tracking-wider px-2 py-1 rounded-md bg-muted">{j.status}</span>
+              </Link>
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   );
