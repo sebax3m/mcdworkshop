@@ -1305,49 +1305,56 @@ function ValveClearancePrintSheet({
   bike: any; cylinders: number; values: any; spec: ValveSpec;
 }) {
   return (
-    <div className="hidden print:block mt-4" style={{ pageBreakBefore: "always", breakBefore: "page" }}>
-      <div className="flex items-center justify-between gap-3 border-b-2 border-black pb-1 mb-2">
+    <div
+      className="hidden print:block valve-print-page"
+      style={{ pageBreakBefore: "always", breakBefore: "page" }}
+    >
+      <style>{`
+        @page valve-landscape { size: A4 landscape; margin: 10mm; }
+        .valve-print-page { page: valve-landscape; }
+      `}</style>
+      <div className="flex items-center justify-between gap-3 border-b-2 border-black pb-1 mb-3">
         <div className="min-w-0">
-          <div className="text-[9px] uppercase tracking-[0.25em] text-gray-600">Valve Clearance Worksheet</div>
-          <h1 className="font-display text-base font-bold leading-tight">
+          <div className="text-[10px] uppercase tracking-[0.25em] text-gray-600">Valve Clearance Worksheet</div>
+          <h1 className="font-display text-lg font-bold leading-tight">
             {bike?.make ?? ""} {bike?.model ?? ""} {bike?.year ?? ""} · {cylinders}-cyl · Rego {bike?.rego ?? "—"}
           </h1>
         </div>
-        <div className="text-right shrink-0 text-[10px]">
+        <div className="text-right shrink-0 text-[11px]">
           <b>Spec (cold)</b> · I <span className="font-mono">{formatRange(spec.intake)}</span> · E <span className="font-mono">{formatRange(spec.exhaust)}</span>
-          <div className="text-[8px] text-gray-500">{spec.generic ? "Generic — verify manual · " : ""}{spec.source}</div>
+          <div className="text-[9px] text-gray-500">{spec.generic ? "Generic — verify manual · " : ""}{spec.source}</div>
         </div>
       </div>
 
       {spec.note && (
-        <div className="text-[9px] text-gray-700 mb-2"><b>Note:</b> {spec.note}</div>
+        <div className="text-[10px] text-gray-700 mb-2"><b>Note:</b> {spec.note}</div>
       )}
 
-      <div className="text-[9px] uppercase tracking-[0.2em] text-gray-600 text-center mb-1">
+      <div className="text-[10px] uppercase tracking-[0.2em] text-gray-600 text-center mb-2">
         Top-down · INTAKE top / EXHAUST bottom · write measured mm inside each circle
       </div>
-      <div className="flex gap-2 justify-center flex-wrap mb-2">
+      <div className="flex gap-4 justify-center items-stretch mb-3">
         {Array.from({ length: cylinders }).map((_, c) => {
           const cyl = c + 1;
           return (
-            <div key={cyl} className="border border-gray-400 rounded-xl p-1.5 flex flex-col items-center gap-1" style={{ minWidth: 96 }}>
-              <div className="text-[8px] uppercase tracking-wider text-gray-700 font-bold">Cyl {cyl}</div>
-              <div className="flex gap-1">
+            <div key={cyl} className="border border-gray-400 rounded-2xl p-3 flex flex-col items-center gap-2 flex-1" style={{ maxWidth: 220 }}>
+              <div className="text-[11px] uppercase tracking-wider text-gray-700 font-bold">Cyl {cyl}</div>
+              <div className="flex gap-2">
                 {Array.from({ length: 2 }).map((_, i) => {
                   const v = values?.[`c${cyl}_intake_${i}`] ?? "";
                   return (
-                    <div key={i} className="h-10 w-10 rounded-full border-2 border-gray-700 flex items-center justify-center font-mono text-[10px] font-bold bg-white">
+                    <div key={i} className="h-20 w-20 rounded-full border-2 border-gray-700 flex items-center justify-center font-mono text-base font-bold bg-white">
                       {v || ""}
                     </div>
                   );
                 })}
               </div>
-              <div className="h-2 w-2 rounded-full border border-gray-600 bg-gray-200" />
-              <div className="flex gap-1">
+              <div className="h-3 w-3 rounded-full border border-gray-600 bg-gray-200" />
+              <div className="flex gap-2">
                 {Array.from({ length: 2 }).map((_, i) => {
                   const v = values?.[`c${cyl}_exhaust_${i}`] ?? "";
                   return (
-                    <div key={i} className="h-10 w-10 rounded-full border-2 border-black flex items-center justify-center font-mono text-[10px] font-bold bg-white">
+                    <div key={i} className="h-20 w-20 rounded-full border-2 border-black flex items-center justify-center font-mono text-base font-bold bg-white">
                       {v || ""}
                     </div>
                   );
@@ -1358,7 +1365,7 @@ function ValveClearancePrintSheet({
         })}
       </div>
 
-      <div className="flex items-center justify-between gap-3 text-[9px] text-gray-700 mt-2 pt-1 border-t border-gray-300">
+      <div className="flex items-center justify-between gap-3 text-[10px] text-gray-700 mt-3 pt-1 border-t border-gray-300">
         <span>New shim = Current + (Measured − Target). Target = mid-spec.</span>
         <span>Technician: ______________  Date: ___ / ___ / ______</span>
       </div>
