@@ -213,13 +213,16 @@ function PrintableTemplate({ template, onClose }: { template: any; onClose: () =
       <style>{`
         @media print {
           @page { size: A4; margin: 10mm; }
-          html, body { background: #ffffff !important; color: #000 !important; }
+          html, body { background: #ffffff !important; }
           body * { visibility: hidden !important; }
           .tpl-print-page, .tpl-print-page * { visibility: visible !important; }
           .tpl-print-page { position: absolute; left: 0; top: 0; width: 100%; margin: 0; padding: 0; }
-          .tpl-sheet { box-shadow: none !important; border: none !important; background: #ffffff !important; color: #000 !important; max-width: 100% !important; page-break-inside: avoid; break-inside: avoid; }
-          .tpl-sheet .muted { color: #4b5563 !important; }
-          .tpl-sheet .rule { border-color: #d1d5db !important; }
+          .tpl-sheet { box-shadow: none !important; border: none !important; background: #ffffff !important; color: #111111 !important; max-width: 100% !important; page-break-inside: avoid; break-inside: avoid; }
+          .tpl-sheet .text-primary { color: #dc2626 !important; }
+          .tpl-sheet .text-muted-foreground { color: #4b5563 !important; }
+          .tpl-sheet .border-primary { border-color: #dc2626 !important; }
+          .tpl-sheet .border-foreground { border-color: #111111 !important; }
+          .tpl-sheet .border-border { border-color: #d1d5db !important; }
           .tpl-sheet .tpl-header { padding: 12px 18px !important; }
           .tpl-sheet .tpl-header .font-display.text-3xl { font-size: 18pt !important; }
           .tpl-sheet .tpl-header .font-display.text-2xl { font-size: 14pt !important; }
@@ -228,7 +231,7 @@ function PrintableTemplate({ template, onClose }: { template: any; onClose: () =
           .tpl-sheet .tpl-body > * + * { margin-top: 8px !important; }
           .tpl-sheet .tpl-body li { padding-top: 3px !important; padding-bottom: 3px !important; font-size: 9.5pt !important; line-height: 1.25 !important; }
           .tpl-sheet .tpl-body p, .tpl-sheet .tpl-body .text-sm { font-size: 9.5pt !important; line-height: 1.3 !important; }
-          .tpl-sheet .tpl-body .text-\\[10px\\] { font-size: 8pt !important; }
+          .tpl-sheet .tpl-body .text-\[10px\] { font-size: 8pt !important; }
           .tpl-sheet .tpl-signatures { padding-top: 10px !important; }
           .tpl-sheet .tpl-signatures .mb-6 { margin-bottom: 22px !important; }
           .tpl-sheet ul { page-break-inside: avoid; break-inside: avoid; }
@@ -242,24 +245,23 @@ function PrintableTemplate({ template, onClose }: { template: any; onClose: () =
       <div className="tpl-print-overlay print:!p-0 print:!bg-white">
         <div className="mx-auto max-w-3xl mb-3 flex justify-end gap-2 print:hidden">
           <Button variant="outline" onClick={onClose}>Close</Button>
-          <Button className="gold-surface gap-2" onClick={() => window.print()}>
+          <Button className="red-surface gap-2" onClick={() => window.print()}>
             <Printer className="h-4 w-4" /> Print
           </Button>
         </div>
 
         <div className="tpl-print-page">
-          <div className="tpl-sheet mx-auto max-w-3xl bg-white text-black rounded-xl overflow-hidden shadow-2xl">
-            {/* Gold banner header */}
-            <div className="tpl-header px-8 py-6 flex items-start justify-between gap-4 flex-wrap" style={{ background: "linear-gradient(135deg, #d4a24c, #b8862a)", color: "#111" }}>
+          <div className="tpl-sheet mx-auto max-w-3xl bg-card text-foreground rounded-xl overflow-hidden shadow-2xl">
+            <div className="tpl-header px-8 py-6 flex items-start justify-between gap-4 flex-wrap">
               <div className="flex items-center gap-4">
-                <img src={logoAsset.url} alt="Motorcycle Doctors" className="h-14 w-14 rounded-md object-contain bg-black/10 p-1" />
+                <img src={logoAsset.url} alt="Motorcycle Doctors" className="h-14 w-14 rounded-md object-contain bg-primary/10 p-1" />
                 <div>
                   <div className="font-display text-3xl font-black tracking-tight">Motorcycle Doctors</div>
                   <div className="text-xs uppercase tracking-[0.3em] opacity-80 mt-1">Premium Motorcycle Workshop</div>
                 </div>
               </div>
               <div className="text-right">
-                <div className="text-[10px] uppercase tracking-[0.25em] opacity-80">Service Template</div>
+                <div className="text-[10px] uppercase tracking-[0.25em] text-primary">Service Template</div>
                 <div className="font-display text-2xl font-black">{template.name}</div>
               </div>
             </div>
@@ -267,39 +269,39 @@ function PrintableTemplate({ template, onClose }: { template: any; onClose: () =
             <div className="tpl-body p-8 space-y-6">
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 text-sm">
                 <div>
-                  <div className="text-[10px] uppercase tracking-wider muted">Category</div>
+                  <div className="text-[10px] uppercase tracking-wider text-primary">Category</div>
                   <div className="font-semibold">{meta.tagline}</div>
                 </div>
                 <div>
-                  <div className="text-[10px] uppercase tracking-wider muted">Estimated time</div>
+                  <div className="text-[10px] uppercase tracking-wider text-primary">Estimated time</div>
                   <div className="font-semibold">{template.estimated_hours ?? "—"} h</div>
                 </div>
                 <div>
-                  <div className="text-[10px] uppercase tracking-wider muted">Checklist items</div>
+                  <div className="text-[10px] uppercase tracking-wider text-primary">Checklist items</div>
                   <div className="font-semibold">{tasks.length}</div>
                 </div>
               </div>
 
               {template.description && (
                 <div>
-                  <div className="text-[10px] uppercase tracking-wider muted mb-1">Overview</div>
+                  <div className="text-[10px] uppercase tracking-wider text-primary mb-1">Overview</div>
                   <p className="text-sm leading-relaxed">{template.description}</p>
                 </div>
               )}
 
               <div>
-                <div className="text-[10px] uppercase tracking-wider muted mb-2">What's included</div>
-                <ul className="rule border-t border-b divide-y" style={{ borderColor: "#d1d5db" }}>
+                <div className="text-[10px] uppercase tracking-wider text-primary mb-2">What's included</div>
+                <ul className="border-t border-b divide-y border-border">
                   {tasks.length === 0 && (
-                    <li className="py-3 text-sm muted">No checklist items for this template.</li>
+                    <li className="py-3 text-sm text-muted-foreground">No checklist items for this template.</li>
                   )}
                   {tasks.map((task, i) => (
                     <li key={i} className="py-2.5 flex items-start gap-3 text-sm">
-                      <span className="grid h-5 w-5 place-items-center rounded-full border border-black/30 text-[10px] font-bold shrink-0 mt-0.5">
+                      <span className="grid h-5 w-5 place-items-center rounded-full border border-primary/40 text-primary text-[10px] font-bold shrink-0 mt-0.5">
                         {i + 1}
                       </span>
                       <span className="flex-1">{taskLabel(task)}</span>
-                      <span className="h-4 w-4 border border-black/40 rounded-sm shrink-0 mt-0.5" aria-hidden />
+                      <span className="h-4 w-4 border border-foreground/30 rounded-sm shrink-0 mt-0.5" aria-hidden />
                     </li>
                   ))}
                 </ul>
@@ -307,16 +309,16 @@ function PrintableTemplate({ template, onClose }: { template: any; onClose: () =
 
               <div className="tpl-signatures grid grid-cols-2 gap-6 pt-6 text-xs">
                 <div>
-                  <div className="muted mb-6">Technician signature</div>
-                  <div className="border-t border-black/40" />
+                  <div className="text-muted-foreground mb-6">Technician signature</div>
+                  <div className="border-t border-foreground/30" />
                 </div>
                 <div>
-                  <div className="muted mb-6">Date completed</div>
-                  <div className="border-t border-black/40" />
+                  <div className="text-muted-foreground mb-6">Date completed</div>
+                  <div className="border-t border-foreground/30" />
                 </div>
               </div>
 
-              <div className="text-center text-[10px] muted pt-4 border-t rule" style={{ borderColor: "#d1d5db" }}>
+              <div className="text-center text-[10px] text-muted-foreground pt-4 border-t border-border">
                 Motorcycle Doctors · Service reference sheet · Generated {new Date().toLocaleDateString()}
               </div>
             </div>
