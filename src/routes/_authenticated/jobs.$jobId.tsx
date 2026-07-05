@@ -16,7 +16,7 @@ import logoAsset from "@/assets/motorcycle-doctors-logo.png.asset.json";
 
 // Debounced auto-save: fires `save` ~800ms after `value` stops changing.
 // `enabled` guards against saving before the user actually edits (e.g. initial hydration).
-function useAutoSave<T>(value: T, enabled: boolean, save: () => void | Promise<void>, delay = 800) {
+function useAutoSave<T>(value: T, enabled: boolean, save: () => unknown | Promise<unknown>, delay = 800) {
   const saveRef = useRef(save);
   saveRef.current = save;
   useEffect(() => {
