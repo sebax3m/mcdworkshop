@@ -405,6 +405,12 @@ function JobDetail() {
             </div>
           )}
         </div>
+        <TimeEntriesEditor
+          entries={time.data ?? []}
+          jobId={jobId}
+          currentUserId={user?.id}
+          isAdmin={isAdmin}
+        />
       </div>
       </div>
 
@@ -1541,5 +1547,162 @@ function ExpirySection({
     </div>
   );
 }
+
+// Convert an ISO timestamp to a value usable in <input type="datetime-local"> (local time, no seconds).
+function isoToLocalInput(iso: string | null | undefined): string {
+  if (!iso) return "";
+  const d = new Date(iso);
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+function localInputToIso(v: string): string | null {
+  if (!v) return null;
+  const d = new Date(v);
+  if (isNaN(+d)) return null;
+  return d.toISOString();
+}
+
+function TimeEntriesEditor({
+  entries, jobId, currentUserId, isAdmin,
+}: {
+  entries: any[]; jobId: string; currentUserId?: string; isAdmin: boolean;
+}) {
+  const qc = useQueryClient();
+  const [expanded, setExpanded] = useState(false);
+  const [editing, setEditing] = useState<string | null>(null);
+  const [startVal, setStartVal] = useState("");
+  const [endVal, setEndVal] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  const techIds = useMemo(() => [...new Set(entries.map((e) => e.technician_id).filter(Boolean))], [entries]);
+  const techs = useQuery({
+    queryKey: ["job-time-techs", jobId, techIds.join(",")],
+    enabled: techIds.length > 0,
+    queryFn: async () => {
+      const { data } = await supabase.from("profiles").select("id, full_name").in("id", techIds);
+      const map = new Map<string, string>();
+      (data ?? []).forEach((p: any) => map.set(p.id, p.full_name));
+      return map;
+    },
+  });
+
+  const sorted = useMemo(
+    () => [...entries].sort((a, b) => +new Date(b.started_at) - +new Date(a.started_at)),
+    [entries],
+  );
+
+  function canEditEntry(e: any) {
+    return isAdmin || e.technician_id === currentUserId;
+  }
+
+  function beginEdit(e: any) {
+    setEditing(e.id);
+    setStartVal(isoToLocalInput(e.started_at));
+    setEndVal(isoToLocalInput(e.ended_at));
+  }
+  function cancel() {
+    setEditing(null);
+    setStartVal("");
+    setEndVal("");
+  }
+  async function save(entry: any) {
+    const startIso = localInputToIso(startVal);
+    const endIso = endVal ? localInputToIso(endVal) : null;
+    if (!startIso) return toast.error("Start time is required");
+    if (endIso && +new Date(endIso) <= +new Date(startIso)) {
+      return toast.error("End time must be after start time");
+    }
+    const minutes = endIso ? Math.max(1, Math.round((+new Date(endIso) - +new Date(startIso)) / 60000)) : null;
+    setSaving(true);
+    const { error } = await supabase
+      .from("time_entries")
+      .update({ started_at: startIso, ended_at: endIso, minutes })
+      .eq("id", entry.id);
+    setSaving(false);
+    if (error) return toast.error(error.message);
+    toast.success("Time entry updated");
+    cancel();
+    qc.invalidateQueries({ queryKey: ["job-time", jobId] });
+    qc.invalidateQueries({ queryKey: ["clock-events-floating"] });
+  }
+  async function remove(entry: any) {
+    if (!confirm("Delete this time entry?")) return;
+    const { error } = await supabase.from("time_entries").delete().eq("id", entry.id);
+    if (error) return toast.error(error.message);
+    toast.success("Time entry deleted");
+    qc.invalidateQueries({ queryKey: ["job-time", jobId] });
+  }
+
+  if (sorted.length === 0) return null;
+
+  return (
+    <div className="mt-4 pt-3 border-t border-border/50 no-print">
+      <button
+        type="button"
+        onClick={() => setExpanded((v) => !v)}
+        className="w-full flex items-center justify-between text-[10px] uppercase tracking-wider text-muted-foreground hover:text-foreground"
+      >
+        <span>Time entries ({sorted.length}){isAdmin ? " · admin can edit any" : ""}</span>
+        <ChevronDown className={`h-3.5 w-3.5 transition-transform ${expanded ? "rotate-180" : ""}`} />
+      </button>
+      {expanded && (
+        <ul className="mt-2 space-y-1.5">
+          {sorted.map((e) => {
+            const editable = canEditEntry(e);
+            const isEditing = editing === e.id;
+            const tech = techs.data?.get(e.technician_id) ?? "Staff";
+            const mins = e.minutes ?? (e.ended_at ? Math.round((+new Date(e.ended_at) - +new Date(e.started_at)) / 60000) : 0);
+            return (
+              <li key={e.id} className="rounded-md border border-border/50 bg-background/40 p-2 text-xs">
+                {isEditing ? (
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                    <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      <label className="flex flex-col gap-0.5">
+                        <span className="text-[9px] uppercase tracking-wider text-muted-foreground">Start</span>
+                        <Input type="datetime-local" value={startVal} onChange={(ev) => setStartVal(ev.target.value)} className="h-8 text-xs" />
+                      </label>
+                      <label className="flex flex-col gap-0.5">
+                        <span className="text-[9px] uppercase tracking-wider text-muted-foreground">End (blank = still running)</span>
+                        <Input type="datetime-local" value={endVal} onChange={(ev) => setEndVal(ev.target.value)} className="h-8 text-xs" />
+                      </label>
+                    </div>
+                    <div className="flex items-center gap-1 shrink-0">
+                      <Button size="sm" onClick={() => save(e)} disabled={saving} className="h-8 gold-surface text-[11px]">
+                        {saving ? "Saving…" : "Save"}
+                      </Button>
+                      <Button size="sm" variant="outline" onClick={cancel} className="h-8 text-[11px]">Cancel</Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-between gap-2 flex-wrap">
+                    <div className="min-w-0">
+                      <div className="font-semibold truncate">{tech}</div>
+                      <div className="text-[10px] text-muted-foreground">
+                        {new Date(e.started_at).toLocaleString()} →{" "}
+                        {e.ended_at ? new Date(e.ended_at).toLocaleString() : <span className="text-status-progress">running…</span>}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <span className="font-mono font-bold">{formatMinutes(mins)}</span>
+                      {editable && (
+                        <>
+                          <Button size="sm" variant="outline" onClick={() => beginEdit(e)} className="h-7 text-[10px] px-2">Edit</Button>
+                          <Button size="sm" variant="outline" onClick={() => remove(e)} className="h-7 text-[10px] px-2 text-destructive hover:text-destructive">
+                            <X className="h-3 w-3" />
+                          </Button>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </div>
+  );
+}
+
 
 
