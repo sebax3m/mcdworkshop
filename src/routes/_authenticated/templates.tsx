@@ -264,7 +264,7 @@ function PrintableTemplate({ template, onClose }: { template: any; onClose: () =
               </div>
             </div>
 
-            <div className="p-8 space-y-6">
+            <div className="tpl-body p-8 space-y-6">
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 text-sm">
                 <div>
                   <div className="text-[10px] uppercase tracking-wider muted">Category</div>
