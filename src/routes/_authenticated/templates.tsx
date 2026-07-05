@@ -114,6 +114,8 @@ function Templates() {
           }}
         />
       )}
+
+      {printing && <PrintableTemplate template={printing} onClose={() => setPrinting(null)} />}
     </div>
   );
 }
