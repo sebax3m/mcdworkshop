@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -14,6 +14,18 @@ import { getValveSpec, formatRange, type ValveSpec } from "@/lib/valve-specs";
 import { DamageSection } from "@/components/DamageSection";
 import logoAsset from "@/assets/motorcycle-doctors-logo.png.asset.json";
 
+// Debounced auto-save: fires `save` ~800ms after `value` stops changing.
+// `enabled` guards against saving before the user actually edits (e.g. initial hydration).
+function useAutoSave<T>(value: T, enabled: boolean, save: () => unknown | Promise<unknown>, delay = 800) {
+  const saveRef = useRef(save);
+  saveRef.current = save;
+  useEffect(() => {
+    if (!enabled) return;
+    const t = setTimeout(() => { void saveRef.current(); }, delay);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [value, enabled, delay]);
+}
 
 export const Route = createFileRoute("/_authenticated/jobs/$jobId")({
   component: JobDetail,
@@ -655,14 +667,19 @@ function AddNote({ jobId, onAdded }: { jobId: string; onAdded: () => void }) {
 function TaskRow({ task, canEdit, onToggle, onNoteSaved }: { task: any; canEdit: boolean; onToggle: () => void; onNoteSaved: () => void }) {
   const [note, setNote] = useState(task.note ?? "");
   const [dirty, setDirty] = useState(false);
+  const [savedTick, setSavedTick] = useState(false);
   useEffect(() => { setNote(task.note ?? ""); setDirty(false); }, [task.note]);
 
   async function saveNote() {
     const { error } = await supabase.from("job_tasks").update({ note: note || null }).eq("id", task.id);
     if (error) return toast.error(error.message);
     setDirty(false);
+    setSavedTick(true);
+    setTimeout(() => setSavedTick(false), 1200);
     onNoteSaved();
   }
+
+  useAutoSave(note, dirty && canEdit, saveNote);
 
   return (
     <div className="py-0.5 print:py-1 print:break-inside-avoid">
@@ -692,15 +709,8 @@ function TaskRow({ task, canEdit, onToggle, onNoteSaved }: { task: any; canEdit:
             maxLength={140}
             className="flex-1 bg-transparent border-0 border-b border-border/30 text-[11px] py-0 focus:outline-none focus:border-primary placeholder:text-muted-foreground/40"
           />
-          {dirty && (
-            <button
-              type="button"
-              onClick={saveNote}
-              className="text-[10px] font-bold uppercase tracking-wider rounded px-2 py-0.5 bg-primary text-primary-foreground hover:opacity-90"
-            >
-              Save
-            </button>
-          )}
+          {dirty && <span className="text-[9px] uppercase tracking-wider text-muted-foreground/60">saving…</span>}
+          {!dirty && savedTick && <span className="text-[9px] uppercase tracking-wider text-status-ready">✓ saved</span>}
         </div>
       )}
 
@@ -1157,7 +1167,9 @@ function ValveClearanceSection({ jobId, cylinders, canEdit, data, bike, onChange
 }) {
   const [values, setValues] = useState<any>(data ?? {});
   const [saving, setSaving] = useState(false);
-  useEffect(() => { setValues(data ?? {}); }, [data]);
+  const [dirty, setDirty] = useState(false);
+  const [savedTick, setSavedTick] = useState(false);
+  useEffect(() => { setValues(data ?? {}); setDirty(false); }, [data]);
 
   const intakePerCyl = 2;
   const exhaustPerCyl = 2;
@@ -1167,18 +1179,24 @@ function ValveClearanceSection({ jobId, cylinders, canEdit, data, bike, onChange
   function set(cyl: number, side: "intake" | "exhaust", idx: number, v: string) {
     const key = `c${cyl}_${side}_${idx}`;
     setValues((s: any) => ({ ...s, [key]: v }));
+    setDirty(true);
   }
 
-  async function save() {
+  async function save(silent = false) {
     setSaving(true);
     const { data: job } = await supabase.from("jobs").select("service_data").eq("id", jobId).maybeSingle();
     const next = { ...(job?.service_data as any ?? {}), valves: values };
     const { error } = await supabase.from("jobs").update({ service_data: next }).eq("id", jobId);
     setSaving(false);
     if (error) return toast.error(error.message);
-    toast.success("Valve clearances saved");
+    if (!silent) toast.success("Valve clearances saved");
+    setDirty(false);
+    setSavedTick(true);
+    setTimeout(() => setSavedTick(false), 1500);
     onChanged();
   }
+
+  useAutoSave(values, dirty && canEdit, () => save(true));
 
   return (
     <>
@@ -1269,8 +1287,8 @@ function ValveClearanceSection({ jobId, cylinders, canEdit, data, bike, onChange
           <span className="ml-auto">Spec: I {formatRange(spec.intake)} · E {formatRange(spec.exhaust)}</span>
         </div>
         {canEdit && (
-          <div className="mt-3 flex justify-end">
-            <Button onClick={save} disabled={saving} className="gold-surface">{saving ? "Saving…" : "Save measurements"}</Button>
+          <div className="mt-3 flex justify-end items-center gap-3 text-[10px] uppercase tracking-wider text-muted-foreground">
+            {saving || dirty ? "saving…" : savedTick ? "✓ saved" : "auto-saves as you type"}
           </div>
         )}
       </section>
@@ -1366,13 +1384,16 @@ function OdometerSection({
   const initial = currentOdo ?? bikeMileage ?? null;
   const [value, setValue] = useState<string>(initial != null ? String(initial) : "");
   const [saving, setSaving] = useState(false);
+  const [dirty, setDirty] = useState(false);
+  const [savedTick, setSavedTick] = useState(false);
 
   useEffect(() => {
     const v = currentOdo ?? bikeMileage ?? null;
     setValue(v != null ? String(v) : "");
+    setDirty(false);
   }, [currentOdo, bikeMileage]);
 
-  async function save() {
+  async function save(silent = false) {
     const km = value ? parseInt(value.replace(/\D/g, "")) : null;
     setSaving(true);
     try {
@@ -1381,7 +1402,10 @@ function OdometerSection({
       if (bikeId && km != null) {
         await supabase.from("motorcycles").update({ mileage: km }).eq("id", bikeId);
       }
-      toast.success("Kilometers saved");
+      if (!silent) toast.success("Kilometers saved");
+      setDirty(false);
+      setSavedTick(true);
+      setTimeout(() => setSavedTick(false), 1500);
       onSaved();
     } catch (e: any) {
       toast.error(e?.message ?? "Failed to save");
@@ -1389,6 +1413,8 @@ function OdometerSection({
       setSaving(false);
     }
   }
+
+  useAutoSave(value, dirty && canEdit, () => save(true));
 
   const display = value ? Number(value.replace(/\D/g, "")).toLocaleString() : "";
 
@@ -1410,15 +1436,15 @@ function OdometerSection({
               inputMode="numeric"
               placeholder="e.g. 24,500"
               value={display}
-              onChange={(e) => setValue(e.target.value.replace(/\D/g, ""))}
+              onChange={(e) => { setValue(e.target.value.replace(/\D/g, "")); setDirty(true); }}
               disabled={!canEdit || saving}
               className="pr-12 w-44 h-11 font-mono text-base"
             />
             <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground font-semibold pointer-events-none">km</span>
           </div>
-          <Button onClick={save} disabled={!canEdit || saving} className="h-11 px-4 font-bold">
-            {saving ? "Saving…" : "Save km"}
-          </Button>
+          <span className="text-[10px] uppercase tracking-wider text-muted-foreground min-w-[52px]">
+            {saving || dirty ? "saving…" : savedTick ? "✓ saved" : "\u00A0"}
+          </span>
         </div>
       </div>
     </div>
@@ -1444,14 +1470,17 @@ function ExpirySection({
 }) {
   const [value, setValue] = useState<string>(currentValue ?? "");
   const [saving, setSaving] = useState(false);
+  const [dirty, setDirty] = useState(false);
+  const [savedTick, setSavedTick] = useState(false);
 
   useEffect(() => {
     setValue(currentValue ?? "");
+    setDirty(false);
   }, [currentValue]);
 
-  async function save() {
+  async function save(silent = false) {
     if (!bikeId) {
-      toast.error("No bike linked to this job");
+      if (!silent) toast.error("No bike linked to this job");
       return;
     }
     setSaving(true);
@@ -1461,7 +1490,10 @@ function ExpirySection({
         .update({ [field]: value || null } as any)
         .eq("id", bikeId);
       if (error) throw error;
-      toast.success(`${label} saved`);
+      if (!silent) toast.success(`${label} saved`);
+      setDirty(false);
+      setSavedTick(true);
+      setTimeout(() => setSavedTick(false), 1500);
       onSaved();
     } catch (e: any) {
       toast.error(e?.message ?? "Failed to save");
@@ -1469,6 +1501,8 @@ function ExpirySection({
       setSaving(false);
     }
   }
+
+  useAutoSave(value, dirty && canEdit, () => save(true));
 
   const expired = value ? new Date(value) < new Date(new Date().toDateString()) : false;
 
@@ -1488,13 +1522,13 @@ function ExpirySection({
           <Input
             type="date"
             value={value}
-            onChange={(e) => setValue(e.target.value)}
+            onChange={(e) => { setValue(e.target.value); setDirty(true); }}
             disabled={!canEdit || saving}
             className="w-48 h-11 font-mono text-base"
           />
-          <Button onClick={save} disabled={!canEdit || saving} className="h-11 px-4 font-bold">
-            {saving ? "Saving…" : "Save"}
-          </Button>
+          <span className="text-[10px] uppercase tracking-wider text-muted-foreground min-w-[52px]">
+            {saving || dirty ? "saving…" : savedTick ? "✓ saved" : "\u00A0"}
+          </span>
         </div>
       </div>
     </div>
