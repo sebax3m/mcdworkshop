@@ -1,14 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Wrench, Gauge, Sparkles, ShieldCheck, Zap, ShieldAlert, Check, Pencil, Plus, Trash2, GripVertical } from "lucide-react";
-import { useState } from "react";
+import { Wrench, Gauge, Sparkles, ShieldCheck, Zap, ShieldAlert, Check, Pencil, Plus, Trash2, GripVertical, Printer } from "lucide-react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+import logoAsset from "@/assets/motorcycle-doctors-logo.png.asset.json";
 
 export const Route = createFileRoute("/_authenticated/templates")({
   component: Templates,
