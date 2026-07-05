@@ -1,8 +1,8 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
-import { Plus, ClipboardList, Calendar, ArrowDown, ArrowUp, Phone, MessageSquare, Check, ExternalLink } from "lucide-react";
+import { Plus, ClipboardList, Calendar, ArrowDown, ArrowUp, Phone, MessageSquare, Check } from "lucide-react";
 import { format } from "date-fns";
 import { useState, useMemo } from "react";
 
@@ -17,6 +17,7 @@ type SortDir = "asc" | "desc";
 
 function BookingsList() {
   const qc = useQueryClient();
+  const navigate = useNavigate();
   const [sortField, setSortField] = useState<SortField>("date");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
 
@@ -133,17 +134,21 @@ function BookingsList() {
                 transition={{ duration: 0.2, delay: i * 0.02 }}
                 role="button"
                 tabIndex={0}
-                onClick={() => toggleConfirmed(b.id, b.confirmed)}
-                onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggleConfirmed(b.id, b.confirmed); } }}
-                title={b.confirmed ? "Click to unmark confirmed" : "Click to mark as confirmed"}
+                onClick={() => navigate({ to: "/bookings/$bookingId", params: { bookingId: b.id } })}
+                onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); navigate({ to: "/bookings/$bookingId", params: { bookingId: b.id } }); } }}
+                title="Open job card"
                 className="card-surface p-4 flex items-center gap-3 cursor-pointer hover:bg-muted/30"
               >
-                <div
-                  aria-hidden
-                  className={`shrink-0 h-6 w-6 rounded-md border grid place-items-center ${b.confirmed ? "bg-green-500 border-green-500 text-white" : "border-border bg-card"}`}
+                <button
+                  type="button"
+                  onClick={(e) => { e.stopPropagation(); toggleConfirmed(b.id, b.confirmed); }}
+                  onKeyDown={(e) => e.stopPropagation()}
+                  aria-pressed={b.confirmed}
+                  title={b.confirmed ? "Confirmed booking — click to unconfirm" : "Mark booking as confirmed"}
+                  className={`shrink-0 h-8 w-8 rounded-md border-2 grid place-items-center transition-colors ${b.confirmed ? "bg-green-500 border-green-500 text-white" : "border-border bg-card hover:border-green-500/60 hover:bg-green-500/10"}`}
                 >
-                  {b.confirmed && <Check className="h-4 w-4" />}
-                </div>
+                  {b.confirmed && <Check className="h-5 w-5" strokeWidth={3} />}
+                </button>
                 <div className="w-14 shrink-0 text-center rounded-lg bg-muted py-2">
                   <div className="text-[10px] uppercase text-muted-foreground">{format(new Date(b.scheduled_date), "MMM")}</div>
                   <div className="font-display text-xl font-bold leading-none">{format(new Date(b.scheduled_date), "d")}</div>
@@ -190,15 +195,6 @@ function BookingsList() {
                 <span className="shrink-0 text-[10px] uppercase tracking-wider px-2 py-1 rounded-full border border-border text-muted-foreground">
                   {b.status}
                 </span>
-                <Link
-                  to="/bookings/$bookingId"
-                  params={{ bookingId: b.id }}
-                  onClick={(e) => e.stopPropagation()}
-                  className="shrink-0 inline-flex items-center gap-1 rounded-lg border border-border bg-card px-2 py-1.5 text-xs font-semibold hover:bg-muted"
-                  title="Open booking"
-                >
-                  <ExternalLink className="h-3 w-3" /> View
-                </Link>
               </motion.div>
             );
           })}
