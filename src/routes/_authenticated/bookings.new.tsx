@@ -53,6 +53,9 @@ function NewBooking() {
   const [wof, setWof] = useState<string>("");
   const [instructions, setInstructions] = useState<string>("");
   const [loanBike, setLoanBike] = useState<boolean>(false);
+  const [loanBikeId, setLoanBikeId] = useState<string | null>(null);
+  const [loanBikeReturn, setLoanBikeReturn] = useState<string>("");
+  const [loanBikeStartKm, setLoanBikeStartKm] = useState<string>("");
   const [techId, setTechId] = useState<string | null>(null);
   const [arrivalPhotos, setArrivalPhotos] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
@@ -94,6 +97,17 @@ function NewBooking() {
       if (!ids.length) return [];
       return (await supabase.from("profiles").select("id, full_name").in("id", ids)).data ?? [];
     },
+  });
+  const loanBikesQ = useQuery({
+    queryKey: ["bk-loan-bikes"],
+    queryFn: async () => (await supabase.from("loan_bikes").select("id, name, current_km, active").eq("active", true).order("name")).data ?? [],
+  });
+  const activeLoansQ = useQuery({
+    queryKey: ["bk-active-loans"],
+    queryFn: async () => (await supabase.from("bookings")
+      .select("loan_bike_id, loan_bike_expected_return, customers(first_name,last_name)")
+      .not("loan_bike_id", "is", null)
+      .is("loan_bike_returned_at", null)).data ?? [],
   });
 
   const customer = (customers.data as any[] | undefined)?.find((c) => c.id === customerId);
@@ -219,6 +233,9 @@ function NewBooking() {
           instructions,
           arrival_photos: arrivalPhotos,
           loan_bike: loanBike,
+          loan_bike_id: loanBike ? loanBikeId : null,
+          loan_bike_expected_return: loanBike && loanBikeReturn ? loanBikeReturn : null,
+          loan_bike_start_km: loanBike && loanBikeStartKm ? parseInt(loanBikeStartKm) : null,
           status: openJobCard ? "checked_in" : "booked",
         })
         .select("id")
@@ -558,6 +575,66 @@ function NewBooking() {
                 <span className="block text-xs text-muted-foreground">Highlighted on the calendar so the workshop can arrange one</span>
               </span>
             </label>
+            {loanBike && (
+              <div className="space-y-3 rounded-xl border border-amber-400/40 bg-amber-400/5 p-3">
+                <div>
+                  <Label className="text-xs uppercase tracking-wider text-muted-foreground">Assign loan bike</Label>
+                  <div className="grid grid-cols-1 gap-2 mt-1">
+                    {(loanBikesQ.data ?? []).map((lb: any) => {
+                      const outWith = (activeLoansQ.data ?? []).find((a: any) => a.loan_bike_id === lb.id);
+                      const busy = !!outWith;
+                      return (
+                        <button
+                          key={lb.id}
+                          type="button"
+                          onClick={() => setLoanBikeId(loanBikeId === lb.id ? null : lb.id)}
+                          className={`rounded-xl border p-3 text-left flex items-center gap-2 ${
+                            loanBikeId === lb.id ? "border-amber-400 bg-amber-400/10" : busy ? "border-destructive/40 opacity-70" : "border-border"
+                          }`}
+                        >
+                          <span className="flex-1">
+                            <span className="block text-sm font-semibold">{lb.name}</span>
+                            <span className="block text-[11px] text-muted-foreground">
+                              {lb.current_km?.toLocaleString?.() ?? 0} km
+                              {busy && outWith?.customers && ` · Out with ${outWith.customers.first_name} ${outWith.customers.last_name}`}
+                              {busy && outWith?.loan_bike_expected_return && ` · back ${outWith.loan_bike_expected_return}`}
+                            </span>
+                          </span>
+                          {busy && (
+                            <span className="rounded-full bg-destructive/15 text-destructive px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider">Out</span>
+                          )}
+                        </button>
+                      );
+                    })}
+                    {(loanBikesQ.data ?? []).length === 0 && (
+                      <div className="text-xs text-muted-foreground">No loan bikes registered. Add them from the Loan Bikes menu.</div>
+                    )}
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <Label className="text-xs uppercase tracking-wider text-muted-foreground">Expected return</Label>
+                    <input
+                      type="date"
+                      value={loanBikeReturn}
+                      onChange={(e) => setLoanBikeReturn(e.target.value)}
+                      className="w-full rounded-lg bg-card border border-border px-3 py-2 text-sm mt-1"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-xs uppercase tracking-wider text-muted-foreground">Start km (optional)</Label>
+                    <input
+                      type="number"
+                      inputMode="numeric"
+                      value={loanBikeStartKm}
+                      onChange={(e) => setLoanBikeStartKm(e.target.value)}
+                      placeholder="Odometer at handover"
+                      className="w-full rounded-lg bg-card border border-border px-3 py-2 text-sm mt-1"
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
           </section>
 
           <section className="card-surface p-4 space-y-3">
