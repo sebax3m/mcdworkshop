@@ -26,7 +26,7 @@ function BookingsList() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("bookings")
-        .select("id, service_type, scheduled_date, drop_off_time, estimated_hours, status, priority, confirmed, confirmed_at, customers(first_name,last_name,phone), motorcycles(year,make,model,rego)")
+        .select("id, service_type, scheduled_date, drop_off_time, estimated_hours, status, priority, confirmed, confirmed_at, job_id, customers(first_name,last_name,phone), motorcycles(year,make,model,rego), jobs(id,job_number,title,status)")
         .order("scheduled_date", { ascending: false })
         .limit(200);
       if (error) throw error;
