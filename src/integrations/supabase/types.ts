@@ -32,6 +32,11 @@ export type Database = {
           instructions: string | null
           job_id: string | null
           loan_bike: boolean
+          loan_bike_end_km: number | null
+          loan_bike_expected_return: string | null
+          loan_bike_id: string | null
+          loan_bike_returned_at: string | null
+          loan_bike_start_km: number | null
           mileage: number | null
           motorcycle_id: string
           notes: string | null
@@ -62,6 +67,11 @@ export type Database = {
           instructions?: string | null
           job_id?: string | null
           loan_bike?: boolean
+          loan_bike_end_km?: number | null
+          loan_bike_expected_return?: string | null
+          loan_bike_id?: string | null
+          loan_bike_returned_at?: string | null
+          loan_bike_start_km?: number | null
           mileage?: number | null
           motorcycle_id: string
           notes?: string | null
@@ -92,6 +102,11 @@ export type Database = {
           instructions?: string | null
           job_id?: string | null
           loan_bike?: boolean
+          loan_bike_end_km?: number | null
+          loan_bike_expected_return?: string | null
+          loan_bike_id?: string | null
+          loan_bike_returned_at?: string | null
+          loan_bike_start_km?: number | null
           mileage?: number | null
           motorcycle_id?: string
           notes?: string | null
@@ -118,6 +133,13 @@ export type Database = {
             columns: ["job_id"]
             isOneToOne: false
             referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_loan_bike_id_fkey"
+            columns: ["loan_bike_id"]
+            isOneToOne: false
+            referencedRelation: "loan_bikes"
             referencedColumns: ["id"]
           },
           {
@@ -808,6 +830,136 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      loan_bike_notes: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          loan_bike_id: string
+          note: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          loan_bike_id: string
+          note: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          loan_bike_id?: string
+          note?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "loan_bike_notes_loan_bike_id_fkey"
+            columns: ["loan_bike_id"]
+            isOneToOne: false
+            referencedRelation: "loan_bikes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      loan_bike_service_logs: {
+        Row: {
+          cost: number | null
+          created_at: string
+          created_by: string | null
+          description: string
+          id: string
+          km: number | null
+          loan_bike_id: string
+          service_date: string
+        }
+        Insert: {
+          cost?: number | null
+          created_at?: string
+          created_by?: string | null
+          description: string
+          id?: string
+          km?: number | null
+          loan_bike_id: string
+          service_date?: string
+        }
+        Update: {
+          cost?: number | null
+          created_at?: string
+          created_by?: string | null
+          description?: string
+          id?: string
+          km?: number | null
+          loan_bike_id?: string
+          service_date?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "loan_bike_service_logs_loan_bike_id_fkey"
+            columns: ["loan_bike_id"]
+            isOneToOne: false
+            referencedRelation: "loan_bikes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      loan_bikes: {
+        Row: {
+          active: boolean
+          color: string | null
+          created_at: string
+          current_km: number
+          id: string
+          last_service_date: string | null
+          last_service_km: number | null
+          make: string | null
+          model: string | null
+          name: string
+          next_service_due_km: number | null
+          notes: string | null
+          rego: string | null
+          service_interval_km: number
+          updated_at: string
+          year: number | null
+        }
+        Insert: {
+          active?: boolean
+          color?: string | null
+          created_at?: string
+          current_km?: number
+          id?: string
+          last_service_date?: string | null
+          last_service_km?: number | null
+          make?: string | null
+          model?: string | null
+          name: string
+          next_service_due_km?: number | null
+          notes?: string | null
+          rego?: string | null
+          service_interval_km?: number
+          updated_at?: string
+          year?: number | null
+        }
+        Update: {
+          active?: boolean
+          color?: string | null
+          created_at?: string
+          current_km?: number
+          id?: string
+          last_service_date?: string | null
+          last_service_km?: number | null
+          make?: string | null
+          model?: string | null
+          name?: string
+          next_service_due_km?: number | null
+          notes?: string | null
+          rego?: string | null
+          service_interval_km?: number
+          updated_at?: string
+          year?: number | null
+        }
+        Relationships: []
       }
       motorcycles: {
         Row: {
