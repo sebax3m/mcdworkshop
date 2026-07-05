@@ -1167,7 +1167,9 @@ function ValveClearanceSection({ jobId, cylinders, canEdit, data, bike, onChange
 }) {
   const [values, setValues] = useState<any>(data ?? {});
   const [saving, setSaving] = useState(false);
-  useEffect(() => { setValues(data ?? {}); }, [data]);
+  const [dirty, setDirty] = useState(false);
+  const [savedTick, setSavedTick] = useState(false);
+  useEffect(() => { setValues(data ?? {}); setDirty(false); }, [data]);
 
   const intakePerCyl = 2;
   const exhaustPerCyl = 2;
@@ -1177,18 +1179,24 @@ function ValveClearanceSection({ jobId, cylinders, canEdit, data, bike, onChange
   function set(cyl: number, side: "intake" | "exhaust", idx: number, v: string) {
     const key = `c${cyl}_${side}_${idx}`;
     setValues((s: any) => ({ ...s, [key]: v }));
+    setDirty(true);
   }
 
-  async function save() {
+  async function save(silent = false) {
     setSaving(true);
     const { data: job } = await supabase.from("jobs").select("service_data").eq("id", jobId).maybeSingle();
     const next = { ...(job?.service_data as any ?? {}), valves: values };
     const { error } = await supabase.from("jobs").update({ service_data: next }).eq("id", jobId);
     setSaving(false);
     if (error) return toast.error(error.message);
-    toast.success("Valve clearances saved");
+    if (!silent) toast.success("Valve clearances saved");
+    setDirty(false);
+    setSavedTick(true);
+    setTimeout(() => setSavedTick(false), 1500);
     onChanged();
   }
+
+  useAutoSave(values, dirty && canEdit, () => save(true));
 
   return (
     <>
