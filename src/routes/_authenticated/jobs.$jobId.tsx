@@ -1462,14 +1462,17 @@ function ExpirySection({
 }) {
   const [value, setValue] = useState<string>(currentValue ?? "");
   const [saving, setSaving] = useState(false);
+  const [dirty, setDirty] = useState(false);
+  const [savedTick, setSavedTick] = useState(false);
 
   useEffect(() => {
     setValue(currentValue ?? "");
+    setDirty(false);
   }, [currentValue]);
 
-  async function save() {
+  async function save(silent = false) {
     if (!bikeId) {
-      toast.error("No bike linked to this job");
+      if (!silent) toast.error("No bike linked to this job");
       return;
     }
     setSaving(true);
@@ -1479,7 +1482,10 @@ function ExpirySection({
         .update({ [field]: value || null } as any)
         .eq("id", bikeId);
       if (error) throw error;
-      toast.success(`${label} saved`);
+      if (!silent) toast.success(`${label} saved`);
+      setDirty(false);
+      setSavedTick(true);
+      setTimeout(() => setSavedTick(false), 1500);
       onSaved();
     } catch (e: any) {
       toast.error(e?.message ?? "Failed to save");
@@ -1487,6 +1493,8 @@ function ExpirySection({
       setSaving(false);
     }
   }
+
+  useAutoSave(value, dirty && canEdit, () => save(true));
 
   const expired = value ? new Date(value) < new Date(new Date().toDateString()) : false;
 
@@ -1506,13 +1514,13 @@ function ExpirySection({
           <Input
             type="date"
             value={value}
-            onChange={(e) => setValue(e.target.value)}
+            onChange={(e) => { setValue(e.target.value); setDirty(true); }}
             disabled={!canEdit || saving}
             className="w-48 h-11 font-mono text-base"
           />
-          <Button onClick={save} disabled={!canEdit || saving} className="h-11 px-4 font-bold">
-            {saving ? "Saving…" : "Save"}
-          </Button>
+          <span className="text-[10px] uppercase tracking-wider text-muted-foreground min-w-[52px]">
+            {saving || dirty ? "saving…" : savedTick ? "✓ saved" : "\u00A0"}
+          </span>
         </div>
       </div>
     </div>
