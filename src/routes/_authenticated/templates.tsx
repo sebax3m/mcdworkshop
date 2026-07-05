@@ -39,6 +39,18 @@ function Templates() {
 
   const unique = Array.from(new Map((templates as any[]).map((t) => [t.name, t])).values());
   const [editing, setEditing] = useState<any | null>(null);
+  const [printing, setPrinting] = useState<any | null>(null);
+
+  useEffect(() => {
+    if (!printing) return;
+    const t = setTimeout(() => window.print(), 120);
+    const done = () => setPrinting(null);
+    window.addEventListener("afterprint", done);
+    return () => {
+      clearTimeout(t);
+      window.removeEventListener("afterprint", done);
+    };
+  }, [printing]);
 
   return (
     <div className="space-y-5">
