@@ -17,6 +17,7 @@ type SortDir = "asc" | "desc";
 
 function BookingsList() {
   const qc = useQueryClient();
+  const navigate = useNavigate();
   const [sortField, setSortField] = useState<SortField>("date");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
 
