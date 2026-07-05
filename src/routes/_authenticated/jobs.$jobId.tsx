@@ -1376,13 +1376,16 @@ function OdometerSection({
   const initial = currentOdo ?? bikeMileage ?? null;
   const [value, setValue] = useState<string>(initial != null ? String(initial) : "");
   const [saving, setSaving] = useState(false);
+  const [dirty, setDirty] = useState(false);
+  const [savedTick, setSavedTick] = useState(false);
 
   useEffect(() => {
     const v = currentOdo ?? bikeMileage ?? null;
     setValue(v != null ? String(v) : "");
+    setDirty(false);
   }, [currentOdo, bikeMileage]);
 
-  async function save() {
+  async function save(silent = false) {
     const km = value ? parseInt(value.replace(/\D/g, "")) : null;
     setSaving(true);
     try {
@@ -1391,7 +1394,10 @@ function OdometerSection({
       if (bikeId && km != null) {
         await supabase.from("motorcycles").update({ mileage: km }).eq("id", bikeId);
       }
-      toast.success("Kilometers saved");
+      if (!silent) toast.success("Kilometers saved");
+      setDirty(false);
+      setSavedTick(true);
+      setTimeout(() => setSavedTick(false), 1500);
       onSaved();
     } catch (e: any) {
       toast.error(e?.message ?? "Failed to save");
@@ -1399,6 +1405,8 @@ function OdometerSection({
       setSaving(false);
     }
   }
+
+  useAutoSave(value, dirty && canEdit, () => save(true));
 
   const display = value ? Number(value.replace(/\D/g, "")).toLocaleString() : "";
 
@@ -1420,15 +1428,15 @@ function OdometerSection({
               inputMode="numeric"
               placeholder="e.g. 24,500"
               value={display}
-              onChange={(e) => setValue(e.target.value.replace(/\D/g, ""))}
+              onChange={(e) => { setValue(e.target.value.replace(/\D/g, "")); setDirty(true); }}
               disabled={!canEdit || saving}
               className="pr-12 w-44 h-11 font-mono text-base"
             />
             <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground font-semibold pointer-events-none">km</span>
           </div>
-          <Button onClick={save} disabled={!canEdit || saving} className="h-11 px-4 font-bold">
-            {saving ? "Saving…" : "Save km"}
-          </Button>
+          <span className="text-[10px] uppercase tracking-wider text-muted-foreground min-w-[52px]">
+            {saving || dirty ? "saving…" : savedTick ? "✓ saved" : "\u00A0"}
+          </span>
         </div>
       </div>
     </div>
