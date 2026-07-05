@@ -667,14 +667,19 @@ function AddNote({ jobId, onAdded }: { jobId: string; onAdded: () => void }) {
 function TaskRow({ task, canEdit, onToggle, onNoteSaved }: { task: any; canEdit: boolean; onToggle: () => void; onNoteSaved: () => void }) {
   const [note, setNote] = useState(task.note ?? "");
   const [dirty, setDirty] = useState(false);
+  const [savedTick, setSavedTick] = useState(false);
   useEffect(() => { setNote(task.note ?? ""); setDirty(false); }, [task.note]);
 
   async function saveNote() {
     const { error } = await supabase.from("job_tasks").update({ note: note || null }).eq("id", task.id);
     if (error) return toast.error(error.message);
     setDirty(false);
+    setSavedTick(true);
+    setTimeout(() => setSavedTick(false), 1200);
     onNoteSaved();
   }
+
+  useAutoSave(note, dirty && canEdit, saveNote);
 
   return (
     <div className="py-0.5 print:py-1 print:break-inside-avoid">
@@ -704,15 +709,8 @@ function TaskRow({ task, canEdit, onToggle, onNoteSaved }: { task: any; canEdit:
             maxLength={140}
             className="flex-1 bg-transparent border-0 border-b border-border/30 text-[11px] py-0 focus:outline-none focus:border-primary placeholder:text-muted-foreground/40"
           />
-          {dirty && (
-            <button
-              type="button"
-              onClick={saveNote}
-              className="text-[10px] font-bold uppercase tracking-wider rounded px-2 py-0.5 bg-primary text-primary-foreground hover:opacity-90"
-            >
-              Save
-            </button>
-          )}
+          {dirty && <span className="text-[9px] uppercase tracking-wider text-muted-foreground/60">saving…</span>}
+          {!dirty && savedTick && <span className="text-[9px] uppercase tracking-wider text-status-ready">✓ saved</span>}
         </div>
       )}
 
