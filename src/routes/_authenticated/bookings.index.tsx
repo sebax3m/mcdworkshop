@@ -163,6 +163,17 @@ function BookingsList() {
                     )}
                   </div>
                   <div className="text-xs text-muted-foreground truncate">{customer} · {b.service_type}{b.motorcycles?.rego ? ` · ${b.motorcycles.rego}` : ""}</div>
+                  {b.jobs ? (
+                    <div className="text-xs mt-1 flex items-center gap-1.5 flex-wrap">
+                      <span className="inline-flex items-center gap-1 rounded-md border border-primary/40 bg-primary/10 text-primary px-1.5 py-0.5 font-mono font-semibold tracking-wider">
+                        #{b.jobs.job_number ?? b.jobs.id?.slice(0, 6)}
+                      </span>
+                      <span className="truncate text-foreground/80">{b.jobs.title ?? "Job card"}</span>
+                      <span className="text-[10px] uppercase tracking-wider text-muted-foreground">· {b.jobs.status}</span>
+                    </div>
+                  ) : (
+                    <div className="text-xs mt-1 text-muted-foreground italic">No job card yet</div>
+                  )}
                   {phone && (
                     <div className="text-xs text-foreground/80 mt-0.5 flex items-center gap-1">
                       <Phone className="h-3 w-3" /> {phone}
