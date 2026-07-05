@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -14,6 +14,18 @@ import { getValveSpec, formatRange, type ValveSpec } from "@/lib/valve-specs";
 import { DamageSection } from "@/components/DamageSection";
 import logoAsset from "@/assets/motorcycle-doctors-logo.png.asset.json";
 
+// Debounced auto-save: fires `save` ~800ms after `value` stops changing.
+// `enabled` guards against saving before the user actually edits (e.g. initial hydration).
+function useAutoSave<T>(value: T, enabled: boolean, save: () => void | Promise<void>, delay = 800) {
+  const saveRef = useRef(save);
+  saveRef.current = save;
+  useEffect(() => {
+    if (!enabled) return;
+    const t = setTimeout(() => { void saveRef.current(); }, delay);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [value, enabled, delay]);
+}
 
 export const Route = createFileRoute("/_authenticated/jobs/$jobId")({
   component: JobDetail,
