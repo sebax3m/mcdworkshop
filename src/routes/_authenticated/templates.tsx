@@ -305,7 +305,7 @@ function PrintableTemplate({ template, onClose }: { template: any; onClose: () =
                 </ul>
               </div>
 
-              <div className="grid grid-cols-2 gap-6 pt-6 text-xs">
+              <div className="tpl-signatures grid grid-cols-2 gap-6 pt-6 text-xs">
                 <div>
                   <div className="muted mb-6">Technician signature</div>
                   <div className="border-t border-black/40" />
