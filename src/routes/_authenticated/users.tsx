@@ -80,10 +80,21 @@ function UsersPage() {
             onClick={async () => {
               try {
                 const r = await seedStaff({ data: undefined });
-                const created = r.results.filter((x) => x.status === "created").length;
+                const created = r.results.filter((x) => x.status === "created");
                 const exists = r.results.filter((x) => x.status === "exists").length;
                 const errs = r.results.filter((x) => x.status === "error");
-                toast.success(`Staff seeded — ${created} created, ${exists} already existed${errs.length ? `, ${errs.length} errors` : ""}`);
+                toast.success(`Staff seeded — ${created.length} created, ${exists} already existed${errs.length ? `, ${errs.length} errors` : ""}`);
+                // New accounts get a strong random password. Surface it once so
+                // the admin can hand it over out-of-band; it is not stored on
+                // the client and cannot be retrieved later.
+                for (const c of created) {
+                  if (c.temporary_password) {
+                    toast.message(`Temporary password for ${c.email}`, {
+                      description: c.temporary_password,
+                      duration: 60000,
+                    });
+                  }
+                }
                 if (errs.length) console.error(errs);
                 refetch();
               } catch (e: any) {
