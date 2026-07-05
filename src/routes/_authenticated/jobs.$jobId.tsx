@@ -1287,8 +1287,8 @@ function ValveClearanceSection({ jobId, cylinders, canEdit, data, bike, onChange
           <span className="ml-auto">Spec: I {formatRange(spec.intake)} · E {formatRange(spec.exhaust)}</span>
         </div>
         {canEdit && (
-          <div className="mt-3 flex justify-end">
-            <Button onClick={save} disabled={saving} className="gold-surface">{saving ? "Saving…" : "Save measurements"}</Button>
+          <div className="mt-3 flex justify-end items-center gap-3 text-[10px] uppercase tracking-wider text-muted-foreground">
+            {saving || dirty ? "saving…" : savedTick ? "✓ saved" : "auto-saves as you type"}
           </div>
         )}
       </section>
