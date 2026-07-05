@@ -250,7 +250,7 @@ function PrintableTemplate({ template, onClose }: { template: any; onClose: () =
         <div className="tpl-print-page">
           <div className="tpl-sheet mx-auto max-w-3xl bg-white text-black rounded-xl overflow-hidden shadow-2xl">
             {/* Gold banner header */}
-            <div className="px-8 py-6 flex items-start justify-between gap-4 flex-wrap" style={{ background: "linear-gradient(135deg, #d4a24c, #b8862a)", color: "#111" }}>
+            <div className="tpl-header px-8 py-6 flex items-start justify-between gap-4 flex-wrap" style={{ background: "linear-gradient(135deg, #d4a24c, #b8862a)", color: "#111" }}>
               <div className="flex items-center gap-4">
                 <img src={logoAsset.url} alt="Motorcycle Doctors" className="h-14 w-14 rounded-md object-contain bg-black/10 p-1" />
                 <div>
