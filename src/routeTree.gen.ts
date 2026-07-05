@@ -24,6 +24,7 @@ import { Route as AuthenticatedClockRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedCalendarRouteImport } from './routes/_authenticated/calendar'
 import { Route as AuthenticatedAnalyticsRouteImport } from './routes/_authenticated/analytics'
 import { Route as AuthenticatedMotorcyclesIndexRouteImport } from './routes/_authenticated/motorcycles.index'
+import { Route as AuthenticatedLoanBikesIndexRouteImport } from './routes/_authenticated/loan-bikes.index'
 import { Route as AuthenticatedJobsIndexRouteImport } from './routes/_authenticated/jobs.index'
 import { Route as AuthenticatedInvoicesIndexRouteImport } from './routes/_authenticated/invoices.index'
 import { Route as AuthenticatedInsuranceIndexRouteImport } from './routes/_authenticated/insurance.index'
@@ -111,6 +112,12 @@ const AuthenticatedMotorcyclesIndexRoute =
   AuthenticatedMotorcyclesIndexRouteImport.update({
     id: '/motorcycles/',
     path: '/motorcycles/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedLoanBikesIndexRoute =
+  AuthenticatedLoanBikesIndexRouteImport.update({
+    id: '/loan-bikes/',
+    path: '/loan-bikes/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedJobsIndexRoute = AuthenticatedJobsIndexRouteImport.update({
@@ -216,6 +223,7 @@ export interface FileRoutesByFullPath {
   '/insurance/': typeof AuthenticatedInsuranceIndexRoute
   '/invoices/': typeof AuthenticatedInvoicesIndexRoute
   '/jobs/': typeof AuthenticatedJobsIndexRoute
+  '/loan-bikes/': typeof AuthenticatedLoanBikesIndexRoute
   '/motorcycles/': typeof AuthenticatedMotorcyclesIndexRoute
 }
 export interface FileRoutesByTo {
@@ -243,6 +251,7 @@ export interface FileRoutesByTo {
   '/insurance': typeof AuthenticatedInsuranceIndexRoute
   '/invoices': typeof AuthenticatedInvoicesIndexRoute
   '/jobs': typeof AuthenticatedJobsIndexRoute
+  '/loan-bikes': typeof AuthenticatedLoanBikesIndexRoute
   '/motorcycles': typeof AuthenticatedMotorcyclesIndexRoute
 }
 export interface FileRoutesById {
@@ -274,6 +283,7 @@ export interface FileRoutesById {
   '/_authenticated/insurance/': typeof AuthenticatedInsuranceIndexRoute
   '/_authenticated/invoices/': typeof AuthenticatedInvoicesIndexRoute
   '/_authenticated/jobs/': typeof AuthenticatedJobsIndexRoute
+  '/_authenticated/loan-bikes/': typeof AuthenticatedLoanBikesIndexRoute
   '/_authenticated/motorcycles/': typeof AuthenticatedMotorcyclesIndexRoute
 }
 export interface FileRouteTypes {
@@ -305,6 +315,7 @@ export interface FileRouteTypes {
     | '/insurance/'
     | '/invoices/'
     | '/jobs/'
+    | '/loan-bikes/'
     | '/motorcycles/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -332,6 +343,7 @@ export interface FileRouteTypes {
     | '/insurance'
     | '/invoices'
     | '/jobs'
+    | '/loan-bikes'
     | '/motorcycles'
   id:
     | '__root__'
@@ -362,6 +374,7 @@ export interface FileRouteTypes {
     | '/_authenticated/insurance/'
     | '/_authenticated/invoices/'
     | '/_authenticated/jobs/'
+    | '/_authenticated/loan-bikes/'
     | '/_authenticated/motorcycles/'
   fileRoutesById: FileRoutesById
 }
@@ -476,6 +489,13 @@ declare module '@tanstack/react-router' {
       path: '/motorcycles'
       fullPath: '/motorcycles/'
       preLoaderRoute: typeof AuthenticatedMotorcyclesIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/loan-bikes/': {
+      id: '/_authenticated/loan-bikes/'
+      path: '/loan-bikes'
+      fullPath: '/loan-bikes/'
+      preLoaderRoute: typeof AuthenticatedLoanBikesIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/jobs/': {
@@ -626,6 +646,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedMotorcyclesBikeIdRoute: typeof AuthenticatedMotorcyclesBikeIdRoute
   AuthenticatedBookingsIndexRoute: typeof AuthenticatedBookingsIndexRoute
   AuthenticatedJobsIndexRoute: typeof AuthenticatedJobsIndexRoute
+  AuthenticatedLoanBikesIndexRoute: typeof AuthenticatedLoanBikesIndexRoute
   AuthenticatedMotorcyclesIndexRoute: typeof AuthenticatedMotorcyclesIndexRoute
 }
 
@@ -648,6 +669,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedMotorcyclesBikeIdRoute: AuthenticatedMotorcyclesBikeIdRoute,
   AuthenticatedBookingsIndexRoute: AuthenticatedBookingsIndexRoute,
   AuthenticatedJobsIndexRoute: AuthenticatedJobsIndexRoute,
+  AuthenticatedLoanBikesIndexRoute: AuthenticatedLoanBikesIndexRoute,
   AuthenticatedMotorcyclesIndexRoute: AuthenticatedMotorcyclesIndexRoute,
 }
 
