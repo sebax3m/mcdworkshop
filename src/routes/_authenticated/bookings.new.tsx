@@ -233,6 +233,9 @@ function NewBooking() {
           instructions,
           arrival_photos: arrivalPhotos,
           loan_bike: loanBike,
+          loan_bike_id: loanBike ? loanBikeId : null,
+          loan_bike_expected_return: loanBike && loanBikeReturn ? loanBikeReturn : null,
+          loan_bike_start_km: loanBike && loanBikeStartKm ? parseInt(loanBikeStartKm) : null,
           status: openJobCard ? "checked_in" : "booked",
         })
         .select("id")
