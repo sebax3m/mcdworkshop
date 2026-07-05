@@ -98,6 +98,17 @@ function NewBooking() {
       return (await supabase.from("profiles").select("id, full_name").in("id", ids)).data ?? [];
     },
   });
+  const loanBikesQ = useQuery({
+    queryKey: ["bk-loan-bikes"],
+    queryFn: async () => (await supabase.from("loan_bikes").select("id, name, current_km, active").eq("active", true).order("name")).data ?? [],
+  });
+  const activeLoansQ = useQuery({
+    queryKey: ["bk-active-loans"],
+    queryFn: async () => (await supabase.from("bookings")
+      .select("loan_bike_id, loan_bike_expected_return, customers(first_name,last_name)")
+      .not("loan_bike_id", "is", null)
+      .is("loan_bike_returned_at", null)).data ?? [],
+  });
 
   const customer = (customers.data as any[] | undefined)?.find((c) => c.id === customerId);
   const bike = (bikes.data as any[] | undefined)?.find((b) => b.id === bikeId);
