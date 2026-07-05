@@ -212,14 +212,27 @@ function PrintableTemplate({ template, onClose }: { template: any; onClose: () =
     <>
       <style>{`
         @media print {
-          @page { size: A4; margin: 14mm; }
+          @page { size: A4; margin: 10mm; }
           html, body { background: #ffffff !important; color: #000 !important; }
           body * { visibility: hidden !important; }
           .tpl-print-page, .tpl-print-page * { visibility: visible !important; }
           .tpl-print-page { position: absolute; left: 0; top: 0; width: 100%; margin: 0; padding: 0; }
-          .tpl-sheet { box-shadow: none !important; border: none !important; background: #ffffff !important; color: #000 !important; }
+          .tpl-sheet { box-shadow: none !important; border: none !important; background: #ffffff !important; color: #000 !important; max-width: 100% !important; page-break-inside: avoid; break-inside: avoid; }
           .tpl-sheet .muted { color: #4b5563 !important; }
           .tpl-sheet .rule { border-color: #d1d5db !important; }
+          .tpl-sheet .tpl-header { padding: 12px 18px !important; }
+          .tpl-sheet .tpl-header .font-display.text-3xl { font-size: 18pt !important; }
+          .tpl-sheet .tpl-header .font-display.text-2xl { font-size: 14pt !important; }
+          .tpl-sheet .tpl-header img { height: 42px !important; width: 42px !important; }
+          .tpl-sheet .tpl-body { padding: 14px 18px !important; gap: 10px !important; }
+          .tpl-sheet .tpl-body > * + * { margin-top: 8px !important; }
+          .tpl-sheet .tpl-body li { padding-top: 3px !important; padding-bottom: 3px !important; font-size: 9.5pt !important; line-height: 1.25 !important; }
+          .tpl-sheet .tpl-body p, .tpl-sheet .tpl-body .text-sm { font-size: 9.5pt !important; line-height: 1.3 !important; }
+          .tpl-sheet .tpl-body .text-\\[10px\\] { font-size: 8pt !important; }
+          .tpl-sheet .tpl-signatures { padding-top: 10px !important; }
+          .tpl-sheet .tpl-signatures .mb-6 { margin-bottom: 22px !important; }
+          .tpl-sheet ul { page-break-inside: avoid; break-inside: avoid; }
+          .tpl-sheet li { page-break-inside: avoid; break-inside: avoid; }
         }
         @media screen {
           .tpl-print-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 60; overflow-y: auto; padding: 24px; }
