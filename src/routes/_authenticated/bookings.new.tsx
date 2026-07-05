@@ -53,6 +53,9 @@ function NewBooking() {
   const [wof, setWof] = useState<string>("");
   const [instructions, setInstructions] = useState<string>("");
   const [loanBike, setLoanBike] = useState<boolean>(false);
+  const [loanBikeId, setLoanBikeId] = useState<string | null>(null);
+  const [loanBikeReturn, setLoanBikeReturn] = useState<string>("");
+  const [loanBikeStartKm, setLoanBikeStartKm] = useState<string>("");
   const [techId, setTechId] = useState<string | null>(null);
   const [arrivalPhotos, setArrivalPhotos] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
