@@ -180,3 +180,11 @@
   height: 2px;
   border-radius: 2px;
 }
+
+@utility scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}

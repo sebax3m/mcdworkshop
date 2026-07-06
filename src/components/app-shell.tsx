@@ -21,6 +21,11 @@ export function AppShell() {
         { to: "/jobs", label: "Jobs", icon: Wrench },
         { to: "/motorcycles", label: "Bikes", icon: Bike },
         { to: "/clock", label: "Clock", icon: Timer },
+        { to: "/invoices", label: "Invoices", icon: FileText },
+        { to: "/insurance", label: "Insurance", icon: ShieldCheck },
+        { to: "/loan-bikes", label: "Loan", icon: KeyRound },
+        { to: "/analytics", label: "Analytics", icon: BarChart3 },
+        { to: "/settings", label: "Settings", icon: SettingsIcon },
       ]
     : [
         { to: "/calendar", label: "Calendar", icon: CalendarDays },
@@ -212,11 +217,7 @@ export function AppShell() {
 
       {/* ===== MOBILE BOTTOM NAV ===== */}
       <nav className="fixed bottom-0 inset-x-0 z-40 sm:hidden border-t border-border bg-background/95 backdrop-blur-xl">
-        <div
-          className="grid"
-          style={{ gridTemplateColumns: `repeat(${tabs.length}, minmax(0, 1fr))` }}
-        >
-
+        <div className="flex overflow-x-auto overflow-y-hidden scrollbar-hide snap-x snap-mandatory">
           {tabs.map((t) => {
             const active = pathname === t.to || pathname.startsWith(t.to + "/");
             const Icon = t.icon;
@@ -225,12 +226,12 @@ export function AppShell() {
                 key={t.to}
                 to={t.to}
                 className={cn(
-                  "flex flex-col items-center justify-center gap-1 py-3 text-xs uppercase tracking-wider transition-colors",
+                  "flex flex-col items-center justify-center gap-1 py-3 px-4 text-[10px] uppercase tracking-wider transition-colors shrink-0 snap-start min-w-[72px]",
                   active ? "text-primary" : "text-muted-foreground",
                 )}
               >
                 <Icon className={cn("h-6 w-6", active && "drop-shadow-[0_0_8px_oklch(0.58_0.22_25/0.6)]")} />
-                <span className="font-semibold">{t.label}</span>
+                <span className="font-semibold whitespace-nowrap">{t.label}</span>
               </Link>
             );
           })}
