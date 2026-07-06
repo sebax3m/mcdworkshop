@@ -10,6 +10,7 @@ import { FloatingClockWidget } from "@/components/FloatingClockWidget";
 
 export function AppShell() {
   const nav = useNavigate();
+  const router = useRouter();
   const { fullName, isAdmin, isTechnician, loading: userLoading } = useCurrentUser();
   const roleLabel = isAdmin ? "Admin" : isTechnician ? "Technician" : "No Role";
   const pathname = useRouterState({ select: (s) => s.location.pathname });
