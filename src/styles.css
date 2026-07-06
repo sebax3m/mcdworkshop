@@ -156,6 +156,7 @@
 
 @utility card-surface {
   background: var(--card);
+  color: var(--card-foreground);
   border: 1px solid var(--border);
   box-shadow: var(--shadow-card);
   border-radius: var(--radius-xl);
