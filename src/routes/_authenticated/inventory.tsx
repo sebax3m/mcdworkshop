@@ -6,7 +6,7 @@ import { useCurrentUser } from "@/hooks/use-current-user";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { Package, Plus, Search, AlertTriangle } from "lucide-react";
+import { Package, Plus, Search, AlertTriangle, LayoutGrid, List, Rows3 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/inventory")({
   component: Inventory,
