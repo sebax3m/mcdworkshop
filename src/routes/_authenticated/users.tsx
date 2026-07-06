@@ -7,6 +7,8 @@ import { ArrowLeft, Check, RefreshCw, Mail, Clock, Pencil, Star, UserPlus, KeyRo
 import { listUsersWithLogins, updateUserDetails, type UserLoginRow } from "@/lib/users.functions";
 import { seedStaff } from "@/lib/seed-staff.functions";
 import { resetStaffPasswords } from "@/lib/reset-passwords.functions";
+import { createTechnician } from "@/lib/create-technician.functions";
+
 
 import { initials } from "@/lib/format";
 import {
