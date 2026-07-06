@@ -109,8 +109,11 @@ export function AppShell() {
       </header>
 
       {/* ===== DESKTOP SIDEBAR ===== */}
-      <aside className="hidden sm:flex fixed left-0 top-0 z-20 w-[200px] h-screen pt-[60px] flex-col border-r border-border/60 bg-card/80 backdrop-blur-xl overflow-y-auto">
-        <nav className="flex-1 flex flex-col gap-1 p-3">
+      <aside className="hidden sm:flex fixed left-0 top-[80px] z-20 w-[220px] h-[calc(100vh-80px)] flex-col border-r border-border/60 bg-card/80 backdrop-blur-xl overflow-y-auto">
+        <div className="px-4 pt-4 pb-2 text-[10px] font-bold uppercase tracking-[0.25em] text-muted-foreground">
+          Main Menu
+        </div>
+        <nav className="flex-1 flex flex-col gap-1 p-3 pt-1">
           {tabs.map((t) => {
             const active = pathname === t.to || pathname.startsWith(t.to + "/");
             const Icon = t.icon;
@@ -201,7 +204,7 @@ export function AppShell() {
       </aside>
 
       {/* ===== MAIN ===== */}
-      <main className="flex-1 px-4 pt-5 pb-28 sm:pb-5 sm:ml-[200px]">
+      <main className="flex-1 px-4 pt-5 pb-28 sm:pb-5 sm:ml-[220px]">
         <Outlet />
       </main>
 
@@ -209,7 +212,11 @@ export function AppShell() {
 
       {/* ===== MOBILE BOTTOM NAV ===== */}
       <nav className="fixed bottom-0 inset-x-0 z-40 sm:hidden border-t border-border bg-background/95 backdrop-blur-xl">
-        <div className="grid grid-cols-5">
+        <div
+          className="grid"
+          style={{ gridTemplateColumns: `repeat(${tabs.length}, minmax(0, 1fr))` }}
+        >
+
           {tabs.map((t) => {
             const active = pathname === t.to || pathname.startsWith(t.to + "/");
             const Icon = t.icon;
