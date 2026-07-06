@@ -1,15 +1,26 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { toast } from "sonner";
 import logoAsset from "@/assets/motorcycle-doctors-logo.png.asset.json";
+import { listStaffEmails } from "@/lib/staff.functions";
 
 export const Route = createFileRoute("/auth")({
   component: AuthPage,
 });
+
 
 function AuthPage() {
   const nav = useNavigate();
@@ -18,6 +29,14 @@ function AuthPage() {
   const [loading, setLoading] = useState(false);
   const [resetEmail, setResetEmail] = useState("");
   const [showReset, setShowReset] = useState(false);
+
+  const fetchStaff = useServerFn(listStaffEmails);
+  const { data: staff = [] } = useQuery({
+    queryKey: ["auth", "staff-emails"],
+    queryFn: () => fetchStaff(),
+    staleTime: 60_000,
+  });
+
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
