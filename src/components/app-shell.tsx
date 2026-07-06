@@ -135,10 +135,10 @@ export function AppShell() {
           aria-label="Go back"
           title="Go back"
         >
+          <ArrowLeft className="h-5 w-5" />
+        </button>
+      )}
 
-      >
-        <ArrowLeft className="h-5 w-5" />
-      </button>
 
       {/* ===== DESKTOP SIDEBAR ===== */}
       <aside className="hidden sm:flex fixed left-0 top-[80px] z-20 w-[220px] h-[calc(100vh-80px)] flex-col border-r border-border/60 bg-card/80 backdrop-blur-xl overflow-y-auto text-sidebar-foreground">
