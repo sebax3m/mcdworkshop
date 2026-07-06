@@ -1,5 +1,4 @@
 import { Link, Outlet, useRouterState, useNavigate, useRouter } from "@tanstack/react-router";
-import { MobileQuickActionButton } from "@/components/MobileQuickActionButton";
 import { CalendarDays, Wrench, Bike, Timer, LogOut, ClipboardList, FileText, Settings as SettingsIcon, BarChart3, ShieldCheck, KeyRound, ArrowLeft } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useCurrentUser } from "@/hooks/use-current-user";
@@ -9,12 +8,24 @@ import logoAsset from "@/assets/motorcycle-doctors-logo.png.asset.json";
 import { ActiveUserSwitcher } from "@/components/ActiveUserSwitcher";
 import { FloatingClockWidget } from "@/components/FloatingClockWidget";
 
+import { useState, useEffect } from "react";
+
 export function AppShell() {
   const nav = useNavigate();
   const router = useRouter();
+  const [backVisible, setBackVisible] = useState(false);
   const { fullName, isAdmin, isTechnician, loading: userLoading } = useCurrentUser();
   const roleLabel = isAdmin ? "Admin" : isTechnician ? "Technician" : "No Role";
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setBackVisible(window.scrollY > 60);
+    };
+    handleScroll();
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   const tabs = isAdmin
     ? [
@@ -47,7 +58,7 @@ export function AppShell() {
         <div className="flex items-center gap-3 px-4 py-3">
           <button
             onClick={() => router.history.back()}
-            className="grid h-9 w-9 place-items-center rounded-lg border border-border text-muted-foreground hover:text-foreground hover:border-foreground/30 transition-colors shrink-0"
+            className="hidden sm:grid h-9 w-9 place-items-center rounded-lg border border-border text-muted-foreground hover:text-foreground hover:border-foreground/30 transition-colors shrink-0"
             aria-label="Go back"
             title="Go back"
           >
@@ -123,7 +134,21 @@ export function AppShell() {
         </div>
       </header>
 
-      <MobileQuickActionButton isAdmin={isAdmin} />
+      {/* ===== MOBILE FLOATING BACK BUTTON ===== */}
+      <button
+        onClick={() => router.history.back()}
+        className={cn(
+          "fixed left-4 z-50 sm:hidden transition-all duration-300 ease-out grid h-10 w-10 place-items-center rounded-full border border-border bg-background/90 backdrop-blur shadow-lg text-muted-foreground hover:text-foreground",
+          backVisible
+            ? "translate-y-0 opacity-100 pointer-events-auto"
+            : "-translate-y-2 opacity-0 pointer-events-none"
+        )}
+        style={{ top: "76px" }}
+        aria-label="Go back"
+        title="Go back"
+      >
+        <ArrowLeft className="h-5 w-5" />
+      </button>
 
       {/* ===== DESKTOP SIDEBAR ===== */}
       <aside className="hidden sm:flex fixed left-0 top-[80px] z-20 w-[220px] h-[calc(100vh-80px)] flex-col border-r border-border/60 bg-card/80 backdrop-blur-xl overflow-y-auto text-sidebar-foreground">
