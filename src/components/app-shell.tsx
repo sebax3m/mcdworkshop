@@ -46,7 +46,7 @@ export function AppShell() {
         <div className="flex items-center gap-3 px-4 py-3">
           <button
             onClick={() => router.history.back()}
-            className="hidden sm:grid h-9 w-9 place-items-center rounded-lg border border-border text-muted-foreground hover:text-foreground hover:border-foreground/30 transition-colors shrink-0"
+            className="grid h-9 w-9 place-items-center rounded-lg border border-border text-muted-foreground hover:text-foreground hover:border-foreground/30 transition-colors shrink-0"
             aria-label="Go back"
             title="Go back"
           >
