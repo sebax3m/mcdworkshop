@@ -107,15 +107,6 @@ function Inventory() {
         </div>
       </div>
 
-            className={`rounded-full border px-3 py-1.5 text-xs font-semibold uppercase tracking-wider transition-colors ${
-              cat === c.key ? "border-primary bg-primary/10 text-primary" : "border-border text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            {c.label}
-          </button>
-        ))}
-      </div>
-
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <input
@@ -130,7 +121,41 @@ function Inventory() {
         <div className="card-surface p-8 text-center text-muted-foreground">Loading…</div>
       ) : filtered.length === 0 ? (
         <div className="card-surface p-8 text-center text-muted-foreground">No inventory items.</div>
-      ) : (
+      ) : view === "grid" ? (
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+          {filtered.map((i: any) => {
+            const low = Number(i.stock_qty) <= Number(i.min_stock);
+            return (
+              <button
+                key={i.id}
+                onClick={() => isAdmin && setEditing(i)}
+                disabled={!isAdmin}
+                className="card-surface p-3 text-left hover:border-primary/40 transition-colors disabled:cursor-default flex flex-col items-center text-center gap-2"
+              >
+                <span className="grid h-14 w-14 place-items-center rounded-xl bg-muted text-primary">
+                  <Package className="h-7 w-7" />
+                </span>
+                <div className="text-[10px] uppercase tracking-wider text-muted-foreground">{i.category}</div>
+                <div className="font-semibold text-sm truncate w-full">{i.name}</div>
+                <div className="text-xs text-muted-foreground truncate w-full">
+                  {[i.brand, i.type].filter(Boolean).join(" · ") || "—"}
+                </div>
+                <div className="mt-auto pt-1 flex items-center justify-between w-full text-xs">
+                  <span className={low ? "text-destructive font-bold" : "font-bold"}>
+                    {Number(i.stock_qty)} {i.unit}
+                  </span>
+                  <span className="font-semibold text-primary">${Number(i.unit_price).toFixed(2)}</span>
+                </div>
+                {low && (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-destructive/10 text-destructive px-1.5 py-0.5 text-[10px] font-bold uppercase">
+                    <AlertTriangle className="h-3 w-3" /> Low
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+      ) : view === "list" ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {filtered.map((i: any) => {
             const low = Number(i.stock_qty) <= Number(i.min_stock);
@@ -167,6 +192,32 @@ function Inventory() {
                     </div>
                   </div>
                 </div>
+              </button>
+            );
+          })}
+        </div>
+      ) : (
+        <div className="card-surface overflow-hidden divide-y divide-border">
+          {filtered.map((i: any) => {
+            const low = Number(i.stock_qty) <= Number(i.min_stock);
+            return (
+              <button
+                key={i.id}
+                onClick={() => isAdmin && setEditing(i)}
+                disabled={!isAdmin}
+                className="w-full px-4 py-2.5 text-left hover:bg-muted/40 transition-colors disabled:cursor-default flex items-center gap-3"
+              >
+                <Package className="h-4 w-4 text-primary shrink-0" />
+                <span className="font-semibold text-sm truncate flex-1">{i.name}</span>
+                <span className="text-[10px] uppercase tracking-wider text-muted-foreground hidden sm:inline w-24 truncate">{i.category}</span>
+                <span className="text-xs text-muted-foreground hidden md:inline w-40 truncate">
+                  {[i.brand, i.type].filter(Boolean).join(" · ") || "—"}
+                </span>
+                <span className={`text-xs w-20 text-right ${low ? "text-destructive font-bold" : "font-bold"}`}>
+                  {Number(i.stock_qty)} {i.unit}
+                </span>
+                <span className="text-xs font-semibold text-primary w-16 text-right">${Number(i.unit_price).toFixed(2)}</span>
+                {low && <AlertTriangle className="h-3.5 w-3.5 text-destructive shrink-0" />}
               </button>
             );
           })}
