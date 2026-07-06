@@ -8,12 +8,24 @@ import logoAsset from "@/assets/motorcycle-doctors-logo.png.asset.json";
 import { ActiveUserSwitcher } from "@/components/ActiveUserSwitcher";
 import { FloatingClockWidget } from "@/components/FloatingClockWidget";
 
+import { useState, useEffect } from "react";
+
 export function AppShell() {
   const nav = useNavigate();
   const router = useRouter();
+  const [backVisible, setBackVisible] = useState(false);
   const { fullName, isAdmin, isTechnician, loading: userLoading } = useCurrentUser();
   const roleLabel = isAdmin ? "Admin" : isTechnician ? "Technician" : "No Role";
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setBackVisible(window.scrollY > 60);
+    };
+    handleScroll();
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   const tabs = isAdmin
     ? [
