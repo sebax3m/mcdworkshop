@@ -112,14 +112,44 @@ function AuthPage() {
                     <SelectValue placeholder="Select a user" />
                   </SelectTrigger>
                   <SelectContent>
-                    {staff.map((s) => (
-                      <SelectItem key={s.id} value={s.email}>
-                        <span className="font-medium">{s.full_name}</span>
-                        <span className="text-muted-foreground"> — {s.email}</span>
-                      </SelectItem>
-                    ))}
+                    {(() => {
+                      const admins = staff.filter((s) => s.role === "admin");
+                      const techs = staff.filter((s) => s.role !== "admin");
+                      return (
+                        <>
+                          {admins.length > 0 && (
+                            <>
+                              <div className="px-2 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                                Admins
+                              </div>
+                              {admins.map((s) => (
+                                <SelectItem key={s.id} value={s.email}>
+                                  <span className="font-medium">{s.full_name}</span>
+                                  <span className="text-muted-foreground"> — {s.email}</span>
+                                </SelectItem>
+                              ))}
+                            </>
+                          )}
+                          {techs.length > 0 && (
+                            <>
+                              {admins.length > 0 && <div className="my-1 h-px bg-border" />}
+                              <div className="px-2 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                                Technicians
+                              </div>
+                              {techs.map((s) => (
+                                <SelectItem key={s.id} value={s.email}>
+                                  <span className="font-medium">{s.full_name}</span>
+                                  <span className="text-muted-foreground"> — {s.email}</span>
+                                </SelectItem>
+                              ))}
+                            </>
+                          )}
+                        </>
+                      );
+                    })()}
                   </SelectContent>
                 </Select>
+
               ) : (
                 <Input
                   id="email"
