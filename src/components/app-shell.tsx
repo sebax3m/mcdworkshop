@@ -1,5 +1,5 @@
-import { Link, Outlet, useRouterState, useNavigate } from "@tanstack/react-router";
-import { CalendarDays, Wrench, Bike, Timer, LogOut, ClipboardList, FileText, Settings as SettingsIcon, BarChart3, ShieldCheck, KeyRound } from "lucide-react";
+import { Link, Outlet, useRouterState, useNavigate, useRouter } from "@tanstack/react-router";
+import { CalendarDays, Wrench, Bike, Timer, LogOut, ClipboardList, FileText, Settings as SettingsIcon, BarChart3, ShieldCheck, KeyRound, ArrowLeft } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { initials } from "@/lib/format";
