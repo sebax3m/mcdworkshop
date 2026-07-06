@@ -44,6 +44,14 @@ export function AppShell() {
       {/* ===== HEADER ===== */}
       <header className="sticky top-0 z-30 border-b border-border/60 bg-background/85 backdrop-blur-xl">
         <div className="flex items-center gap-3 px-4 py-3">
+          <button
+            onClick={() => router.history.back()}
+            className="hidden sm:grid h-9 w-9 place-items-center rounded-lg border border-border text-muted-foreground hover:text-foreground hover:border-foreground/30 transition-colors shrink-0"
+            aria-label="Go back"
+            title="Go back"
+          >
+            <ArrowLeft className="h-4 w-4" />
+          </button>
           <Link to="/calendar" className="flex items-center gap-2.5 min-w-0 group">
             <img
               src={logoAsset.url}
