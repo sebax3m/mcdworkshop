@@ -82,7 +82,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { title: "Motorcycle Doctors — Workshop OS" },
       { name: "description", content: "Motorcycle Doctors — performance motorcycle workshop management. Bookings, dyno tuning, technician workflow." },
       { name: "author", content: "Motorcycle Doctors" },
-      { name: "theme-color", content: "#ffffff" },
+      { name: "theme-color", content: "#0a0a0a" },
       { property: "og:title", content: "Motorcycle Doctors — Workshop OS" },
       { property: "og:description", content: "Motorcycle Doctors — performance motorcycle workshop management. Bookings, dyno tuning, technician workflow." },
       { property: "og:type", content: "website" },
