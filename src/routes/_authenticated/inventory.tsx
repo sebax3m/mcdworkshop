@@ -72,11 +72,41 @@ function Inventory() {
         )}
       </header>
 
-      <div className="flex flex-wrap gap-2">
-        {CATEGORIES.map((c) => (
-          <button
-            key={c.key}
-            onClick={() => setCat(c.key)}
+      <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap gap-2 flex-1">
+          {CATEGORIES.map((c) => (
+            <button
+              key={c.key}
+              onClick={() => setCat(c.key)}
+              className={`rounded-full border px-3 py-1.5 text-xs font-semibold uppercase tracking-wider transition-colors ${
+                cat === c.key ? "border-primary bg-primary/10 text-primary" : "border-border text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              {c.label}
+            </button>
+          ))}
+        </div>
+        <div className="inline-flex rounded-lg border border-border overflow-hidden shrink-0">
+          {([
+            { k: "grid", icon: LayoutGrid, label: "Grid" },
+            { k: "list", icon: List, label: "List" },
+            { k: "compact", icon: Rows3, label: "Compact" },
+          ] as const).map(({ k, icon: Icon, label }) => (
+            <button
+              key={k}
+              onClick={() => changeView(k)}
+              title={label}
+              aria-label={label}
+              className={`px-2.5 py-1.5 transition-colors ${
+                view === k ? "bg-primary/15 text-primary" : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <Icon className="h-4 w-4" />
+            </button>
+          ))}
+        </div>
+      </div>
+
             className={`rounded-full border px-3 py-1.5 text-xs font-semibold uppercase tracking-wider transition-colors ${
               cat === c.key ? "border-primary bg-primary/10 text-primary" : "border-border text-muted-foreground hover:text-foreground"
             }`}
