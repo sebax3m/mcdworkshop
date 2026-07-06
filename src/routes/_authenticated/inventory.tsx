@@ -35,8 +35,8 @@ function Inventory() {
   const [search, setSearch] = useState("");
   const [editing, setEditing] = useState<any | null>(null);
   const [view, setView] = useState<ViewMode>(() => {
-    if (typeof window === "undefined") return "grid";
-    return (localStorage.getItem("inventory-view") as ViewMode) || "grid";
+    if (typeof window === "undefined") return "list";
+    return (localStorage.getItem("inventory-view") as ViewMode) || "list";
   });
 
   function changeView(v: ViewMode) {
