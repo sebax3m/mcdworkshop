@@ -26,12 +26,23 @@ const CATEGORIES = [
   { key: "other", label: "Other" },
 ];
 
+type ViewMode = "grid" | "list" | "compact";
+
 function Inventory() {
   const { isAdmin } = useCurrentUser();
   const qc = useQueryClient();
   const [cat, setCat] = useState("all");
   const [search, setSearch] = useState("");
   const [editing, setEditing] = useState<any | null>(null);
+  const [view, setView] = useState<ViewMode>(() => {
+    if (typeof window === "undefined") return "grid";
+    return (localStorage.getItem("inventory-view") as ViewMode) || "grid";
+  });
+
+  function changeView(v: ViewMode) {
+    setView(v);
+    if (typeof window !== "undefined") localStorage.setItem("inventory-view", v);
+  }
 
   const items = useQuery({
     queryKey: ["inventory"],
