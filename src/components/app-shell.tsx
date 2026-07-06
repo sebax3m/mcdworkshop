@@ -127,17 +127,15 @@ export function AppShell() {
       </header>
 
       {/* ===== MOBILE FLOATING BACK BUTTON ===== */}
-      <button
-        onClick={() => router.history.back()}
-        className={cn(
-          "fixed left-4 z-50 sm:hidden transition-all duration-300 ease-out grid h-10 w-10 place-items-center rounded-full border border-border bg-background/90 backdrop-blur shadow-lg text-muted-foreground hover:text-foreground",
-          backVisible
-            ? "translate-y-0 opacity-100 pointer-events-auto"
-            : "-translate-y-2 opacity-0 pointer-events-none"
-        )}
-        style={{ top: "76px" }}
-        aria-label="Go back"
-        title="Go back"
+      {showMobileBack && (
+        <button
+          onClick={() => router.history.back()}
+          className="fixed left-4 z-50 sm:hidden grid h-10 w-10 place-items-center rounded-full border border-border bg-background/90 backdrop-blur shadow-lg text-muted-foreground hover:text-foreground"
+          style={{ top: "76px" }}
+          aria-label="Go back"
+          title="Go back"
+        >
+
       >
         <ArrowLeft className="h-5 w-5" />
       </button>
