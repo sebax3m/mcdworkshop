@@ -122,8 +122,6 @@ export function AppShell() {
         </div>
       </header>
 
-      <MobileQuickActionButton isAdmin={isAdmin} />
-
       {/* ===== DESKTOP SIDEBAR ===== */}
       <aside className="hidden sm:flex fixed left-0 top-[80px] z-20 w-[220px] h-[calc(100vh-80px)] flex-col border-r border-border/60 bg-card/80 backdrop-blur-xl overflow-y-auto text-sidebar-foreground">
         <div className="px-4 pt-4 pb-2 text-[10px] font-bold uppercase tracking-[0.25em] text-sidebar-foreground/50">
