@@ -3,9 +3,11 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { toast } from "sonner";
-import { ArrowLeft, Check, RefreshCw, Mail, Clock, Pencil, Star, UserPlus } from "lucide-react";
+import { ArrowLeft, Check, RefreshCw, Mail, Clock, Pencil, Star, UserPlus, KeyRound } from "lucide-react";
 import { listUsersWithLogins, updateUserDetails, type UserLoginRow } from "@/lib/users.functions";
 import { seedStaff } from "@/lib/seed-staff.functions";
+import { resetStaffPasswords } from "@/lib/reset-passwords.functions";
+
 import { initials } from "@/lib/format";
 import {
   useActiveTechnicianId,
@@ -38,8 +40,10 @@ function fullDate(iso: string | null) {
 
 function UsersPage() {
   const fetchUsers = useServerFn(listUsersWithLogins);
+  const resetPwdsFn = useServerFn(resetStaffPasswords);
   const activeId = useActiveTechnicianId();
   const [editing, setEditing] = useState<UserLoginRow | null>(null);
+
 
   const { data, isLoading, error, refetch, isFetching } = useQuery({
     queryKey: ["users-login-logs"],
@@ -107,6 +111,24 @@ function UsersPage() {
             Seed workshop staff
           </button>
           <button
+            onClick={async () => {
+              if (!confirm("Reset ALL staff passwords?\n\nAdmins → MCDR26\nTechnicians → Moto26")) return;
+              try {
+                const r = await resetPwdsFn({ data: undefined });
+                const ok = r.results.filter((x) => x.status === "ok").length;
+                const errs = r.results.filter((x) => x.status === "error");
+                toast.success(`Passwords reset — ${ok} updated${errs.length ? `, ${errs.length} errors` : ""}`);
+                if (errs.length) console.error(errs);
+              } catch (e: any) {
+                toast.error(e.message ?? "Failed to reset passwords");
+              }
+            }}
+            className="inline-flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-sm font-semibold hover:border-foreground/30"
+          >
+            <KeyRound className="h-4 w-4" />
+            Reset all passwords
+          </button>
+          <button
             onClick={() => refetch()}
             className="inline-flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-sm hover:border-foreground/30"
           >
@@ -115,6 +137,7 @@ function UsersPage() {
           </button>
         </div>
       </header>
+
 
 
       {error && (
