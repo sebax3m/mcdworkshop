@@ -7,6 +7,8 @@ import { ArrowLeft, Check, RefreshCw, Mail, Clock, Pencil, Star, UserPlus, KeyRo
 import { listUsersWithLogins, updateUserDetails, type UserLoginRow } from "@/lib/users.functions";
 import { seedStaff } from "@/lib/seed-staff.functions";
 import { resetStaffPasswords } from "@/lib/reset-passwords.functions";
+import { createTechnician } from "@/lib/create-technician.functions";
+
 
 import { initials } from "@/lib/format";
 import {
@@ -41,6 +43,8 @@ function fullDate(iso: string | null) {
 function UsersPage() {
   const fetchUsers = useServerFn(listUsersWithLogins);
   const resetPwdsFn = useServerFn(resetStaffPasswords);
+  const createTechFn = useServerFn(createTechnician);
+
   const activeId = useActiveTechnicianId();
   const [editing, setEditing] = useState<UserLoginRow | null>(null);
 
@@ -109,6 +113,23 @@ function UsersPage() {
           >
             <UserPlus className="h-4 w-4" />
             Seed workshop staff
+          </button>
+          <button
+            onClick={async () => {
+              try {
+                await createTechFn({
+                  data: { email: "fabian@mcd.co.nz", full_name: "Fabian", password: "Moto26" },
+                });
+                toast.success("Fabian created — password Moto26");
+                refetch();
+              } catch (e: any) {
+                toast.error(e.message ?? "Failed to create Fabian");
+              }
+            }}
+            className="inline-flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-sm font-semibold hover:border-foreground/30"
+          >
+            <UserPlus className="h-4 w-4" />
+            Add Fabian
           </button>
           <button
             onClick={async () => {
