@@ -233,24 +233,33 @@ function JobDetail() {
         }
         .print-cta:hover { transform: translateY(-1px); transition: transform 0.15s ease-out; }
       `}</style>
-      <header className="flex items-center gap-3 no-print">
-        <button onClick={() => nav({ to: "/jobs" })} className="grid h-9 w-9 place-items-center rounded-lg border border-border">
-          <ArrowLeft className="h-4 w-4" />
-        </button>
-        <div className="min-w-0 flex-1">
-          <div className="text-xs uppercase tracking-[0.25em] text-muted-foreground flex items-center gap-2">
-            Job #{j.job_number}
+      <header className="no-print space-y-3">
+        <div className="flex items-center justify-between gap-2">
+          <button
+            onClick={() => nav({ to: "/jobs" })}
+            className="inline-flex items-center gap-1.5 rounded-lg border border-border px-2.5 py-1.5 text-xs text-muted-foreground hover:text-foreground"
+          >
+            <ArrowLeft className="h-4 w-4" /> Jobs
+          </button>
+          <div className="flex items-center gap-2">
+            <Button onClick={() => window.print()} variant="outline" size="sm" className="gap-1.5 h-8 px-2.5">
+              <Printer className="h-4 w-4" />
+              <span className="hidden sm:inline">Print</span>
+            </Button>
+            <StatusDropdown current={j.status} onChange={setStatus} disabled={!canEdit} />
+          </div>
+        </div>
+        <div className="min-w-0">
+          <div className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground flex flex-wrap items-center gap-2">
+            <span>Job #{j.job_number}</span>
             <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${kindMeta.cls}`}>
               {kindMeta.label}
             </span>
           </div>
-          <h1 className="font-display text-xl sm:text-2xl font-bold truncate">{j.title}</h1>
+          <h1 className="font-display text-xl sm:text-2xl font-bold mt-1 break-words">{j.title}</h1>
         </div>
-        <Button onClick={() => window.print()} variant="outline" size="sm" className="gap-2">
-          <Printer className="h-4 w-4" /> Print
-        </Button>
-        <StatusDropdown current={j.status} onChange={setStatus} disabled={!canEdit} />
       </header>
+
 
       {/* Print-only compact summary */}
       <style>{`
