@@ -1,4 +1,5 @@
 import { Link, Outlet, useRouterState, useNavigate, useRouter } from "@tanstack/react-router";
+import { MobileQuickActionButton } from "@/components/MobileQuickActionButton";
 import { CalendarDays, Wrench, Bike, Timer, LogOut, ClipboardList, FileText, Settings as SettingsIcon, BarChart3, ShieldCheck, KeyRound, ArrowLeft } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useCurrentUser } from "@/hooks/use-current-user";
@@ -121,6 +122,8 @@ export function AppShell() {
           </div>
         </div>
       </header>
+
+      <MobileQuickActionButton isAdmin={isAdmin} />
 
       {/* ===== DESKTOP SIDEBAR ===== */}
       <aside className="hidden sm:flex fixed left-0 top-[80px] z-20 w-[220px] h-[calc(100vh-80px)] flex-col border-r border-border/60 bg-card/80 backdrop-blur-xl overflow-y-auto text-sidebar-foreground">
