@@ -109,8 +109,8 @@ export function AppShell() {
       </header>
 
       {/* ===== DESKTOP SIDEBAR ===== */}
-      <aside className="hidden sm:flex fixed left-0 top-[80px] z-20 w-[220px] h-[calc(100vh-80px)] flex-col border-r border-border/60 bg-card/80 backdrop-blur-xl overflow-y-auto">
-        <div className="px-4 pt-4 pb-2 text-[10px] font-bold uppercase tracking-[0.25em] text-muted-foreground">
+      <aside className="hidden sm:flex fixed left-0 top-[80px] z-20 w-[220px] h-[calc(100vh-80px)] flex-col border-r border-border/60 bg-card/80 backdrop-blur-xl overflow-y-auto text-sidebar-foreground">
+        <div className="px-4 pt-4 pb-2 text-[10px] font-bold uppercase tracking-[0.25em] text-sidebar-foreground/50">
           Main Menu
         </div>
         <nav className="flex-1 flex flex-col gap-1 p-3 pt-1">
@@ -123,7 +123,7 @@ export function AppShell() {
                 to={t.to}
                 className={cn(
                   "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
-                  active ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground hover:bg-muted",
+                  active ? "bg-primary text-primary-foreground" : "text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent",
                 )}
               >
                 <Icon className="h-5 w-5 shrink-0" />
@@ -139,7 +139,7 @@ export function AppShell() {
                 "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
                 pathname.startsWith("/invoices")
                   ? "bg-primary text-primary-foreground"
-                  : "text-muted-foreground hover:text-foreground hover:bg-muted",
+                  : "text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent",
               )}
             >
               <FileText className="h-5 w-5 shrink-0" /> Invoices
@@ -152,7 +152,7 @@ export function AppShell() {
                 "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
                 pathname.startsWith("/insurance")
                   ? "bg-primary text-primary-foreground"
-                  : "text-muted-foreground hover:text-foreground hover:bg-muted",
+                  : "text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent",
               )}
             >
               <ShieldCheck className="h-5 w-5 shrink-0" /> Insurance
@@ -165,7 +165,7 @@ export function AppShell() {
                 "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
                 pathname.startsWith("/loan-bikes")
                   ? "bg-primary text-primary-foreground"
-                  : "text-muted-foreground hover:text-foreground hover:bg-muted",
+                  : "text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent",
               )}
             >
               <KeyRound className="h-5 w-5 shrink-0" /> Loan Bikes
@@ -178,7 +178,7 @@ export function AppShell() {
                 "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
                 pathname.startsWith("/analytics")
                   ? "bg-primary text-primary-foreground"
-                  : "text-muted-foreground hover:text-foreground hover:bg-muted",
+                  : "text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent",
               )}
             >
               <BarChart3 className="h-5 w-5 shrink-0" /> Analytics
@@ -194,7 +194,7 @@ export function AppShell() {
                   pathname.startsWith("/inventory") ||
                   pathname.startsWith("/customers")
                   ? "bg-primary text-primary-foreground"
-                  : "text-muted-foreground hover:text-foreground hover:bg-muted",
+                  : "text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent",
               )}
             >
               <SettingsIcon className="h-5 w-5 shrink-0" /> Settings
