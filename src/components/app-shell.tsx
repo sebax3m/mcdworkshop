@@ -21,6 +21,11 @@ export function AppShell() {
         { to: "/jobs", label: "Jobs", icon: Wrench },
         { to: "/motorcycles", label: "Bikes", icon: Bike },
         { to: "/clock", label: "Clock", icon: Timer },
+        { to: "/invoices", label: "Invoices", icon: FileText },
+        { to: "/insurance", label: "Insurance", icon: ShieldCheck },
+        { to: "/loan-bikes", label: "Loan", icon: KeyRound },
+        { to: "/analytics", label: "Analytics", icon: BarChart3 },
+        { to: "/settings", label: "Settings", icon: SettingsIcon },
       ]
     : [
         { to: "/calendar", label: "Calendar", icon: CalendarDays },
