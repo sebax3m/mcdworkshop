@@ -90,10 +90,77 @@ function CalendarPage() {
   const [selectedBooking, setSelectedBooking] = useState<any | null>(null);
   const [deleteBooking, setDeleteBooking] = useState<any | null>(null);
   const [now, setNow] = useState<Date>(() => new Date());
+  const [quickSlot, setQuickSlot] = useState<{ date: Date; time: string } | null>(null);
+  const [qFirst, setQFirst] = useState("");
+  const [qLast, setQLast] = useState("");
+  const [qPhone, setQPhone] = useState("");
+  const [qBikeMake, setQBikeMake] = useState("");
+  const [qBikeModel, setQBikeModel] = useState("");
+  const [qBikeYear, setQBikeYear] = useState("");
+  const [qService, setQService] = useState<string>("Standard Service");
+  const [qEstHours, setQEstHours] = useState<string>("1");
+  const [creatingQuick, setCreatingQuick] = useState(false);
   useEffect(() => {
     const t = setInterval(() => setNow(new Date()), 60_000);
     return () => clearInterval(t);
   }, []);
+
+  function resetQuickForm() {
+    setQFirst(""); setQLast(""); setQPhone("");
+    setQBikeMake(""); setQBikeModel(""); setQBikeYear("");
+    setQService("Standard Service"); setQEstHours("1");
+  }
+
+  async function createQuickBooking() {
+    if (!quickSlot) return;
+    if (!qFirst.trim()) return toast.error("First name required");
+    if (!qBikeMake.trim() || !qBikeModel.trim()) return toast.error("Bike make and model required");
+    setCreatingQuick(true);
+    try {
+      const { data: cust, error: cErr } = await supabase
+        .from("customers")
+        .insert({
+          first_name: qFirst.trim(),
+          last_name: qLast.trim() || null,
+          phone: qPhone.trim() || null,
+        })
+        .select("id")
+        .single();
+      if (cErr) throw cErr;
+
+      const { data: bike, error: bErr } = await (supabase as any)
+        .from("motorcycles")
+        .insert({
+          customer_id: cust.id,
+          make: qBikeMake.trim(),
+          model: qBikeModel.trim(),
+          year: qBikeYear ? Number(qBikeYear) : null,
+        })
+        .select("id")
+        .single();
+      if (bErr) throw bErr;
+
+      const { error: bkErr } = await supabase.from("bookings").insert({
+        customer_id: cust.id,
+        motorcycle_id: bike.id,
+        service_type: qService,
+        scheduled_date: format(quickSlot.date, "yyyy-MM-dd"),
+        drop_off_time: quickSlot.time,
+        estimated_hours: Number(qEstHours) || 1,
+        status: "booked",
+      });
+      if (bkErr) throw bkErr;
+
+      toast.success("Booking created");
+      setQuickSlot(null);
+      resetQuickForm();
+      qc.invalidateQueries({ queryKey: ["calendar-bookings"] });
+    } catch (err: any) {
+      toast.error(err.message ?? "Failed to create booking");
+    } finally {
+      setCreatingQuick(false);
+    }
+  }
 
   async function confirmDeleteBooking() {
     if (!deleteBooking) return;
@@ -372,10 +439,8 @@ function CalendarPage() {
           const h = Math.floor(totalMin / 60);
           const m = totalMin % 60;
           const time = `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
-          nav({
-            to: "/bookings/new",
-            search: { date: format(day, "yyyy-MM-dd"), time } as any,
-          });
+          resetQuickForm();
+          setQuickSlot({ date: day, time });
         };
 
         return (
@@ -731,6 +796,155 @@ function CalendarPage() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* QUICK-CREATE BOOKING POPUP */}
+      <AnimatePresence>
+        {quickSlot && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-md p-4"
+            onClick={() => !creatingQuick && setQuickSlot(null)}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.96, y: 8 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.96, y: 8 }}
+              transition={{ duration: 0.15 }}
+              onClick={(e) => e.stopPropagation()}
+              className="w-full max-w-md rounded-2xl border border-border/60 bg-background/70 backdrop-blur-xl shadow-2xl p-5 space-y-4 relative"
+            >
+              <button
+                onClick={() => !creatingQuick && setQuickSlot(null)}
+                className="absolute top-3 right-3 grid h-8 w-8 place-items-center rounded-lg border border-border text-muted-foreground hover:text-foreground hover:border-foreground/30 transition-colors"
+                aria-label="Close"
+              >
+                <X className="h-4 w-4" />
+              </button>
+
+              <div>
+                <div className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground">Quick booking</div>
+                <div className="font-display text-lg font-bold">
+                  {format(quickSlot.date, "EEE d MMM")}
+                  <span className="ml-2 text-sm text-muted-foreground tabular-nums">
+                    <Clock className="inline h-3.5 w-3.5 mr-1" />
+                    {quickSlot.time}
+                  </span>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <div className="col-span-1">
+                  <label className="text-[10px] uppercase tracking-wider text-muted-foreground">First name *</label>
+                  <input
+                    autoFocus
+                    value={qFirst}
+                    onChange={(e) => setQFirst(e.target.value)}
+                    className="w-full mt-1 rounded-lg border border-border bg-background/60 px-3 py-2 text-sm focus:border-primary/60 focus:outline-none"
+                  />
+                </div>
+                <div className="col-span-1">
+                  <label className="text-[10px] uppercase tracking-wider text-muted-foreground">Last name</label>
+                  <input
+                    value={qLast}
+                    onChange={(e) => setQLast(e.target.value)}
+                    className="w-full mt-1 rounded-lg border border-border bg-background/60 px-3 py-2 text-sm focus:border-primary/60 focus:outline-none"
+                  />
+                </div>
+                <div className="col-span-2">
+                  <label className="text-[10px] uppercase tracking-wider text-muted-foreground flex items-center gap-1"><Phone className="h-3 w-3" /> Phone</label>
+                  <input
+                    value={qPhone}
+                    onChange={(e) => setQPhone(e.target.value)}
+                    className="w-full mt-1 rounded-lg border border-border bg-background/60 px-3 py-2 text-sm focus:border-primary/60 focus:outline-none"
+                  />
+                </div>
+                <div className="col-span-1">
+                  <label className="text-[10px] uppercase tracking-wider text-muted-foreground flex items-center gap-1"><BikeIcon className="h-3 w-3" /> Make *</label>
+                  <input
+                    value={qBikeMake}
+                    onChange={(e) => setQBikeMake(e.target.value)}
+                    className="w-full mt-1 rounded-lg border border-border bg-background/60 px-3 py-2 text-sm focus:border-primary/60 focus:outline-none"
+                  />
+                </div>
+                <div className="col-span-1">
+                  <label className="text-[10px] uppercase tracking-wider text-muted-foreground">Model *</label>
+                  <input
+                    value={qBikeModel}
+                    onChange={(e) => setQBikeModel(e.target.value)}
+                    className="w-full mt-1 rounded-lg border border-border bg-background/60 px-3 py-2 text-sm focus:border-primary/60 focus:outline-none"
+                  />
+                </div>
+                <div className="col-span-1">
+                  <label className="text-[10px] uppercase tracking-wider text-muted-foreground">Year</label>
+                  <input
+                    value={qBikeYear}
+                    onChange={(e) => setQBikeYear(e.target.value)}
+                    inputMode="numeric"
+                    className="w-full mt-1 rounded-lg border border-border bg-background/60 px-3 py-2 text-sm focus:border-primary/60 focus:outline-none"
+                  />
+                </div>
+                <div className="col-span-1">
+                  <label className="text-[10px] uppercase tracking-wider text-muted-foreground">Est. hours</label>
+                  <input
+                    value={qEstHours}
+                    onChange={(e) => setQEstHours(e.target.value)}
+                    inputMode="decimal"
+                    className="w-full mt-1 rounded-lg border border-border bg-background/60 px-3 py-2 text-sm focus:border-primary/60 focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="text-[10px] uppercase tracking-wider text-muted-foreground">Service</label>
+                <div className="mt-1.5 flex flex-wrap gap-1.5">
+                  {[
+                    "Basic Service",
+                    "Standard Service",
+                    "Full Service",
+                    "Dyno Tune",
+                    "Diagnostic",
+                    "Insurance / Crash",
+                  ].map((s) => {
+                    const c = serviceColor(s);
+                    const active = qService === s;
+                    return (
+                      <button
+                        key={s}
+                        type="button"
+                        onClick={() => setQService(s)}
+                        className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-wider ring-1 transition-all ${c.bg} ${c.ring} ${c.label} ${active ? "ring-2 scale-[1.03]" : "opacity-70 hover:opacity-100"}`}
+                      >
+                        <span className="h-1.5 w-1.5 rounded-full bg-current" />
+                        {s}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="flex gap-2 pt-2 border-t border-border/60">
+                <button
+                  onClick={() => !creatingQuick && setQuickSlot(null)}
+                  className="flex-1 rounded-lg border border-border px-3 py-2 text-sm font-semibold hover:border-primary/50 hover:bg-primary/5 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  disabled={creatingQuick}
+                  onClick={createQuickBooking}
+                  className="flex-1 rounded-lg red-surface px-3 py-2 text-sm font-semibold hover:scale-[1.02] transition-transform disabled:opacity-50 disabled:hover:scale-100"
+                >
+                  {creatingQuick ? "Creating…" : "Create booking"}
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+
 
       <AlertDialog open={!!deleteBooking} onOpenChange={(o) => !o && setDeleteBooking(null)}>
         <AlertDialogContent>
