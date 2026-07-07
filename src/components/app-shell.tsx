@@ -245,7 +245,11 @@ export function AppShell() {
                   active ? "text-primary" : "text-muted-foreground",
                 )}
               >
-                <Icon className={cn("h-6 w-6", active && "drop-shadow-[0_0_8px_oklch(0.58_0.22_25/0.6)]")} />
+                <Icon
+                  className="h-6 w-6"
+                  style={{ color: t.color, filter: `drop-shadow(0 0 6px ${t.color}66)` }}
+                />
+
                 <span className="font-semibold whitespace-nowrap">{t.label}</span>
               </Link>
             );
