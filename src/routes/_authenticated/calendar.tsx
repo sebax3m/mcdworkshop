@@ -456,16 +456,18 @@ function CalendarPage() {
               </div>
               {weekDays.map((day) => {
                 const today = isToday(day);
+                const dayKey = format(day, "yyyy-MM-dd");
+                const isHovered = hoverSlot?.dayKey === dayKey;
                 return (
                   <div
-                    key={format(day, "yyyy-MM-dd")}
-                    className={`text-center py-2 border-r border-border/40 last:border-r-0 ${
+                    key={dayKey}
+                    className={`text-center py-2 border-r border-border/40 last:border-r-0 transition-colors ${
                       today ? "bg-primary/5" : ""
-                    }`}
+                    } ${isHovered ? "bg-primary/10" : ""}`}
                   >
                     <div
-                      className={`text-[10px] font-semibold uppercase tracking-wider ${
-                        today ? "text-primary" : "text-muted-foreground"
+                      className={`text-[10px] font-semibold uppercase tracking-wider transition-colors ${
+                        today ? "text-primary" : isHovered ? "text-foreground" : "text-muted-foreground"
                       }`}
                     >
                       {format(day, "EEE")}
@@ -474,7 +476,7 @@ function CalendarPage() {
                       className={`mt-0.5 mx-auto grid place-items-center font-display font-bold text-lg leading-none ${
                         today
                           ? "h-8 w-8 rounded-full bg-primary text-primary-foreground"
-                          : ""
+                          : isHovered ? "text-primary" : ""
                       }`}
                     >
                       {format(day, "d")}
