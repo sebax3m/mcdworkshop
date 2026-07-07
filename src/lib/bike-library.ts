@@ -86,7 +86,7 @@ export const BIKE_MAKES: Record<string, string[]> = {
     "V85 TT", "V100 Mandello",
     "California", "Audace", "Eldorado",
   ],
-  MV Agusta: [
+  "MV Agusta": [
     "Brutale 800", "Brutale 1000",
     "F3 800", "F3 RR",
     "Dragster 800", "Turismo Veloce", "Superveloce",
