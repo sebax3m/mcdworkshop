@@ -221,6 +221,11 @@ export function AppShell() {
             );
           })}
         </nav>
+        {pathname === "/calendar" && (
+          <div className="p-3 border-t border-border/60">
+            <ServiceLegend />
+          </div>
+        )}
       </aside>
 
       {/* ===== MAIN ===== */}
