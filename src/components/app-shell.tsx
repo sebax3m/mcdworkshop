@@ -25,10 +25,11 @@ function useDockMagnify() {
     const r = el.getBoundingClientRect();
     const center = r.top - navRect.top + r.height / 2;
     const dist = Math.abs(mouseY - center);
-    const influence = 90; // px radius of magnification
+    const influence = 130; // px radius of magnification
     if (dist > influence) return 1;
     const t = 1 - dist / influence; // 0..1
-    return 1 + t * 0.35; // up to 1.35x
+    const eased = (1 - Math.cos(t * Math.PI)) / 2; // smooth cosine ease
+    return 1 + eased * 0.45; // up to ~1.45x
   };
   return { navRef, onMove, onLeave, getScale };
 }
