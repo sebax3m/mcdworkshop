@@ -535,6 +535,18 @@ function CalendarPage() {
                   <div
                     key={dayKey}
                     onClick={(e) => handleSlotClick(e, day)}
+                    onMouseMove={(e) => {
+                      const rect = e.currentTarget.getBoundingClientRect();
+                      const y = e.clientY - rect.top;
+                      const slotIdx = Math.max(
+                        0,
+                        Math.min(HOURS * 2 - 1, Math.floor(y / (SLOT_H / 2))),
+                      );
+                      if (hoverSlot?.dayKey !== dayKey || hoverSlot?.slotIdx !== slotIdx) {
+                        setHoverSlot({ dayKey, slotIdx });
+                      }
+                    }}
+                    onMouseLeave={() => setHoverSlot(null)}
                     onDragOver={(e) => e.preventDefault()}
                     onDrop={(e) => {
                       e.preventDefault();
@@ -557,6 +569,17 @@ function CalendarPage() {
                         backgroundImage: `repeating-linear-gradient(to bottom, transparent 0, transparent ${SLOT_H / 2 - 1}px, var(--border) ${SLOT_H / 2 - 1}px, var(--border) ${SLOT_H / 2}px)`,
                       }}
                     />
+
+                    {/* Hover slot highlight */}
+                    {hoverSlot?.dayKey === dayKey && (
+                      <div
+                        className="absolute left-0.5 right-0.5 pointer-events-none rounded-md bg-primary/15 ring-1 ring-primary/50 shadow-[0_0_12px_rgba(59,130,246,0.35)] transition-[top] duration-75"
+                        style={{
+                          top: `${hoverSlot.slotIdx * (SLOT_H / 2)}px`,
+                          height: `${SLOT_H / 2}px`,
+                        }}
+                      />
+                    )}
 
                     {/* Current-time line */}
                     {today && showNow && (
