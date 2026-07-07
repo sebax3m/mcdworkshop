@@ -778,7 +778,7 @@ function CalendarPage() {
                 const bike = b.motorcycles
                   ? `${b.motorcycles.year ?? ""} ${b.motorcycles.make} ${b.motorcycles.model}`.trim()
                   : "—";
-                const customer = b.customers ? `${b.customers.first_name} ${b.customers.last_name}` : "—";
+                const customer = b.customers ? (`${b.customers.first_name ?? ""} ${b.customers.last_name ?? ""}`.trim() || "—") : "—";
                 return (
                   <>
                     <div className="flex items-center gap-2 pr-8">
