@@ -100,6 +100,7 @@ function CalendarPage() {
   const [qService, setQService] = useState<string>("Standard Service");
   const [qEstHours, setQEstHours] = useState<string>("1");
   const [creatingQuick, setCreatingQuick] = useState(false);
+  const [hoverSlot, setHoverSlot] = useState<{ dayKey: string; slotIdx: number } | null>(null);
   useEffect(() => {
     const t = setInterval(() => setNow(new Date()), 60_000);
     return () => clearInterval(t);
