@@ -1,5 +1,6 @@
 import { Link, Outlet, useRouterState, useNavigate, useRouter } from "@tanstack/react-router";
 import { CalendarDays, Wrench, Bike, Timer, LogOut, ClipboardList, FileText, Settings as SettingsIcon, BarChart3, ShieldCheck, KeyRound, ArrowLeft } from "lucide-react";
+import { useRef, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { initials } from "@/lib/format";
@@ -7,6 +8,43 @@ import { cn } from "@/lib/utils";
 import logoAsset from "@/assets/motorcycle-doctors-logo.png.asset.json";
 import { ActiveUserSwitcher } from "@/components/ActiveUserSwitcher";
 import { FloatingClockWidget } from "@/components/FloatingClockWidget";
+
+// macOS-dock-like magnification based on cursor proximity to each item center
+function useDockMagnify() {
+  const navRef = useRef<HTMLElement | null>(null);
+  const [mouseY, setMouseY] = useState<number | null>(null);
+  const onMove = useCallback((e: React.MouseEvent) => {
+    const rect = navRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    setMouseY(e.clientY - rect.top);
+  }, []);
+  const onLeave = useCallback(() => setMouseY(null), []);
+  const getScale = (el: HTMLElement | null) => {
+    if (!el || mouseY == null || !navRef.current) return 1;
+    const navRect = navRef.current.getBoundingClientRect();
+    const r = el.getBoundingClientRect();
+    const center = r.top - navRect.top + r.height / 2;
+    const dist = Math.abs(mouseY - center);
+    const influence = 90; // px radius of magnification
+    if (dist > influence) return 1;
+    const t = 1 - dist / influence; // 0..1
+    return 1 + t * 0.35; // up to 1.35x
+  };
+  return { navRef, onMove, onLeave, getScale };
+}
+
+function DockItem({
+  getScale,
+  children,
+}: {
+  getScale: (el: HTMLElement | null) => number;
+  children: (ref: (el: HTMLElement | null) => void, scale: number) => React.ReactNode;
+}) {
+  const [el, setEl] = useState<HTMLElement | null>(null);
+  const scale = getScale(el);
+  return <>{children(setEl, scale)}</>;
+}
+
 export function AppShell() {
   const nav = useNavigate();
   const router = useRouter();
