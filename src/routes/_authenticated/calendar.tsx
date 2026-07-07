@@ -504,10 +504,13 @@ function CalendarPage() {
                       : hh > 12
                         ? `${hh - 12} PM`
                         : `${hh} AM`;
+                  const activeHour = hoverSlot && Math.floor(hoverSlot.slotIdx / 2) === i;
                   return (
                     <div
                       key={hh}
-                      className="text-[10px] text-muted-foreground tabular-nums text-right pr-2 -translate-y-1.5"
+                      className={`text-[10px] tabular-nums text-right pr-2 -translate-y-1.5 transition-colors ${
+                        activeHour ? "text-primary font-bold" : "text-muted-foreground"
+                      }`}
                       style={{
                         position: "absolute",
                         top: `${i * SLOT_H}px`,
