@@ -25,10 +25,11 @@ function useDockMagnify() {
     const r = el.getBoundingClientRect();
     const center = r.top - navRect.top + r.height / 2;
     const dist = Math.abs(mouseY - center);
-    const influence = 90; // px radius of magnification
+    const influence = 130; // px radius of magnification
     if (dist > influence) return 1;
     const t = 1 - dist / influence; // 0..1
-    return 1 + t * 0.35; // up to 1.35x
+    const eased = (1 - Math.cos(t * Math.PI)) / 2; // smooth cosine ease
+    return 1 + eased * 0.45; // up to ~1.45x
   };
   return { navRef, onMove, onLeave, getScale };
 }
@@ -60,21 +61,21 @@ export function AppShell() {
 
   const tabs = isAdmin
     ? [
-        { to: "/calendar", label: "Calendar", icon: CalendarDays },
-        { to: "/bookings", label: "Bookings", icon: ClipboardList },
-        { to: "/jobs", label: "Jobs", icon: Wrench },
-        { to: "/motorcycles", label: "Bikes", icon: Bike },
-        { to: "/clock", label: "Clock", icon: Timer },
-        { to: "/invoices", label: "Invoices", icon: FileText },
-        { to: "/insurance", label: "Insurance", icon: ShieldCheck },
-        { to: "/loan-bikes", label: "Loan", icon: KeyRound },
-        { to: "/analytics", label: "Analytics", icon: BarChart3 },
-        { to: "/settings", label: "Settings", icon: SettingsIcon },
+        { to: "/calendar", label: "Calendar", icon: CalendarDays, color: "#60a5fa" },
+        { to: "/bookings", label: "Bookings", icon: ClipboardList, color: "#f472b6" },
+        { to: "/jobs", label: "Jobs", icon: Wrench, color: "#fb923c" },
+        { to: "/motorcycles", label: "Bikes", icon: Bike, color: "#facc15" },
+        { to: "/clock", label: "Clock", icon: Timer, color: "#34d399" },
+        { to: "/invoices", label: "Invoices", icon: FileText, color: "#22d3ee" },
+        { to: "/insurance", label: "Insurance", icon: ShieldCheck, color: "#a78bfa" },
+        { to: "/loan-bikes", label: "Loan", icon: KeyRound, color: "#f59e0b" },
+        { to: "/analytics", label: "Analytics", icon: BarChart3, color: "#4ade80" },
+        { to: "/settings", label: "Settings", icon: SettingsIcon, color: "#94a3b8" },
       ]
     : [
-        { to: "/calendar", label: "Calendar", icon: CalendarDays },
-        { to: "/jobs", label: "Job Cards", icon: Wrench },
-        { to: "/clock", label: "Clock", icon: Timer },
+        { to: "/calendar", label: "Calendar", icon: CalendarDays, color: "#60a5fa" },
+        { to: "/jobs", label: "Job Cards", icon: Wrench, color: "#fb923c" },
+        { to: "/clock", label: "Clock", icon: Timer, color: "#34d399" },
       ];
 
   async function signOut() {
@@ -202,14 +203,17 @@ export function AppShell() {
                     style={{
                       transform: `scale(${scale})`,
                       transformOrigin: "left center",
-                      transition: "transform 120ms ease-out",
+                      transition: "transform 320ms cubic-bezier(0.22, 1, 0.36, 1)",
                     }}
                     className={cn(
                       "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium will-change-transform",
                       active ? "bg-primary text-primary-foreground" : "text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent",
                     )}
                   >
-                    <Icon className="h-5 w-5 shrink-0" />
+                    <Icon
+                      className="h-5 w-5 shrink-0"
+                      style={{ color: active ? undefined : t.color, filter: `drop-shadow(0 0 6px ${t.color}55)` }}
+                    />
                     {t.label}
                   </Link>
                 )}
@@ -241,7 +245,11 @@ export function AppShell() {
                   active ? "text-primary" : "text-muted-foreground",
                 )}
               >
-                <Icon className={cn("h-6 w-6", active && "drop-shadow-[0_0_8px_oklch(0.58_0.22_25/0.6)]")} />
+                <Icon
+                  className="h-6 w-6"
+                  style={{ color: t.color, filter: `drop-shadow(0 0 6px ${t.color}66)` }}
+                />
+
                 <span className="font-semibold whitespace-nowrap">{t.label}</span>
               </Link>
             );
