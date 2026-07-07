@@ -439,10 +439,8 @@ function CalendarPage() {
           const h = Math.floor(totalMin / 60);
           const m = totalMin % 60;
           const time = `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
-          nav({
-            to: "/bookings/new",
-            search: { date: format(day, "yyyy-MM-dd"), time } as any,
-          });
+          resetQuickForm();
+          setQuickSlot({ date: day, time });
         };
 
         return (
