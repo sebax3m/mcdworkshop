@@ -47,7 +47,7 @@ function NewBooking() {
   const [serviceType, setServiceType] = useState<string>("Standard Service");
   const [priority, setPriority] = useState<string>("normal");
   const [scheduledDate, setScheduledDate] = useState<string>(search.date || today);
-  const [dropTime, setDropTime] = useState<string>("09:00");
+  const [dropTime, setDropTime] = useState<string>(search.time || "09:00");
   const [estHours, setEstHours] = useState<string>("2");
   const [mileage, setMileage] = useState<string>("");
   const [wof, setWof] = useState<string>("");
