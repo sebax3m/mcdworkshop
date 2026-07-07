@@ -91,12 +91,16 @@ function CalendarPage() {
   const [deleteBooking, setDeleteBooking] = useState<any | null>(null);
   const [now, setNow] = useState<Date>(() => new Date());
   const [quickSlot, setQuickSlot] = useState<{ date: Date; time: string } | null>(null);
+  const [qSearch, setQSearch] = useState("");
+  const [qCustomerId, setQCustomerId] = useState<string | null>(null);
+  const [qBikeId, setQBikeId] = useState<string | null>(null);
   const [qFirst, setQFirst] = useState("");
   const [qLast, setQLast] = useState("");
   const [qPhone, setQPhone] = useState("");
   const [qBikeMake, setQBikeMake] = useState("");
   const [qBikeModel, setQBikeModel] = useState("");
   const [qBikeYear, setQBikeYear] = useState("");
+  const [qBikeRego, setQBikeRego] = useState("");
   const [qService, setQService] = useState<string>("Standard Service");
   const [qEstHours, setQEstHours] = useState<string>("1");
   const [creatingQuick, setCreatingQuick] = useState(false);
@@ -106,9 +110,74 @@ function CalendarPage() {
     return () => clearInterval(t);
   }, []);
 
-  function resetQuickForm() {
+  const quickCustomers = useQuery({
+    queryKey: ["quick-customers"],
+    enabled: !!quickSlot,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("customers")
+        .select("id, first_name, last_name, phone, email")
+        .order("first_name");
+      return data ?? [];
+    },
+  });
+
+  const quickBikes = useQuery({
+    queryKey: ["quick-bikes", qCustomerId],
+    enabled: !!qCustomerId,
+    queryFn: async () => {
+      const { data } = await (supabase as any)
+        .from("motorcycles")
+        .select("id, make, model, year, rego")
+        .eq("customer_id", qCustomerId);
+      return data ?? [];
+    },
+  });
+
+  const customerMatches = useMemo(() => {
+    const term = qSearch.trim().toLowerCase();
+    if (!term || qCustomerId) return [];
+    const list = (quickCustomers.data ?? []) as any[];
+    return list
+      .filter((c) => {
+        const name = `${c.first_name ?? ""} ${c.last_name ?? ""}`.toLowerCase();
+        const phone = (c.phone ?? "").toLowerCase();
+        return name.includes(term) || phone.includes(term);
+      })
+      .slice(0, 6);
+  }, [qSearch, qCustomerId, quickCustomers.data]);
+
+  function pickCustomer(c: any) {
+    setQCustomerId(c.id);
+    setQFirst(c.first_name ?? "");
+    setQLast(c.last_name ?? "");
+    setQPhone(c.phone ?? "");
+    setQSearch(`${c.first_name ?? ""} ${c.last_name ?? ""}`.trim());
+    setQBikeId(null);
+    setQBikeMake(""); setQBikeModel(""); setQBikeYear(""); setQBikeRego("");
+  }
+
+  function pickBike(b: any) {
+    setQBikeId(b.id);
+    setQBikeMake(b.make ?? "");
+    setQBikeModel(b.model ?? "");
+    setQBikeYear(b.year ? String(b.year) : "");
+    setQBikeRego(b.rego ?? "");
+  }
+
+  function clearCustomerSelection() {
+    setQCustomerId(null);
+    setQBikeId(null);
     setQFirst(""); setQLast(""); setQPhone("");
-    setQBikeMake(""); setQBikeModel(""); setQBikeYear("");
+    setQBikeMake(""); setQBikeModel(""); setQBikeYear(""); setQBikeRego("");
+    setQSearch("");
+  }
+
+  function resetQuickForm() {
+    setQSearch("");
+    setQCustomerId(null); setQBikeId(null);
+    setQFirst(""); setQLast(""); setQPhone("");
+    setQBikeMake(""); setQBikeModel(""); setQBikeYear(""); setQBikeRego("");
     setQService("Standard Service"); setQEstHours("1");
   }
 
@@ -118,36 +187,46 @@ function CalendarPage() {
     if (!qBikeMake.trim() || !qBikeModel.trim()) return toast.error("Bike make and model required");
     setCreatingQuick(true);
     try {
-      const { data: cust, error: cErr } = await supabase
-        .from("customers")
-        .insert({
-          first_name: qFirst.trim(),
-          last_name: qLast.trim() || null,
-          phone: qPhone.trim() || null,
-        })
-        .select("id")
-        .single();
-      if (cErr) throw cErr;
+      let customerId = qCustomerId;
+      if (!customerId) {
+        const { data: cust, error: cErr } = await supabase
+          .from("customers")
+          .insert({
+            first_name: qFirst.trim(),
+            last_name: qLast.trim() || null,
+            phone: qPhone.trim() || null,
+          })
+          .select("id")
+          .single();
+        if (cErr) throw cErr;
+        customerId = cust.id;
+      }
 
-      const { data: bike, error: bErr } = await (supabase as any)
-        .from("motorcycles")
-        .insert({
-          customer_id: cust.id,
-          make: qBikeMake.trim(),
-          model: qBikeModel.trim(),
-          year: qBikeYear ? Number(qBikeYear) : null,
-        })
-        .select("id")
-        .single();
-      if (bErr) throw bErr;
+      let bikeId = qBikeId;
+      if (!bikeId) {
+        const { data: bike, error: bErr } = await (supabase as any)
+          .from("motorcycles")
+          .insert({
+            customer_id: customerId,
+            make: qBikeMake.trim(),
+            model: qBikeModel.trim(),
+            year: qBikeYear ? Number(qBikeYear) : null,
+            rego: qBikeRego.trim().toUpperCase() || null,
+          })
+          .select("id")
+          .single();
+        if (bErr) throw bErr;
+        bikeId = bike.id;
+      }
 
       const { error: bkErr } = await supabase.from("bookings").insert({
-        customer_id: cust.id,
-        motorcycle_id: bike.id,
+        customer_id: customerId,
+        motorcycle_id: bikeId,
         service_type: qService,
         scheduled_date: format(quickSlot.date, "yyyy-MM-dd"),
         drop_off_time: quickSlot.time,
         estimated_hours: Number(qEstHours) || 1,
+        rego: qBikeRego.trim().toUpperCase() || null,
         status: "booked",
       });
       if (bkErr) throw bkErr;
@@ -156,6 +235,7 @@ function CalendarPage() {
       setQuickSlot(null);
       resetQuickForm();
       qc.invalidateQueries({ queryKey: ["calendar-bookings"] });
+      qc.invalidateQueries({ queryKey: ["quick-customers"] });
     } catch (err: any) {
       toast.error(err.message ?? "Failed to create booking");
     } finally {
