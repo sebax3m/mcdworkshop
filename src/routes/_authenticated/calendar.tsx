@@ -341,7 +341,19 @@ function CalendarPage() {
 
       {/* WEEK VIEW */}
       {viewMode === "week" && (
-        <div className="grid grid-cols-1 lg:grid-cols-7 gap-3">
+        <div className="grid grid-cols-1 lg:grid-cols-[56px_repeat(7,minmax(0,1fr))] gap-3">
+          {/* Hours rail (workshop 8:30 AM – 5:30 PM) */}
+          <div className="hidden lg:flex card-surface p-2 min-h-[calc(100vh-240px)] flex-col text-[10px] font-semibold uppercase tracking-wider text-muted-foreground tabular-nums">
+            <div className="text-[8px] font-bold text-muted-foreground/60 mb-2 text-center">Hours</div>
+            <div className="flex-1 flex flex-col justify-between py-1">
+              {[
+                "8:30", "9:30", "10:30", "11:30", "12:30",
+                "13:30", "14:30", "15:30", "16:30", "17:30",
+              ].map((h) => (
+                <div key={h} className="text-center leading-none">{h}</div>
+              ))}
+            </div>
+          </div>
           {weekDays.map((day, idx) => {
             const dayKey = format(day, "yyyy-MM-dd");
             const dayBookings = (bookings as any[]).filter((b) => b.scheduled_date === dayKey);
