@@ -60,21 +60,21 @@ export function AppShell() {
 
   const tabs = isAdmin
     ? [
-        { to: "/calendar", label: "Calendar", icon: CalendarDays },
-        { to: "/bookings", label: "Bookings", icon: ClipboardList },
-        { to: "/jobs", label: "Jobs", icon: Wrench },
-        { to: "/motorcycles", label: "Bikes", icon: Bike },
-        { to: "/clock", label: "Clock", icon: Timer },
-        { to: "/invoices", label: "Invoices", icon: FileText },
-        { to: "/insurance", label: "Insurance", icon: ShieldCheck },
-        { to: "/loan-bikes", label: "Loan", icon: KeyRound },
-        { to: "/analytics", label: "Analytics", icon: BarChart3 },
-        { to: "/settings", label: "Settings", icon: SettingsIcon },
+        { to: "/calendar", label: "Calendar", icon: CalendarDays, color: "#60a5fa" },
+        { to: "/bookings", label: "Bookings", icon: ClipboardList, color: "#f472b6" },
+        { to: "/jobs", label: "Jobs", icon: Wrench, color: "#fb923c" },
+        { to: "/motorcycles", label: "Bikes", icon: Bike, color: "#facc15" },
+        { to: "/clock", label: "Clock", icon: Timer, color: "#34d399" },
+        { to: "/invoices", label: "Invoices", icon: FileText, color: "#22d3ee" },
+        { to: "/insurance", label: "Insurance", icon: ShieldCheck, color: "#a78bfa" },
+        { to: "/loan-bikes", label: "Loan", icon: KeyRound, color: "#f59e0b" },
+        { to: "/analytics", label: "Analytics", icon: BarChart3, color: "#4ade80" },
+        { to: "/settings", label: "Settings", icon: SettingsIcon, color: "#94a3b8" },
       ]
     : [
-        { to: "/calendar", label: "Calendar", icon: CalendarDays },
-        { to: "/jobs", label: "Job Cards", icon: Wrench },
-        { to: "/clock", label: "Clock", icon: Timer },
+        { to: "/calendar", label: "Calendar", icon: CalendarDays, color: "#60a5fa" },
+        { to: "/jobs", label: "Job Cards", icon: Wrench, color: "#fb923c" },
+        { to: "/clock", label: "Clock", icon: Timer, color: "#34d399" },
       ];
 
   async function signOut() {
