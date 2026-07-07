@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import logoAsset from "@/assets/motorcycle-doctors-logo.png.asset.json";
 import { ActiveUserSwitcher } from "@/components/ActiveUserSwitcher";
 import { FloatingClockWidget } from "@/components/FloatingClockWidget";
+import { ServiceLegend } from "@/components/ServiceLegend";
 
 // macOS-dock-like magnification based on cursor proximity to each item center
 function useDockMagnify() {
@@ -221,6 +222,11 @@ export function AppShell() {
             );
           })}
         </nav>
+        {pathname === "/calendar" && (
+          <div className="p-3 border-t border-border/60">
+            <ServiceLegend />
+          </div>
+        )}
       </aside>
 
       {/* ===== MAIN ===== */}

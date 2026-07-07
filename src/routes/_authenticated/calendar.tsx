@@ -504,28 +504,7 @@ function CalendarPage() {
         </div>
       )}
 
-      {/* LEGEND */}
-      <div className="card-surface p-4 sm:sticky sm:bottom-0">
-        <div className="text-xs uppercase tracking-[0.25em] text-muted-foreground mb-3">Service legend</div>
-        <div className="flex flex-wrap gap-2.5">
-          {[
-            { label: "Basic", k: "basic" },
-            { label: "Standard", k: "standard" },
-            { label: "Full", k: "full" },
-            { label: "Dyno", k: "dyno" },
-            { label: "Diagnostic", k: "diagnostic" },
-            { label: "Insurance", k: "insurance" },
-          ].map((s) => {
-            const c = SERVICE_COLORS[s.k];
-            return (
-              <span key={s.k} className={`inline-flex items-center gap-2 rounded-full px-[15px] py-[7px] ring-1 text-[13px] font-semibold uppercase tracking-wider ${c.bg} ${c.ring} ${c.label}`}>
-                <span className="h-2.5 w-2.5 rounded-full bg-current" />
-                {s.label}
-              </span>
-            );
-          })}
-        </div>
-      </div>
+      {/* LEGEND moved to sidebar (only visible on /calendar) */}
 
       {/* BOOKING QUICK-VIEW POPUP */}
       <AnimatePresence>
