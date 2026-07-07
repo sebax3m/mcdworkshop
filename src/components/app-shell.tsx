@@ -51,6 +51,7 @@ export function AppShell() {
   const { fullName, isAdmin, isTechnician, loading: userLoading } = useCurrentUser();
   const roleLabel = isAdmin ? "Admin" : isTechnician ? "Technician" : "No Role";
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const sidebarDock = useDockMagnify();
 
   // Show floating back button everywhere on mobile except on the main landing pages
   const isRootPage = pathname === "/" || pathname === "/calendar";
