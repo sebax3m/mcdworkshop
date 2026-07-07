@@ -41,7 +41,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { initials } from "@/lib/format";
-import { BIKE_LIBRARY } from "@/lib/bike-library";
+import { BIKE_MAKES, BIKE_MAKE_NAMES, BIKE_YEARS } from "@/lib/bike-library";
 
 export const Route = createFileRoute("/_authenticated/calendar")({
   component: CalendarPage,
