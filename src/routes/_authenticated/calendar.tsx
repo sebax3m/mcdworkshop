@@ -943,11 +943,81 @@ function CalendarPage() {
                 </div>
               </div>
 
+              {/* Customer search */}
+              <div className="relative">
+                <label className="text-[10px] uppercase tracking-wider text-muted-foreground">Search customer (name or phone)</label>
+                <div className="mt-1 flex gap-2">
+                  <input
+                    value={qSearch}
+                    onChange={(e) => {
+                      setQSearch(e.target.value);
+                      if (qCustomerId) setQCustomerId(null);
+                    }}
+                    placeholder="Start typing…"
+                    className="flex-1 rounded-lg border border-border bg-background/60 px-3 py-2 text-sm focus:border-primary/60 focus:outline-none"
+                  />
+                  {qCustomerId && (
+                    <button
+                      type="button"
+                      onClick={clearCustomerSelection}
+                      className="rounded-lg border border-border px-2 text-xs font-semibold hover:border-primary/50 hover:bg-primary/5"
+                    >
+                      Clear
+                    </button>
+                  )}
+                </div>
+                {customerMatches.length > 0 && (
+                  <div className="absolute z-10 left-0 right-0 mt-1 rounded-lg border border-border bg-popover shadow-xl max-h-56 overflow-y-auto">
+                    {customerMatches.map((c: any) => (
+                      <button
+                        key={c.id}
+                        type="button"
+                        onClick={() => pickCustomer(c)}
+                        className="w-full text-left px-3 py-2 text-sm hover:bg-primary/10 border-b border-border/40 last:border-b-0"
+                      >
+                        <div className="font-semibold">
+                          {`${c.first_name ?? ""} ${c.last_name ?? ""}`.trim() || "—"}
+                        </div>
+                        {c.phone && (
+                          <div className="text-[11px] text-muted-foreground flex items-center gap-1">
+                            <Phone className="h-3 w-3" /> {c.phone}
+                          </div>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                )}
+                {qCustomerId && (quickBikes.data ?? []).length > 0 && (
+                  <div className="mt-2">
+                    <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Customer bikes</div>
+                    <div className="flex flex-wrap gap-1.5">
+                      {((quickBikes.data ?? []) as any[]).map((bk) => {
+                        const active = qBikeId === bk.id;
+                        const label = `${bk.year ?? ""} ${bk.make ?? ""} ${bk.model ?? ""}`.trim() || "—";
+                        return (
+                          <button
+                            key={bk.id}
+                            type="button"
+                            onClick={() => (active ? (setQBikeId(null), setQBikeMake(""), setQBikeModel(""), setQBikeYear(""), setQBikeRego("")) : pickBike(bk))}
+                            className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-semibold transition-colors ${
+                              active ? "border-primary bg-primary/15 text-primary" : "border-border hover:border-primary/50"
+                            }`}
+                          >
+                            <BikeIcon className="h-3 w-3" />
+                            {label}
+                            {bk.rego && <span className="opacity-60">· {bk.rego}</span>}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
+
               <div className="grid grid-cols-2 gap-2">
                 <div className="col-span-1">
                   <label className="text-[10px] uppercase tracking-wider text-muted-foreground">First name *</label>
                   <input
-                    autoFocus
                     value={qFirst}
                     onChange={(e) => setQFirst(e.target.value)}
                     className="w-full mt-1 rounded-lg border border-border bg-background/60 px-3 py-2 text-sm focus:border-primary/60 focus:outline-none"
@@ -995,6 +1065,14 @@ function CalendarPage() {
                   />
                 </div>
                 <div className="col-span-1">
+                  <label className="text-[10px] uppercase tracking-wider text-muted-foreground">Rego</label>
+                  <input
+                    value={qBikeRego}
+                    onChange={(e) => setQBikeRego(e.target.value.toUpperCase())}
+                    className="w-full mt-1 rounded-lg border border-border bg-background/60 px-3 py-2 text-sm uppercase tracking-wider focus:border-primary/60 focus:outline-none"
+                  />
+                </div>
+                <div className="col-span-2">
                   <label className="text-[10px] uppercase tracking-wider text-muted-foreground">Est. hours</label>
                   <input
                     value={qEstHours}
