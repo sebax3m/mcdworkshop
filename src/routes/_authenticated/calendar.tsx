@@ -220,8 +220,8 @@ function CalendarPage() {
       }
 
       const { error: bkErr } = await supabase.from("bookings").insert({
-        customer_id: customerId,
-        motorcycle_id: bikeId,
+        customer_id: customerId!,
+        motorcycle_id: bikeId!,
         service_type: qService,
         scheduled_date: format(quickSlot.date, "yyyy-MM-dd"),
         drop_off_time: quickSlot.time,
