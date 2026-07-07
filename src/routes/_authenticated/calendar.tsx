@@ -91,12 +91,16 @@ function CalendarPage() {
   const [deleteBooking, setDeleteBooking] = useState<any | null>(null);
   const [now, setNow] = useState<Date>(() => new Date());
   const [quickSlot, setQuickSlot] = useState<{ date: Date; time: string } | null>(null);
+  const [qSearch, setQSearch] = useState("");
+  const [qCustomerId, setQCustomerId] = useState<string | null>(null);
+  const [qBikeId, setQBikeId] = useState<string | null>(null);
   const [qFirst, setQFirst] = useState("");
   const [qLast, setQLast] = useState("");
   const [qPhone, setQPhone] = useState("");
   const [qBikeMake, setQBikeMake] = useState("");
   const [qBikeModel, setQBikeModel] = useState("");
   const [qBikeYear, setQBikeYear] = useState("");
+  const [qBikeRego, setQBikeRego] = useState("");
   const [qService, setQService] = useState<string>("Standard Service");
   const [qEstHours, setQEstHours] = useState<string>("1");
   const [creatingQuick, setCreatingQuick] = useState(false);
@@ -106,9 +110,74 @@ function CalendarPage() {
     return () => clearInterval(t);
   }, []);
 
-  function resetQuickForm() {
+  const quickCustomers = useQuery({
+    queryKey: ["quick-customers"],
+    enabled: !!quickSlot,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("customers")
+        .select("id, first_name, last_name, phone, email")
+        .order("first_name");
+      return data ?? [];
+    },
+  });
+
+  const quickBikes = useQuery({
+    queryKey: ["quick-bikes", qCustomerId],
+    enabled: !!qCustomerId,
+    queryFn: async () => {
+      const { data } = await (supabase as any)
+        .from("motorcycles")
+        .select("id, make, model, year, rego")
+        .eq("customer_id", qCustomerId);
+      return data ?? [];
+    },
+  });
+
+  const customerMatches = useMemo(() => {
+    const term = qSearch.trim().toLowerCase();
+    if (!term || qCustomerId) return [];
+    const list = (quickCustomers.data ?? []) as any[];
+    return list
+      .filter((c) => {
+        const name = `${c.first_name ?? ""} ${c.last_name ?? ""}`.toLowerCase();
+        const phone = (c.phone ?? "").toLowerCase();
+        return name.includes(term) || phone.includes(term);
+      })
+      .slice(0, 6);
+  }, [qSearch, qCustomerId, quickCustomers.data]);
+
+  function pickCustomer(c: any) {
+    setQCustomerId(c.id);
+    setQFirst(c.first_name ?? "");
+    setQLast(c.last_name ?? "");
+    setQPhone(c.phone ?? "");
+    setQSearch(`${c.first_name ?? ""} ${c.last_name ?? ""}`.trim());
+    setQBikeId(null);
+    setQBikeMake(""); setQBikeModel(""); setQBikeYear(""); setQBikeRego("");
+  }
+
+  function pickBike(b: any) {
+    setQBikeId(b.id);
+    setQBikeMake(b.make ?? "");
+    setQBikeModel(b.model ?? "");
+    setQBikeYear(b.year ? String(b.year) : "");
+    setQBikeRego(b.rego ?? "");
+  }
+
+  function clearCustomerSelection() {
+    setQCustomerId(null);
+    setQBikeId(null);
     setQFirst(""); setQLast(""); setQPhone("");
-    setQBikeMake(""); setQBikeModel(""); setQBikeYear("");
+    setQBikeMake(""); setQBikeModel(""); setQBikeYear(""); setQBikeRego("");
+    setQSearch("");
+  }
+
+  function resetQuickForm() {
+    setQSearch("");
+    setQCustomerId(null); setQBikeId(null);
+    setQFirst(""); setQLast(""); setQPhone("");
+    setQBikeMake(""); setQBikeModel(""); setQBikeYear(""); setQBikeRego("");
     setQService("Standard Service"); setQEstHours("1");
   }
 
@@ -118,36 +187,46 @@ function CalendarPage() {
     if (!qBikeMake.trim() || !qBikeModel.trim()) return toast.error("Bike make and model required");
     setCreatingQuick(true);
     try {
-      const { data: cust, error: cErr } = await supabase
-        .from("customers")
-        .insert({
-          first_name: qFirst.trim(),
-          last_name: qLast.trim() || null,
-          phone: qPhone.trim() || null,
-        })
-        .select("id")
-        .single();
-      if (cErr) throw cErr;
+      let customerId = qCustomerId;
+      if (!customerId) {
+        const { data: cust, error: cErr } = await supabase
+          .from("customers")
+          .insert({
+            first_name: qFirst.trim(),
+            last_name: qLast.trim() || null,
+            phone: qPhone.trim() || null,
+          })
+          .select("id")
+          .single();
+        if (cErr) throw cErr;
+        customerId = cust.id;
+      }
 
-      const { data: bike, error: bErr } = await (supabase as any)
-        .from("motorcycles")
-        .insert({
-          customer_id: cust.id,
-          make: qBikeMake.trim(),
-          model: qBikeModel.trim(),
-          year: qBikeYear ? Number(qBikeYear) : null,
-        })
-        .select("id")
-        .single();
-      if (bErr) throw bErr;
+      let bikeId = qBikeId;
+      if (!bikeId) {
+        const { data: bike, error: bErr } = await (supabase as any)
+          .from("motorcycles")
+          .insert({
+            customer_id: customerId,
+            make: qBikeMake.trim(),
+            model: qBikeModel.trim(),
+            year: qBikeYear ? Number(qBikeYear) : null,
+            rego: qBikeRego.trim().toUpperCase() || null,
+          })
+          .select("id")
+          .single();
+        if (bErr) throw bErr;
+        bikeId = bike.id;
+      }
 
       const { error: bkErr } = await supabase.from("bookings").insert({
-        customer_id: cust.id,
-        motorcycle_id: bike.id,
+        customer_id: customerId!,
+        motorcycle_id: bikeId!,
         service_type: qService,
         scheduled_date: format(quickSlot.date, "yyyy-MM-dd"),
         drop_off_time: quickSlot.time,
         estimated_hours: Number(qEstHours) || 1,
+        rego: qBikeRego.trim().toUpperCase() || null,
         status: "booked",
       });
       if (bkErr) throw bkErr;
@@ -156,6 +235,7 @@ function CalendarPage() {
       setQuickSlot(null);
       resetQuickForm();
       qc.invalidateQueries({ queryKey: ["calendar-bookings"] });
+      qc.invalidateQueries({ queryKey: ["quick-customers"] });
     } catch (err: any) {
       toast.error(err.message ?? "Failed to create booking");
     } finally {
@@ -608,7 +688,7 @@ function CalendarPage() {
                         ? `${b.motorcycles.year ?? ""} ${b.motorcycles.make} ${b.motorcycles.model}`.trim()
                         : "—";
                       const customer = b.customers
-                        ? `${b.customers.first_name} ${b.customers.last_name}`
+                        ? `${b.customers.first_name ?? ""} ${b.customers.last_name ?? ""}`.trim() || "—"
                         : "—";
                       return (
                         <motion.button
@@ -698,7 +778,7 @@ function CalendarPage() {
                 const bike = b.motorcycles
                   ? `${b.motorcycles.year ?? ""} ${b.motorcycles.make} ${b.motorcycles.model}`.trim()
                   : "—";
-                const customer = b.customers ? `${b.customers.first_name} ${b.customers.last_name}` : "—";
+                const customer = b.customers ? (`${b.customers.first_name ?? ""} ${b.customers.last_name ?? ""}`.trim() || "—") : "—";
                 return (
                   <>
                     <div className="flex items-center gap-2 pr-8">
@@ -863,11 +943,81 @@ function CalendarPage() {
                 </div>
               </div>
 
+              {/* Customer search */}
+              <div className="relative">
+                <label className="text-[10px] uppercase tracking-wider text-muted-foreground">Search customer (name or phone)</label>
+                <div className="mt-1 flex gap-2">
+                  <input
+                    value={qSearch}
+                    onChange={(e) => {
+                      setQSearch(e.target.value);
+                      if (qCustomerId) setQCustomerId(null);
+                    }}
+                    placeholder="Start typing…"
+                    className="flex-1 rounded-lg border border-border bg-background/60 px-3 py-2 text-sm focus:border-primary/60 focus:outline-none"
+                  />
+                  {qCustomerId && (
+                    <button
+                      type="button"
+                      onClick={clearCustomerSelection}
+                      className="rounded-lg border border-border px-2 text-xs font-semibold hover:border-primary/50 hover:bg-primary/5"
+                    >
+                      Clear
+                    </button>
+                  )}
+                </div>
+                {customerMatches.length > 0 && (
+                  <div className="absolute z-10 left-0 right-0 mt-1 rounded-lg border border-border bg-popover shadow-xl max-h-56 overflow-y-auto">
+                    {customerMatches.map((c: any) => (
+                      <button
+                        key={c.id}
+                        type="button"
+                        onClick={() => pickCustomer(c)}
+                        className="w-full text-left px-3 py-2 text-sm hover:bg-primary/10 border-b border-border/40 last:border-b-0"
+                      >
+                        <div className="font-semibold">
+                          {`${c.first_name ?? ""} ${c.last_name ?? ""}`.trim() || "—"}
+                        </div>
+                        {c.phone && (
+                          <div className="text-[11px] text-muted-foreground flex items-center gap-1">
+                            <Phone className="h-3 w-3" /> {c.phone}
+                          </div>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                )}
+                {qCustomerId && (quickBikes.data ?? []).length > 0 && (
+                  <div className="mt-2">
+                    <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Customer bikes</div>
+                    <div className="flex flex-wrap gap-1.5">
+                      {((quickBikes.data ?? []) as any[]).map((bk) => {
+                        const active = qBikeId === bk.id;
+                        const label = `${bk.year ?? ""} ${bk.make ?? ""} ${bk.model ?? ""}`.trim() || "—";
+                        return (
+                          <button
+                            key={bk.id}
+                            type="button"
+                            onClick={() => (active ? (setQBikeId(null), setQBikeMake(""), setQBikeModel(""), setQBikeYear(""), setQBikeRego("")) : pickBike(bk))}
+                            className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-semibold transition-colors ${
+                              active ? "border-primary bg-primary/15 text-primary" : "border-border hover:border-primary/50"
+                            }`}
+                          >
+                            <BikeIcon className="h-3 w-3" />
+                            {label}
+                            {bk.rego && <span className="opacity-60">· {bk.rego}</span>}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
+
               <div className="grid grid-cols-2 gap-2">
                 <div className="col-span-1">
                   <label className="text-[10px] uppercase tracking-wider text-muted-foreground">First name *</label>
                   <input
-                    autoFocus
                     value={qFirst}
                     onChange={(e) => setQFirst(e.target.value)}
                     className="w-full mt-1 rounded-lg border border-border bg-background/60 px-3 py-2 text-sm focus:border-primary/60 focus:outline-none"
@@ -915,6 +1065,14 @@ function CalendarPage() {
                   />
                 </div>
                 <div className="col-span-1">
+                  <label className="text-[10px] uppercase tracking-wider text-muted-foreground">Rego</label>
+                  <input
+                    value={qBikeRego}
+                    onChange={(e) => setQBikeRego(e.target.value.toUpperCase())}
+                    className="w-full mt-1 rounded-lg border border-border bg-background/60 px-3 py-2 text-sm uppercase tracking-wider focus:border-primary/60 focus:outline-none"
+                  />
+                </div>
+                <div className="col-span-2">
                   <label className="text-[10px] uppercase tracking-wider text-muted-foreground">Est. hours</label>
                   <input
                     value={qEstHours}
@@ -985,7 +1143,7 @@ function CalendarPage() {
                   Are you sure you want to delete the booking for{" "}
                   <span className="font-semibold text-foreground">
                     {deleteBooking.customers
-                      ? `${deleteBooking.customers.first_name} ${deleteBooking.customers.last_name}`
+                      ? (`${deleteBooking.customers.first_name ?? ""} ${deleteBooking.customers.last_name ?? ""}`.trim() || "this customer")
                       : "this customer"}
                   </span>{" "}
                   on{" "}
