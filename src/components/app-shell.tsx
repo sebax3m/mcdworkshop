@@ -203,14 +203,17 @@ export function AppShell() {
                     style={{
                       transform: `scale(${scale})`,
                       transformOrigin: "left center",
-                      transition: "transform 120ms ease-out",
+                      transition: "transform 320ms cubic-bezier(0.22, 1, 0.36, 1)",
                     }}
                     className={cn(
                       "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium will-change-transform",
                       active ? "bg-primary text-primary-foreground" : "text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent",
                     )}
                   >
-                    <Icon className="h-5 w-5 shrink-0" />
+                    <Icon
+                      className="h-5 w-5 shrink-0"
+                      style={{ color: active ? undefined : t.color, filter: `drop-shadow(0 0 6px ${t.color}55)` }}
+                    />
                     {t.label}
                   </Link>
                 )}
