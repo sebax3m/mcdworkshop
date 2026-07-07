@@ -90,10 +90,77 @@ function CalendarPage() {
   const [selectedBooking, setSelectedBooking] = useState<any | null>(null);
   const [deleteBooking, setDeleteBooking] = useState<any | null>(null);
   const [now, setNow] = useState<Date>(() => new Date());
+  const [quickSlot, setQuickSlot] = useState<{ date: Date; time: string } | null>(null);
+  const [qFirst, setQFirst] = useState("");
+  const [qLast, setQLast] = useState("");
+  const [qPhone, setQPhone] = useState("");
+  const [qBikeMake, setQBikeMake] = useState("");
+  const [qBikeModel, setQBikeModel] = useState("");
+  const [qBikeYear, setQBikeYear] = useState("");
+  const [qService, setQService] = useState<string>("Standard Service");
+  const [qEstHours, setQEstHours] = useState<string>("1");
+  const [creatingQuick, setCreatingQuick] = useState(false);
   useEffect(() => {
     const t = setInterval(() => setNow(new Date()), 60_000);
     return () => clearInterval(t);
   }, []);
+
+  function resetQuickForm() {
+    setQFirst(""); setQLast(""); setQPhone("");
+    setQBikeMake(""); setQBikeModel(""); setQBikeYear("");
+    setQService("Standard Service"); setQEstHours("1");
+  }
+
+  async function createQuickBooking() {
+    if (!quickSlot) return;
+    if (!qFirst.trim()) return toast.error("First name required");
+    if (!qBikeMake.trim() || !qBikeModel.trim()) return toast.error("Bike make and model required");
+    setCreatingQuick(true);
+    try {
+      const { data: cust, error: cErr } = await supabase
+        .from("customers")
+        .insert({
+          first_name: qFirst.trim(),
+          last_name: qLast.trim() || null,
+          phone: qPhone.trim() || null,
+        })
+        .select("id")
+        .single();
+      if (cErr) throw cErr;
+
+      const { data: bike, error: bErr } = await (supabase as any)
+        .from("motorcycles")
+        .insert({
+          customer_id: cust.id,
+          make: qBikeMake.trim(),
+          model: qBikeModel.trim(),
+          year: qBikeYear ? Number(qBikeYear) : null,
+        })
+        .select("id")
+        .single();
+      if (bErr) throw bErr;
+
+      const { error: bkErr } = await supabase.from("bookings").insert({
+        customer_id: cust.id,
+        motorcycle_id: bike.id,
+        service_type: qService,
+        scheduled_date: format(quickSlot.date, "yyyy-MM-dd"),
+        drop_off_time: quickSlot.time,
+        estimated_hours: Number(qEstHours) || 1,
+        status: "booked",
+      });
+      if (bkErr) throw bkErr;
+
+      toast.success("Booking created");
+      setQuickSlot(null);
+      resetQuickForm();
+      qc.invalidateQueries({ queryKey: ["calendar-bookings"] });
+    } catch (err: any) {
+      toast.error(err.message ?? "Failed to create booking");
+    } finally {
+      setCreatingQuick(false);
+    }
+  }
 
   async function confirmDeleteBooking() {
     if (!deleteBooking) return;
