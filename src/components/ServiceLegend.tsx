@@ -18,17 +18,17 @@ const ITEMS = [
 
 export function ServiceLegend() {
   return (
-    <div className="rounded-md border border-dashed border-border/60 bg-background/40 px-3 py-2">
-      <div className="text-[8px] font-bold uppercase tracking-[0.3em] text-muted-foreground/70 mb-1.5">
-        Legend
+    <div className="rounded-md border border-dashed border-border/60 bg-background/40 px-3 py-2.5">
+      <div className="text-[10px] font-bold uppercase tracking-[0.25em] text-muted-foreground/70 mb-2">
+        colour legend
       </div>
-      <ul className="grid grid-cols-2 gap-x-2 gap-y-1">
+      <ul className="grid grid-cols-2 gap-x-2 gap-y-1.5">
         {ITEMS.map((s) => {
           const c = SERVICE_COLORS[s.k];
           return (
-            <li key={s.k} className="flex items-center gap-1.5 min-w-0">
-              <span className={`h-1.5 w-1.5 rounded-full shrink-0 ${c.dot}`} />
-              <span className={`text-[9px] font-medium truncate ${c.text}`}>{s.label}</span>
+            <li key={s.k} className="flex items-center gap-2 min-w-0">
+              <span className={`h-2 w-2 rounded-full shrink-0 ${c.dot}`} />
+              <span className={`text-[11px] font-medium truncate ${c.text}`}>{s.label}</span>
             </li>
           );
         })}
