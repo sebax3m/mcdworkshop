@@ -1,5 +1,6 @@
 import { Link, Outlet, useRouterState, useNavigate, useRouter } from "@tanstack/react-router";
 import { CalendarDays, Wrench, Bike, Timer, LogOut, ClipboardList, FileText, Settings as SettingsIcon, BarChart3, ShieldCheck, KeyRound, ArrowLeft } from "lucide-react";
+import { useRef, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { initials } from "@/lib/format";
@@ -7,12 +8,50 @@ import { cn } from "@/lib/utils";
 import logoAsset from "@/assets/motorcycle-doctors-logo.png.asset.json";
 import { ActiveUserSwitcher } from "@/components/ActiveUserSwitcher";
 import { FloatingClockWidget } from "@/components/FloatingClockWidget";
+
+// macOS-dock-like magnification based on cursor proximity to each item center
+function useDockMagnify() {
+  const navRef = useRef<HTMLElement | null>(null);
+  const [mouseY, setMouseY] = useState<number | null>(null);
+  const onMove = useCallback((e: React.MouseEvent) => {
+    const rect = navRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    setMouseY(e.clientY - rect.top);
+  }, []);
+  const onLeave = useCallback(() => setMouseY(null), []);
+  const getScale = (el: HTMLElement | null) => {
+    if (!el || mouseY == null || !navRef.current) return 1;
+    const navRect = navRef.current.getBoundingClientRect();
+    const r = el.getBoundingClientRect();
+    const center = r.top - navRect.top + r.height / 2;
+    const dist = Math.abs(mouseY - center);
+    const influence = 90; // px radius of magnification
+    if (dist > influence) return 1;
+    const t = 1 - dist / influence; // 0..1
+    return 1 + t * 0.35; // up to 1.35x
+  };
+  return { navRef, onMove, onLeave, getScale };
+}
+
+function DockItem({
+  getScale,
+  children,
+}: {
+  getScale: (el: HTMLElement | null) => number;
+  children: (ref: (el: HTMLElement | null) => void, scale: number) => React.ReactNode;
+}) {
+  const [el, setEl] = useState<HTMLElement | null>(null);
+  const scale = getScale(el);
+  return <>{children(setEl, scale)}</>;
+}
+
 export function AppShell() {
   const nav = useNavigate();
   const router = useRouter();
   const { fullName, isAdmin, isTechnician, loading: userLoading } = useCurrentUser();
   const roleLabel = isAdmin ? "Admin" : isTechnician ? "Technician" : "No Role";
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const sidebarDock = useDockMagnify();
 
   // Show floating back button everywhere on mobile except on the main landing pages
   const isRootPage = pathname === "/" || pathname === "/calendar";
@@ -145,93 +184,38 @@ export function AppShell() {
         <div className="px-4 pt-4 pb-2 text-[10px] font-bold uppercase tracking-[0.25em] text-sidebar-foreground/50">
           Main Menu
         </div>
-        <nav className="flex-1 flex flex-col gap-1 p-3 pt-1">
+        <nav
+          ref={sidebarDock.navRef}
+          onMouseMove={sidebarDock.onMove}
+          onMouseLeave={sidebarDock.onLeave}
+          className="flex-1 flex flex-col gap-1 p-3 pt-1"
+        >
           {tabs.map((t) => {
             const active = pathname === t.to || pathname.startsWith(t.to + "/");
             const Icon = t.icon;
             return (
-              <Link
-                key={t.to}
-                to={t.to}
-                className={cn(
-                  "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
-                  active ? "bg-primary text-primary-foreground" : "text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent",
+              <DockItem key={t.to} getScale={sidebarDock.getScale}>
+                {(setRef, scale) => (
+                  <Link
+                    ref={setRef as never}
+                    to={t.to}
+                    style={{
+                      transform: `scale(${scale})`,
+                      transformOrigin: "left center",
+                      transition: "transform 120ms ease-out",
+                    }}
+                    className={cn(
+                      "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium will-change-transform",
+                      active ? "bg-primary text-primary-foreground" : "text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent",
+                    )}
+                  >
+                    <Icon className="h-5 w-5 shrink-0" />
+                    {t.label}
+                  </Link>
                 )}
-              >
-                <Icon className="h-5 w-5 shrink-0" />
-                {t.label}
-              </Link>
+              </DockItem>
             );
           })}
-
-          {isAdmin && (
-            <Link
-              to="/invoices"
-              className={cn(
-                "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
-                pathname.startsWith("/invoices")
-                  ? "bg-primary text-primary-foreground"
-                  : "text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent",
-              )}
-            >
-              <FileText className="h-5 w-5 shrink-0" /> Invoices
-            </Link>
-          )}
-          {isAdmin && (
-            <Link
-              to="/insurance"
-              className={cn(
-                "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
-                pathname.startsWith("/insurance")
-                  ? "bg-primary text-primary-foreground"
-                  : "text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent",
-              )}
-            >
-              <ShieldCheck className="h-5 w-5 shrink-0" /> Insurance
-            </Link>
-          )}
-          {isAdmin && (
-            <Link
-              to="/loan-bikes"
-              className={cn(
-                "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
-                pathname.startsWith("/loan-bikes")
-                  ? "bg-primary text-primary-foreground"
-                  : "text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent",
-              )}
-            >
-              <KeyRound className="h-5 w-5 shrink-0" /> Loan Bikes
-            </Link>
-          )}
-          {isAdmin && (
-            <Link
-              to="/analytics"
-              className={cn(
-                "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
-                pathname.startsWith("/analytics")
-                  ? "bg-primary text-primary-foreground"
-                  : "text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent",
-              )}
-            >
-              <BarChart3 className="h-5 w-5 shrink-0" /> Analytics
-            </Link>
-          )}
-          {isAdmin && (
-            <Link
-              to="/settings"
-              className={cn(
-                "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
-                pathname.startsWith("/settings") ||
-                  pathname.startsWith("/templates") ||
-                  pathname.startsWith("/inventory") ||
-                  pathname.startsWith("/customers")
-                  ? "bg-primary text-primary-foreground"
-                  : "text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent",
-              )}
-            >
-              <SettingsIcon className="h-5 w-5 shrink-0" /> Settings
-            </Link>
-          )}
         </nav>
       </aside>
 
