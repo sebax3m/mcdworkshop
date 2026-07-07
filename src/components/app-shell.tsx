@@ -183,93 +183,38 @@ export function AppShell() {
         <div className="px-4 pt-4 pb-2 text-[10px] font-bold uppercase tracking-[0.25em] text-sidebar-foreground/50">
           Main Menu
         </div>
-        <nav className="flex-1 flex flex-col gap-1 p-3 pt-1">
+        <nav
+          ref={sidebarDock.navRef}
+          onMouseMove={sidebarDock.onMove}
+          onMouseLeave={sidebarDock.onLeave}
+          className="flex-1 flex flex-col gap-1 p-3 pt-1"
+        >
           {tabs.map((t) => {
             const active = pathname === t.to || pathname.startsWith(t.to + "/");
             const Icon = t.icon;
             return (
-              <Link
-                key={t.to}
-                to={t.to}
-                className={cn(
-                  "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
-                  active ? "bg-primary text-primary-foreground" : "text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent",
+              <DockItem key={t.to} getScale={sidebarDock.getScale}>
+                {(setRef, scale) => (
+                  <Link
+                    ref={setRef as never}
+                    to={t.to}
+                    style={{
+                      transform: `scale(${scale})`,
+                      transformOrigin: "left center",
+                      transition: "transform 120ms ease-out",
+                    }}
+                    className={cn(
+                      "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium will-change-transform",
+                      active ? "bg-primary text-primary-foreground" : "text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent",
+                    )}
+                  >
+                    <Icon className="h-5 w-5 shrink-0" />
+                    {t.label}
+                  </Link>
                 )}
-              >
-                <Icon className="h-5 w-5 shrink-0" />
-                {t.label}
-              </Link>
+              </DockItem>
             );
           })}
-
-          {isAdmin && (
-            <Link
-              to="/invoices"
-              className={cn(
-                "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
-                pathname.startsWith("/invoices")
-                  ? "bg-primary text-primary-foreground"
-                  : "text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent",
-              )}
-            >
-              <FileText className="h-5 w-5 shrink-0" /> Invoices
-            </Link>
-          )}
-          {isAdmin && (
-            <Link
-              to="/insurance"
-              className={cn(
-                "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
-                pathname.startsWith("/insurance")
-                  ? "bg-primary text-primary-foreground"
-                  : "text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent",
-              )}
-            >
-              <ShieldCheck className="h-5 w-5 shrink-0" /> Insurance
-            </Link>
-          )}
-          {isAdmin && (
-            <Link
-              to="/loan-bikes"
-              className={cn(
-                "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
-                pathname.startsWith("/loan-bikes")
-                  ? "bg-primary text-primary-foreground"
-                  : "text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent",
-              )}
-            >
-              <KeyRound className="h-5 w-5 shrink-0" /> Loan Bikes
-            </Link>
-          )}
-          {isAdmin && (
-            <Link
-              to="/analytics"
-              className={cn(
-                "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
-                pathname.startsWith("/analytics")
-                  ? "bg-primary text-primary-foreground"
-                  : "text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent",
-              )}
-            >
-              <BarChart3 className="h-5 w-5 shrink-0" /> Analytics
-            </Link>
-          )}
-          {isAdmin && (
-            <Link
-              to="/settings"
-              className={cn(
-                "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
-                pathname.startsWith("/settings") ||
-                  pathname.startsWith("/templates") ||
-                  pathname.startsWith("/inventory") ||
-                  pathname.startsWith("/customers")
-                  ? "bg-primary text-primary-foreground"
-                  : "text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent",
-              )}
-            >
-              <SettingsIcon className="h-5 w-5 shrink-0" /> Settings
-            </Link>
-          )}
         </nav>
       </aside>
 
