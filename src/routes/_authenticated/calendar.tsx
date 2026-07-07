@@ -688,7 +688,7 @@ function CalendarPage() {
                         ? `${b.motorcycles.year ?? ""} ${b.motorcycles.make} ${b.motorcycles.model}`.trim()
                         : "—";
                       const customer = b.customers
-                        ? `${b.customers.first_name} ${b.customers.last_name}`
+                        ? `${b.customers.first_name ?? ""} ${b.customers.last_name ?? ""}`.trim() || "—"
                         : "—";
                       return (
                         <motion.button
