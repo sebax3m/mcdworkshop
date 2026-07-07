@@ -14,7 +14,7 @@ import { toast } from "sonner";
 import { fullBike, initials } from "@/lib/format";
 import { uploadPhoto } from "@/lib/photos";
 
-const searchSchema = z.object({ date: z.string().optional() });
+const searchSchema = z.object({ date: z.string().optional(), time: z.string().optional() });
 
 export const Route = createFileRoute("/_authenticated/bookings/new")({
   validateSearch: zodValidator(searchSchema),
@@ -47,7 +47,7 @@ function NewBooking() {
   const [serviceType, setServiceType] = useState<string>("Standard Service");
   const [priority, setPriority] = useState<string>("normal");
   const [scheduledDate, setScheduledDate] = useState<string>(search.date || today);
-  const [dropTime, setDropTime] = useState<string>("09:00");
+  const [dropTime, setDropTime] = useState<string>(search.time || "09:00");
   const [estHours, setEstHours] = useState<string>("2");
   const [mileage, setMileage] = useState<string>("");
   const [wof, setWof] = useState<string>("");

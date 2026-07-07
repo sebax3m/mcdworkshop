@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   addDays,
@@ -89,6 +89,11 @@ function CalendarPage() {
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [selectedBooking, setSelectedBooking] = useState<any | null>(null);
   const [deleteBooking, setDeleteBooking] = useState<any | null>(null);
+  const [now, setNow] = useState<Date>(() => new Date());
+  useEffect(() => {
+    const t = setInterval(() => setNow(new Date()), 60_000);
+    return () => clearInterval(t);
+  }, []);
 
   async function confirmDeleteBooking() {
     if (!deleteBooking) return;
@@ -339,91 +344,184 @@ function CalendarPage() {
         </div>
       )}
 
-      {/* WEEK VIEW */}
-      {viewMode === "week" && (
-        <div className="grid grid-cols-1 lg:grid-cols-[56px_repeat(7,minmax(0,1fr))] gap-3">
-          {/* Hours rail (workshop 8:30 AM – 5:30 PM) */}
-          <div className="hidden lg:flex card-surface p-2 min-h-[calc(100vh-240px)] flex-col text-[10px] font-semibold uppercase tracking-wider text-muted-foreground tabular-nums">
-            <div className="text-[8px] font-bold text-muted-foreground/60 mb-2 text-center">Hours</div>
-            <div className="flex-1 flex flex-col justify-between py-1">
-              {[
-                "8:30", "9:30", "10:30", "11:30", "12:30",
-                "13:30", "14:30", "15:30", "16:30", "17:30",
-              ].map((h) => (
-                <div key={h} className="text-center leading-none">{h}</div>
-              ))}
-            </div>
-          </div>
-          {weekDays.map((day, idx) => {
-            const dayKey = format(day, "yyyy-MM-dd");
-            const dayBookings = (bookings as any[]).filter((b) => b.scheduled_date === dayKey);
-            const loadHours = totals.get(dayKey) ?? 0;
-            const loadPct = Math.min(100, (loadHours / DAILY_CAPACITY_HOURS) * 100);
-            const over = loadHours > DAILY_CAPACITY_HOURS;
-            const today = isToday(day);
-            return (
-              <motion.div
-                key={dayKey}
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3, delay: idx * 0.04 }}
-                onDragOver={(e) => e.preventDefault()}
-                onDrop={(e) => {
-                  e.preventDefault();
-                  const id = e.dataTransfer.getData("text/booking-id");
-                  if (id) moveBooking(id, day);
-                  setDraggingId(null);
-                }}
-                className={`card-surface p-4 min-h-[calc(100vh-240px)] flex flex-col transition-colors ${
-                  today ? "ring-2 ring-primary/40" : ""
-                } ${draggingId ? "border-dashed" : ""}`}
-              >
-                <div className="flex items-center justify-between">
-                  <div>
+      {/* WEEK VIEW — Google-Calendar-style time grid */}
+      {viewMode === "week" && (() => {
+        const START_HOUR = 8;
+        const END_HOUR = 18; // exclusive last label; grid ends at 18:00
+        const HOURS = END_HOUR - START_HOUR;
+        const SLOT_H = 56; // px per hour
+        const GRID_H = HOURS * SLOT_H;
+
+        const parseTime = (t?: string | null) => {
+          if (!t) return { h: 9, m: 0 };
+          const [hh, mm] = t.split(":");
+          return { h: Number(hh) || 0, m: Number(mm) || 0 };
+        };
+
+        const nowMinutes = now.getHours() * 60 + now.getMinutes();
+        const nowTop =
+          ((nowMinutes - START_HOUR * 60) / 60) * SLOT_H;
+        const showNow = nowTop >= 0 && nowTop <= GRID_H;
+
+        const handleSlotClick = (e: React.MouseEvent<HTMLDivElement>, day: Date) => {
+          const rect = e.currentTarget.getBoundingClientRect();
+          const y = e.clientY - rect.top;
+          const hourFloat = START_HOUR + y / SLOT_H;
+          // snap to 30 min
+          const totalMin = Math.max(START_HOUR * 60, Math.round((hourFloat * 60) / 30) * 30);
+          const h = Math.floor(totalMin / 60);
+          const m = totalMin % 60;
+          const time = `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+          nav({
+            to: "/bookings/new",
+            search: { date: format(day, "yyyy-MM-dd"), time } as any,
+          });
+        };
+
+        return (
+          <div className="card-surface p-0 overflow-hidden">
+            {/* Day headers */}
+            <div
+              className="grid border-b border-border/60"
+              style={{ gridTemplateColumns: `56px repeat(7, minmax(0, 1fr))` }}
+            >
+              <div className="text-[9px] font-bold text-muted-foreground/60 uppercase tracking-wider text-center py-2 border-r border-border/60">
+                GMT
+              </div>
+              {weekDays.map((day) => {
+                const today = isToday(day);
+                return (
+                  <div
+                    key={format(day, "yyyy-MM-dd")}
+                    className={`text-center py-2 border-r border-border/40 last:border-r-0 ${
+                      today ? "bg-primary/5" : ""
+                    }`}
+                  >
                     <div
-                      className={`text-sm font-semibold uppercase tracking-wide ${
+                      className={`text-[10px] font-semibold uppercase tracking-wider ${
                         today ? "text-primary" : "text-muted-foreground"
                       }`}
                     >
-                      {format(day, "EEEE")}
+                      {format(day, "EEE")}
                     </div>
-                    <div className={`font-display text-3xl font-bold leading-none mt-0.5 ${today ? "red-gradient-text" : ""}`}>
+                    <div
+                      className={`mt-0.5 mx-auto grid place-items-center font-display font-bold text-lg leading-none ${
+                        today
+                          ? "h-8 w-8 rounded-full bg-primary text-primary-foreground"
+                          : ""
+                      }`}
+                    >
                       {format(day, "d")}
                     </div>
                   </div>
-                  {over && (
-                    <span title="Overbooked" className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-status-parts">
-                      <AlertTriangle className="h-3 w-3" /> Over
-                    </span>
-                  )}
-                </div>
-                <div className="mt-2 h-1.5 rounded-full bg-muted overflow-hidden">
-                  <motion.div
-                    initial={{ width: 0 }}
-                    animate={{ width: `${loadPct}%` }}
-                    transition={{ duration: 0.6, ease: "easeOut" }}
-                    className={`h-full rounded-full ${over ? "bg-status-parts" : "bg-gradient-to-r from-[color:var(--primary)] to-[color:var(--md-blue)]"}`}
-                  />
-                </div>
-                <div className="mt-1 flex items-center justify-between text-[10px] text-muted-foreground tabular-nums">
-                  <span>{loadHours.toFixed(1)}h / {DAILY_CAPACITY_HOURS}h</span>
-                  <span>{dayBookings.length} job{dayBookings.length === 1 ? "" : "s"}</span>
-                </div>
+                );
+              })}
+            </div>
 
-                <div className="mt-3 flex-1 space-y-1.5 overflow-y-auto pr-0.5">
-                  <AnimatePresence>
+            {/* Time grid body */}
+            <div
+              className="grid relative"
+              style={{
+                gridTemplateColumns: `56px repeat(7, minmax(0, 1fr))`,
+                height: `${GRID_H}px`,
+              }}
+            >
+              {/* Hours column */}
+              <div className="relative border-r border-border/60">
+                {Array.from({ length: HOURS }, (_, i) => {
+                  const hh = START_HOUR + i;
+                  const label =
+                    hh === 12
+                      ? "12 PM"
+                      : hh > 12
+                        ? `${hh - 12} PM`
+                        : `${hh} AM`;
+                  return (
+                    <div
+                      key={hh}
+                      className="text-[10px] text-muted-foreground tabular-nums text-right pr-2 -translate-y-1.5"
+                      style={{
+                        position: "absolute",
+                        top: `${i * SLOT_H}px`,
+                        right: 0,
+                        left: 0,
+                      }}
+                    >
+                      {label}
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Day columns */}
+              {weekDays.map((day) => {
+                const dayKey = format(day, "yyyy-MM-dd");
+                const dayBookings = (bookings as any[]).filter(
+                  (b) => b.scheduled_date === dayKey,
+                );
+                const today = isToday(day);
+                return (
+                  <div
+                    key={dayKey}
+                    onClick={(e) => handleSlotClick(e, day)}
+                    onDragOver={(e) => e.preventDefault()}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      const id = e.dataTransfer.getData("text/booking-id");
+                      if (id) moveBooking(id, day);
+                      setDraggingId(null);
+                    }}
+                    className={`relative border-r border-border/40 last:border-r-0 cursor-pointer ${
+                      today ? "bg-primary/[0.03]" : ""
+                    } ${draggingId ? "bg-primary/5" : ""}`}
+                    style={{
+                      backgroundImage: `repeating-linear-gradient(to bottom, transparent 0, transparent ${SLOT_H - 1}px, var(--border) ${SLOT_H - 1}px, var(--border) ${SLOT_H}px)`,
+                    }}
+                    title="Click to create booking"
+                  >
+                    {/* Half-hour lighter guides */}
+                    <div
+                      className="absolute inset-0 pointer-events-none opacity-40"
+                      style={{
+                        backgroundImage: `repeating-linear-gradient(to bottom, transparent 0, transparent ${SLOT_H / 2 - 1}px, var(--border) ${SLOT_H / 2 - 1}px, var(--border) ${SLOT_H / 2}px)`,
+                      }}
+                    />
+
+                    {/* Current-time line */}
+                    {today && showNow && (
+                      <div
+                        className="absolute left-0 right-0 z-20 pointer-events-none"
+                        style={{ top: `${nowTop}px` }}
+                      >
+                        <div className="relative h-0">
+                          <div className="absolute -left-1 -top-1 h-2.5 w-2.5 rounded-full bg-status-parts shadow-[0_0_8px_rgba(239,68,68,0.7)]" />
+                          <div className="absolute left-0 right-0 h-[2px] bg-status-parts shadow-[0_0_6px_rgba(239,68,68,0.6)]" />
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Bookings positioned by drop_off_time + estimated_hours */}
                     {dayBookings.map((b: any) => {
+                      const { h, m } = parseTime(b.drop_off_time);
+                      const top =
+                        ((h + m / 60 - START_HOUR) * SLOT_H);
+                      const hoursDur = Math.max(0.5, Number(b.estimated_hours || 1));
+                      const height = Math.max(24, hoursDur * SLOT_H - 2);
+                      // clamp to grid
+                      if (top + height < 0 || top > GRID_H) return null;
                       const c = serviceColor(b.service_type);
-                      const bike = b.motorcycles ? `${b.motorcycles.year ?? ""} ${b.motorcycles.make} ${b.motorcycles.model}`.trim() : "—";
-                      const customer = b.customers ? `${b.customers.first_name} ${b.customers.last_name}` : "—";
+                      const bike = b.motorcycles
+                        ? `${b.motorcycles.year ?? ""} ${b.motorcycles.make} ${b.motorcycles.model}`.trim()
+                        : "—";
+                      const customer = b.customers
+                        ? `${b.customers.first_name} ${b.customers.last_name}`
+                        : "—";
                       return (
                         <motion.button
                           key={b.id}
                           layout
-                          initial={{ opacity: 0, scale: 0.96 }}
+                          initial={{ opacity: 0, scale: 0.98 }}
                           animate={{ opacity: 1, scale: 1 }}
-                          exit={{ opacity: 0, scale: 0.96 }}
-                          whileHover={{ y: -1 }}
                           draggable
                           onDragStart={(e) => {
                             (e as any).dataTransfer?.setData("text/booking-id", b.id);
@@ -434,89 +532,45 @@ function CalendarPage() {
                             e.stopPropagation();
                             setSelectedBooking(b);
                           }}
-                          className={`relative w-full text-left rounded-lg p-2 pr-4 ring-1 ${c.bg} ${c.ring} hover:ring-2 transition-all cursor-grab active:cursor-grabbing ${b.loan_bike ? "ring-2 !ring-amber-400 shadow-[0_0_0_2px_rgba(251,191,36,0.25)]" : ""}`}
+                          className={`absolute left-1 right-1 z-10 rounded-md p-1.5 text-left ring-1 overflow-hidden ${c.bg} ${c.ring} ${c.label} hover:ring-2 transition-all cursor-grab active:cursor-grabbing ${
+                            b.loan_bike ? "!ring-2 !ring-amber-400" : ""
+                          }`}
+                          style={{ top: `${top}px`, height: `${height}px` }}
                         >
-                          <span
-                            role="button"
-                            tabIndex={0}
-                            title="Delete booking"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setDeleteBooking(b);
-                            }}
-                            onKeyDown={(e) => {
-                              if (e.key === "Enter" || e.key === " ") {
-                                e.stopPropagation();
-                                setDeleteBooking(b);
-                              }
-                            }}
-                            className="absolute -top-1.5 -left-1.5 z-10 grid h-5 w-5 place-items-center rounded-full bg-background border border-border text-muted-foreground hover:text-white hover:bg-status-parts hover:border-status-parts transition-colors shadow-sm cursor-pointer"
-                          >
-                            <X className="h-3 w-3" />
-                          </span>
-                          {b.confirmed && (
-                            <span
-                              title="Confirmed"
-                              className="absolute top-1 right-1 h-2 w-2 rounded-full bg-green-500 ring-2 ring-background"
-                            />
-                          )}
                           <div className="flex items-center justify-between gap-1">
-                            <span className={`text-[9px] font-bold uppercase tracking-wider ${c.label}`}>
-                              {b.service_type}
+                            <span className="text-[9px] font-bold uppercase tracking-wider truncate">
+                              {b.drop_off_time
+                                ? b.drop_off_time.slice(0, 5)
+                                : ""}{" "}
+                              · {b.service_type}
                             </span>
-                            {b.drop_off_time && (
-                              <span className="text-[9px] text-muted-foreground tabular-nums flex items-center gap-0.5">
-                                <Clock className="h-2.5 w-2.5" />
-                                {b.drop_off_time.slice(0, 5)}
-                              </span>
+                            {b.confirmed && (
+                              <span className="h-1.5 w-1.5 rounded-full bg-green-500 shrink-0" />
                             )}
                           </div>
-                          <div className="text-xs font-semibold truncate mt-0.5">{bike}</div>
-                          <div className="text-[10px] text-muted-foreground truncate">{customer}</div>
-                          {b.loan_bike && (
-                            <div className="mt-1 inline-flex items-center gap-1 rounded-full bg-amber-400/20 border border-amber-400/60 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-amber-300">
-                              🏍️ Loan bike
+                          {height > 32 && (
+                            <div className="text-[10px] font-semibold text-foreground truncate">
+                              {bike}
                             </div>
                           )}
-                          <div className="mt-1 flex items-center justify-between">
-                            <span className="text-[10px] text-muted-foreground tabular-nums">{b.estimated_hours ?? 1}h</span>
-                            {b.tech_name ? (
-                              <span className="inline-flex items-center gap-1 rounded-full bg-background/60 px-1.5 py-0.5 text-[9px] font-semibold">
-                                <span className="grid h-3.5 w-3.5 place-items-center rounded-full red-surface text-[8px]">
-                                  {initials(b.tech_name)}
-                                </span>
-                                <span className="max-w-[60px] truncate">{b.tech_name.split(" ")[0]}</span>
-                              </span>
-                            ) : (
-                              <span className="inline-flex items-center gap-1 text-[9px] text-muted-foreground italic">
-                                <UserIcon className="h-2.5 w-2.5" /> Unassigned
-                              </span>
-                            )}
-                          </div>
+                          {height > 48 && (
+                            <div className="text-[9px] text-muted-foreground truncate">
+                              {customer}
+                            </div>
+                          )}
                         </motion.button>
                       );
                     })}
-                  </AnimatePresence>
-                  {!isLoading && dayBookings.length === 0 && (
-                    <div className="rounded-lg border border-dashed border-border/40 p-3 text-center text-[10px] uppercase tracking-wider text-muted-foreground">
-                      No bookings
-                    </div>
-                  )}
-                </div>
-                <Link
-                  to="/bookings/new"
-                  search={{ date: dayKey }}
-                  className="mt-2 block rounded-lg border border-dashed border-border/60 px-2 py-2 text-center text-[10px] font-semibold uppercase tracking-wider text-muted-foreground hover:text-primary hover:border-primary/40 hover:bg-primary/5 transition-colors"
-                >
-                  + Add Book In
-                </Link>
-              </motion.div>
-            );
-          })}
-        </div>
-      )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        );
+      })()}
 
       {/* LEGEND moved to sidebar (only visible on /calendar) */}
+
 
       {/* BOOKING QUICK-VIEW POPUP */}
       <AnimatePresence>
