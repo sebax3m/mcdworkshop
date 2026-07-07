@@ -100,6 +100,7 @@ function CalendarPage() {
   const [qService, setQService] = useState<string>("Standard Service");
   const [qEstHours, setQEstHours] = useState<string>("1");
   const [creatingQuick, setCreatingQuick] = useState(false);
+  const [hoverSlot, setHoverSlot] = useState<{ dayKey: string; slotIdx: number } | null>(null);
   useEffect(() => {
     const t = setInterval(() => setNow(new Date()), 60_000);
     return () => clearInterval(t);
@@ -455,16 +456,18 @@ function CalendarPage() {
               </div>
               {weekDays.map((day) => {
                 const today = isToday(day);
+                const dayKey = format(day, "yyyy-MM-dd");
+                const isHovered = hoverSlot?.dayKey === dayKey;
                 return (
                   <div
-                    key={format(day, "yyyy-MM-dd")}
-                    className={`text-center py-2 border-r border-border/40 last:border-r-0 ${
+                    key={dayKey}
+                    className={`text-center py-2 border-r border-border/40 last:border-r-0 transition-colors ${
                       today ? "bg-primary/5" : ""
-                    }`}
+                    } ${isHovered ? "bg-primary/10" : ""}`}
                   >
                     <div
-                      className={`text-[10px] font-semibold uppercase tracking-wider ${
-                        today ? "text-primary" : "text-muted-foreground"
+                      className={`text-[10px] font-semibold uppercase tracking-wider transition-colors ${
+                        today ? "text-primary" : isHovered ? "text-foreground" : "text-muted-foreground"
                       }`}
                     >
                       {format(day, "EEE")}
@@ -473,7 +476,7 @@ function CalendarPage() {
                       className={`mt-0.5 mx-auto grid place-items-center font-display font-bold text-lg leading-none ${
                         today
                           ? "h-8 w-8 rounded-full bg-primary text-primary-foreground"
-                          : ""
+                          : isHovered ? "text-primary" : ""
                       }`}
                     >
                       {format(day, "d")}
@@ -501,10 +504,13 @@ function CalendarPage() {
                       : hh > 12
                         ? `${hh - 12} PM`
                         : `${hh} AM`;
+                  const activeHour = hoverSlot && Math.floor(hoverSlot.slotIdx / 2) === i;
                   return (
                     <div
                       key={hh}
-                      className="text-[10px] text-muted-foreground tabular-nums text-right pr-2 -translate-y-1.5"
+                      className={`text-[10px] tabular-nums text-right pr-2 -translate-y-1.5 transition-colors ${
+                        activeHour ? "text-primary font-bold" : "text-muted-foreground"
+                      }`}
                       style={{
                         position: "absolute",
                         top: `${i * SLOT_H}px`,
@@ -529,6 +535,18 @@ function CalendarPage() {
                   <div
                     key={dayKey}
                     onClick={(e) => handleSlotClick(e, day)}
+                    onMouseMove={(e) => {
+                      const rect = e.currentTarget.getBoundingClientRect();
+                      const y = e.clientY - rect.top;
+                      const slotIdx = Math.max(
+                        0,
+                        Math.min(HOURS * 2 - 1, Math.floor(y / (SLOT_H / 2))),
+                      );
+                      if (hoverSlot?.dayKey !== dayKey || hoverSlot?.slotIdx !== slotIdx) {
+                        setHoverSlot({ dayKey, slotIdx });
+                      }
+                    }}
+                    onMouseLeave={() => setHoverSlot(null)}
                     onDragOver={(e) => e.preventDefault()}
                     onDrop={(e) => {
                       e.preventDefault();
@@ -551,6 +569,17 @@ function CalendarPage() {
                         backgroundImage: `repeating-linear-gradient(to bottom, transparent 0, transparent ${SLOT_H / 2 - 1}px, var(--border) ${SLOT_H / 2 - 1}px, var(--border) ${SLOT_H / 2}px)`,
                       }}
                     />
+
+                    {/* Hover slot highlight */}
+                    {hoverSlot?.dayKey === dayKey && (
+                      <div
+                        className="absolute left-0.5 right-0.5 pointer-events-none rounded-md bg-primary/15 ring-1 ring-primary/50 shadow-[0_0_12px_rgba(59,130,246,0.35)] transition-[top] duration-75"
+                        style={{
+                          top: `${hoverSlot.slotIdx * (SLOT_H / 2)}px`,
+                          height: `${SLOT_H / 2}px`,
+                        }}
+                      />
+                    )}
 
                     {/* Current-time line */}
                     {today && showNow && (

@@ -204,7 +204,9 @@ export function AppShell() {
                     style={{
                       transform: `scale(${scale})`,
                       transformOrigin: "left center",
-                      transition: "transform 320ms cubic-bezier(0.22, 1, 0.36, 1)",
+                      transition: "transform 320ms cubic-bezier(0.22, 1, 0.36, 1), z-index 0s",
+                      position: "relative",
+                      zIndex: scale > 1.01 ? 50 + Math.round(scale * 10) : 1,
                     }}
                     className={cn(
                       "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium will-change-transform",
