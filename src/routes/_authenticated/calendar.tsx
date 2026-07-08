@@ -27,7 +27,9 @@ import {
   FileText,
   Bike as BikeIcon,
   Phone,
+  Trash2,
 } from "lucide-react";
+
 import { supabase } from "@/integrations/supabase/client";
 import {
   AlertDialog,
