@@ -128,6 +128,8 @@ function CalendarPage() {
   const [qService, setQService] = useState<string>("Standard Service");
   const [qServiceOther, setQServiceOther] = useState<string>("");
   const [qEstHours, setQEstHours] = useState<string>("1");
+  const [qWofNeeded, setQWofNeeded] = useState(false);
+  const [qWofExpiry, setQWofExpiry] = useState<string>("");
   const [qLoanBike, setQLoanBike] = useState(false);
   const [qLoanBikeId, setQLoanBikeId] = useState<string | null>(null);
   const [qLoanBikeReturn, setQLoanBikeReturn] = useState<string>("");
@@ -252,6 +254,7 @@ function CalendarPage() {
     setQFirst(""); setQLast(""); setQPhone("");
     setQBikeMake(""); setQBikeModel(""); setQBikeYear(""); setQBikeRego("");
     setQService("Standard Service"); setQServiceOther(""); setQEstHours("1");
+    setQWofNeeded(false); setQWofExpiry("");
     setQLoanBike(false); setQLoanBikeId(null); setQLoanBikeReturn("");
   }
 
@@ -310,6 +313,8 @@ function CalendarPage() {
         loan_bike_id: qLoanBike ? qLoanBikeId : null,
         loan_bike_expected_return: qLoanBike && qLoanBikeReturn ? qLoanBikeReturn : null,
         status: "booked",
+        wof_expiry: qWofNeeded && qWofExpiry ? qWofExpiry : null,
+        notes: qWofNeeded ? "WOF required" : null,
       });
       if (bkErr) throw bkErr;
 
@@ -1542,6 +1547,24 @@ function CalendarPage() {
                       onChange={(e) => setQServiceOther(e.target.value)}
                       placeholder="Describe the service..."
                       className="mt-1 w-full min-h-[64px] rounded-lg border border-border bg-background/60 px-3 py-2 text-sm focus:border-primary/60 focus:outline-none resize-y"
+                    />
+                  </div>
+                )}
+              </div>
+
+              <div>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input type="checkbox" className="h-4 w-4 accent-primary" checked={qWofNeeded} onChange={(e) => setQWofNeeded(e.target.checked)} />
+                  <span className="text-sm font-semibold">📋 Needs WOF</span>
+                </label>
+                {qWofNeeded && (
+                  <div className="mt-2 rounded-xl border border-primary/40 bg-primary/5 p-3">
+                    <label className="text-[10px] uppercase tracking-wider text-muted-foreground">Current WOF expiry (optional)</label>
+                    <input
+                      type="date"
+                      value={qWofExpiry}
+                      onChange={(e) => setQWofExpiry(e.target.value)}
+                      className="w-full mt-1 rounded-lg border border-border bg-background/60 px-3 py-2 text-sm"
                     />
                   </div>
                 )}
