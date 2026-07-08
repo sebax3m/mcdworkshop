@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   addDays,
@@ -73,6 +73,11 @@ function serviceColor(t: string | null | undefined) {
   return SERVICE_COLORS.default;
 }
 
+function isSunday(d: Date) {
+  return d.getDay() === 0;
+}
+
+
 function chunk<T>(arr: T[], size: number): T[][] {
   const res: T[][] = [];
   for (let i = 0; i < arr.length; i += size) {
@@ -106,10 +111,25 @@ function CalendarPage() {
   const [qEstHours, setQEstHours] = useState<string>("1");
   const [creatingQuick, setCreatingQuick] = useState(false);
   const [hoverSlot, setHoverSlot] = useState<{ dayKey: string; slotIdx: number } | null>(null);
+  const bodyRef = useRef<HTMLDivElement>(null);
+  const [gridH, setGridH] = useState(560);
   useEffect(() => {
     const t = setInterval(() => setNow(new Date()), 60_000);
     return () => clearInterval(t);
   }, []);
+
+  useEffect(() => {
+    const el = bodyRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        const h = Math.max(560, Math.round(entry.contentRect.height));
+        setGridH((prev) => (prev !== h ? h : prev));
+      }
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [viewMode]);
 
   const quickCustomers = useQuery({
     queryKey: ["quick-customers"],
@@ -333,7 +353,7 @@ function CalendarPage() {
   const dayNames = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
   return (
-    <div className="space-y-3">
+    <div className="flex flex-col gap-3 h-full">
       {/* NAV + TOGGLE */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
@@ -396,11 +416,14 @@ function CalendarPage() {
 
       {/* MONTH VIEW */}
       {viewMode === "month" && (
-        <div className="space-y-1">
+        <div className="overflow-x-auto min-w-full">
+          <div className="space-y-1 min-w-[720px]">
           {/* Day headers */}
           <div className="grid grid-cols-7 gap-2" style={{ gridTemplateColumns: 'repeat(7, minmax(0, 1fr))' }}>
             {dayNames.map((name) => (
-              <div key={name} className="text-center text-[10px] font-bold uppercase tracking-wider text-muted-foreground py-1">
+              <div key={name} className={`text-center text-[10px] font-bold uppercase tracking-wider py-1 rounded ${
+                name === "Sunday" ? "bg-primary/[0.05] text-primary" : "text-muted-foreground"
+              }`}>
                 {name}
               </div>
             ))}
@@ -435,7 +458,7 @@ function CalendarPage() {
                   }}
                   className={`card-surface p-2 min-h-[160px] flex flex-col cursor-pointer transition-colors hover:ring-1 hover:ring-primary/30 ${
                     today ? "ring-2 ring-primary/40" : ""
-                  } ${draggingId ? "border-dashed" : ""} ${!inMonth ? "opacity-40" : ""}`}
+                  } ${isSunday(day) ? "bg-primary/[0.07]" : ""} ${draggingId ? "border-dashed" : ""} ${!inMonth ? "opacity-40" : ""}`}
                 >
                   <div className="flex items-center justify-between">
                     <div
@@ -490,6 +513,7 @@ function CalendarPage() {
               );
             })}
           </div>
+          </div>
         </div>
       )}
 
@@ -498,8 +522,8 @@ function CalendarPage() {
         const START_HOUR = 8;
         const END_HOUR = 18; // exclusive last label; grid ends at 18:00
         const HOURS = END_HOUR - START_HOUR;
-        const SLOT_H = 56; // px per hour
-        const GRID_H = HOURS * SLOT_H;
+        const SLOT_H = gridH / HOURS;
+        const GRID_H = gridH;
 
         const parseTime = (t?: string | null) => {
           if (!t) return { h: 9, m: 0 };
@@ -526,7 +550,9 @@ function CalendarPage() {
         };
 
         return (
-          <div className="card-surface p-0 overflow-hidden">
+          <div className="card-surface p-0 overflow-hidden flex flex-col flex-1 min-h-[560px]">
+            <div className="overflow-x-auto min-w-full min-h-0 flex-1">
+              <div className="min-w-[900px] h-full flex flex-col">
             {/* Day headers */}
             <div
               className="grid border-b border-border/60"
@@ -543,12 +569,12 @@ function CalendarPage() {
                   <div
                     key={dayKey}
                     className={`text-center py-2 border-r border-border/40 last:border-r-0 transition-colors ${
-                      today ? "bg-primary/5" : ""
+                      today ? "bg-primary/5" : isSunday(day) ? "bg-primary/[0.06]" : ""
                     } ${isHovered ? "bg-primary/10" : ""}`}
                   >
                     <div
                       className={`text-[10px] font-semibold uppercase tracking-wider transition-colors ${
-                        today ? "text-primary" : isHovered ? "text-foreground" : "text-muted-foreground"
+                        today ? "text-primary" : isSunday(day) ? "text-primary" : isHovered ? "text-foreground" : "text-muted-foreground"
                       }`}
                     >
                       {format(day, "EEEE")}
@@ -569,10 +595,10 @@ function CalendarPage() {
 
             {/* Time grid body */}
             <div
-              className="grid relative"
+              ref={bodyRef}
+              className="grid relative flex-1 min-h-[560px]"
               style={{
                 gridTemplateColumns: `56px repeat(7, minmax(0, 1fr))`,
-                height: `${GRID_H}px`,
               }}
             >
               {/* Hours column */}
@@ -636,7 +662,7 @@ function CalendarPage() {
                       setDraggingId(null);
                     }}
                     className={`relative border-r border-border/40 last:border-r-0 cursor-pointer ${
-                      today ? "bg-primary/[0.03]" : ""
+                      today ? "bg-primary/[0.03]" : isSunday(day) ? "bg-primary/[0.06]" : ""
                     } ${draggingId ? "bg-primary/5" : ""}`}
                     style={{
                       backgroundImage: `repeating-linear-gradient(to bottom, transparent 0, transparent ${SLOT_H - 1}px, var(--border) ${SLOT_H - 1}px, var(--border) ${SLOT_H}px)`,
@@ -739,7 +765,9 @@ function CalendarPage() {
                   </div>
                 );
               })}
+              </div>
             </div>
+          </div>
           </div>
         );
       })()}
