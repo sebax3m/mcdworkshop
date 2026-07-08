@@ -163,6 +163,9 @@ function CustomerProfile() {
         </Button>
       </div>
 
+      <BikesSection customerId={customerId} />
+
+
       <AlertDialog open={confirmDel} onOpenChange={setConfirmDel}>
         <AlertDialogContent>
           <AlertDialogHeader>
