@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, Search, Phone, Mail, ChevronRight } from "lucide-react";
+import { Plus, Search, Phone, Mail, ChevronRight, Bike } from "lucide-react";
 import { toast } from "sonner";
 import { initials } from "@/lib/format";
 import { useCurrentUser } from "@/hooks/use-current-user";
@@ -25,6 +25,18 @@ function Customers() {
     queryKey: ["customers-list"],
     queryFn: async () => (await supabase.from("customers").select("*").order("created_at", { ascending: false })).data ?? [],
   });
+
+  const bikes = useQuery({
+    queryKey: ["customers-bikes"],
+    queryFn: async () => (await supabase.from("motorcycles").select("id, customer_id, make, model, year, rego")).data ?? [],
+  });
+
+  const bikesByCustomer = new Map<string, any[]>();
+  for (const b of bikes.data ?? []) {
+    const arr = bikesByCustomer.get(b.customer_id) ?? [];
+    arr.push(b);
+    bikesByCustomer.set(b.customer_id, arr);
+  }
 
   async function save() {
     if (!f.first_name.trim()) return toast.error("First name required");
@@ -71,24 +83,37 @@ function Customers() {
       )}
 
       <div className="space-y-2">
-        {filtered.map((c: any) => (
-          <Link
-            key={c.id}
-            to="/customers/$customerId"
-            params={{ customerId: c.id }}
-            className="card-surface p-3 flex items-center gap-3 hover:border-primary/50 transition-colors"
-          >
-            <span className="grid h-11 w-11 place-items-center rounded-full bg-muted font-semibold">{initials(`${c.first_name} ${c.last_name ?? ""}`)}</span>
-            <div className="min-w-0 flex-1">
-              <div className="font-semibold truncate">{c.first_name}{c.last_name ? ` ${c.last_name}` : ""}</div>
-              <div className="flex items-center gap-3 text-xs text-muted-foreground mt-0.5 flex-wrap">
-                {c.phone && <span className="inline-flex items-center gap-1"><Phone className="h-3 w-3" />{c.phone}</span>}
-                {c.email && <span className="inline-flex items-center gap-1 truncate"><Mail className="h-3 w-3" />{c.email}</span>}
+        {filtered.map((c: any) => {
+          const cBikes = bikesByCustomer.get(c.id) ?? [];
+          return (
+            <Link
+              key={c.id}
+              to="/customers/$customerId"
+              params={{ customerId: c.id }}
+              className="card-surface p-3 flex items-center gap-3 hover:border-primary/50 transition-colors"
+            >
+              <span className="grid h-11 w-11 place-items-center rounded-full bg-muted font-semibold">{initials(`${c.first_name} ${c.last_name ?? ""}`)}</span>
+              <div className="min-w-0 flex-1">
+                <div className="font-semibold truncate">{c.first_name}{c.last_name ? ` ${c.last_name}` : ""}</div>
+                <div className="flex items-center gap-3 text-xs text-muted-foreground mt-0.5 flex-wrap">
+                  {c.phone && <span className="inline-flex items-center gap-1"><Phone className="h-3 w-3" />{c.phone}</span>}
+                  {c.email && <span className="inline-flex items-center gap-1 truncate"><Mail className="h-3 w-3" />{c.email}</span>}
+                </div>
+                {cBikes.length > 0 && (
+                  <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
+                    {cBikes.map((b) => (
+                      <span key={b.id} className="inline-flex items-center gap-1 rounded-md bg-muted/60 border border-border/60 px-1.5 py-0.5 text-[10px] text-foreground/80">
+                        <Bike className="h-3 w-3 text-primary" />
+                        {b.make} {b.model}{b.year ? ` ${b.year}` : ""}{b.rego ? ` · ${b.rego}` : ""}
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
-            </div>
-            <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
-          </Link>
-        ))}
+              <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
+            </Link>
+          );
+        })}
         {filtered.length === 0 && <div className="card-surface p-8 text-center text-sm text-muted-foreground">No customers yet.</div>}
       </div>
     </div>
