@@ -818,7 +818,7 @@ function CalendarPage() {
                           style={{
                             top: `${top}px`,
                             height: `${height}px`,
-                            ...(b.color ? { backgroundColor: `${b.color}CC`, boxShadow: `inset 0 0 0 1px ${b.color}` } : {}),
+                            ...(b.color ? { backgroundColor: `${b.color}B3`, boxShadow: `inset 0 0 0 1px ${b.color}` } : {}),
                           }}
                         >
                           {/* Drag grip indicator — visible on hover */}
