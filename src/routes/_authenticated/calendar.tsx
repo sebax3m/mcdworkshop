@@ -586,6 +586,12 @@ function CalendarPage() {
           const h = Math.floor(totalMin / 60);
           const m = totalMin % 60;
           const time = `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+          const dayKey = format(day, "yyyy-MM-dd");
+          const clash = findOverlap(dayKey, totalMin, 0.5);
+          if (clash) {
+            setSelectedBooking(clash);
+            return;
+          }
           resetQuickForm();
           setQuickSlot({ date: day, time });
         };
@@ -771,17 +777,17 @@ function CalendarPage() {
                         ? `${b.customers.first_name ?? ""} ${b.customers.last_name ?? ""}`.trim() || "—"
                         : "—";
                       return (
-                        <motion.button
+                        <div
                           key={b.id}
-                          layout
-                          initial={{ opacity: 0, scale: 0.98 }}
-                          animate={{ opacity: 1, scale: 1 }}
+                          role="button"
+                          tabIndex={0}
                           draggable
-                          onDragStart={(e: any) => {
-                            const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-                            const grabY = (e.clientY ?? 0) - rect.top;
-                            e.dataTransfer?.setData("text/booking-id", b.id);
-                            e.dataTransfer?.setData("text/grab-offset", String(grabY));
+                          onDragStart={(e) => {
+                            const rect = e.currentTarget.getBoundingClientRect();
+                            const grabY = e.clientY - rect.top;
+                            e.dataTransfer.effectAllowed = "move";
+                            e.dataTransfer.setData("text/booking-id", b.id);
+                            e.dataTransfer.setData("text/grab-offset", String(grabY));
                             setDraggingId(b.id);
                           }}
                           onDragEnd={() => setDraggingId(null)}
@@ -789,9 +795,9 @@ function CalendarPage() {
                             e.stopPropagation();
                             setSelectedBooking(b);
                           }}
-                          className={`group absolute left-1 right-1 z-10 rounded-md p-1.5 text-left ring-1 overflow-hidden ${b.color ? "" : `${c.bg} ${c.ring} ${c.label}`} hover:ring-2 hover:brightness-110 hover:shadow-lg hover:z-20 hover:scale-[1.015] transition-all cursor-grab active:cursor-grabbing active:scale-[0.99] ${
-                            draggingId === b.id ? "opacity-40 ring-2 ring-dashed" : ""
-                          } ${b.loan_bike ? "!ring-2 !ring-amber-400" : ""}`}
+                          className={`group absolute left-1 right-1 z-10 rounded-md p-1.5 text-left ring-1 overflow-hidden select-none transition-[box-shadow,filter] hover:brightness-110 hover:ring-2 hover:shadow-lg cursor-grab active:cursor-grabbing ${
+                            b.color ? "" : `${c.bg} ${c.ring} ${c.label}`
+                          } ${draggingId === b.id ? "opacity-40" : ""} ${b.loan_bike ? "!ring-2 !ring-amber-400" : ""}`}
                           style={{
                             top: `${top}px`,
                             height: `${height}px`,
@@ -799,7 +805,7 @@ function CalendarPage() {
                           }}
                         >
                           {/* Drag grip indicator — visible on hover */}
-                          <div className="absolute top-0.5 right-0.5 opacity-0 group-hover:opacity-70 transition-opacity pointer-events-none text-current text-[8px] leading-none font-black tracking-tighter">
+                          <div className="absolute top-0.5 right-0.5 opacity-0 group-hover:opacity-70 transition-opacity pointer-events-none text-current text-[9px] leading-none font-black">
                             ⋮⋮
                           </div>
                           <div className="flex items-center justify-between gap-1">
@@ -823,7 +829,7 @@ function CalendarPage() {
                               {customer}
                             </div>
                           )}
-                        </motion.button>
+                        </div>
                       );
                     })}
                   </div>
