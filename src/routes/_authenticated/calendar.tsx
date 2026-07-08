@@ -782,6 +782,8 @@ function CalendarPage() {
                           role="button"
                           tabIndex={0}
                           draggable
+                          onMouseEnter={() => setHoverSlot(null)}
+                          onMouseMove={(e) => e.stopPropagation()}
                           onDragStart={(e) => {
                             const rect = e.currentTarget.getBoundingClientRect();
                             const grabY = e.clientY - rect.top;
@@ -795,7 +797,7 @@ function CalendarPage() {
                             e.stopPropagation();
                             setSelectedBooking(b);
                           }}
-                          className={`group absolute left-1 right-1 z-10 rounded-md p-1.5 text-left ring-1 overflow-hidden select-none transition-[box-shadow,filter] hover:brightness-110 hover:ring-2 hover:shadow-lg cursor-grab active:cursor-grabbing ${
+                          className={`group absolute left-1 right-1 z-10 rounded-md p-2 text-left ring-1 overflow-hidden select-none transition-all hover:z-30 hover:brightness-125 hover:ring-2 hover:ring-primary hover:shadow-[0_8px_24px_rgba(0,0,0,0.35)] cursor-grab active:cursor-grabbing ${
                             b.color ? "" : `${c.bg} ${c.ring} ${c.label}`
                           } ${draggingId === b.id ? "opacity-40" : ""} ${b.loan_bike ? "!ring-2 !ring-amber-400" : ""}`}
                           style={{
