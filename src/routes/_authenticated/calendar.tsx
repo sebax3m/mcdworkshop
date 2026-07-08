@@ -305,11 +305,15 @@ function CalendarPage() {
     },
   });
 
-  async function moveBooking(bookingId: string, newDate: Date) {
+  async function moveBooking(bookingId: string, newDate: Date, newTime?: string) {
     const dateStr = format(newDate, "yyyy-MM-dd");
-    const { error } = await supabase.from("bookings").update({ scheduled_date: dateStr }).eq("id", bookingId);
+    const patch: any = { scheduled_date: dateStr };
+    if (newTime) patch.drop_off_time = newTime;
+    const { error } = await supabase.from("bookings").update(patch).eq("id", bookingId);
     if (error) return toast.error(error.message);
-    toast.success("Booking moved to " + format(newDate, "EEE d MMM"));
+    toast.success(
+      "Booking moved to " + format(newDate, "EEE d MMM") + (newTime ? ` · ${newTime}` : ""),
+    );
     qc.invalidateQueries({ queryKey: ["calendar-bookings"] });
   }
 
