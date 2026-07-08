@@ -1390,7 +1390,7 @@ function CalendarPage() {
 
               {/* Customer search */}
               <div className="relative">
-                <label className="text-[10px] uppercase tracking-wider text-muted-foreground">Search customer (name or phone)</label>
+                <label className="text-[10px] uppercase tracking-wider text-muted-foreground">Search by name, phone or rego</label>
                 <div className="mt-1 flex gap-2">
                   <input
                     value={qSearch}
@@ -1398,7 +1398,7 @@ function CalendarPage() {
                       setQSearch(e.target.value);
                       if (qCustomerId) setQCustomerId(null);
                     }}
-                    placeholder="Start typing…"
+                    placeholder="e.g. John, 021…, ABC123"
                     className="flex-1 rounded-lg border border-border bg-background/60 px-3 py-2 text-sm focus:border-primary/60 focus:outline-none"
                   />
                   {qCustomerId && (
@@ -1411,25 +1411,61 @@ function CalendarPage() {
                     </button>
                   )}
                 </div>
-                {customerMatches.length > 0 && (
-                  <div className="absolute z-10 left-0 right-0 mt-1 rounded-lg border border-border bg-popover shadow-xl max-h-56 overflow-y-auto">
-                    {customerMatches.map((c: any) => (
-                      <button
-                        key={c.id}
-                        type="button"
-                        onClick={() => pickCustomer(c)}
-                        className="w-full text-left px-3 py-2 text-sm hover:bg-primary/10 border-b border-border/40 last:border-b-0"
-                      >
-                        <div className="font-semibold">
-                          {`${c.first_name ?? ""} ${c.last_name ?? ""}`.trim() || "—"}
-                        </div>
-                        {c.phone && (
-                          <div className="text-[11px] text-muted-foreground flex items-center gap-1">
-                            <Phone className="h-3 w-3" /> {c.phone}
-                          </div>
-                        )}
-                      </button>
-                    ))}
+                {(customerMatches.length > 0 || regoMatches.length > 0) && (
+                  <div className="absolute z-10 left-0 right-0 mt-1 rounded-lg border border-border bg-popover shadow-xl max-h-72 overflow-y-auto">
+                    {regoMatches.length > 0 && (
+                      <>
+                        <div className="px-3 py-1 text-[9px] font-bold uppercase tracking-wider text-muted-foreground bg-muted/40 border-b border-border/40">Matching rego</div>
+                        {regoMatches.map((m: any) => (
+                          <button
+                            key={`rego-${m.id}`}
+                            type="button"
+                            onClick={() => pickRegoMatch(m)}
+                            className="w-full text-left px-3 py-2 text-sm hover:bg-primary/10 border-b border-border/40 last:border-b-0"
+                          >
+                            <div className="flex items-center gap-2">
+                              <span className="inline-flex items-center gap-1 rounded-md bg-primary/10 border border-primary/30 px-1.5 py-0.5 text-[11px] font-mono font-bold text-primary">
+                                <BikeIcon className="h-3 w-3" /> {m.rego}
+                              </span>
+                              <span className="text-[11px] text-muted-foreground">{`${m.year ?? ""} ${m.make ?? ""} ${m.model ?? ""}`.trim()}</span>
+                            </div>
+                            {m.customers && (
+                              <div className="mt-0.5 text-[11px] text-muted-foreground">
+                                {`${m.customers.first_name ?? ""} ${m.customers.last_name ?? ""}`.trim() || "—"}
+                                {m.customers.phone ? ` · ${m.customers.phone}` : ""}
+                              </div>
+                            )}
+                          </button>
+                        ))}
+                      </>
+                    )}
+                    {customerMatches.length > 0 && (
+                      <>
+                        <div className="px-3 py-1 text-[9px] font-bold uppercase tracking-wider text-muted-foreground bg-muted/40 border-b border-border/40">Matching customer</div>
+                        {customerMatches.map((c: any) => (
+                          <button
+                            key={c.id}
+                            type="button"
+                            onClick={() => pickCustomer(c)}
+                            className="w-full text-left px-3 py-2 text-sm hover:bg-primary/10 border-b border-border/40 last:border-b-0"
+                          >
+                            <div className="font-semibold">
+                              {`${c.first_name ?? ""} ${c.last_name ?? ""}`.trim() || "—"}
+                            </div>
+                            {c.phone && (
+                              <div className="text-[11px] text-muted-foreground flex items-center gap-1">
+                                <Phone className="h-3 w-3" /> {c.phone}
+                              </div>
+                            )}
+                          </button>
+                        ))}
+                      </>
+                    )}
+                  </div>
+                )}
+                {qSearch.trim().length >= 2 && !qCustomerId && customerMatches.length === 0 && regoMatches.length === 0 && !regoMatchesQ.isFetching && (
+                  <div className="mt-2 rounded-lg border border-dashed border-primary/40 bg-primary/5 px-3 py-2 text-[11px] text-muted-foreground">
+                    No match. Fill in the fields below to create a new customer + bike inline.
                   </div>
                 )}
                 {qCustomerId && (quickBikes.data ?? []).length > 0 && (
