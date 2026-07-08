@@ -206,6 +206,10 @@ function CalendarPage() {
     if (!quickSlot) return;
     if (!qFirst.trim()) return toast.error("First name required");
     if (!qBikeMake.trim() || !qBikeModel.trim()) return toast.error("Bike make and model required");
+    const [qh, qm] = quickSlot.time.split(":");
+    const startMin = (Number(qh) || 0) * 60 + (Number(qm) || 0);
+    const clash = findOverlap(format(quickSlot.date, "yyyy-MM-dd"), startMin, Number(qEstHours) || 1);
+    if (clash) return toast.error(`Slot already booked (${clash.service_type} at ${String(clash.drop_off_time).slice(0,5)})`);
     setCreatingQuick(true);
     try {
       let customerId = qCustomerId;
