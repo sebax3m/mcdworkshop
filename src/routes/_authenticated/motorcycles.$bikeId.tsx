@@ -43,6 +43,8 @@ function BikeProfile() {
   const [generating, setGenerating] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [aiPreview, setAiPreview] = useState<{ dataUrl: string; file: File; label: string } | null>(null);
+  const [savingAi, setSavingAi] = useState(false);
 
   const bike = useQuery({
     queryKey: ["bike", bikeId],
@@ -100,18 +102,33 @@ function BikeProfile() {
   async function autoGeneratePhoto() {
     const make = (form?.make || b.make || "").trim();
     const model = (form?.model || b.model || "").trim();
+    const year = form?.year || b.year || "";
     if (!make || !model) return toast.error("Make and model required");
     setGenerating(true);
     try {
       const { b64_json } = await generateBikeImage({
-        data: { make, model, year: form?.year ? String(form.year) : undefined },
+        data: { make, model, year: year ? String(year) : undefined },
       });
       const bin = atob(b64_json);
       const bytes = new Uint8Array(bin.length);
       for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
       const file = new File([bytes], `${make}-${model}.png`, { type: "image/png" });
-      const path = await uploadPhoto(file, "bikes");
-      const next = [...photos, path];
+      const dataUrl = `data:image/png;base64,${b64_json}`;
+      const label = `${year ? year + " " : ""}${make} ${model}`.trim();
+      setAiPreview({ dataUrl, file, label });
+    } catch (err: any) {
+      toast.error(err.message ?? "Failed to generate photo");
+    } finally {
+      setGenerating(false);
+    }
+  }
+
+  async function saveAiPreview(asHero: boolean) {
+    if (!aiPreview) return;
+    setSavingAi(true);
+    try {
+      const path = await uploadPhoto(aiPreview.file, "bikes");
+      const next = asHero ? [path, ...photos] : [...photos, path];
       setPhotos(next);
       if (!editing) {
         const { error } = await supabase.from("motorcycles").update({ photos: next }).eq("id", bikeId);
@@ -119,13 +136,15 @@ function BikeProfile() {
         qc.invalidateQueries({ queryKey: ["bike", bikeId] });
         qc.invalidateQueries({ queryKey: ["bikes-list"] });
       }
-      toast.success("AI photo added");
+      toast.success(asHero ? "Saved as main photo" : "Saved to gallery");
+      setAiPreview(null);
     } catch (err: any) {
-      toast.error(err.message ?? "Failed to generate photo");
+      toast.error(err.message ?? "Save failed");
     } finally {
-      setGenerating(false);
+      setSavingAi(false);
     }
   }
+
 
   async function handlePhotos(files: FileList | null) {
     if (!files?.length) return;
@@ -379,6 +398,64 @@ function BikeProfile() {
           </div>
         </div>
       </div>
+
+      {aiPreview && (
+        <div
+          className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm grid place-items-center p-4"
+          onClick={() => !savingAi && setAiPreview(null)}
+        >
+          <div
+            className="w-full max-w-lg card-surface p-4 space-y-3"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Sparkles className="h-4 w-4 text-primary" />
+                <div className="font-display font-bold">AI preview</div>
+              </div>
+              <button
+                onClick={() => !savingAi && setAiPreview(null)}
+                className="text-muted-foreground hover:text-foreground"
+                aria-label="Close"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+            <div className="text-xs text-muted-foreground">{aiPreview.label}</div>
+            <img
+              src={aiPreview.dataUrl}
+              alt={aiPreview.label}
+              className="w-full aspect-square object-cover rounded-lg border border-border"
+            />
+            <div className="flex flex-wrap items-center justify-end gap-2 pt-1">
+              <button
+                type="button"
+                onClick={autoGeneratePhoto}
+                disabled={generating || savingAi}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-2 text-xs font-semibold hover:border-primary/50 disabled:opacity-50"
+              >
+                <Sparkles className="h-3.5 w-3.5" /> {generating ? "Regenerating…" : "Regenerate"}
+              </button>
+              <button
+                type="button"
+                onClick={() => saveAiPreview(false)}
+                disabled={savingAi}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-2 text-xs font-semibold hover:border-primary/50 disabled:opacity-50"
+              >
+                Add to gallery
+              </button>
+              <Button
+                onClick={() => saveAiPreview(true)}
+                disabled={savingAi}
+                size="sm"
+                className="gold-surface font-bold"
+              >
+                {savingAi ? "Saving…" : "Set as main"}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
