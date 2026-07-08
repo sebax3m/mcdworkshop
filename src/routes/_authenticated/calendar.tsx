@@ -128,6 +128,9 @@ function CalendarPage() {
   const [qService, setQService] = useState<string>("Standard Service");
   const [qServiceOther, setQServiceOther] = useState<string>("");
   const [qEstHours, setQEstHours] = useState<string>("1");
+  const [qLoanBike, setQLoanBike] = useState(false);
+  const [qLoanBikeId, setQLoanBikeId] = useState<string | null>(null);
+  const [qLoanBikeReturn, setQLoanBikeReturn] = useState<string>("");
   const [creatingQuick, setCreatingQuick] = useState(false);
   const [hoverSlot, setHoverSlot] = useState<{ dayKey: string; slotIdx: number } | null>(null);
   const bodyRef = useRef<HTMLDivElement>(null);
@@ -187,6 +190,23 @@ function CalendarPage() {
     },
   });
 
+  const qLoanBikesQ = useQuery({
+    queryKey: ["quick-loan-bikes"],
+    enabled: !!quickSlot,
+    queryFn: async () =>
+      (await supabase.from("loan_bikes").select("id, name, current_km, active").eq("active", true).order("name")).data ?? [],
+  });
+  const qActiveLoansQ = useQuery({
+    queryKey: ["quick-active-loans"],
+    enabled: !!quickSlot,
+    queryFn: async () =>
+      (await supabase
+        .from("bookings")
+        .select("loan_bike_id, loan_bike_expected_return, customers(first_name,last_name)")
+        .not("loan_bike_id", "is", null)
+        .is("loan_bike_returned_at", null)).data ?? [],
+  });
+
   const customerMatches = useMemo(() => {
     const term = qSearch.trim().toLowerCase();
     if (!term || qCustomerId) return [];
@@ -232,6 +252,7 @@ function CalendarPage() {
     setQFirst(""); setQLast(""); setQPhone("");
     setQBikeMake(""); setQBikeModel(""); setQBikeYear(""); setQBikeRego("");
     setQService("Standard Service"); setQServiceOther(""); setQEstHours("1");
+    setQLoanBike(false); setQLoanBikeId(null); setQLoanBikeReturn("");
   }
 
   async function createQuickBooking() {
@@ -285,6 +306,9 @@ function CalendarPage() {
         drop_off_time: quickSlot.time,
         estimated_hours: Number(qEstHours) || 1,
         rego: qBikeRego.trim().toUpperCase() || null,
+        loan_bike: qLoanBike,
+        loan_bike_id: qLoanBike ? qLoanBikeId : null,
+        loan_bike_expected_return: qLoanBike && qLoanBikeReturn ? qLoanBikeReturn : null,
         status: "booked",
       });
       if (bkErr) throw bkErr;
@@ -1522,6 +1546,59 @@ function CalendarPage() {
                   </div>
                 )}
               </div>
+
+              <div>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input type="checkbox" className="h-4 w-4 accent-amber-500" checked={qLoanBike} onChange={(e) => setQLoanBike(e.target.checked)} />
+                  <span className="text-sm font-semibold">🏍️ Customer needs a loan bike</span>
+                </label>
+                {qLoanBike && (
+                  <div className="mt-2 space-y-2 rounded-xl border border-amber-400/40 bg-amber-400/5 p-3">
+                    <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Assign loan bike</div>
+                    <div className="grid gap-1.5">
+                      {(qLoanBikesQ.data ?? []).map((lb: any) => {
+                        const outWith = (qActiveLoansQ.data ?? []).find((a: any) => a.loan_bike_id === lb.id);
+                        const busy = !!outWith;
+                        const active = qLoanBikeId === lb.id;
+                        return (
+                          <button
+                            key={lb.id}
+                            type="button"
+                            onClick={() => setQLoanBikeId(active ? null : lb.id)}
+                            className={`rounded-lg border p-2 text-left flex items-center gap-2 ${
+                              active ? "border-amber-400 bg-amber-400/10" : busy ? "border-destructive/40 opacity-70" : "border-border"
+                            }`}
+                          >
+                            <span className="flex-1">
+                              <span className="block text-sm font-semibold">{lb.name}</span>
+                              <span className="block text-[11px] text-muted-foreground">
+                                {lb.current_km?.toLocaleString?.() ?? 0} km
+                                {busy && outWith?.customers && ` · Out with ${outWith.customers.first_name} ${outWith.customers.last_name}`}
+                                {busy && outWith?.loan_bike_expected_return && ` · back ${outWith.loan_bike_expected_return}`}
+                              </span>
+                            </span>
+                            {busy && <span className="rounded-full bg-destructive/15 text-destructive px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider">Out</span>}
+                          </button>
+                        );
+                      })}
+                      {(qLoanBikesQ.data ?? []).length === 0 && (
+                        <div className="text-xs text-muted-foreground">No loan bikes registered.</div>
+                      )}
+                    </div>
+                    <div>
+                      <label className="text-[10px] uppercase tracking-wider text-muted-foreground">Expected return</label>
+                      <input
+                        type="date"
+                        value={qLoanBikeReturn}
+                        onChange={(e) => setQLoanBikeReturn(e.target.value)}
+                        className="w-full mt-1 rounded-lg border border-border bg-background/60 px-3 py-2 text-sm"
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+
+
 
               <div className="flex gap-2 pt-2 border-t border-border/60">
                 <button
