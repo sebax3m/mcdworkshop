@@ -752,10 +752,14 @@ function CalendarPage() {
                             e.stopPropagation();
                             setSelectedBooking(b);
                           }}
-                          className={`absolute left-1 right-1 z-10 rounded-md p-1.5 text-left ring-1 overflow-hidden ${c.bg} ${c.ring} ${c.label} hover:ring-2 transition-all cursor-grab active:cursor-grabbing ${
+                          className={`absolute left-1 right-1 z-10 rounded-md p-1.5 text-left ring-1 overflow-hidden ${b.color ? "" : `${c.bg} ${c.ring} ${c.label}`} hover:ring-2 transition-all cursor-grab active:cursor-grabbing ${
                             b.loan_bike ? "!ring-2 !ring-amber-400" : ""
                           }`}
-                          style={{ top: `${top}px`, height: `${height}px` }}
+                          style={{
+                            top: `${top}px`,
+                            height: `${height}px`,
+                            ...(b.color ? { backgroundColor: `${b.color}33`, boxShadow: `inset 0 0 0 1px ${b.color}` } : {}),
+                          }}
                         >
                           <div className="flex items-center justify-between gap-1">
                             <span className="text-[9px] font-bold uppercase tracking-wider truncate">
