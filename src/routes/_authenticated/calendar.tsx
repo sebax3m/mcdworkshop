@@ -118,6 +118,19 @@ function CalendarPage() {
     return () => clearInterval(t);
   }, []);
 
+  useEffect(() => {
+    const el = bodyRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        const h = Math.max(560, Math.round(entry.contentRect.height));
+        setGridH((prev) => (prev !== h ? h : prev));
+      }
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
   const quickCustomers = useQuery({
     queryKey: ["quick-customers"],
     enabled: !!quickSlot,
