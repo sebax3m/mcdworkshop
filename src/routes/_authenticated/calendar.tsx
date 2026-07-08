@@ -61,6 +61,7 @@ const SERVICE_COLORS: Record<string, { bg: string; ring: string; label: string; 
   diagnostic: { bg: "bg-status-progress/70", ring: "ring-status-progress", label: "text-status-progress", text: "text-black", hex: "#14b8a6" },
   insurance: { bg: "bg-status-insurance/70", ring: "ring-status-insurance", label: "text-status-insurance", text: "text-white", hex: "#ef4444" },
   postbike: { bg: "bg-cyan-400/70", ring: "ring-cyan-400", label: "text-cyan-400", text: "text-black", hex: "#06b6d4" },
+  other: { bg: "bg-muted-foreground/70", ring: "ring-muted-foreground", label: "text-muted-foreground", text: "text-white", hex: "#64748b" },
   default: { bg: "bg-muted", ring: "ring-border", label: "text-foreground", text: "text-white", hex: "#3b82f6" },
 };
 
