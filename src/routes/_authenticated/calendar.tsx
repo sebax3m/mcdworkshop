@@ -128,6 +128,8 @@ function CalendarPage() {
   const [qService, setQService] = useState<string>("Standard Service");
   const [qServiceOther, setQServiceOther] = useState<string>("");
   const [qEstHours, setQEstHours] = useState<string>("1");
+  const [qWofNeeded, setQWofNeeded] = useState(false);
+  const [qWofExpiry, setQWofExpiry] = useState<string>("");
   const [qLoanBike, setQLoanBike] = useState(false);
   const [qLoanBikeId, setQLoanBikeId] = useState<string | null>(null);
   const [qLoanBikeReturn, setQLoanBikeReturn] = useState<string>("");
