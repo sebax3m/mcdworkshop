@@ -223,6 +223,7 @@ function NewBooking() {
           motorcycle_id: bike.id,
           assigned_tech_id: techId,
           service_type: serviceType,
+          service_type_other: serviceType === "Other" ? serviceTypeOther.trim() || null : null,
           priority,
           scheduled_date: scheduledDate,
           drop_off_time: dropTime || null,
