@@ -46,6 +46,30 @@ function BikeProfile() {
   const [saving, setSaving] = useState(false);
   const [aiPreview, setAiPreview] = useState<{ dataUrl: string; file: File; label: string } | null>(null);
   const [savingAi, setSavingAi] = useState(false);
+  const [lookingUp, setLookingUp] = useState(false);
+
+  async function fetchFromRego() {
+    const plate = (form?.rego || "").trim();
+    if (!plate) return toast.error("Enter a rego first");
+    setLookingUp(true);
+    try {
+      const r = await lookupRego({ data: { rego: plate } });
+      setForm((f: any) => ({
+        ...f,
+        make: r.make || f.make,
+        model: r.model || f.model,
+        year: r.year ?? f.year,
+        vin: r.vin || f.vin,
+        wof_expiry: r.wof_expiry || f.wof_expiry,
+        rego_expiry: r.rego_expiry || f.rego_expiry,
+      }));
+      toast.success(`Found ${[r.year, r.make, r.model].filter(Boolean).join(" ") || plate}`);
+    } catch (e: any) {
+      toast.error(e?.message || "Lookup failed");
+    } finally {
+      setLookingUp(false);
+    }
+  }
 
   const bike = useQuery({
     queryKey: ["bike", bikeId],
