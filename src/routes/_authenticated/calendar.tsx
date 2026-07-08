@@ -231,7 +231,7 @@ function CalendarPage() {
     setQCustomerId(null); setQBikeId(null);
     setQFirst(""); setQLast(""); setQPhone("");
     setQBikeMake(""); setQBikeModel(""); setQBikeYear(""); setQBikeRego("");
-    setQService("Standard Service"); setQEstHours("1");
+    setQService("Standard Service"); setQServiceOther(""); setQEstHours("1");
   }
 
   async function createQuickBooking() {
