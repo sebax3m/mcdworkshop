@@ -458,7 +458,7 @@ function CalendarPage() {
                   }}
                   className={`card-surface p-2 min-h-[160px] flex flex-col cursor-pointer transition-colors hover:ring-1 hover:ring-primary/30 ${
                     today ? "ring-2 ring-primary/40" : ""
-                  } ${isSunday(day) ? "bg-primary/[0.05]" : ""} ${draggingId ? "border-dashed" : ""} ${!inMonth ? "opacity-40" : ""}`}
+                  } ${isSunday(day) ? "bg-primary/[0.07]" : ""} ${draggingId ? "border-dashed" : ""} ${!inMonth ? "opacity-40" : ""}`}
                 >
                   <div className="flex items-center justify-between">
                     <div
