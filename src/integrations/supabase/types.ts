@@ -14,36 +14,6 @@ export type Database = {
   }
   public: {
     Tables: {
-      _import_stg: {
-        Row: {
-          anio: number | null
-          cliente: string | null
-          email: string | null
-          marca: string | null
-          modelo: string | null
-          patente: string | null
-          telefono: string | null
-        }
-        Insert: {
-          anio?: number | null
-          cliente?: string | null
-          email?: string | null
-          marca?: string | null
-          modelo?: string | null
-          patente?: string | null
-          telefono?: string | null
-        }
-        Update: {
-          anio?: number | null
-          cliente?: string | null
-          email?: string | null
-          marca?: string | null
-          modelo?: string | null
-          patente?: string | null
-          telefono?: string | null
-        }
-        Relationships: []
-      }
       bookings: {
         Row: {
           arrival_photos: Json
