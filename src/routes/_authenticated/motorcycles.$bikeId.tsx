@@ -2,7 +2,7 @@ import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Bike as BikeIcon, ChevronLeft, Gauge, User, Hash, Wrench, Pencil, Sparkles, Camera, X, Save } from "lucide-react";
+import { Bike as BikeIcon, ChevronLeft, Gauge, User, Hash, Wrench, Pencil, Sparkles, Camera, X, Save, Calendar, ShieldCheck } from "lucide-react";
 import { fullBike } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
