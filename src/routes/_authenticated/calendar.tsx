@@ -75,6 +75,7 @@ function serviceColor(t: string | null | undefined) {
   if (k.includes("standard")) return SERVICE_COLORS.standard;
   if (k.includes("basic")) return SERVICE_COLORS.basic;
   if (k.includes("diag")) return SERVICE_COLORS.diagnostic;
+  if (k === "other") return SERVICE_COLORS.other;
   return SERVICE_COLORS.default;
 }
 
