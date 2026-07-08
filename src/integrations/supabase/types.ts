@@ -28,6 +28,7 @@ export type Database = {
           damage_photos: Json
           drop_off_time: string | null
           estimated_hours: number | null
+          google_uid: string | null
           id: string
           instructions: string | null
           job_id: string | null
@@ -63,6 +64,7 @@ export type Database = {
           damage_photos?: Json
           drop_off_time?: string | null
           estimated_hours?: number | null
+          google_uid?: string | null
           id?: string
           instructions?: string | null
           job_id?: string | null
@@ -98,6 +100,7 @@ export type Database = {
           damage_photos?: Json
           drop_off_time?: string | null
           estimated_hours?: number | null
+          google_uid?: string | null
           id?: string
           instructions?: string | null
           job_id?: string | null
