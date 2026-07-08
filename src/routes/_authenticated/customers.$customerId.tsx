@@ -186,3 +186,99 @@ function CustomerProfile() {
     </div>
   );
 }
+
+function BikesSection({ customerId }: { customerId: string }) {
+  const qc = useQueryClient();
+  const [adding, setAdding] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [nb, setNb] = useState({ make: "", model: "", year: "", rego: "" });
+
+  const bikes = useQuery({
+    queryKey: ["customer-bikes", customerId],
+    queryFn: async () =>
+      (
+        await supabase
+          .from("motorcycles")
+          .select("id, make, model, year, rego, mileage, rego_expiry, wof_expiry")
+          .eq("customer_id", customerId)
+          .order("created_at", { ascending: false })
+      ).data ?? [],
+  });
+
+  async function addBike() {
+    if (!nb.make.trim() || !nb.model.trim()) return toast.error("Make and model required");
+    setBusy(true);
+    const { error } = await supabase.from("motorcycles").insert({
+      customer_id: customerId,
+      make: nb.make.trim(),
+      model: nb.model.trim(),
+      year: nb.year ? parseInt(nb.year) : null,
+      rego: nb.rego ? nb.rego.toUpperCase() : null,
+      cylinders: 2,
+    });
+    setBusy(false);
+    if (error) return toast.error(error.message);
+    toast.success("Bike added");
+    setNb({ make: "", model: "", year: "", rego: "" });
+    setAdding(false);
+    qc.invalidateQueries({ queryKey: ["customer-bikes", customerId] });
+    qc.invalidateQueries({ queryKey: ["customers-bikes"] });
+  }
+
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center justify-between">
+        <div className="text-xs uppercase tracking-[0.25em] text-muted-foreground flex items-center gap-1.5">
+          <Bike className="h-3 w-3" /> Bikes ({bikes.data?.length ?? 0})
+        </div>
+        <Button size="sm" variant="outline" onClick={() => setAdding((v) => !v)} className="gap-1.5 h-8">
+          <Plus className="h-3.5 w-3.5" /> Add
+        </Button>
+      </div>
+
+      {adding && (
+        <div className="card-surface p-3 space-y-2">
+          <div className="grid grid-cols-2 gap-2">
+            <Input placeholder="Make *" value={nb.make} onChange={(e) => setNb({ ...nb, make: e.target.value })} />
+            <Input placeholder="Model *" value={nb.model} onChange={(e) => setNb({ ...nb, model: e.target.value })} />
+            <Input placeholder="Year" inputMode="numeric" value={nb.year} onChange={(e) => setNb({ ...nb, year: e.target.value.replace(/\D/g, "") })} />
+            <Input placeholder="Rego" value={nb.rego} onChange={(e) => setNb({ ...nb, rego: e.target.value })} />
+          </div>
+          <div className="flex gap-2">
+            <Button onClick={addBike} disabled={busy} className="gold-surface flex-1">{busy ? "Adding…" : "Add bike"}</Button>
+            <Button variant="ghost" onClick={() => setAdding(false)}>Cancel</Button>
+          </div>
+        </div>
+      )}
+
+      {(bikes.data ?? []).map((b: any) => (
+        <Link
+          key={b.id}
+          to="/motorcycles/$bikeId"
+          params={{ bikeId: b.id }}
+          className="card-surface p-3 flex items-center gap-3 hover:border-primary/50 transition-colors"
+        >
+          <span className="grid h-10 w-10 place-items-center rounded-lg bg-muted text-primary shrink-0">
+            <Bike className="h-4 w-4" />
+          </span>
+          <div className="min-w-0 flex-1">
+            <div className="font-semibold truncate text-sm">
+              {b.make} {b.model}{b.year ? ` · ${b.year}` : ""}
+            </div>
+            <div className="text-xs text-muted-foreground truncate">
+              {b.rego ? `Rego ${b.rego}` : "No rego"}
+              {b.mileage ? ` · ${b.mileage.toLocaleString()} km` : ""}
+              {b.rego_expiry ? ` · Rego exp ${new Date(b.rego_expiry).toLocaleDateString()}` : ""}
+              {b.wof_expiry ? ` · WOF exp ${new Date(b.wof_expiry).toLocaleDateString()}` : ""}
+            </div>
+          </div>
+          <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
+        </Link>
+      ))}
+
+      {(bikes.data ?? []).length === 0 && !adding && (
+        <div className="card-surface p-6 text-center text-sm text-muted-foreground">No bikes yet.</div>
+      )}
+    </div>
+  );
+}
