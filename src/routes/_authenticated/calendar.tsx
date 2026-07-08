@@ -591,10 +591,10 @@ function CalendarPage() {
 
             {/* Time grid body */}
             <div
-              className="grid relative"
+              ref={bodyRef}
+              className="grid relative flex-1 min-h-[560px]"
               style={{
                 gridTemplateColumns: `56px repeat(7, minmax(0, 1fr))`,
-                height: `${GRID_H}px`,
               }}
             >
               {/* Hours column */}
