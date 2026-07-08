@@ -1094,7 +1094,17 @@ function CalendarPage() {
                           <Wrench className="h-4 w-4" /> Create Job Card
                         </button>
                       )}
+                      <button
+                        onClick={() => {
+                          setDeleteBooking(b);
+                          setSelectedBooking(null);
+                        }}
+                        className="inline-flex items-center justify-center gap-2 rounded-lg border border-status-parts/50 text-status-parts px-3 py-2 text-sm font-semibold hover:bg-status-parts/10 transition-colors"
+                      >
+                        <Trash2 className="h-4 w-4" /> Delete
+                      </button>
                     </div>
+
                   </>
                 );
               })()}
