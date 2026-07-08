@@ -569,7 +569,7 @@ function CalendarPage() {
                   <div
                     key={dayKey}
                     className={`text-center py-2 border-r border-border/40 last:border-r-0 transition-colors ${
-                      today ? "bg-primary/5" : isSunday(day) ? "bg-primary/[0.03]" : ""
+                      today ? "bg-primary/5" : isSunday(day) ? "bg-primary/[0.06]" : ""
                     } ${isHovered ? "bg-primary/10" : ""}`}
                   >
                     <div
