@@ -29,6 +29,7 @@ import {
   Phone,
   Trash2,
   ShieldCheck,
+  Sparkles,
 } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
