@@ -43,6 +43,8 @@ function BikeProfile() {
   const [generating, setGenerating] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [aiPreview, setAiPreview] = useState<{ dataUrl: string; file: File; label: string } | null>(null);
+  const [savingAi, setSavingAi] = useState(false);
 
   const bike = useQuery({
     queryKey: ["bike", bikeId],
