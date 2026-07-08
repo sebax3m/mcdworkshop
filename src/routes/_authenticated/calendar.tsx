@@ -883,6 +883,44 @@ function CalendarPage() {
                         <span>h</span>
                       </div>
 
+                      <div className="mt-2 flex items-center gap-2 flex-wrap">
+                        <span className="text-xs text-muted-foreground">Color:</span>
+                        {[
+                          { name: "Default", value: null, sw: "bg-muted border-border" },
+                          { name: "Red", value: "#ef4444", sw: "" },
+                          { name: "Orange", value: "#f97316", sw: "" },
+                          { name: "Amber", value: "#f59e0b", sw: "" },
+                          { name: "Green", value: "#22c55e", sw: "" },
+                          { name: "Teal", value: "#14b8a6", sw: "" },
+                          { name: "Blue", value: "#3b82f6", sw: "" },
+                          { name: "Indigo", value: "#6366f1", sw: "" },
+                          { name: "Purple", value: "#a855f7", sw: "" },
+                          { name: "Pink", value: "#ec4899", sw: "" },
+                        ].map((opt) => {
+                          const active = (b.color ?? null) === opt.value;
+                          return (
+                            <button
+                              key={opt.name}
+                              type="button"
+                              title={opt.name}
+                              onClick={async () => {
+                                const { error } = await supabase
+                                  .from("bookings")
+                                  .update({ color: opt.value })
+                                  .eq("id", b.id);
+                                if (error) return toast.error(error.message);
+                                setSelectedBooking({ ...b, color: opt.value });
+                                qc.invalidateQueries({ queryKey: ["calendar-bookings"] });
+                                toast.success(opt.value ? `Color set to ${opt.name}` : "Color reset");
+                              }}
+                              className={`h-6 w-6 rounded-full border-2 transition-all ${
+                                active ? "ring-2 ring-offset-2 ring-offset-background ring-primary scale-110" : "hover:scale-110"
+                              } ${opt.sw}`}
+                              style={opt.value ? { backgroundColor: opt.value, borderColor: opt.value } : undefined}
+                            />
+                          );
+                        })}
+                      </div>
                     </div>
 
                     <div className="grid grid-cols-1 gap-3 pt-1 border-t border-border/60">
