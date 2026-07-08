@@ -1494,15 +1494,7 @@ function CalendarPage() {
               <div>
                 <label className="text-[10px] uppercase tracking-wider text-muted-foreground">Service</label>
                 <div className="mt-1.5 flex flex-wrap gap-1.5">
-                  {[
-                    "Basic Service",
-                    "Standard Service",
-                    "Full Service",
-                    "Tuning",
-                    "Diagnostic",
-                    "Insurance / Crash",
-                    "Post Bike",
-                  ].map((s) => {
+                  {SERVICE_TYPES.map((s) => {
                     const c = serviceColor(s);
                     const active = qService === s;
                     return (
@@ -1518,6 +1510,17 @@ function CalendarPage() {
                     );
                   })}
                 </div>
+                {qService === "Other" && (
+                  <div className="mt-2">
+                    <label className="text-[10px] uppercase tracking-wider text-muted-foreground">Other service details</label>
+                    <textarea
+                      value={qServiceOther}
+                      onChange={(e) => setQServiceOther(e.target.value)}
+                      placeholder="Describe the service..."
+                      className="mt-1 w-full min-h-[64px] rounded-lg border border-border bg-background/60 px-3 py-2 text-sm focus:border-primary/60 focus:outline-none resize-y"
+                    />
+                  </div>
+                )}
               </div>
 
               <div className="flex gap-2 pt-2 border-t border-border/60">
