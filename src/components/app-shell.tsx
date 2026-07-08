@@ -9,6 +9,7 @@ import logoAsset from "@/assets/motorcycle-doctors-logo.png.asset.json";
 import { ActiveUserSwitcher } from "@/components/ActiveUserSwitcher";
 import { FloatingClockWidget } from "@/components/FloatingClockWidget";
 import { ServiceLegend } from "@/components/ServiceLegend";
+import { NotificationsBell } from "@/components/NotificationsBell";
 
 // macOS-dock-like magnification based on cursor proximity to each item center
 // Keeps label text at its original size by scaling the inner text inversely.
@@ -151,6 +152,7 @@ export function AppShell() {
                 {roleLabel}
               </span>
             )}
+            <NotificationsBell />
             <div
               className="grid h-9 w-9 place-items-center rounded-full border border-border bg-muted text-xs font-semibold"
               title={fullName ? `${fullName} · ${roleLabel}` : roleLabel}
