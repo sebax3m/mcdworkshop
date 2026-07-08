@@ -829,7 +829,7 @@ function CalendarPage() {
                               {customer}
                             </div>
                           )}
-                        </motion.button>
+                        </div>
                       );
                     })}
                   </div>
