@@ -53,15 +53,15 @@ const DAILY_CAPACITY_HOURS = 16;
 
 type ViewMode = "month" | "week";
 
-const SERVICE_COLORS: Record<string, { bg: string; ring: string; label: string; hex: string }> = {
-  basic: { bg: "bg-status-new/20", ring: "ring-status-new/40", label: "text-status-new", hex: "#22c55e" },
-  standard: { bg: "bg-primary/20", ring: "ring-primary/40", label: "text-primary", hex: "#3b82f6" },
-  full: { bg: "bg-status-assigned/20", ring: "ring-status-assigned/40", label: "text-status-assigned", hex: "#f59e0b" },
-  dyno: { bg: "bg-status-dyno/20", ring: "ring-status-dyno/40", label: "text-status-dyno", hex: "#a855f7" },
-  diagnostic: { bg: "bg-status-progress/20", ring: "ring-status-progress/40", label: "text-status-progress", hex: "#14b8a6" },
-  insurance: { bg: "bg-status-insurance/20", ring: "ring-status-insurance/40", label: "text-status-insurance", hex: "#ef4444" },
-  postbike: { bg: "bg-cyan-400/20", ring: "ring-cyan-400/40", label: "text-cyan-400", hex: "#06b6d4" },
-  default: { bg: "bg-muted", ring: "ring-border", label: "text-foreground", hex: "#3b82f6" },
+const SERVICE_COLORS: Record<string, { bg: string; ring: string; label: string; text: string; hex: string }> = {
+  basic: { bg: "bg-status-new/70", ring: "ring-status-new", label: "text-status-new", text: "text-white", hex: "#22c55e" },
+  standard: { bg: "bg-primary/70", ring: "ring-primary", label: "text-primary", text: "text-white", hex: "#3b82f6" },
+  full: { bg: "bg-status-assigned/70", ring: "ring-status-assigned", label: "text-status-assigned", text: "text-white", hex: "#f59e0b" },
+  dyno: { bg: "bg-status-dyno/70", ring: "ring-status-dyno", label: "text-status-dyno", text: "text-black", hex: "#a855f7" },
+  diagnostic: { bg: "bg-status-progress/70", ring: "ring-status-progress", label: "text-status-progress", text: "text-black", hex: "#14b8a6" },
+  insurance: { bg: "bg-status-insurance/70", ring: "ring-status-insurance", label: "text-status-insurance", text: "text-white", hex: "#ef4444" },
+  postbike: { bg: "bg-cyan-400/70", ring: "ring-cyan-400", label: "text-cyan-400", text: "text-black", hex: "#06b6d4" },
+  default: { bg: "bg-muted", ring: "ring-border", label: "text-foreground", text: "text-white", hex: "#3b82f6" },
 };
 
 function serviceColor(t: string | null | undefined) {
@@ -812,13 +812,13 @@ function CalendarPage() {
                             e.stopPropagation();
                             setSelectedBooking(b);
                           }}
-                          className={`group absolute left-1 right-1 z-10 rounded-md p-2 text-left ring-1 overflow-hidden select-none transition-all hover:z-30 hover:brightness-125 hover:ring-2 hover:ring-primary hover:shadow-[0_8px_24px_rgba(0,0,0,0.35)] cursor-grab active:cursor-grabbing ${
-                            b.color ? "" : `${c.bg} ${c.ring} ${c.label}`
+                          className={`group absolute left-1 right-1 z-10 rounded-md p-2 text-left ring-1 overflow-hidden select-none transition-all hover:z-30 hover:brightness-110 hover:ring-2 hover:ring-primary hover:shadow-[0_8px_24px_rgba(0,0,0,0.35)] cursor-grab active:cursor-grabbing ${
+                            b.color ? "text-foreground" : `${c.bg} ${c.ring} ${c.text}`
                           } ${draggingId === b.id ? "opacity-40" : ""} ${b.loan_bike ? "!ring-2 !ring-amber-400" : ""}`}
                           style={{
                             top: `${top}px`,
                             height: `${height}px`,
-                            ...(b.color ? { backgroundColor: `${b.color}33`, boxShadow: `inset 0 0 0 1px ${b.color}` } : {}),
+                            ...(b.color ? { backgroundColor: `${b.color}B3`, boxShadow: `inset 0 0 0 1px ${b.color}` } : {}),
                           }}
                         >
                           {/* Drag grip indicator — visible on hover */}
@@ -837,12 +837,12 @@ function CalendarPage() {
                             )}
                           </div>
                           {height > 32 && (
-                            <div className="text-[10px] font-semibold text-foreground truncate">
+                            <div className="text-[10px] font-semibold text-current/90 truncate">
                               {bike}
                             </div>
                           )}
                           {height > 48 && (
-                            <div className="text-[9px] text-muted-foreground truncate">
+                            <div className="text-[9px] text-current/80 truncate">
                               {customer}
                             </div>
                           )}
@@ -898,7 +898,7 @@ function CalendarPage() {
                 return (
                   <>
                     <div className="flex items-center gap-2 pr-8">
-                      <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 ring-1 text-[11px] font-bold uppercase tracking-wider ${c.bg} ${c.ring} ${c.label}`}>
+                      <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 ring-1 text-[11px] font-bold uppercase tracking-wider ${c.bg} ${c.ring} ${c.text}`}>
                         <span className="h-1.5 w-1.5 rounded-full bg-current" />
                         {b.service_type}
                       </span>
@@ -1000,7 +1000,7 @@ function CalendarPage() {
                                   qc.invalidateQueries({ queryKey: ["calendar-bookings"] });
                                   toast.success(`Set to ${s}`);
                                 }}
-                                className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-wider ring-1 transition-all ${sc.bg} ${sc.ring} ${sc.label} ${active ? "ring-2 scale-[1.03]" : "opacity-70 hover:opacity-100"}`}
+                                className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-wider ring-1 transition-all ${sc.bg} ${sc.ring} ${sc.text} ${active ? "ring-2 scale-[1.03]" : "opacity-75 hover:opacity-100"}`}
                               >
                                 <span className="h-1.5 w-1.5 rounded-full bg-current" />
                                 {s}
@@ -1333,7 +1333,7 @@ function CalendarPage() {
                         key={s}
                         type="button"
                         onClick={() => setQService(s)}
-                        className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-wider ring-1 transition-all ${c.bg} ${c.ring} ${c.label} ${active ? "ring-2 scale-[1.03]" : "opacity-70 hover:opacity-100"}`}
+                        className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-wider ring-1 transition-all ${c.bg} ${c.ring} ${c.text} ${active ? "ring-2 scale-[1.03]" : "opacity-75 hover:opacity-100"}`}
                       >
                         <span className="h-1.5 w-1.5 rounded-full bg-current" />
                         {s}
