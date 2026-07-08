@@ -305,8 +305,38 @@ function CalendarPage() {
     },
   });
 
+  function findOverlap(
+    dayKey: string,
+    startMin: number,
+    hours: number,
+    excludeId?: string,
+  ): any | null {
+    const endMin = startMin + Math.max(0.25, hours) * 60;
+    for (const bk of bookings as any[]) {
+      if (bk.id === excludeId) continue;
+      if (bk.scheduled_date !== dayKey) continue;
+      if (!bk.drop_off_time) continue;
+      const [hh, mm] = String(bk.drop_off_time).split(":");
+      const bs = (Number(hh) || 0) * 60 + (Number(mm) || 0);
+      const be = bs + Math.max(0.25, Number(bk.estimated_hours || 1)) * 60;
+      if (startMin < be && endMin > bs) return bk;
+    }
+    return null;
+  }
+
   async function moveBooking(bookingId: string, newDate: Date, newTime?: string) {
     const dateStr = format(newDate, "yyyy-MM-dd");
+    const current = (bookings as any[]).find((b) => b.id === bookingId);
+    const hours = Math.max(0.25, Number(current?.estimated_hours || 1));
+    if (newTime) {
+      const [hh, mm] = newTime.split(":");
+      const startMin = (Number(hh) || 0) * 60 + (Number(mm) || 0);
+      const clash = findOverlap(dateStr, startMin, hours, bookingId);
+      if (clash) {
+        toast.error(`Slot already booked (${clash.service_type} at ${String(clash.drop_off_time).slice(0,5)})`);
+        return;
+      }
+    }
     const patch: any = { scheduled_date: dateStr };
     if (newTime) patch.drop_off_time = newTime;
     const { error } = await supabase.from("bookings").update(patch).eq("id", bookingId);
