@@ -155,12 +155,10 @@ function BikeProfile() {
       const path = await uploadPhoto(aiPreview.file, "bikes");
       const next = asHero ? [path, ...photos] : [...photos, path];
       setPhotos(next);
-      if (!editing) {
-        const { error } = await supabase.from("motorcycles").update({ photos: next }).eq("id", bikeId);
-        if (error) throw error;
-        qc.invalidateQueries({ queryKey: ["bike", bikeId] });
-        qc.invalidateQueries({ queryKey: ["bikes-list"] });
-      }
+      const { error } = await supabase.from("motorcycles").update({ photos: next }).eq("id", bikeId);
+      if (error) throw error;
+      qc.invalidateQueries({ queryKey: ["bike", bikeId] });
+      qc.invalidateQueries({ queryKey: ["bikes-list"] });
       toast.success(asHero ? "Saved as main photo" : "Saved to gallery");
       setAiPreview(null);
     } catch (err: any) {
