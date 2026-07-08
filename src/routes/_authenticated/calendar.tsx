@@ -849,6 +849,7 @@ function CalendarPage() {
                                 ? b.drop_off_time.slice(0, 5)
                                 : ""}{" "}
                               · {b.service_type}
+                              {b.service_type === "Other" && b.service_type_other ? ` — ${b.service_type_other}` : ""}
                             </span>
                             {b.confirmed && (
                               <span className="h-1.5 w-1.5 rounded-full bg-green-500 shrink-0" />
