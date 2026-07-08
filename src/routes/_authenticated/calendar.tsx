@@ -546,7 +546,9 @@ function CalendarPage() {
         };
 
         return (
-          <div className="card-surface p-0 overflow-hidden">
+          <div className="card-surface p-0 overflow-hidden flex flex-col flex-1 min-h-[560px]">
+            <div className="overflow-x-auto min-w-full min-h-0 flex-1">
+              <div className="min-w-[900px] h-full flex flex-col">
             {/* Day headers */}
             <div
               className="grid border-b border-border/60"
