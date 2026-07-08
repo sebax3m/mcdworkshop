@@ -58,7 +58,9 @@ export const lookupRego = createServerFn({ method: "POST" })
   .handler(async ({ data }): Promise<RegoLookupResult> => {
     const key = process.env.CARJAM_API_KEY;
     if (!key) throw new Error("Missing CARJAM_API_KEY — add it in Backend → Secrets");
-
+    if (key.length !== 40) {
+      throw new Error(`CARJAM_API_KEY looks malformed (expected 40 hex characters, got ${key.length}). Please check the secret in Backend → Secrets.`);
+    }
     const plate = data.rego.replace(/\s+/g, "").toUpperCase();
 
     const url = `https://api.carjam.co.nz/api/car/?plate=${encodeURIComponent(plate)}&key=${encodeURIComponent(key)}&format=json&info=basic,identification,other,inspections`;
@@ -95,6 +97,15 @@ export const lookupRego = createServerFn({ method: "POST" })
         throw new Error(`Carjam XML parse failed: ${e?.message ?? "unknown"}`);
       }
     }
+
+    // Carjam error responses are returned with HTTP 200 and a code field.
+    if (json?.code === -1 || json?.scode === "err-invalid-api-key") {
+      throw new Error("Carjam rejected the API key (err-invalid-api-key). Please check the secret in Backend → Secrets.");
+    }
+    if (json?.code === -1 && json?.message) {
+      throw new Error(`Carjam error: ${json.message}`);
+    }
+
 
     // Carjam nests fields inconsistently — do a recursive deep search.
     // Also flatten any array of {key,value} / {name,value} / idh entries into a flat map.
