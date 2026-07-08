@@ -46,6 +46,7 @@ export type Database = {
           scheduled_date: string
           service_template_id: string | null
           service_type: string
+          service_type_other: string | null
           status: string
           updated_at: string
           vin: string | null
@@ -82,6 +83,7 @@ export type Database = {
           scheduled_date: string
           service_template_id?: string | null
           service_type: string
+          service_type_other?: string | null
           status?: string
           updated_at?: string
           vin?: string | null
@@ -118,6 +120,7 @@ export type Database = {
           scheduled_date?: string
           service_template_id?: string | null
           service_type?: string
+          service_type_other?: string | null
           status?: string
           updated_at?: string
           vin?: string | null
