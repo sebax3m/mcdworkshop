@@ -276,11 +276,21 @@ function BikeProfile() {
                 <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">VIN</div>
                 <Input value={form.vin} onChange={(e) => setForm({ ...form, vin: e.target.value })} />
               </div>
+              <div>
+                <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Rego expiry</div>
+                <Input type="date" value={form.rego_expiry} onChange={(e) => setForm({ ...form, rego_expiry: e.target.value })} />
+              </div>
+              <div>
+                <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">WOF expiry</div>
+                <Input type="date" value={form.wof_expiry} onChange={(e) => setForm({ ...form, wof_expiry: e.target.value })} />
+              </div>
             </div>
           ) : (
             <div className="grid grid-cols-2 gap-2">
               <Stat icon={<Gauge className="h-4 w-4" />} label="Mileage" value={b.mileage ? `${b.mileage.toLocaleString()} km` : "—"} />
               <Stat icon={<Hash className="h-4 w-4" />} label="VIN" value={b.vin || "—"} />
+              <Stat icon={<Calendar className="h-4 w-4" />} label="Rego expiry" value={b.rego_expiry ? new Date(b.rego_expiry).toLocaleDateString() : "—"} />
+              <Stat icon={<ShieldCheck className="h-4 w-4" />} label="WOF expiry" value={b.wof_expiry ? new Date(b.wof_expiry).toLocaleDateString() : "—"} />
             </div>
           )}
 
