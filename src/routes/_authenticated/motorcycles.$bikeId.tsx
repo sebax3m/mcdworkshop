@@ -102,18 +102,33 @@ function BikeProfile() {
   async function autoGeneratePhoto() {
     const make = (form?.make || b.make || "").trim();
     const model = (form?.model || b.model || "").trim();
+    const year = form?.year || b.year || "";
     if (!make || !model) return toast.error("Make and model required");
     setGenerating(true);
     try {
       const { b64_json } = await generateBikeImage({
-        data: { make, model, year: form?.year ? String(form.year) : undefined },
+        data: { make, model, year: year ? String(year) : undefined },
       });
       const bin = atob(b64_json);
       const bytes = new Uint8Array(bin.length);
       for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
       const file = new File([bytes], `${make}-${model}.png`, { type: "image/png" });
-      const path = await uploadPhoto(file, "bikes");
-      const next = [...photos, path];
+      const dataUrl = `data:image/png;base64,${b64_json}`;
+      const label = `${year ? year + " " : ""}${make} ${model}`.trim();
+      setAiPreview({ dataUrl, file, label });
+    } catch (err: any) {
+      toast.error(err.message ?? "Failed to generate photo");
+    } finally {
+      setGenerating(false);
+    }
+  }
+
+  async function saveAiPreview(asHero: boolean) {
+    if (!aiPreview) return;
+    setSavingAi(true);
+    try {
+      const path = await uploadPhoto(aiPreview.file, "bikes");
+      const next = asHero ? [path, ...photos] : [...photos, path];
       setPhotos(next);
       if (!editing) {
         const { error } = await supabase.from("motorcycles").update({ photos: next }).eq("id", bikeId);
@@ -121,13 +136,15 @@ function BikeProfile() {
         qc.invalidateQueries({ queryKey: ["bike", bikeId] });
         qc.invalidateQueries({ queryKey: ["bikes-list"] });
       }
-      toast.success("AI photo added");
+      toast.success(asHero ? "Saved as main photo" : "Saved to gallery");
+      setAiPreview(null);
     } catch (err: any) {
-      toast.error(err.message ?? "Failed to generate photo");
+      toast.error(err.message ?? "Save failed");
     } finally {
-      setGenerating(false);
+      setSavingAi(false);
     }
   }
+
 
   async function handlePhotos(files: FileList | null) {
     if (!files?.length) return;
