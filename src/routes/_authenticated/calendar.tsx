@@ -1037,7 +1037,7 @@ function CalendarPage() {
                             if (!newCustomerId || newCustomerId === b.customer_id) return;
                             const { error } = await supabase
                               .from("bookings")
-                              .update({ customer_id: newCustomerId, motorcycle_id: null })
+                              .update({ customer_id: newCustomerId, motorcycle_id: undefined })
                               .eq("id", b.id);
                             if (error) return toast.error(error.message);
                             const pick = (quickCustomers.data ?? []).find((x: any) => x.id === newCustomerId);
@@ -1084,7 +1084,7 @@ function CalendarPage() {
                             if (newBikeId === b.motorcycle_id) return;
                             const { error } = await supabase
                               .from("bookings")
-                              .update({ motorcycle_id: newBikeId })
+                              .update({ motorcycle_id: newBikeId ?? undefined })
                               .eq("id", b.id);
                             if (error) return toast.error(error.message);
                             const pick = (editBikes.data ?? []).find((x: any) => x.id === newBikeId);
