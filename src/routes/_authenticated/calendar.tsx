@@ -497,7 +497,10 @@ function CalendarPage() {
                           className="relative"
                           title={`${b.service_type} — ${b.motorcycles?.make ?? ""} ${b.motorcycles?.model ?? ""}${b.confirmed ? " · Confirmed" : ""}`}
                         >
-                          <div className={`h-2 w-2 rounded-full ${c.bg} ring-1 ${c.ring}`} />
+                          <div
+                            className={`h-2 w-2 rounded-full ${b.color ? "" : `${c.bg} ring-1 ${c.ring}`}`}
+                            style={b.color ? { backgroundColor: b.color, boxShadow: `0 0 0 1px ${b.color}` } : undefined}
+                          />
                           {b.confirmed && (
                             <span className="absolute -top-0.5 -right-0.5 h-1.5 w-1.5 rounded-full bg-green-500 ring-1 ring-background" />
                           )}
