@@ -11,6 +11,7 @@ import { FloatingClockWidget } from "@/components/FloatingClockWidget";
 import { ServiceLegend } from "@/components/ServiceLegend";
 
 // macOS-dock-like magnification based on cursor proximity to each item center
+// Keeps label text at its original size by scaling the inner text inversely.
 function useDockMagnify() {
   const navRef = useRef<HTMLElement | null>(null);
   const [mouseY, setMouseY] = useState<number | null>(null);
@@ -26,11 +27,11 @@ function useDockMagnify() {
     const r = el.getBoundingClientRect();
     const center = r.top - navRect.top + r.height / 2;
     const dist = Math.abs(mouseY - center);
-    const influence = 130; // px radius of magnification
+    const influence = 120; // px radius of magnification
     if (dist > influence) return 1;
     const t = 1 - dist / influence; // 0..1
     const eased = (1 - Math.cos(t * Math.PI)) / 2; // smooth cosine ease
-    return 1 + eased * 0.45; // up to ~1.45x
+    return 1 + eased * 0.18; // up to ~1.18x
   };
   return { navRef, onMove, onLeave, getScale };
 }
