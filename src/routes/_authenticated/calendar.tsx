@@ -1026,92 +1026,146 @@ function CalendarPage() {
 
 
                     <div className="grid grid-cols-1 gap-3 pt-1 border-t border-border/60">
-                      <div>
-                        <div className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground mb-1 flex items-center gap-1.5">
-                          <UserIcon className="h-3 w-3" /> Customer
+                      <div className="rounded-lg border border-border/60 bg-muted/20 p-3 space-y-2">
+                        <div className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground flex items-center gap-1.5">
+                          <UserIcon className="h-3 w-3" /> Customer assigned
                         </div>
-                        <select
-                          value={b.customer_id || ""}
-                          onChange={async (e) => {
-                            const newCustomerId = e.target.value || null;
-                            if (!newCustomerId || newCustomerId === b.customer_id) return;
-                            const { error } = await supabase
-                              .from("bookings")
-                              .update({ customer_id: newCustomerId, motorcycle_id: undefined })
-                              .eq("id", b.id);
-                            if (error) return toast.error(error.message);
-                            const pick = (quickCustomers.data ?? []).find((x: any) => x.id === newCustomerId);
-                            setSelectedBooking({
-                              ...b,
-                              customer_id: newCustomerId,
-                              motorcycle_id: null,
-                              customers: pick
-                                ? { first_name: pick.first_name, last_name: pick.last_name, phone: pick.phone, email: pick.email }
-                                : null,
-                              motorcycles: null,
-                            });
-                            qc.invalidateQueries({ queryKey: ["calendar-bookings"] });
-                            toast.success("Customer updated");
-                          }}
-                          className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-sm focus:border-primary/60 outline-none"
-                        >
-                          <option value="">— Select customer —</option>
-                          {(quickCustomers.data ?? []).map((c: any) => (
-                            <option key={c.id} value={c.id}>
-                              {`${c.first_name ?? ""} ${c.last_name ?? ""}`.trim() || c.email || c.phone || "Unnamed"}
-                            </option>
-                          ))}
-                        </select>
-                        {b.customers?.phone && (
-                          <a
-                            href={`tel:${b.customers.phone}`}
-                            className="text-xs text-primary hover:underline inline-flex items-center gap-1 mt-1"
+                        <div className="text-sm font-semibold">{customer}</div>
+                        <div className="flex items-center gap-2">
+                          <Phone className="h-3 w-3 text-muted-foreground shrink-0" />
+                          <input
+                            key={`phone-${b.customer_id}`}
+                            type="tel"
+                            defaultValue={b.customers?.phone ?? ""}
+                            placeholder="Phone number"
+                            disabled={!b.customer_id}
+                            onBlur={async (e) => {
+                              const v = e.target.value.trim();
+                              if (!b.customer_id) return;
+                              if ((v || null) === (b.customers?.phone ?? null)) return;
+                              const { error } = await supabase
+                                .from("customers")
+                                .update({ phone: v || null })
+                                .eq("id", b.customer_id);
+                              if (error) return toast.error(error.message);
+                              setSelectedBooking({
+                                ...b,
+                                customers: { ...(b.customers ?? {}), phone: v || null },
+                              });
+                              qc.invalidateQueries({ queryKey: ["calendar-bookings"] });
+                              qc.invalidateQueries({ queryKey: ["quick-customers"] });
+                              toast.success("Phone updated");
+                            }}
+                            className="flex-1 rounded-md border border-border bg-background px-2 py-1 text-sm focus:border-primary/60 outline-none disabled:opacity-50"
+                          />
+                        </div>
+                        <div>
+                          <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Change customer</div>
+                          <select
+                            value={b.customer_id || ""}
+                            onChange={async (e) => {
+                              const newCustomerId = e.target.value || null;
+                              if (!newCustomerId || newCustomerId === b.customer_id) return;
+                              const { error } = await supabase
+                                .from("bookings")
+                                .update({ customer_id: newCustomerId, motorcycle_id: undefined })
+                                .eq("id", b.id);
+                              if (error) return toast.error(error.message);
+                              const pick = (quickCustomers.data ?? []).find((x: any) => x.id === newCustomerId);
+                              setSelectedBooking({
+                                ...b,
+                                customer_id: newCustomerId,
+                                motorcycle_id: null,
+                                customers: pick
+                                  ? { first_name: pick.first_name, last_name: pick.last_name, phone: pick.phone, email: pick.email }
+                                  : null,
+                                motorcycles: null,
+                              });
+                              qc.invalidateQueries({ queryKey: ["calendar-bookings"] });
+                              toast.success("Customer updated");
+                            }}
+                            className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-sm focus:border-primary/60 outline-none"
                           >
-                            <Phone className="h-3 w-3" /> {b.customers.phone}
-                          </a>
-                        )}
+                            <option value="">— Select customer —</option>
+                            {(quickCustomers.data ?? []).map((c: any) => (
+                              <option key={c.id} value={c.id}>
+                                {`${c.first_name ?? ""} ${c.last_name ?? ""}`.trim() || c.email || c.phone || "Unnamed"}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
                       </div>
 
-                      <div>
-                        <div className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground mb-1 flex items-center gap-1.5">
-                          <BikeIcon className="h-3 w-3" /> Motorcycle
+                      <div className="rounded-lg border border-border/60 bg-muted/20 p-3 space-y-2">
+                        <div className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground flex items-center gap-1.5">
+                          <BikeIcon className="h-3 w-3" /> Motorcycle assigned
                         </div>
-                        <select
-                          value={b.motorcycle_id || ""}
-                          disabled={!b.customer_id}
-                          onChange={async (e) => {
-                            const newBikeId = e.target.value || null;
-                            if (newBikeId === b.motorcycle_id) return;
-                            const { error } = await supabase
-                              .from("bookings")
-                              .update({ motorcycle_id: newBikeId ?? undefined })
-                              .eq("id", b.id);
-                            if (error) return toast.error(error.message);
-                            const pick = (editBikes.data ?? []).find((x: any) => x.id === newBikeId);
-                            setSelectedBooking({
-                              ...b,
-                              motorcycle_id: newBikeId,
-                              motorcycles: pick
-                                ? { year: pick.year, make: pick.make, model: pick.model, rego: pick.rego }
-                                : null,
-                            });
-                            qc.invalidateQueries({ queryKey: ["calendar-bookings"] });
-                            toast.success("Motorcycle updated");
-                          }}
-                          className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-sm focus:border-primary/60 outline-none disabled:opacity-50"
-                        >
-                          <option value="">{b.customer_id ? "— Select motorcycle —" : "Pick a customer first"}</option>
-                          {(editBikes.data ?? []).map((m: any) => (
-                            <option key={m.id} value={m.id}>
-                              {`${m.year ?? ""} ${m.make ?? ""} ${m.model ?? ""}`.trim()}
-                              {m.rego ? ` · ${m.rego}` : ""}
-                            </option>
-                          ))}
-                        </select>
-                        {b.motorcycles?.rego && (
-                          <div className="text-xs text-muted-foreground mt-1">Rego: {b.motorcycles.rego}</div>
-                        )}
+                        <div className="text-sm font-semibold">{bike}</div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] uppercase tracking-wider text-muted-foreground shrink-0">Rego</span>
+                          <input
+                            key={`rego-${b.motorcycle_id}`}
+                            type="text"
+                            defaultValue={b.motorcycles?.rego ?? ""}
+                            placeholder="Registration"
+                            disabled={!b.motorcycle_id}
+                            onBlur={async (e) => {
+                              const v = e.target.value.trim();
+                              if (!b.motorcycle_id) return;
+                              if ((v || null) === (b.motorcycles?.rego ?? null)) return;
+                              const { error } = await supabase
+                                .from("motorcycles")
+                                .update({ rego: v || null })
+                                .eq("id", b.motorcycle_id);
+                              if (error) return toast.error(error.message);
+                              setSelectedBooking({
+                                ...b,
+                                motorcycles: { ...(b.motorcycles ?? {}), rego: v || null },
+                              });
+                              qc.invalidateQueries({ queryKey: ["calendar-bookings"] });
+                              qc.invalidateQueries({ queryKey: ["edit-bikes", b.customer_id] });
+                              toast.success("Rego updated");
+                            }}
+                            className="flex-1 rounded-md border border-border bg-background px-2 py-1 text-sm uppercase focus:border-primary/60 outline-none disabled:opacity-50"
+                          />
+                        </div>
+                        <div>
+                          <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Change motorcycle</div>
+                          <select
+                            value={b.motorcycle_id || ""}
+                            disabled={!b.customer_id}
+                            onChange={async (e) => {
+                              const newBikeId = e.target.value || null;
+                              if (newBikeId === b.motorcycle_id) return;
+                              const { error } = await supabase
+                                .from("bookings")
+                                .update({ motorcycle_id: newBikeId ?? undefined })
+                                .eq("id", b.id);
+                              if (error) return toast.error(error.message);
+                              const pick = (editBikes.data ?? []).find((x: any) => x.id === newBikeId);
+                              setSelectedBooking({
+                                ...b,
+                                motorcycle_id: newBikeId,
+                                motorcycles: pick
+                                  ? { year: pick.year, make: pick.make, model: pick.model, rego: pick.rego }
+                                  : null,
+                              });
+                              qc.invalidateQueries({ queryKey: ["calendar-bookings"] });
+                              toast.success("Motorcycle updated");
+                            }}
+                            className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-sm focus:border-primary/60 outline-none disabled:opacity-50"
+                          >
+                            <option value="">{b.customer_id ? "— Select motorcycle —" : "Pick a customer first"}</option>
+                            {(editBikes.data ?? []).map((m: any) => (
+                              <option key={m.id} value={m.id}>
+                                {`${m.year ?? ""} ${m.make ?? ""} ${m.model ?? ""}`.trim()}
+                                {m.rego ? ` · ${m.rego}` : ""}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
                       </div>
+
 
                       {b.tech_name && (
                         <div>
