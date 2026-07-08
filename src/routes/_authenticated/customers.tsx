@@ -72,16 +72,22 @@ function Customers() {
 
       <div className="space-y-2">
         {filtered.map((c: any) => (
-          <div key={c.id} className="card-surface p-3 flex items-center gap-3">
-            <span className="grid h-11 w-11 place-items-center rounded-full bg-muted font-semibold">{initials(`${c.first_name} ${c.last_name}`)}</span>
+          <Link
+            key={c.id}
+            to="/customers/$customerId"
+            params={{ customerId: c.id }}
+            className="card-surface p-3 flex items-center gap-3 hover:border-primary/50 transition-colors"
+          >
+            <span className="grid h-11 w-11 place-items-center rounded-full bg-muted font-semibold">{initials(`${c.first_name} ${c.last_name ?? ""}`)}</span>
             <div className="min-w-0 flex-1">
-              <div className="font-semibold truncate">{c.first_name} {c.last_name}</div>
+              <div className="font-semibold truncate">{c.first_name}{c.last_name ? ` ${c.last_name}` : ""}</div>
               <div className="flex items-center gap-3 text-xs text-muted-foreground mt-0.5 flex-wrap">
                 {c.phone && <span className="inline-flex items-center gap-1"><Phone className="h-3 w-3" />{c.phone}</span>}
                 {c.email && <span className="inline-flex items-center gap-1 truncate"><Mail className="h-3 w-3" />{c.email}</span>}
               </div>
             </div>
-          </div>
+            <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
+          </Link>
         ))}
         {filtered.length === 0 && <div className="card-surface p-8 text-center text-sm text-muted-foreground">No customers yet.</div>}
       </div>
