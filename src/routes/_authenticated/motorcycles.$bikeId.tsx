@@ -67,6 +67,8 @@ function BikeProfile() {
       rego: b.rego ?? "",
       mileage: b.mileage ?? "",
       vin: b.vin ?? "",
+      rego_expiry: b.rego_expiry ?? "",
+      wof_expiry: b.wof_expiry ?? "",
       ecu_info: b.ecu_info ?? "",
       modifications: b.modifications ?? "",
       notes: b.notes ?? "",
