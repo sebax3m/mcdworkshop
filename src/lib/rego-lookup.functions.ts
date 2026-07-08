@@ -17,7 +17,8 @@ export type RegoLookupResult = {
   fuel?: string;
   wof_expiry?: string; // YYYY-MM-DD
   rego_expiry?: string; // YYYY-MM-DD
-  
+  _debugKeys?: string[];
+  _debugSample?: string;
 };
 
 /** Try to coerce a Carjam date string (many formats) into YYYY-MM-DD. */
@@ -144,10 +145,9 @@ export const lookupRego = createServerFn({ method: "POST" })
       rego_expiry: toISODate(get("licence_expiry", "licenceexpiry", "rego_expiry", "regoexpiry", "expirydate")),
     };
 
-    // Debug: log parsed flat keys so we can see what Carjam returned.
     if (!result.make && !result.model) {
-      console.log("[carjam] no make/model matched. Flat keys:", Object.keys(flat).slice(0, 60));
-      console.log("[carjam] sample values:", JSON.stringify(flat).slice(0, 1500));
+      result._debugKeys = Object.keys(flat).slice(0, 80);
+      result._debugSample = JSON.stringify(flat).slice(0, 2000);
     }
 
     return result;

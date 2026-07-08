@@ -145,6 +145,8 @@ function CalendarPage() {
     setLookingUpRego(true);
     try {
       const r = await lookupRego({ data: { rego: plate } });
+      console.log("[carjam] response:", r);
+      if (r._debugKeys) console.log("[carjam] flat keys:", r._debugKeys, "sample:", r._debugSample);
       if (r.make) setQBikeMake(r.make);
       if (r.model) setQBikeModel(r.model);
       if (r.year) setQBikeYear(String(r.year));
