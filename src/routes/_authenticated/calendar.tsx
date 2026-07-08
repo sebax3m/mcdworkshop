@@ -71,7 +71,10 @@ function serviceColor(t: string | null | undefined) {
   if (k.includes("basic")) return SERVICE_COLORS.basic;
   if (k.includes("diag")) return SERVICE_COLORS.diagnostic;
   return SERVICE_COLORS.default;
+function isSunday(d: Date) {
+  return d.getDay() === 0;
 }
+
 
 function chunk<T>(arr: T[], size: number): T[][] {
   const res: T[][] = [];
