@@ -233,8 +233,48 @@ function InvoiceDetail() {
     })();
   }, [invoice.data?.job_id, parts.data, invoiceId, qc]);
 
+  // Handle ?action=print|email passed in from "Create & print/email" on the new-invoice page.
+  const actionFiredRef = useRef(false);
+  useEffect(() => {
+    if (!action || actionFiredRef.current) return;
+    actionFiredRef.current = true;
+    const t = setTimeout(() => {
+      if (action === "print") window.print();
+      else if (action === "email") {
+        const inv: any = invoice.data;
+        const customer: any = inv?.customers;
+        const bike: any = inv?.motorcycles;
+        if (inv) {
+          const to = customer?.email ?? "";
+          const name = customer ? `${customer.first_name ?? ""}`.trim() : "there";
+          const subject = `Invoice ${inv.invoice_number} from Motorcycle Doctors`;
+          const issuedAt = new Date(inv.created_at);
+          const dueAt = new Date(issuedAt); dueAt.setDate(dueAt.getDate() + 14);
+          const body = [
+            `Hi ${name || "there"},`, ``,
+            `Please find your invoice ${inv.invoice_number} below.`, ``,
+            `Bike: ${bike ? fullBike(bike) : "—"}`,
+            `Issued: ${issuedAt.toLocaleDateString()}`,
+            `Due: ${dueAt.toLocaleDateString()}`, ``,
+            `Labour:  $${Number(inv.labour_total).toFixed(2)}`,
+            `Parts:   $${Number(inv.parts_total).toFixed(2)}`,
+            `GST:     $${Number(inv.gst).toFixed(2)}`,
+            `TOTAL:   $${Number(inv.total).toFixed(2)}`, ``,
+            `View online: ${window.location.href}`, ``,
+            `Thanks,`, `Motorcycle Doctors`,
+          ].join("\n");
+          window.location.href = `mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+        }
+      }
+      nav({ to: "/invoices/$invoiceId", params: { invoiceId }, search: {}, replace: true });
+    }, 350);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [action]);
+
   if (invoice.isLoading) return <div className="card-surface p-8 text-center text-sm text-muted-foreground">Loading…</div>;
   if (!invoice.data) return <div className="card-surface p-8 text-center text-sm text-muted-foreground">Invoice not found.</div>;
+
 
   const inv = invoice.data;
   const defaultHours =
@@ -374,19 +414,6 @@ function InvoiceDetail() {
     window.location.href = `mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
   }
 
-  // Handle ?action=print|email passed in from "Create & print/email" on the new-invoice page.
-  const actionFiredRef = useRef(false);
-  useEffect(() => {
-    if (!action || actionFiredRef.current) return;
-    actionFiredRef.current = true;
-    const t = setTimeout(() => {
-      if (action === "print") window.print();
-      else if (action === "email") emailInvoice();
-      nav({ to: "/invoices/$invoiceId", params: { invoiceId }, search: {}, replace: true });
-    }, 350);
-    return () => clearTimeout(t);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [action]);
 
   const canDelete = isAdmin && (inv.status ?? "").toLowerCase() === "draft";
 
