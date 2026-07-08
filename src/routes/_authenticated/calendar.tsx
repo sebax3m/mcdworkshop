@@ -1031,7 +1031,7 @@ function CalendarPage() {
                           <UserIcon className="h-3 w-3" /> Customer
                         </div>
                         <select
-                          value={b.customer_id ?? ""}
+                          value={b.customer_id || ""}
                           onChange={async (e) => {
                             const newCustomerId = e.target.value || null;
                             if (!newCustomerId || newCustomerId === b.customer_id) return;
@@ -1077,7 +1077,7 @@ function CalendarPage() {
                           <BikeIcon className="h-3 w-3" /> Motorcycle
                         </div>
                         <select
-                          value={b.motorcycle_id ?? ""}
+                          value={b.motorcycle_id || ""}
                           disabled={!b.customer_id}
                           onChange={async (e) => {
                             const newBikeId = e.target.value || null;
