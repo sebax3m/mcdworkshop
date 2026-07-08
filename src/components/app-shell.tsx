@@ -182,7 +182,7 @@ export function AppShell() {
 
 
       {/* ===== DESKTOP SIDEBAR ===== */}
-      <aside className="hidden sm:flex fixed left-0 top-[80px] z-20 w-[220px] h-[calc(100vh-80px)] flex-col border-r border-border/60 bg-card/80 backdrop-blur-xl overflow-y-auto text-sidebar-foreground">
+      <aside className="hidden sm:flex fixed left-0 top-[80px] z-40 w-[220px] h-[calc(100vh-80px)] flex-col border-r border-border/60 bg-card/80 backdrop-blur-xl text-sidebar-foreground" style={{ overflow: "visible" }}>
         <div className="px-4 pt-4 pb-2 text-[10px] font-bold uppercase tracking-[0.25em] text-sidebar-foreground/50">
           Main Menu
         </div>
@@ -191,6 +191,7 @@ export function AppShell() {
           onMouseMove={sidebarDock.onMove}
           onMouseLeave={sidebarDock.onLeave}
           className="flex-1 flex flex-col gap-1 p-3 pt-1"
+          style={{ overflow: "visible" }}
         >
           {tabs.map((t) => {
             const active = pathname === t.to || pathname.startsWith(t.to + "/");
