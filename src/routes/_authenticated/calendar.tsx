@@ -1625,11 +1625,22 @@ function CalendarPage() {
                 </div>
                 <div className="col-span-1">
                   <label className="text-[10px] uppercase tracking-wider text-muted-foreground">Rego</label>
-                  <input
-                    value={qBikeRego}
-                    onChange={(e) => setQBikeRego(e.target.value.toUpperCase())}
-                    className="w-full mt-1 rounded-lg border border-border bg-background/60 px-3 py-2 text-sm uppercase tracking-wider focus:border-primary/60 focus:outline-none"
-                  />
+                  <div className="flex gap-1 mt-1">
+                    <input
+                      value={qBikeRego}
+                      onChange={(e) => setQBikeRego(e.target.value.toUpperCase())}
+                      className="flex-1 rounded-lg border border-border bg-background/60 px-3 py-2 text-sm uppercase tracking-wider focus:border-primary/60 focus:outline-none"
+                    />
+                    <button
+                      type="button"
+                      onClick={fetchQuickFromRego}
+                      disabled={lookingUpRego || !qBikeRego.trim()}
+                      title="Fetch from Carjam"
+                      className="shrink-0 rounded-lg border border-border bg-background/60 px-2 text-xs hover:bg-primary/10 disabled:opacity-50"
+                    >
+                      <Sparkles className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
                 </div>
                 <div className="col-span-2">
                   <label className="text-[10px] uppercase tracking-wider text-muted-foreground">Est. hours</label>
