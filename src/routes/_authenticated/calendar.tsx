@@ -518,8 +518,8 @@ function CalendarPage() {
         const START_HOUR = 8;
         const END_HOUR = 18; // exclusive last label; grid ends at 18:00
         const HOURS = END_HOUR - START_HOUR;
-        const SLOT_H = 56; // px per hour
-        const GRID_H = HOURS * SLOT_H;
+        const SLOT_H = gridH / HOURS;
+        const GRID_H = gridH;
 
         const parseTime = (t?: string | null) => {
           if (!t) return { h: 9, m: 0 };
