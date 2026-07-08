@@ -574,7 +574,7 @@ function CalendarPage() {
                   >
                     <div
                       className={`text-[10px] font-semibold uppercase tracking-wider transition-colors ${
-                        today ? "text-primary" : isHovered ? "text-foreground" : "text-muted-foreground"
+                        today ? "text-primary" : isSunday(day) ? "text-primary" : isHovered ? "text-foreground" : "text-muted-foreground"
                       }`}
                     >
                       {format(day, "EEEE")}
