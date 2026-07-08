@@ -1512,13 +1512,45 @@ function CalendarPage() {
                     className="w-full mt-1 rounded-lg border border-border bg-background/60 px-3 py-2 text-sm focus:border-primary/60 focus:outline-none"
                   />
                 </div>
-                <div className="col-span-2">
+                <div className="col-span-2 relative">
                   <label className="text-[10px] uppercase tracking-wider text-muted-foreground flex items-center gap-1"><Phone className="h-3 w-3" /> Phone</label>
                   <input
                     value={qPhone}
-                    onChange={(e) => setQPhone(e.target.value)}
+                    onChange={(e) => {
+                      const v = e.target.value;
+                      setQPhone(v);
+                      if (qCustomerId) setQCustomerId(null);
+                      // sync into main search so dropdown reflects phone typing
+                      if (v.trim().length >= 3) setQSearch(v);
+                    }}
+                    placeholder="e.g. 021 123 4567"
                     className="w-full mt-1 rounded-lg border border-border bg-background/60 px-3 py-2 text-sm focus:border-primary/60 focus:outline-none"
                   />
+                  {!qCustomerId && qPhone.trim().length >= 3 && (() => {
+                    const term = qPhone.replace(/\s+/g, "").toLowerCase();
+                    const matches = ((quickCustomers.data ?? []) as any[])
+                      .filter((c) => (c.phone ?? "").replace(/\s+/g, "").toLowerCase().includes(term))
+                      .slice(0, 6);
+                    if (matches.length === 0) return null;
+                    return (
+                      <div className="absolute z-20 left-0 right-0 mt-1 rounded-lg border border-border bg-popover shadow-xl max-h-56 overflow-y-auto">
+                        <div className="px-3 py-1 text-[9px] font-bold uppercase tracking-wider text-muted-foreground bg-muted/40 border-b border-border/40">Matching phone</div>
+                        {matches.map((c: any) => (
+                          <button
+                            key={`ph-${c.id}`}
+                            type="button"
+                            onClick={() => pickCustomer(c)}
+                            className="w-full text-left px-3 py-2 text-sm hover:bg-primary/10 border-b border-border/40 last:border-b-0"
+                          >
+                            <div className="font-semibold">{`${c.first_name ?? ""} ${c.last_name ?? ""}`.trim() || "—"}</div>
+                            <div className="text-[11px] text-muted-foreground flex items-center gap-1">
+                              <Phone className="h-3 w-3" /> {c.phone}
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    );
+                  })()}
                 </div>
                 <div className="col-span-1">
                   <label className="text-[10px] uppercase tracking-wider text-muted-foreground flex items-center gap-1"><BikeIcon className="h-3 w-3" /> Make *</label>
