@@ -898,7 +898,7 @@ function CalendarPage() {
                 return (
                   <>
                     <div className="flex items-center gap-2 pr-8">
-                      <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 ring-1 text-[11px] font-bold uppercase tracking-wider ${c.bg} ${c.ring} ${c.label}`}>
+                      <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 ring-1 text-[11px] font-bold uppercase tracking-wider ${c.bg} ${c.ring} ${c.text}`}>
                         <span className="h-1.5 w-1.5 rounded-full bg-current" />
                         {b.service_type}
                       </span>
