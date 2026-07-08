@@ -924,7 +924,9 @@ function CalendarPage() {
                           onBlur={async (e) => {
                             const v = e.target.value;
                             if (!v || v === b.scheduled_date) return;
-                            const clash = findOverlap(v, timeToMin(b.drop_off_time), Number(b.estimated_hours) || 1, b.id);
+                            const [th, tm] = String(b.drop_off_time || "00:00").split(":");
+                            const clash = findOverlap(v, (Number(th)||0)*60 + (Number(tm)||0), Number(b.estimated_hours) || 1, b.id);
+
                             if (clash) return toast.error(`Slot taken (${clash.service_type} at ${String(clash.drop_off_time).slice(0,5)})`);
                             const { error } = await supabase.from("bookings").update({ scheduled_date: v }).eq("id", b.id);
                             if (error) return toast.error(error.message);
