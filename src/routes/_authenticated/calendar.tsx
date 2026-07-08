@@ -811,9 +811,31 @@ function CalendarPage() {
                           </span>
                         )}
                       </div>
-                      <div className="text-xs text-muted-foreground mt-0.5">
-                        {b.estimated_hours ?? 1}h estimated
+                      <div className="text-xs text-muted-foreground mt-1 flex items-center gap-2">
+                        <span>Estimated:</span>
+                        <input
+                          type="number"
+                          min="0.25"
+                          step="0.25"
+                          defaultValue={b.estimated_hours ?? 1}
+                          onBlur={async (e) => {
+                            const v = Number(e.target.value);
+                            if (!v || v === Number(b.estimated_hours)) return;
+                            const { error } = await supabase
+                              .from("bookings")
+                              .update({ estimated_hours: v })
+                              .eq("id", b.id);
+                            if (error) return toast.error(error.message);
+                            setSelectedBooking({ ...b, estimated_hours: v });
+                            qc.invalidateQueries({ queryKey: ["calendar-bookings"] });
+                            toast.success("Estimated hours updated");
+                          }}
+                          onKeyDown={(e) => { if (e.key === "Enter") (e.target as HTMLInputElement).blur(); }}
+                          className="w-16 rounded-md border border-border bg-background px-2 py-0.5 text-xs tabular-nums text-foreground focus:border-primary/60 outline-none"
+                        />
+                        <span>h</span>
                       </div>
+
                     </div>
 
                     <div className="grid grid-cols-1 gap-3 pt-1 border-t border-border/60">
