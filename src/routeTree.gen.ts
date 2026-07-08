@@ -29,6 +29,7 @@ import { Route as AuthenticatedLoanBikesIndexRouteImport } from './routes/_authe
 import { Route as AuthenticatedJobsIndexRouteImport } from './routes/_authenticated/jobs.index'
 import { Route as AuthenticatedInvoicesIndexRouteImport } from './routes/_authenticated/invoices.index'
 import { Route as AuthenticatedInsuranceIndexRouteImport } from './routes/_authenticated/insurance.index'
+import { Route as AuthenticatedCustomersIndexRouteImport } from './routes/_authenticated/customers.index'
 import { Route as AuthenticatedBookingsIndexRouteImport } from './routes/_authenticated/bookings.index'
 import { Route as AuthenticatedMotorcyclesBikeIdRouteImport } from './routes/_authenticated/motorcycles.$bikeId'
 import { Route as AuthenticatedLoanBikesBikeIdRouteImport } from './routes/_authenticated/loan-bikes.$bikeId'
@@ -145,6 +146,12 @@ const AuthenticatedInsuranceIndexRoute =
     path: '/',
     getParentRoute: () => AuthenticatedInsuranceRoute,
   } as any)
+const AuthenticatedCustomersIndexRoute =
+  AuthenticatedCustomersIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedCustomersRoute,
+  } as any)
 const AuthenticatedBookingsIndexRoute =
   AuthenticatedBookingsIndexRouteImport.update({
     id: '/bookings/',
@@ -243,6 +250,7 @@ export interface FileRoutesByFullPath {
   '/loan-bikes/$bikeId': typeof AuthenticatedLoanBikesBikeIdRoute
   '/motorcycles/$bikeId': typeof AuthenticatedMotorcyclesBikeIdRoute
   '/bookings/': typeof AuthenticatedBookingsIndexRoute
+  '/customers/': typeof AuthenticatedCustomersIndexRoute
   '/insurance/': typeof AuthenticatedInsuranceIndexRoute
   '/invoices/': typeof AuthenticatedInvoicesIndexRoute
   '/jobs/': typeof AuthenticatedJobsIndexRoute
@@ -256,7 +264,6 @@ export interface FileRoutesByTo {
   '/analytics': typeof AuthenticatedAnalyticsRoute
   '/calendar': typeof AuthenticatedCalendarRoute
   '/clock': typeof AuthenticatedClockRoute
-  '/customers': typeof AuthenticatedCustomersRouteWithChildren
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/inventory': typeof AuthenticatedInventoryRoute
   '/settings': typeof AuthenticatedSettingsRoute
@@ -274,6 +281,7 @@ export interface FileRoutesByTo {
   '/loan-bikes/$bikeId': typeof AuthenticatedLoanBikesBikeIdRoute
   '/motorcycles/$bikeId': typeof AuthenticatedMotorcyclesBikeIdRoute
   '/bookings': typeof AuthenticatedBookingsIndexRoute
+  '/customers': typeof AuthenticatedCustomersIndexRoute
   '/insurance': typeof AuthenticatedInsuranceIndexRoute
   '/invoices': typeof AuthenticatedInvoicesIndexRoute
   '/jobs': typeof AuthenticatedJobsIndexRoute
@@ -309,6 +317,7 @@ export interface FileRoutesById {
   '/_authenticated/loan-bikes/$bikeId': typeof AuthenticatedLoanBikesBikeIdRoute
   '/_authenticated/motorcycles/$bikeId': typeof AuthenticatedMotorcyclesBikeIdRoute
   '/_authenticated/bookings/': typeof AuthenticatedBookingsIndexRoute
+  '/_authenticated/customers/': typeof AuthenticatedCustomersIndexRoute
   '/_authenticated/insurance/': typeof AuthenticatedInsuranceIndexRoute
   '/_authenticated/invoices/': typeof AuthenticatedInvoicesIndexRoute
   '/_authenticated/jobs/': typeof AuthenticatedJobsIndexRoute
@@ -344,6 +353,7 @@ export interface FileRouteTypes {
     | '/loan-bikes/$bikeId'
     | '/motorcycles/$bikeId'
     | '/bookings/'
+    | '/customers/'
     | '/insurance/'
     | '/invoices/'
     | '/jobs/'
@@ -357,7 +367,6 @@ export interface FileRouteTypes {
     | '/analytics'
     | '/calendar'
     | '/clock'
-    | '/customers'
     | '/dashboard'
     | '/inventory'
     | '/settings'
@@ -375,6 +384,7 @@ export interface FileRouteTypes {
     | '/loan-bikes/$bikeId'
     | '/motorcycles/$bikeId'
     | '/bookings'
+    | '/customers'
     | '/insurance'
     | '/invoices'
     | '/jobs'
@@ -409,6 +419,7 @@ export interface FileRouteTypes {
     | '/_authenticated/loan-bikes/$bikeId'
     | '/_authenticated/motorcycles/$bikeId'
     | '/_authenticated/bookings/'
+    | '/_authenticated/customers/'
     | '/_authenticated/insurance/'
     | '/_authenticated/invoices/'
     | '/_authenticated/jobs/'
@@ -565,6 +576,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedInsuranceIndexRouteImport
       parentRoute: typeof AuthenticatedInsuranceRoute
     }
+    '/_authenticated/customers/': {
+      id: '/_authenticated/customers/'
+      path: '/'
+      fullPath: '/customers/'
+      preLoaderRoute: typeof AuthenticatedCustomersIndexRouteImport
+      parentRoute: typeof AuthenticatedCustomersRoute
+    }
     '/_authenticated/bookings/': {
       id: '/_authenticated/bookings/'
       path: '/bookings'
@@ -654,12 +672,14 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedCustomersRouteChildren {
   AuthenticatedCustomersCustomerIdRoute: typeof AuthenticatedCustomersCustomerIdRoute
+  AuthenticatedCustomersIndexRoute: typeof AuthenticatedCustomersIndexRoute
 }
 
 const AuthenticatedCustomersRouteChildren: AuthenticatedCustomersRouteChildren =
   {
     AuthenticatedCustomersCustomerIdRoute:
       AuthenticatedCustomersCustomerIdRoute,
+    AuthenticatedCustomersIndexRoute: AuthenticatedCustomersIndexRoute,
   }
 
 const AuthenticatedCustomersRouteWithChildren =
