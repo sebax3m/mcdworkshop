@@ -458,7 +458,7 @@ function CalendarPage() {
                   }}
                   className={`card-surface p-2 min-h-[160px] flex flex-col cursor-pointer transition-colors hover:ring-1 hover:ring-primary/30 ${
                     today ? "ring-2 ring-primary/40" : ""
-                  } ${isSunday(day) ? "bg-primary/[0.07]" : ""} ${draggingId ? "border-dashed" : ""} ${!inMonth ? "opacity-40" : ""}`}
+                  } ${isSunday(day) ? "bg-primary/[0.14]" : ""} ${draggingId ? "border-dashed" : ""} ${!inMonth ? "opacity-40" : ""}`}
                 >
                   <div className="flex items-center justify-between">
                     <div
@@ -569,7 +569,7 @@ function CalendarPage() {
                   <div
                     key={dayKey}
                     className={`text-center py-2 border-r border-border/40 last:border-r-0 transition-colors ${
-                      today ? "bg-primary/5" : isSunday(day) ? "bg-primary/[0.06]" : ""
+                      today ? "bg-primary/5" : isSunday(day) ? "bg-primary/[0.14]" : ""
                     } ${isHovered ? "bg-primary/10" : ""}`}
                   >
                     <div
@@ -662,7 +662,7 @@ function CalendarPage() {
                       setDraggingId(null);
                     }}
                     className={`relative border-r border-border/40 last:border-r-0 cursor-pointer ${
-                      today ? "bg-primary/[0.03]" : isSunday(day) ? "bg-primary/[0.06]" : ""
+                      today ? "bg-primary/[0.03]" : isSunday(day) ? "bg-primary/[0.14]" : ""
                     } ${draggingId ? "bg-primary/5" : ""}`}
                     style={{
                       backgroundImage: `repeating-linear-gradient(to bottom, transparent 0, transparent ${SLOT_H - 1}px, var(--border) ${SLOT_H - 1}px, var(--border) ${SLOT_H}px)`,
