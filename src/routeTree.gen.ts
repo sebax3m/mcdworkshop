@@ -38,6 +38,7 @@ import { Route as AuthenticatedInvoicesNewRouteImport } from './routes/_authenti
 import { Route as AuthenticatedInvoicesInvoiceIdRouteImport } from './routes/_authenticated/invoices.$invoiceId'
 import { Route as AuthenticatedInsuranceNewRouteImport } from './routes/_authenticated/insurance.new'
 import { Route as AuthenticatedInsuranceClaimIdRouteImport } from './routes/_authenticated/insurance.$claimId'
+import { Route as AuthenticatedCustomersCustomerIdRouteImport } from './routes/_authenticated/customers.$customerId'
 import { Route as AuthenticatedBookingsNewRouteImport } from './routes/_authenticated/bookings.new'
 import { Route as AuthenticatedBookingsBookingIdRouteImport } from './routes/_authenticated/bookings.$bookingId'
 
@@ -196,6 +197,12 @@ const AuthenticatedInsuranceClaimIdRoute =
     path: '/$claimId',
     getParentRoute: () => AuthenticatedInsuranceRoute,
   } as any)
+const AuthenticatedCustomersCustomerIdRoute =
+  AuthenticatedCustomersCustomerIdRouteImport.update({
+    id: '/$customerId',
+    path: '/$customerId',
+    getParentRoute: () => AuthenticatedCustomersRoute,
+  } as any)
 const AuthenticatedBookingsNewRoute =
   AuthenticatedBookingsNewRouteImport.update({
     id: '/bookings/new',
@@ -216,7 +223,7 @@ export interface FileRoutesByFullPath {
   '/analytics': typeof AuthenticatedAnalyticsRoute
   '/calendar': typeof AuthenticatedCalendarRoute
   '/clock': typeof AuthenticatedClockRoute
-  '/customers': typeof AuthenticatedCustomersRoute
+  '/customers': typeof AuthenticatedCustomersRouteWithChildren
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/insurance': typeof AuthenticatedInsuranceRouteWithChildren
   '/inventory': typeof AuthenticatedInventoryRoute
@@ -226,6 +233,7 @@ export interface FileRoutesByFullPath {
   '/users': typeof AuthenticatedUsersRoute
   '/bookings/$bookingId': typeof AuthenticatedBookingsBookingIdRoute
   '/bookings/new': typeof AuthenticatedBookingsNewRoute
+  '/customers/$customerId': typeof AuthenticatedCustomersCustomerIdRoute
   '/insurance/$claimId': typeof AuthenticatedInsuranceClaimIdRoute
   '/insurance/new': typeof AuthenticatedInsuranceNewRoute
   '/invoices/$invoiceId': typeof AuthenticatedInvoicesInvoiceIdRoute
@@ -248,7 +256,7 @@ export interface FileRoutesByTo {
   '/analytics': typeof AuthenticatedAnalyticsRoute
   '/calendar': typeof AuthenticatedCalendarRoute
   '/clock': typeof AuthenticatedClockRoute
-  '/customers': typeof AuthenticatedCustomersRoute
+  '/customers': typeof AuthenticatedCustomersRouteWithChildren
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/inventory': typeof AuthenticatedInventoryRoute
   '/settings': typeof AuthenticatedSettingsRoute
@@ -256,6 +264,7 @@ export interface FileRoutesByTo {
   '/users': typeof AuthenticatedUsersRoute
   '/bookings/$bookingId': typeof AuthenticatedBookingsBookingIdRoute
   '/bookings/new': typeof AuthenticatedBookingsNewRoute
+  '/customers/$customerId': typeof AuthenticatedCustomersCustomerIdRoute
   '/insurance/$claimId': typeof AuthenticatedInsuranceClaimIdRoute
   '/insurance/new': typeof AuthenticatedInsuranceNewRoute
   '/invoices/$invoiceId': typeof AuthenticatedInvoicesInvoiceIdRoute
@@ -280,7 +289,7 @@ export interface FileRoutesById {
   '/_authenticated/analytics': typeof AuthenticatedAnalyticsRoute
   '/_authenticated/calendar': typeof AuthenticatedCalendarRoute
   '/_authenticated/clock': typeof AuthenticatedClockRoute
-  '/_authenticated/customers': typeof AuthenticatedCustomersRoute
+  '/_authenticated/customers': typeof AuthenticatedCustomersRouteWithChildren
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/insurance': typeof AuthenticatedInsuranceRouteWithChildren
   '/_authenticated/inventory': typeof AuthenticatedInventoryRoute
@@ -290,6 +299,7 @@ export interface FileRoutesById {
   '/_authenticated/users': typeof AuthenticatedUsersRoute
   '/_authenticated/bookings/$bookingId': typeof AuthenticatedBookingsBookingIdRoute
   '/_authenticated/bookings/new': typeof AuthenticatedBookingsNewRoute
+  '/_authenticated/customers/$customerId': typeof AuthenticatedCustomersCustomerIdRoute
   '/_authenticated/insurance/$claimId': typeof AuthenticatedInsuranceClaimIdRoute
   '/_authenticated/insurance/new': typeof AuthenticatedInsuranceNewRoute
   '/_authenticated/invoices/$invoiceId': typeof AuthenticatedInvoicesInvoiceIdRoute
@@ -324,6 +334,7 @@ export interface FileRouteTypes {
     | '/users'
     | '/bookings/$bookingId'
     | '/bookings/new'
+    | '/customers/$customerId'
     | '/insurance/$claimId'
     | '/insurance/new'
     | '/invoices/$invoiceId'
@@ -354,6 +365,7 @@ export interface FileRouteTypes {
     | '/users'
     | '/bookings/$bookingId'
     | '/bookings/new'
+    | '/customers/$customerId'
     | '/insurance/$claimId'
     | '/insurance/new'
     | '/invoices/$invoiceId'
@@ -387,6 +399,7 @@ export interface FileRouteTypes {
     | '/_authenticated/users'
     | '/_authenticated/bookings/$bookingId'
     | '/_authenticated/bookings/new'
+    | '/_authenticated/customers/$customerId'
     | '/_authenticated/insurance/$claimId'
     | '/_authenticated/insurance/new'
     | '/_authenticated/invoices/$invoiceId'
@@ -615,6 +628,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedInsuranceClaimIdRouteImport
       parentRoute: typeof AuthenticatedInsuranceRoute
     }
+    '/_authenticated/customers/$customerId': {
+      id: '/_authenticated/customers/$customerId'
+      path: '/$customerId'
+      fullPath: '/customers/$customerId'
+      preLoaderRoute: typeof AuthenticatedCustomersCustomerIdRouteImport
+      parentRoute: typeof AuthenticatedCustomersRoute
+    }
     '/_authenticated/bookings/new': {
       id: '/_authenticated/bookings/new'
       path: '/bookings/new'
@@ -631,6 +651,21 @@ declare module '@tanstack/react-router' {
     }
   }
 }
+
+interface AuthenticatedCustomersRouteChildren {
+  AuthenticatedCustomersCustomerIdRoute: typeof AuthenticatedCustomersCustomerIdRoute
+}
+
+const AuthenticatedCustomersRouteChildren: AuthenticatedCustomersRouteChildren =
+  {
+    AuthenticatedCustomersCustomerIdRoute:
+      AuthenticatedCustomersCustomerIdRoute,
+  }
+
+const AuthenticatedCustomersRouteWithChildren =
+  AuthenticatedCustomersRoute._addFileChildren(
+    AuthenticatedCustomersRouteChildren,
+  )
 
 interface AuthenticatedInsuranceRouteChildren {
   AuthenticatedInsuranceClaimIdRoute: typeof AuthenticatedInsuranceClaimIdRoute
@@ -671,7 +706,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAnalyticsRoute: typeof AuthenticatedAnalyticsRoute
   AuthenticatedCalendarRoute: typeof AuthenticatedCalendarRoute
   AuthenticatedClockRoute: typeof AuthenticatedClockRoute
-  AuthenticatedCustomersRoute: typeof AuthenticatedCustomersRoute
+  AuthenticatedCustomersRoute: typeof AuthenticatedCustomersRouteWithChildren
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedInsuranceRoute: typeof AuthenticatedInsuranceRouteWithChildren
   AuthenticatedInventoryRoute: typeof AuthenticatedInventoryRoute
@@ -695,7 +730,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAnalyticsRoute: AuthenticatedAnalyticsRoute,
   AuthenticatedCalendarRoute: AuthenticatedCalendarRoute,
   AuthenticatedClockRoute: AuthenticatedClockRoute,
-  AuthenticatedCustomersRoute: AuthenticatedCustomersRoute,
+  AuthenticatedCustomersRoute: AuthenticatedCustomersRouteWithChildren,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedInsuranceRoute: AuthenticatedInsuranceRouteWithChildren,
   AuthenticatedInventoryRoute: AuthenticatedInventoryRoute,
