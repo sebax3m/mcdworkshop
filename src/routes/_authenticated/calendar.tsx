@@ -305,11 +305,15 @@ function CalendarPage() {
     },
   });
 
-  async function moveBooking(bookingId: string, newDate: Date) {
+  async function moveBooking(bookingId: string, newDate: Date, newTime?: string) {
     const dateStr = format(newDate, "yyyy-MM-dd");
-    const { error } = await supabase.from("bookings").update({ scheduled_date: dateStr }).eq("id", bookingId);
+    const patch: any = { scheduled_date: dateStr };
+    if (newTime) patch.drop_off_time = newTime;
+    const { error } = await supabase.from("bookings").update(patch).eq("id", bookingId);
     if (error) return toast.error(error.message);
-    toast.success("Booking moved to " + format(newDate, "EEE d MMM"));
+    toast.success(
+      "Booking moved to " + format(newDate, "EEE d MMM") + (newTime ? ` · ${newTime}` : ""),
+    );
     qc.invalidateQueries({ queryKey: ["calendar-bookings"] });
   }
 
@@ -658,7 +662,19 @@ function CalendarPage() {
                     onDrop={(e) => {
                       e.preventDefault();
                       const id = e.dataTransfer.getData("text/booking-id");
-                      if (id) moveBooking(id, day);
+                      if (!id) return;
+                      const offsetY = Number(e.dataTransfer.getData("text/grab-offset")) || 0;
+                      const rect = e.currentTarget.getBoundingClientRect();
+                      const y = e.clientY - rect.top - offsetY;
+                      const hourFloat = START_HOUR + y / SLOT_H;
+                      const totalMin = Math.max(
+                        START_HOUR * 60,
+                        Math.min(END_HOUR * 60 - 30, Math.round((hourFloat * 60) / 30) * 30),
+                      );
+                      const nh = Math.floor(totalMin / 60);
+                      const nm = totalMin % 60;
+                      const time = `${String(nh).padStart(2, "0")}:${String(nm).padStart(2, "0")}`;
+                      moveBooking(id, day, time);
                       setDraggingId(null);
                     }}
                     className={`relative border-r border-border/40 last:border-r-0 cursor-pointer ${
@@ -724,8 +740,11 @@ function CalendarPage() {
                           initial={{ opacity: 0, scale: 0.98 }}
                           animate={{ opacity: 1, scale: 1 }}
                           draggable
-                          onDragStart={(e) => {
-                            (e as any).dataTransfer?.setData("text/booking-id", b.id);
+                          onDragStart={(e: any) => {
+                            const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+                            const grabY = (e.clientY ?? 0) - rect.top;
+                            e.dataTransfer?.setData("text/booking-id", b.id);
+                            e.dataTransfer?.setData("text/grab-offset", String(grabY));
                             setDraggingId(b.id);
                           }}
                           onDragEnd={() => setDraggingId(null)}
