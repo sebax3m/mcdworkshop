@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { BikeMakeModelYear } from "@/components/BikeMakeModelYear";
 import { uploadPhoto } from "@/lib/photos";
 import { generateBikeImage } from "@/lib/bike-image.functions";
+import { lookupRego } from "@/lib/rego-lookup.functions";
 
 export const Route = createFileRoute("/_authenticated/motorcycles/$bikeId")({
   component: BikeProfile,
