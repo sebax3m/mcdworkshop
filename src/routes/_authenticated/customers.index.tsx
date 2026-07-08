@@ -10,7 +10,7 @@ import { toast } from "sonner";
 import { initials } from "@/lib/format";
 import { useCurrentUser } from "@/hooks/use-current-user";
 
-export const Route = createFileRoute("/_authenticated/customers")({
+export const Route = createFileRoute("/_authenticated/customers/")({
   component: Customers,
 });
 
