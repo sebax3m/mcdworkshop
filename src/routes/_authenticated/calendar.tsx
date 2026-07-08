@@ -416,7 +416,8 @@ function CalendarPage() {
 
       {/* MONTH VIEW */}
       {viewMode === "month" && (
-        <div className="space-y-1">
+        <div className="overflow-x-auto min-w-full">
+          <div className="space-y-1 min-w-[720px]">
           {/* Day headers */}
           <div className="grid grid-cols-7 gap-2" style={{ gridTemplateColumns: 'repeat(7, minmax(0, 1fr))' }}>
             {dayNames.map((name) => (
