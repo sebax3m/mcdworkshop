@@ -662,7 +662,7 @@ function CalendarPage() {
                       setDraggingId(null);
                     }}
                     className={`relative border-r border-border/40 last:border-r-0 cursor-pointer ${
-                      today ? "bg-primary/[0.03]" : isSunday(day) ? "bg-primary/[0.03]" : ""
+                      today ? "bg-primary/[0.03]" : isSunday(day) ? "bg-primary/[0.06]" : ""
                     } ${draggingId ? "bg-primary/5" : ""}`}
                     style={{
                       backgroundImage: `repeating-linear-gradient(to bottom, transparent 0, transparent ${SLOT_H - 1}px, var(--border) ${SLOT_H - 1}px, var(--border) ${SLOT_H}px)`,
