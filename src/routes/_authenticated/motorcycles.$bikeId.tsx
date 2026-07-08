@@ -72,9 +72,14 @@ function BikeProfile() {
       ecu_info: b.ecu_info ?? "",
       modifications: b.modifications ?? "",
       notes: b.notes ?? "",
+      customer_first_name: b.customers?.first_name ?? "",
+      customer_last_name: b.customers?.last_name ?? "",
+      customer_phone: b.customers?.phone ?? "",
+      customer_email: b.customers?.email ?? "",
     });
     setPhotos(Array.isArray(b.photos) ? b.photos : []);
   }, [bike.data]);
+
 
   const jobs = useQuery({
     queryKey: ["bike-jobs", bikeId],
@@ -163,10 +168,22 @@ function BikeProfile() {
       };
       const { error } = await supabase.from("motorcycles").update(payload).eq("id", bikeId);
       if (error) throw error;
+      if (b.customer_id) {
+        const { error: cErr } = await supabase.from("customers").update({
+          first_name: form.customer_first_name.trim(),
+          last_name: form.customer_last_name.trim(),
+          phone: form.customer_phone || null,
+          email: form.customer_email || null,
+        }).eq("id", b.customer_id);
+        if (cErr) throw cErr;
+      }
       toast.success("Bike updated");
       setEditing(false);
       qc.invalidateQueries({ queryKey: ["bike", bikeId] });
       qc.invalidateQueries({ queryKey: ["bikes-list"] });
+      qc.invalidateQueries({ queryKey: ["customers"] });
+      if (b.customer_id) qc.invalidateQueries({ queryKey: ["customer", b.customer_id] });
+
     } catch (err: any) {
       toast.error(err.message ?? "Save failed");
     } finally {
@@ -294,13 +311,24 @@ function BikeProfile() {
             </div>
           )}
 
-          {b.customers && (
-            <div className="card-surface p-4 space-y-1">
+          {editing && form && b.customer_id ? (
+            <div className="card-surface p-4 space-y-2">
+              <div className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground flex items-center gap-1"><User className="h-3 w-3" /> Owner</div>
+              <div className="grid grid-cols-2 gap-2">
+                <Input placeholder="First name" value={form.customer_first_name} onChange={(e) => setForm({ ...form, customer_first_name: e.target.value })} />
+                <Input placeholder="Last name" value={form.customer_last_name} onChange={(e) => setForm({ ...form, customer_last_name: e.target.value })} />
+                <Input placeholder="Phone" value={form.customer_phone} onChange={(e) => setForm({ ...form, customer_phone: e.target.value })} />
+                <Input placeholder="Email" value={form.customer_email} onChange={(e) => setForm({ ...form, customer_email: e.target.value })} />
+              </div>
+            </div>
+          ) : b.customers && (
+            <Link to="/customers/$customerId" params={{ customerId: b.customers.id }} className="card-surface p-4 space-y-1 block hover:border-primary/40">
               <div className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground flex items-center gap-1"><User className="h-3 w-3" /> Owner</div>
               <div className="font-semibold">{b.customers.first_name} {b.customers.last_name}</div>
               <div className="text-sm text-muted-foreground">{b.customers.phone || b.customers.email || ""}</div>
-            </div>
+            </Link>
           )}
+
 
           {editing && form ? (
             <div className="card-surface p-4 space-y-3">
