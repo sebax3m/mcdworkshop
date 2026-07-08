@@ -2,7 +2,7 @@ import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Bike as BikeIcon, ChevronLeft, Gauge, User, Hash, Wrench, Pencil, Sparkles, Camera, X, Save } from "lucide-react";
+import { Bike as BikeIcon, ChevronLeft, Gauge, User, Hash, Wrench, Pencil, Sparkles, Camera, X, Save, Calendar, ShieldCheck } from "lucide-react";
 import { fullBike } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -67,6 +67,8 @@ function BikeProfile() {
       rego: b.rego ?? "",
       mileage: b.mileage ?? "",
       vin: b.vin ?? "",
+      rego_expiry: b.rego_expiry ?? "",
+      wof_expiry: b.wof_expiry ?? "",
       ecu_info: b.ecu_info ?? "",
       modifications: b.modifications ?? "",
       notes: b.notes ?? "",
@@ -152,6 +154,8 @@ function BikeProfile() {
         rego: form.rego || null,
         mileage: form.mileage ? parseInt(String(form.mileage)) : null,
         vin: form.vin || null,
+        rego_expiry: form.rego_expiry || null,
+        wof_expiry: form.wof_expiry || null,
         ecu_info: form.ecu_info || null,
         modifications: form.modifications || null,
         notes: form.notes || null,
@@ -272,11 +276,21 @@ function BikeProfile() {
                 <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">VIN</div>
                 <Input value={form.vin} onChange={(e) => setForm({ ...form, vin: e.target.value })} />
               </div>
+              <div>
+                <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Rego expiry</div>
+                <Input type="date" value={form.rego_expiry} onChange={(e) => setForm({ ...form, rego_expiry: e.target.value })} />
+              </div>
+              <div>
+                <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">WOF expiry</div>
+                <Input type="date" value={form.wof_expiry} onChange={(e) => setForm({ ...form, wof_expiry: e.target.value })} />
+              </div>
             </div>
           ) : (
             <div className="grid grid-cols-2 gap-2">
               <Stat icon={<Gauge className="h-4 w-4" />} label="Mileage" value={b.mileage ? `${b.mileage.toLocaleString()} km` : "—"} />
               <Stat icon={<Hash className="h-4 w-4" />} label="VIN" value={b.vin || "—"} />
+              <Stat icon={<Calendar className="h-4 w-4" />} label="Rego expiry" value={b.rego_expiry ? new Date(b.rego_expiry).toLocaleDateString() : "—"} />
+              <Stat icon={<ShieldCheck className="h-4 w-4" />} label="WOF expiry" value={b.wof_expiry ? new Date(b.wof_expiry).toLocaleDateString() : "—"} />
             </div>
           )}
 
