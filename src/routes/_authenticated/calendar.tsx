@@ -126,6 +126,7 @@ function CalendarPage() {
   const [qBikeYear, setQBikeYear] = useState("");
   const [qBikeRego, setQBikeRego] = useState("");
   const [qService, setQService] = useState<string>("Standard Service");
+  const [qServiceOther, setQServiceOther] = useState<string>("");
   const [qEstHours, setQEstHours] = useState<string>("1");
   const [creatingQuick, setCreatingQuick] = useState(false);
   const [hoverSlot, setHoverSlot] = useState<{ dayKey: string; slotIdx: number } | null>(null);
