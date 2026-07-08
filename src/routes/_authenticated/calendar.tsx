@@ -1027,6 +1027,29 @@ function CalendarPage() {
                             );
                           })}
                         </div>
+                        {(b.service_type ?? "").toLowerCase() === "other" && (
+                          <div className="mt-2">
+                            <label className="text-[10px] uppercase tracking-wider text-muted-foreground">Other service details</label>
+                            <textarea
+                              key={`other-${b.id}`}
+                              defaultValue={b.service_type_other ?? ""}
+                              placeholder="Describe the service..."
+                              onBlur={async (e) => {
+                                const v = e.target.value.trim();
+                                if (v === (b.service_type_other ?? "")) return;
+                                const { error } = await supabase
+                                  .from("bookings")
+                                  .update({ service_type_other: v || null })
+                                  .eq("id", b.id);
+                                if (error) return toast.error(error.message);
+                                setSelectedBooking({ ...b, service_type_other: v || null });
+                                qc.invalidateQueries({ queryKey: ["calendar-bookings"] });
+                                toast.success("Service details updated");
+                              }}
+                              className="mt-1 w-full min-h-[64px] rounded-lg border border-border bg-background/60 px-3 py-2 text-sm focus:border-primary/60 focus:outline-none resize-y"
+                            />
+                          </div>
+                        )}
                       </div>
                     </div>
 
