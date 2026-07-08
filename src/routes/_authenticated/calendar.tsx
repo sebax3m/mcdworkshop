@@ -586,6 +586,12 @@ function CalendarPage() {
           const h = Math.floor(totalMin / 60);
           const m = totalMin % 60;
           const time = `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+          const dayKey = format(day, "yyyy-MM-dd");
+          const clash = findOverlap(dayKey, totalMin, 0.5);
+          if (clash) {
+            setSelectedBooking(clash);
+            return;
+          }
           resetQuickForm();
           setQuickSlot({ date: day, time });
         };
