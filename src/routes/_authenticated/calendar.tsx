@@ -29,6 +29,7 @@ import {
   Phone,
   Trash2,
   ShieldCheck,
+  Sparkles,
 } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
@@ -45,6 +46,7 @@ import {
 import { toast } from "sonner";
 import { initials } from "@/lib/format";
 import { BIKE_MAKES, BIKE_MAKE_NAMES, BIKE_YEARS } from "@/lib/bike-library";
+import { lookupRego } from "@/lib/rego-lookup.functions";
 
 export const Route = createFileRoute("/_authenticated/calendar")({
   component: CalendarPage,
@@ -135,6 +137,25 @@ function CalendarPage() {
   const [qLoanBikeId, setQLoanBikeId] = useState<string | null>(null);
   const [qLoanBikeReturn, setQLoanBikeReturn] = useState<string>("");
   const [creatingQuick, setCreatingQuick] = useState(false);
+  const [lookingUpRego, setLookingUpRego] = useState(false);
+
+  async function fetchQuickFromRego() {
+    const plate = qBikeRego.trim();
+    if (!plate) return toast.error("Enter a rego first");
+    setLookingUpRego(true);
+    try {
+      const r = await lookupRego({ data: { rego: plate } });
+      if (r.make) setQBikeMake(r.make);
+      if (r.model) setQBikeModel(r.model);
+      if (r.year) setQBikeYear(String(r.year));
+      if (r.wof_expiry) setQWofExpiry(r.wof_expiry);
+      toast.success(`Found ${[r.year, r.make, r.model].filter(Boolean).join(" ") || plate}`);
+    } catch (e: any) {
+      toast.error(e?.message || "Lookup failed");
+    } finally {
+      setLookingUpRego(false);
+    }
+  }
   const [hoverSlot, setHoverSlot] = useState<{ dayKey: string; slotIdx: number } | null>(null);
   const bodyRef = useRef<HTMLDivElement>(null);
   const [gridH, setGridH] = useState(560);
@@ -1604,11 +1625,22 @@ function CalendarPage() {
                 </div>
                 <div className="col-span-1">
                   <label className="text-[10px] uppercase tracking-wider text-muted-foreground">Rego</label>
-                  <input
-                    value={qBikeRego}
-                    onChange={(e) => setQBikeRego(e.target.value.toUpperCase())}
-                    className="w-full mt-1 rounded-lg border border-border bg-background/60 px-3 py-2 text-sm uppercase tracking-wider focus:border-primary/60 focus:outline-none"
-                  />
+                  <div className="flex gap-1 mt-1">
+                    <input
+                      value={qBikeRego}
+                      onChange={(e) => setQBikeRego(e.target.value.toUpperCase())}
+                      className="flex-1 rounded-lg border border-border bg-background/60 px-3 py-2 text-sm uppercase tracking-wider focus:border-primary/60 focus:outline-none"
+                    />
+                    <button
+                      type="button"
+                      onClick={fetchQuickFromRego}
+                      disabled={lookingUpRego || !qBikeRego.trim()}
+                      title="Fetch from Carjam"
+                      className="shrink-0 rounded-lg border border-border bg-background/60 px-2 text-xs hover:bg-primary/10 disabled:opacity-50"
+                    >
+                      <Sparkles className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
                 </div>
                 <div className="col-span-2">
                   <label className="text-[10px] uppercase tracking-wider text-muted-foreground">Est. hours</label>
