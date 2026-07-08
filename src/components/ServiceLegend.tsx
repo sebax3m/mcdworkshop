@@ -5,6 +5,7 @@ const SERVICE_COLORS: Record<string, { dot: string; text: string }> = {
   dyno: { dot: "bg-status-dyno", text: "text-status-dyno" },
   diagnostic: { dot: "bg-status-progress", text: "text-status-progress" },
   insurance: { dot: "bg-status-insurance", text: "text-status-insurance" },
+  postbike: { dot: "bg-cyan-400", text: "text-cyan-400" },
 };
 
 const ITEMS = [
@@ -14,7 +15,9 @@ const ITEMS = [
   { label: "Dyno", k: "dyno" },
   { label: "Diagnostic", k: "diagnostic" },
   { label: "Insurance", k: "insurance" },
+  { label: "Post Bike", k: "postbike" },
 ];
+
 
 export function ServiceLegend() {
   return (
