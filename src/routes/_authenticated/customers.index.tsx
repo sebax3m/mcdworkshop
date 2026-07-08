@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, Search, Phone, Mail, ChevronRight } from "lucide-react";
+import { Plus, Search, Phone, Mail, ChevronRight, Bike } from "lucide-react";
 import { toast } from "sonner";
 import { initials } from "@/lib/format";
 import { useCurrentUser } from "@/hooks/use-current-user";
