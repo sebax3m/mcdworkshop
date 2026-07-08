@@ -206,6 +206,10 @@ function CalendarPage() {
     if (!quickSlot) return;
     if (!qFirst.trim()) return toast.error("First name required");
     if (!qBikeMake.trim() || !qBikeModel.trim()) return toast.error("Bike make and model required");
+    const [qh, qm] = quickSlot.time.split(":");
+    const startMin = (Number(qh) || 0) * 60 + (Number(qm) || 0);
+    const clash = findOverlap(format(quickSlot.date, "yyyy-MM-dd"), startMin, Number(qEstHours) || 1);
+    if (clash) return toast.error(`Slot already booked (${clash.service_type} at ${String(clash.drop_off_time).slice(0,5)})`);
     setCreatingQuick(true);
     try {
       let customerId = qCustomerId;
@@ -305,8 +309,38 @@ function CalendarPage() {
     },
   });
 
+  function findOverlap(
+    dayKey: string,
+    startMin: number,
+    hours: number,
+    excludeId?: string,
+  ): any | null {
+    const endMin = startMin + Math.max(0.25, hours) * 60;
+    for (const bk of bookings as any[]) {
+      if (bk.id === excludeId) continue;
+      if (bk.scheduled_date !== dayKey) continue;
+      if (!bk.drop_off_time) continue;
+      const [hh, mm] = String(bk.drop_off_time).split(":");
+      const bs = (Number(hh) || 0) * 60 + (Number(mm) || 0);
+      const be = bs + Math.max(0.25, Number(bk.estimated_hours || 1)) * 60;
+      if (startMin < be && endMin > bs) return bk;
+    }
+    return null;
+  }
+
   async function moveBooking(bookingId: string, newDate: Date, newTime?: string) {
     const dateStr = format(newDate, "yyyy-MM-dd");
+    const current = (bookings as any[]).find((b) => b.id === bookingId);
+    const hours = Math.max(0.25, Number(current?.estimated_hours || 1));
+    if (newTime) {
+      const [hh, mm] = newTime.split(":");
+      const startMin = (Number(hh) || 0) * 60 + (Number(mm) || 0);
+      const clash = findOverlap(dateStr, startMin, hours, bookingId);
+      if (clash) {
+        toast.error(`Slot already booked (${clash.service_type} at ${String(clash.drop_off_time).slice(0,5)})`);
+        return;
+      }
+    }
     const patch: any = { scheduled_date: dateStr };
     if (newTime) patch.drop_off_time = newTime;
     const { error } = await supabase.from("bookings").update(patch).eq("id", bookingId);
@@ -755,15 +789,19 @@ function CalendarPage() {
                             e.stopPropagation();
                             setSelectedBooking(b);
                           }}
-                          className={`absolute left-1 right-1 z-10 rounded-md p-1.5 text-left ring-1 overflow-hidden ${b.color ? "" : `${c.bg} ${c.ring} ${c.label}`} hover:ring-2 transition-all cursor-grab active:cursor-grabbing ${
-                            b.loan_bike ? "!ring-2 !ring-amber-400" : ""
-                          }`}
+                          className={`group absolute left-1 right-1 z-10 rounded-md p-1.5 text-left ring-1 overflow-hidden ${b.color ? "" : `${c.bg} ${c.ring} ${c.label}`} hover:ring-2 hover:brightness-110 hover:shadow-lg hover:z-20 hover:scale-[1.015] transition-all cursor-grab active:cursor-grabbing active:scale-[0.99] ${
+                            draggingId === b.id ? "opacity-40 ring-2 ring-dashed" : ""
+                          } ${b.loan_bike ? "!ring-2 !ring-amber-400" : ""}`}
                           style={{
                             top: `${top}px`,
                             height: `${height}px`,
                             ...(b.color ? { backgroundColor: `${b.color}33`, boxShadow: `inset 0 0 0 1px ${b.color}` } : {}),
                           }}
                         >
+                          {/* Drag grip indicator — visible on hover */}
+                          <div className="absolute top-0.5 right-0.5 opacity-0 group-hover:opacity-70 transition-opacity pointer-events-none text-current text-[8px] leading-none font-black tracking-tighter">
+                            ⋮⋮
+                          </div>
                           <div className="flex items-center justify-between gap-1">
                             <span className="text-[9px] font-bold uppercase tracking-wider truncate">
                               {b.drop_off_time
