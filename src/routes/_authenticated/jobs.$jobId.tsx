@@ -108,12 +108,19 @@ function JobDetail() {
   }
 
   async function setStatus(status: string) {
-    if (!canEdit) return;
     const patch: any = { status };
     if (status === "in_progress" && !j.started_at) patch.started_at = new Date().toISOString();
     if (status === "completed") patch.completed_at = new Date().toISOString();
-    const { error } = await supabase.from("jobs").update(patch).eq("id", jobId);
+    // If a tech picks up an unassigned job, claim it so RLS lets them update it.
+    if (!isAdmin && !j.technician_id && user?.id) {
+      patch.technician_id = user.id;
+      if (!j.assigned_tech_id) patch.assigned_tech_id = user.id;
+    }
+    const { data, error } = await supabase.from("jobs").update(patch).eq("id", jobId).select("id");
     if (error) return toast.error(error.message);
+    if (!data || data.length === 0) {
+      return toast.error("You don't have permission to update this job. Ask an admin to assign it to you.");
+    }
     toast.success(`Marked ${STATUS_META[status].label}`);
     qc.invalidateQueries({ queryKey: ["job", jobId] });
     qc.invalidateQueries({ queryKey: ["jobs"] });
