@@ -9,6 +9,7 @@ import logoAsset from "@/assets/motorcycle-doctors-logo.png.asset.json";
 import { ActiveUserSwitcher } from "@/components/ActiveUserSwitcher";
 import { FloatingClockWidget } from "@/components/FloatingClockWidget";
 import { ServiceLegend } from "@/components/ServiceLegend";
+import { NotificationsBell } from "@/components/NotificationsBell";
 
 // macOS-dock-like magnification based on cursor proximity to each item center
 // Keeps label text at its original size by scaling the inner text inversely.
