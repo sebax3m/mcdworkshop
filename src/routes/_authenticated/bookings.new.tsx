@@ -499,6 +499,17 @@ function NewBooking() {
                 </button>
               ))}
             </div>
+            {serviceType === "Other" && (
+              <div className="space-y-1.5">
+                <Label className="text-xs uppercase tracking-wider text-muted-foreground">Other service details</Label>
+                <Textarea
+                  value={serviceTypeOther}
+                  onChange={(e) => setServiceTypeOther(e.target.value)}
+                  placeholder="Describe the service..."
+                  className="min-h-[64px]"
+                />
+              </div>
+            )}
           </section>
 
           <section className="card-surface p-4 space-y-3">
