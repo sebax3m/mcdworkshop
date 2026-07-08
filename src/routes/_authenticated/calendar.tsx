@@ -69,7 +69,7 @@ function serviceColor(t: string | null | undefined) {
   const k = t.toLowerCase();
   if (k.includes("post") && k.includes("bike")) return SERVICE_COLORS.postbike;
   if (k.includes("collision") || k.includes("insurance") || k.includes("crash")) return SERVICE_COLORS.insurance;
-  if (k.includes("dyno")) return SERVICE_COLORS.dyno;
+  if (k.includes("tuning") || k.includes("dyno")) return SERVICE_COLORS.dyno;
   if (k.includes("full")) return SERVICE_COLORS.full;
   if (k.includes("standard")) return SERVICE_COLORS.standard;
   if (k.includes("basic")) return SERVICE_COLORS.basic;
@@ -81,7 +81,7 @@ const SERVICE_TYPES = [
   "Basic Service",
   "Standard Service",
   "Full Service",
-  "Dyno Tune",
+  "Tuning",
   "Diagnostic",
   "Insurance / Crash",
   "Post Bike",
@@ -1469,9 +1469,10 @@ function CalendarPage() {
                     "Basic Service",
                     "Standard Service",
                     "Full Service",
-                    "Dyno Tune",
+                    "Tuning",
                     "Diagnostic",
                     "Insurance / Crash",
+                    "Post Bike",
                   ].map((s) => {
                     const c = serviceColor(s);
                     const active = qService === s;

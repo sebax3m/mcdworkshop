@@ -12,7 +12,7 @@ const ITEMS = [
   { label: "Basic", k: "basic" },
   { label: "Standard", k: "standard" },
   { label: "Full", k: "full" },
-  { label: "Dyno", k: "dyno" },
+  { label: "Tuning", k: "dyno" },
   { label: "Diagnostic", k: "diagnostic" },
   { label: "Insurance", k: "insurance" },
   { label: "Post Bike", k: "postbike" },
