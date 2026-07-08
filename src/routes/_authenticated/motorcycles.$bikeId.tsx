@@ -312,6 +312,9 @@ function BikeProfile() {
                   onChange={(v) => setForm({ ...form, make: v.make, model: v.model, year: v.year })}
                 />
                 <Input placeholder="Rego" value={form.rego} onChange={(e) => setForm({ ...form, rego: e.target.value.toUpperCase() })} />
+                <Button type="button" size="sm" variant="outline" onClick={fetchFromRego} disabled={lookingUp || !form.rego?.trim()} className="gap-1.5">
+                  <Sparkles className="h-3.5 w-3.5" /> {lookingUp ? "Looking up…" : "Fetch from rego (Carjam)"}
+                </Button>
               </div>
             ) : (
               <>
