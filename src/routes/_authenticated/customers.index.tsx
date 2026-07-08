@@ -23,7 +23,7 @@ function Customers() {
 
   const customers = useQuery({
     queryKey: ["customers-list"],
-    queryFn: async () => (await supabase.from("customers").select("*").order("created_at", { ascending: false })).data ?? [],
+    queryFn: async () => (await supabase.from("customers").select("*").order("created_at", { ascending: false }).range(0, 49999)).data ?? [],
   });
 
   const bikes = useQuery({
