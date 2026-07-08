@@ -662,7 +662,19 @@ function CalendarPage() {
                     onDrop={(e) => {
                       e.preventDefault();
                       const id = e.dataTransfer.getData("text/booking-id");
-                      if (id) moveBooking(id, day);
+                      if (!id) return;
+                      const offsetY = Number(e.dataTransfer.getData("text/grab-offset")) || 0;
+                      const rect = e.currentTarget.getBoundingClientRect();
+                      const y = e.clientY - rect.top - offsetY;
+                      const hourFloat = START_HOUR + y / SLOT_H;
+                      const totalMin = Math.max(
+                        START_HOUR * 60,
+                        Math.min(END_HOUR * 60 - 30, Math.round((hourFloat * 60) / 30) * 30),
+                      );
+                      const nh = Math.floor(totalMin / 60);
+                      const nm = totalMin % 60;
+                      const time = `${String(nh).padStart(2, "0")}:${String(nm).padStart(2, "0")}`;
+                      moveBooking(id, day, time);
                       setDraggingId(null);
                     }}
                     className={`relative border-r border-border/40 last:border-r-0 cursor-pointer ${
