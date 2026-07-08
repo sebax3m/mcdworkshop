@@ -168,10 +168,22 @@ function BikeProfile() {
       };
       const { error } = await supabase.from("motorcycles").update(payload).eq("id", bikeId);
       if (error) throw error;
+      if (b.customer_id) {
+        const { error: cErr } = await supabase.from("customers").update({
+          first_name: form.customer_first_name.trim(),
+          last_name: form.customer_last_name.trim(),
+          phone: form.customer_phone || null,
+          email: form.customer_email || null,
+        }).eq("id", b.customer_id);
+        if (cErr) throw cErr;
+      }
       toast.success("Bike updated");
       setEditing(false);
       qc.invalidateQueries({ queryKey: ["bike", bikeId] });
       qc.invalidateQueries({ queryKey: ["bikes-list"] });
+      qc.invalidateQueries({ queryKey: ["customers"] });
+      if (b.customer_id) qc.invalidateQueries({ queryKey: ["customer", b.customer_id] });
+
     } catch (err: any) {
       toast.error(err.message ?? "Save failed");
     } finally {
