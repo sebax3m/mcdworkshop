@@ -1469,9 +1469,10 @@ function CalendarPage() {
                     "Basic Service",
                     "Standard Service",
                     "Full Service",
-                    "Dyno Tune",
+                    "Tuning",
                     "Diagnostic",
                     "Insurance / Crash",
+                    "Post Bike",
                   ].map((s) => {
                     const c = serviceColor(s);
                     const active = qService === s;
