@@ -435,20 +435,52 @@ function InvoiceDetail() {
     <div className="space-y-5 max-w-3xl mx-auto invoice-page">
       <style>{`
         @media print {
-          @page { size: A4; margin: 14mm; }
-          html, body { background: #ffffff !important; color: #000 !important; }
+          @page { size: A4; margin: 10mm; }
+          html, body {
+            background: #ffffff !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
           body * { visibility: hidden !important; }
           .invoice-page, .invoice-page * { visibility: visible !important; }
-          .invoice-page { position: absolute; left: 0; top: 0; width: 100%; max-width: none; margin: 0; padding: 0; }
-          .invoice-sheet { box-shadow: none !important; border: none !important; background: #ffffff !important; color: #000 !important; }
-          .invoice-sheet .text-muted-foreground { color: #4b5563 !important; }
-          .invoice-sheet .red-gradient-text,
-          .invoice-sheet [class*="red"] { color: #c62828 !important; background: none !important; -webkit-text-fill-color: #c62828 !important; }
-          .invoice-sheet .border-border,
-          .invoice-sheet [class*="border-"] { border-color: #d1d5db !important; }
-          .no-print { display: none !important; }
+          .invoice-page {
+            position: absolute; left: 0; top: 0;
+            width: 100%; max-width: none; margin: 0; padding: 0;
+            font-size: 11px;
+          }
+          .invoice-sheet {
+            box-shadow: none !important;
+            border: none !important;
+            page-break-inside: avoid;
+          }
+          /* Keep the red banner exactly like it looks in the app */
+          .invoice-sheet .red-surface,
+          .invoice-sheet .red-surface * {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+            color: #ffffff !important;
+            -webkit-text-fill-color: #ffffff !important;
+          }
+          .invoice-sheet .red-surface {
+            background: linear-gradient(135deg, #b91c1c, #7f1d1d) !important;
+          }
+          /* Tighten spacing so it fits on one page */
+          .invoice-sheet .p-8 { padding: 14px 18px !important; }
+          .invoice-sheet .px-8 { padding-left: 18px !important; padding-right: 18px !important; }
+          .invoice-sheet .py-6 { padding-top: 12px !important; padding-bottom: 12px !important; }
+          .invoice-sheet .space-y-7 > * + * { margin-top: 10px !important; }
+          .invoice-sheet .space-y-5 > * + * { margin-top: 8px !important; }
+          .invoice-sheet .gap-6 { gap: 12px !important; }
+          .invoice-sheet .pt-5 { padding-top: 8px !important; }
+          .invoice-sheet .mt-6, .invoice-sheet .mt-8 { margin-top: 10px !important; }
+          .invoice-sheet h1, .invoice-sheet h2, .invoice-sheet h3 { margin: 0 !important; }
+          .invoice-sheet table { font-size: 10.5px !important; }
+          .invoice-sheet th, .invoice-sheet td { padding: 4px 6px !important; }
+          .invoice-sheet img { max-height: 44px !important; }
+          .no-print, .print\\:hidden { display: none !important; }
         }
       `}</style>
+
 
       <header className="flex items-center gap-3 print:hidden">
         <button onClick={() => nav({ to: "/invoices" })} className="grid h-9 w-9 place-items-center rounded-lg border border-border">
