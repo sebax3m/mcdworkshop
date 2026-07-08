@@ -137,6 +137,25 @@ function CalendarPage() {
   const [qLoanBikeId, setQLoanBikeId] = useState<string | null>(null);
   const [qLoanBikeReturn, setQLoanBikeReturn] = useState<string>("");
   const [creatingQuick, setCreatingQuick] = useState(false);
+  const [lookingUpRego, setLookingUpRego] = useState(false);
+
+  async function fetchQuickFromRego() {
+    const plate = qBikeRego.trim();
+    if (!plate) return toast.error("Enter a rego first");
+    setLookingUpRego(true);
+    try {
+      const r = await lookupRego({ data: { rego: plate } });
+      if (r.make) setQBikeMake(r.make);
+      if (r.model) setQBikeModel(r.model);
+      if (r.year) setQBikeYear(String(r.year));
+      if (r.wof_expiry) setQWofExpiry(r.wof_expiry);
+      toast.success(`Found ${[r.year, r.make, r.model].filter(Boolean).join(" ") || plate}`);
+    } catch (e: any) {
+      toast.error(e?.message || "Lookup failed");
+    } finally {
+      setLookingUpRego(false);
+    }
+  }
   const [hoverSlot, setHoverSlot] = useState<{ dayKey: string; slotIdx: number } | null>(null);
   const bodyRef = useRef<HTMLDivElement>(null);
   const [gridH, setGridH] = useState(560);
