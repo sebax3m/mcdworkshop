@@ -280,6 +280,7 @@ function CalendarPage() {
         customer_id: customerId!,
         motorcycle_id: bikeId!,
         service_type: qService,
+        service_type_other: qService === "Other" ? qServiceOther.trim() || null : null,
         scheduled_date: format(quickSlot.date, "yyyy-MM-dd"),
         drop_off_time: quickSlot.time,
         estimated_hours: Number(qEstHours) || 1,
