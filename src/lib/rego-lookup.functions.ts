@@ -95,30 +95,60 @@ export const lookupRego = createServerFn({ method: "POST" })
       }
     }
 
-    // Carjam response shape varies by plan; unwrap common containers.
-    const root = json?.vehicle ?? json?.data ?? json?.result ?? json;
-    const basic = root?.basic ?? root?.identification ?? root;
+    // Carjam nests fields inconsistently — do a recursive deep search.
+    // Also flatten any array of {key,value} / {name,value} / idh entries into a flat map.
+    const flat: Record<string, any> = {};
+    const norm = (s: string) => s.toLowerCase().replace(/[\s_\-]/g, "");
+    function walk(node: any) {
+      if (node == null) return;
+      if (Array.isArray(node)) { node.forEach(walk); return; }
+      if (typeof node !== "object") return;
+      // key/value pair rows (Carjam <idh key="make">HONDA</idh> becomes { key:"make", "#text":"HONDA" })
+      const k = node.key ?? node.name ?? node.field ?? node.label;
+      const v = node.value ?? node["#text"] ?? node.text;
+      if (typeof k === "string" && v !== undefined && (typeof v === "string" || typeof v === "number")) {
+        flat[norm(k)] = v;
+      }
+      for (const [ck, cv] of Object.entries(node)) {
+        if (cv && typeof cv === "object") walk(cv);
+        else if (typeof cv === "string" || typeof cv === "number") {
+          if (!(ck in flat)) flat[norm(ck)] = cv;
+        }
+      }
+    }
+    walk(json);
 
-    const yearRaw = pick(basic, ["year_of_manufacture", "year", "manufactureYear"]);
+    const get = (...keys: string[]): any => {
+      for (const k of keys) {
+        const v = flat[norm(k)];
+        if (v !== undefined && v !== null && v !== "") return v;
+      }
+      return undefined;
+    };
+
+    const yearRaw = get("year_of_manufacture", "year", "manufactureYear", "yearofmanufacture");
     const yearNum = yearRaw ? parseInt(String(yearRaw).slice(0, 4), 10) : undefined;
-    const ccRaw = pick(basic, ["cc_rating", "cc", "engineCc", "engine_capacity"]);
+    const ccRaw = get("cc_rating", "cc", "engineCc", "engine_capacity", "ccrating");
     const ccNum = ccRaw ? parseInt(String(ccRaw).replace(/\D/g, ""), 10) || undefined : undefined;
 
-    const inspections = root?.inspections ?? root?.wof ?? {};
-    const wofExpiry = toISODate(pick(inspections, ["wof_expiry", "expiry_date", "next_inspection", "wof"]))
-      ?? toISODate(pick(root, ["wof_expiry", "wof"]));
-    const regoExpiry = toISODate(pick(root, ["licence_expiry", "rego_expiry", "expiry_date", "licence"]));
-
-    return {
+    const result: RegoLookupResult = {
       rego: plate,
-      vin: pick(basic, ["vin", "vin_number"]) as string | undefined,
-      make: pick(basic, ["make"]) as string | undefined,
-      model: pick(basic, ["model"]) as string | undefined,
+      vin: get("vin", "vin_number", "vinnumber", "chassis"),
+      make: get("make", "manufacturer"),
+      model: get("model", "modelname"),
       year: yearNum,
-      color: pick(basic, ["main_colour", "colour", "color"]) as string | undefined,
+      color: get("main_colour", "maincolour", "colour", "color"),
       cc: ccNum,
-      fuel: pick(basic, ["fuel_type", "fuel"]) as string | undefined,
-      wof_expiry: wofExpiry,
-      rego_expiry: regoExpiry,
+      fuel: get("fuel_type", "fueltype", "fuel"),
+      wof_expiry: toISODate(get("wof_expiry", "wofexpiry", "next_inspection", "nextinspection", "wof")),
+      rego_expiry: toISODate(get("licence_expiry", "licenceexpiry", "rego_expiry", "regoexpiry", "expirydate")),
     };
+
+    // Debug: log parsed flat keys so we can see what Carjam returned.
+    if (!result.make && !result.model) {
+      console.log("[carjam] no make/model matched. Flat keys:", Object.keys(flat).slice(0, 60));
+      console.log("[carjam] sample values:", JSON.stringify(flat).slice(0, 1500));
+    }
+
+    return result;
   });
