@@ -86,6 +86,7 @@ const SERVICE_TYPES = [
   "Diagnostic",
   "Insurance / Crash",
   "Post Bike",
+  "Other",
 ];
 
 
