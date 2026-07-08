@@ -306,6 +306,9 @@ function CalendarPage() {
         drop_off_time: quickSlot.time,
         estimated_hours: Number(qEstHours) || 1,
         rego: qBikeRego.trim().toUpperCase() || null,
+        loan_bike: qLoanBike,
+        loan_bike_id: qLoanBike ? qLoanBikeId : null,
+        loan_bike_expected_return: qLoanBike && qLoanBikeReturn ? qLoanBikeReturn : null,
         status: "booked",
       });
       if (bkErr) throw bkErr;
