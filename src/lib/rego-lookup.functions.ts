@@ -67,7 +67,7 @@ export const lookupRego = createServerFn({ method: "POST" })
     const plate = data.rego.replace(/\s+/g, "").toUpperCase();
 
 
-    const url = `https://api.carjam.co.nz/api/car/?plate=${encodeURIComponent(plate)}&key=${encodeURIComponent(key)}&format=json&info=basic,identification,other,inspections`;
+    const url = `https://api.carjam.co.nz/api/car/?plate=${encodeURIComponent(plate)}&key=${encodeURIComponent(key as string)}&format=json&info=basic,identification,other,inspections`;
 
     const res = await fetch(url, { method: "GET" });
     if (!res.ok) {
