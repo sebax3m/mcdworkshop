@@ -28,6 +28,7 @@ import {
   Bike as BikeIcon,
   Phone,
   Trash2,
+  ShieldCheck,
 } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
@@ -1555,7 +1556,8 @@ function CalendarPage() {
               <div>
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input type="checkbox" className="h-4 w-4 accent-primary" checked={qWofNeeded} onChange={(e) => setQWofNeeded(e.target.checked)} />
-                  <span className="text-sm font-semibold">📋 Needs WOF</span>
+                  <ShieldCheck size={16} className="text-primary" />
+                  <span className="text-sm font-semibold">Needs WOF</span>
                 </label>
                 {qWofNeeded && (
                   <div className="mt-2 rounded-xl border border-primary/40 bg-primary/5 p-3">
