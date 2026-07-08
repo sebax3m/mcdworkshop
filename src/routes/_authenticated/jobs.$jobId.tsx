@@ -253,7 +253,7 @@ function JobDetail() {
               <Printer className="h-4 w-4" />
               <span className="hidden sm:inline">Print</span>
             </Button>
-            <StatusDropdown current={j.status} onChange={setStatus} disabled={!canEdit} />
+            <StatusDropdown current={j.status} onChange={setStatus} />
           </div>
         </div>
         <div className="min-w-0">
