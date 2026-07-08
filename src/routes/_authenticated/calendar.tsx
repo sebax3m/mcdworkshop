@@ -223,6 +223,22 @@ function CalendarPage() {
       .slice(0, 6);
   }, [qSearch, qCustomerId, quickCustomers.data]);
 
+  const regoMatchesQ = useQuery({
+    queryKey: ["quick-rego-search", qSearch.trim().toUpperCase()],
+    enabled: !!quickSlot && !qCustomerId && qSearch.trim().length >= 2,
+    queryFn: async () => {
+      const term = qSearch.trim().toUpperCase();
+      const { data } = await (supabase as any)
+        .from("motorcycles")
+        .select("id, year, make, model, rego, customer_id, customers(id, first_name, last_name, phone, email)")
+        .ilike("rego", `%${term}%`)
+        .not("customer_id", "is", null)
+        .limit(6);
+      return (data ?? []) as any[];
+    },
+  });
+  const regoMatches = (regoMatchesQ.data ?? []) as any[];
+
   function pickCustomer(c: any) {
     setQCustomerId(c.id);
     setQFirst(c.first_name ?? "");
@@ -231,6 +247,22 @@ function CalendarPage() {
     setQSearch(`${c.first_name ?? ""} ${c.last_name ?? ""}`.trim());
     setQBikeId(null);
     setQBikeMake(""); setQBikeModel(""); setQBikeYear(""); setQBikeRego("");
+  }
+
+  function pickRegoMatch(m: any) {
+    const c = m.customers;
+    if (c) {
+      setQCustomerId(c.id);
+      setQFirst(c.first_name ?? "");
+      setQLast(c.last_name ?? "");
+      setQPhone(c.phone ?? "");
+      setQSearch(`${c.first_name ?? ""} ${c.last_name ?? ""}`.trim() || m.rego);
+    }
+    setQBikeId(m.id);
+    setQBikeMake(m.make ?? "");
+    setQBikeModel(m.model ?? "");
+    setQBikeYear(m.year ? String(m.year) : "");
+    setQBikeRego(m.rego ?? "");
   }
 
   function pickBike(b: any) {
