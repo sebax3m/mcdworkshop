@@ -17,7 +17,7 @@ export type RegoLookupResult = {
   fuel?: string;
   wof_expiry?: string; // YYYY-MM-DD
   rego_expiry?: string; // YYYY-MM-DD
-  raw?: unknown;
+  
 };
 
 /** Try to coerce a Carjam date string (many formats) into YYYY-MM-DD. */
