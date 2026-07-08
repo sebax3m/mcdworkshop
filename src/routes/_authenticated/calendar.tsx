@@ -129,7 +129,7 @@ function CalendarPage() {
     });
     ro.observe(el);
     return () => ro.disconnect();
-  }, []);
+  }, [viewMode]);
 
   const quickCustomers = useQuery({
     queryKey: ["quick-customers"],
