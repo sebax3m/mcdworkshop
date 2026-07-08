@@ -148,7 +148,7 @@ function CalendarPage() {
 
   const quickCustomers = useQuery({
     queryKey: ["quick-customers"],
-    enabled: !!quickSlot,
+    enabled: !!quickSlot || !!selectedBooking,
     queryFn: async () => {
       const { data } = await supabase
         .from("customers")
@@ -157,6 +157,19 @@ function CalendarPage() {
       return data ?? [];
     },
   });
+
+  const editBikes = useQuery({
+    queryKey: ["edit-bikes", selectedBooking?.customer_id],
+    enabled: !!selectedBooking?.customer_id,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("motorcycles")
+        .select("id, year, make, model, rego")
+        .eq("customer_id", selectedBooking!.customer_id);
+      return data ?? [];
+    },
+  });
+
 
   const quickBikes = useQuery({
     queryKey: ["quick-bikes", qCustomerId],
