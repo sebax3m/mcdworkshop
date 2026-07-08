@@ -551,7 +551,7 @@ function CalendarPage() {
                         today ? "text-primary" : isHovered ? "text-foreground" : "text-muted-foreground"
                       }`}
                     >
-                      {format(day, "EEE")}
+                      {format(day, "EEEE")}
                     </div>
                     <div
                       className={`mt-0.5 mx-auto grid place-items-center font-display font-bold text-lg leading-none ${
