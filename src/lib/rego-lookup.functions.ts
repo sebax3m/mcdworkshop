@@ -71,14 +71,27 @@ export const lookupRego = createServerFn({ method: "POST" })
     }
 
     const contentType = res.headers.get("content-type") || "";
+    const bodyText = await res.text();
     let json: any;
-    if (contentType.includes("application/json")) {
-      json = await res.json();
+    if (contentType.includes("application/json") || bodyText.trimStart().startsWith("{")) {
+      try { json = JSON.parse(bodyText); }
+      catch { throw new Error("Carjam JSON parse failed"); }
     } else {
-      // Some plans return XML — bail with a clear error rather than adding an XML parser.
-      const txt = await res.text();
-      try { json = JSON.parse(txt); } catch {
-        throw new Error("Carjam returned a non-JSON response — enable JSON format on your API plan");
+      // Default Carjam response is XML — parse it.
+      const { XMLParser } = await import("fast-xml-parser");
+      const parser = new XMLParser({
+        ignoreAttributes: false,
+        attributeNamePrefix: "",
+        parseAttributeValue: true,
+        parseTagValue: true,
+        trimValues: true,
+      });
+      try {
+        const parsed = parser.parse(bodyText);
+        // Flatten: Carjam wraps everything under <vehicle> or <response><vehicle>
+        json = parsed?.response ?? parsed?.vehicle ?? parsed;
+      } catch (e: any) {
+        throw new Error(`Carjam XML parse failed: ${e?.message ?? "unknown"}`);
       }
     }
 
