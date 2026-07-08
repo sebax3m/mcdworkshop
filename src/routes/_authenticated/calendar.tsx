@@ -81,7 +81,7 @@ const SERVICE_TYPES = [
   "Basic Service",
   "Standard Service",
   "Full Service",
-  "Dyno Tune",
+  "Tuning",
   "Diagnostic",
   "Insurance / Crash",
   "Post Bike",
