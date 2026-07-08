@@ -219,7 +219,12 @@ export function AppShell() {
                       className="h-5 w-5 shrink-0"
                       style={{ color: active ? undefined : t.color, filter: `drop-shadow(0 0 6px ${t.color}55)` }}
                     />
-                    {t.label}
+                    <span
+                      className="origin-left"
+                      style={{ transform: scale > 1 ? `scale(${1 / scale})` : undefined, transition: "transform 320ms cubic-bezier(0.22, 1, 0.36, 1)" }}
+                    >
+                      {t.label}
+                    </span>
                   </Link>
                 )}
               </DockItem>
