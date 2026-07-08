@@ -741,7 +741,10 @@ function CalendarPage() {
                           animate={{ opacity: 1, scale: 1 }}
                           draggable
                           onDragStart={(e) => {
+                            const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+                            const grabY = e.clientY - rect.top;
                             (e as any).dataTransfer?.setData("text/booking-id", b.id);
+                            (e as any).dataTransfer?.setData("text/grab-offset", String(grabY));
                             setDraggingId(b.id);
                           }}
                           onDragEnd={() => setDraggingId(null)}
