@@ -148,7 +148,7 @@ function CalendarPage() {
 
   const quickCustomers = useQuery({
     queryKey: ["quick-customers"],
-    enabled: !!quickSlot,
+    enabled: !!quickSlot || !!selectedBooking,
     queryFn: async () => {
       const { data } = await supabase
         .from("customers")
@@ -157,6 +157,19 @@ function CalendarPage() {
       return data ?? [];
     },
   });
+
+  const editBikes = useQuery({
+    queryKey: ["edit-bikes", selectedBooking?.customer_id],
+    enabled: !!selectedBooking?.customer_id,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("motorcycles")
+        .select("id, year, make, model, rego")
+        .eq("customer_id", selectedBooking!.customer_id);
+      return data ?? [];
+    },
+  });
+
 
   const quickBikes = useQuery({
     queryKey: ["quick-bikes", qCustomerId],
@@ -1015,26 +1028,88 @@ function CalendarPage() {
                     <div className="grid grid-cols-1 gap-3 pt-1 border-t border-border/60">
                       <div>
                         <div className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground mb-1 flex items-center gap-1.5">
-                          <BikeIcon className="h-3 w-3" /> Motorcycle
+                          <UserIcon className="h-3 w-3" /> Customer
                         </div>
-                        <div className="text-sm font-semibold">{bike}</div>
-                        {b.motorcycles?.rego && (
-                          <div className="text-xs text-muted-foreground">Rego: {b.motorcycles.rego}</div>
+                        <select
+                          value={b.customer_id || ""}
+                          onChange={async (e) => {
+                            const newCustomerId = e.target.value || null;
+                            if (!newCustomerId || newCustomerId === b.customer_id) return;
+                            const { error } = await supabase
+                              .from("bookings")
+                              .update({ customer_id: newCustomerId, motorcycle_id: null })
+                              .eq("id", b.id);
+                            if (error) return toast.error(error.message);
+                            const pick = (quickCustomers.data ?? []).find((x: any) => x.id === newCustomerId);
+                            setSelectedBooking({
+                              ...b,
+                              customer_id: newCustomerId,
+                              motorcycle_id: null,
+                              customers: pick
+                                ? { first_name: pick.first_name, last_name: pick.last_name, phone: pick.phone, email: pick.email }
+                                : null,
+                              motorcycles: null,
+                            });
+                            qc.invalidateQueries({ queryKey: ["calendar-bookings"] });
+                            toast.success("Customer updated");
+                          }}
+                          className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-sm focus:border-primary/60 outline-none"
+                        >
+                          <option value="">— Select customer —</option>
+                          {(quickCustomers.data ?? []).map((c: any) => (
+                            <option key={c.id} value={c.id}>
+                              {`${c.first_name ?? ""} ${c.last_name ?? ""}`.trim() || c.email || c.phone || "Unnamed"}
+                            </option>
+                          ))}
+                        </select>
+                        {b.customers?.phone && (
+                          <a
+                            href={`tel:${b.customers.phone}`}
+                            className="text-xs text-primary hover:underline inline-flex items-center gap-1 mt-1"
+                          >
+                            <Phone className="h-3 w-3" /> {b.customers.phone}
+                          </a>
                         )}
                       </div>
 
                       <div>
                         <div className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground mb-1 flex items-center gap-1.5">
-                          <UserIcon className="h-3 w-3" /> Customer
+                          <BikeIcon className="h-3 w-3" /> Motorcycle
                         </div>
-                        <div className="text-sm font-semibold">{customer}</div>
-                        {b.customers?.phone && (
-                          <a
-                            href={`tel:${b.customers.phone}`}
-                            className="text-xs text-primary hover:underline inline-flex items-center gap-1"
-                          >
-                            <Phone className="h-3 w-3" /> {b.customers.phone}
-                          </a>
+                        <select
+                          value={b.motorcycle_id || ""}
+                          disabled={!b.customer_id}
+                          onChange={async (e) => {
+                            const newBikeId = e.target.value || null;
+                            if (newBikeId === b.motorcycle_id) return;
+                            const { error } = await supabase
+                              .from("bookings")
+                              .update({ motorcycle_id: newBikeId })
+                              .eq("id", b.id);
+                            if (error) return toast.error(error.message);
+                            const pick = (editBikes.data ?? []).find((x: any) => x.id === newBikeId);
+                            setSelectedBooking({
+                              ...b,
+                              motorcycle_id: newBikeId,
+                              motorcycles: pick
+                                ? { year: pick.year, make: pick.make, model: pick.model, rego: pick.rego }
+                                : null,
+                            });
+                            qc.invalidateQueries({ queryKey: ["calendar-bookings"] });
+                            toast.success("Motorcycle updated");
+                          }}
+                          className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-sm focus:border-primary/60 outline-none disabled:opacity-50"
+                        >
+                          <option value="">{b.customer_id ? "— Select motorcycle —" : "Pick a customer first"}</option>
+                          {(editBikes.data ?? []).map((m: any) => (
+                            <option key={m.id} value={m.id}>
+                              {`${m.year ?? ""} ${m.make ?? ""} ${m.model ?? ""}`.trim()}
+                              {m.rego ? ` · ${m.rego}` : ""}
+                            </option>
+                          ))}
+                        </select>
+                        {b.motorcycles?.rego && (
+                          <div className="text-xs text-muted-foreground mt-1">Rego: {b.motorcycles.rego}</div>
                         )}
                       </div>
 
@@ -1052,24 +1127,40 @@ function CalendarPage() {
                         </div>
                       )}
 
-                      {b.notes && (
-                        <div>
-                          <div className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground mb-1">Notes</div>
-                          <div className="text-sm">{b.notes}</div>
-                        </div>
-                      )}
+                      <div>
+                        <div className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground mb-1">Notes</div>
+                        <textarea
+                          key={`notes-${b.id}`}
+                          defaultValue={b.notes ?? ""}
+                          rows={3}
+                          placeholder="Add notes…"
+                          onBlur={async (e) => {
+                            const v = e.target.value;
+                            if ((v ?? "") === (b.notes ?? "")) return;
+                            const { error } = await supabase
+                              .from("bookings")
+                              .update({ notes: v || null })
+                              .eq("id", b.id);
+                            if (error) return toast.error(error.message);
+                            setSelectedBooking({ ...b, notes: v || null });
+                            qc.invalidateQueries({ queryKey: ["calendar-bookings"] });
+                            toast.success("Notes updated");
+                          }}
+                          className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-sm focus:border-primary/60 outline-none resize-y"
+                        />
+                      </div>
                     </div>
 
-                    <div className="flex flex-col sm:flex-row gap-2 pt-2 border-t border-border/60">
+                    <div className="flex flex-row flex-wrap gap-2 pt-2 border-t border-border/60">
                       <button
                         onClick={() => {
                           const id = b.id;
                           setSelectedBooking(null);
                           nav({ to: "/bookings/$bookingId", params: { bookingId: id } });
                         }}
-                        className="flex-1 inline-flex items-center justify-center gap-2 rounded-lg border border-border px-3 py-2 text-sm font-semibold hover:border-primary/50 hover:bg-primary/5 transition-colors"
+                        className="flex-1 min-w-0 inline-flex items-center justify-center gap-1.5 rounded-lg border border-border px-2 py-2 text-xs font-semibold hover:border-primary/50 hover:bg-primary/5 transition-colors whitespace-nowrap"
                       >
-                        <FileText className="h-4 w-4" /> Booking
+                        <FileText className="h-3.5 w-3.5" /> Booking
                       </button>
                       {b.job_id ? (
                         <button
@@ -1078,9 +1169,9 @@ function CalendarPage() {
                             setSelectedBooking(null);
                             nav({ to: "/jobs/$jobId", params: { jobId: jid } });
                           }}
-                          className="flex-1 inline-flex items-center justify-center gap-2 rounded-lg red-surface px-3 py-2 text-sm font-semibold hover:scale-[1.02] transition-transform"
+                          className="flex-1 min-w-0 inline-flex items-center justify-center gap-1.5 rounded-lg red-surface px-2 py-2 text-xs font-semibold hover:scale-[1.02] transition-transform whitespace-nowrap"
                         >
-                          <Wrench className="h-4 w-4" /> Open Job Card
+                          <Wrench className="h-3.5 w-3.5" /> Open Job
                         </button>
                       ) : (
                         <button
@@ -1089,9 +1180,9 @@ function CalendarPage() {
                             setSelectedBooking(null);
                             nav({ to: "/bookings/$bookingId", params: { bookingId: id } });
                           }}
-                          className="flex-1 inline-flex items-center justify-center gap-2 rounded-lg red-surface px-3 py-2 text-sm font-semibold hover:scale-[1.02] transition-transform"
+                          className="flex-1 min-w-0 inline-flex items-center justify-center gap-1.5 rounded-lg red-surface px-2 py-2 text-xs font-semibold hover:scale-[1.02] transition-transform whitespace-nowrap"
                         >
-                          <Wrench className="h-4 w-4" /> Create Job Card
+                          <Wrench className="h-3.5 w-3.5" /> Create Job
                         </button>
                       )}
                       <button
@@ -1099,11 +1190,13 @@ function CalendarPage() {
                           setDeleteBooking(b);
                           setSelectedBooking(null);
                         }}
-                        className="inline-flex items-center justify-center gap-2 rounded-lg border border-status-parts/50 text-status-parts px-3 py-2 text-sm font-semibold hover:bg-status-parts/10 transition-colors"
+                        className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-status-parts/50 text-status-parts px-2 py-2 text-xs font-semibold hover:bg-status-parts/10 transition-colors whitespace-nowrap"
+                        aria-label="Delete booking"
                       >
-                        <Trash2 className="h-4 w-4" /> Delete
+                        <Trash2 className="h-3.5 w-3.5" />
                       </button>
                     </div>
+
 
                   </>
                 );
