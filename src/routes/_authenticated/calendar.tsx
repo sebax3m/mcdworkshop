@@ -111,6 +111,8 @@ function CalendarPage() {
   const [qEstHours, setQEstHours] = useState<string>("1");
   const [creatingQuick, setCreatingQuick] = useState(false);
   const [hoverSlot, setHoverSlot] = useState<{ dayKey: string; slotIdx: number } | null>(null);
+  const bodyRef = useRef<HTMLDivElement>(null);
+  const [gridH, setGridH] = useState(560);
   useEffect(() => {
     const t = setInterval(() => setNow(new Date()), 60_000);
     return () => clearInterval(t);
