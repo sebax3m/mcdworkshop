@@ -72,9 +72,14 @@ function BikeProfile() {
       ecu_info: b.ecu_info ?? "",
       modifications: b.modifications ?? "",
       notes: b.notes ?? "",
+      customer_first_name: b.customers?.first_name ?? "",
+      customer_last_name: b.customers?.last_name ?? "",
+      customer_phone: b.customers?.phone ?? "",
+      customer_email: b.customers?.email ?? "",
     });
     setPhotos(Array.isArray(b.photos) ? b.photos : []);
   }, [bike.data]);
+
 
   const jobs = useQuery({
     queryKey: ["bike-jobs", bikeId],
