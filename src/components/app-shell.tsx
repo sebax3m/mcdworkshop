@@ -152,6 +152,7 @@ export function AppShell() {
                 {roleLabel}
               </span>
             )}
+            <NotificationsBell />
             <div
               className="grid h-9 w-9 place-items-center rounded-full border border-border bg-muted text-xs font-semibold"
               title={fullName ? `${fullName} · ${roleLabel}` : roleLabel}
