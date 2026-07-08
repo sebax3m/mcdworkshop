@@ -28,6 +28,7 @@ import {
   Bike as BikeIcon,
   Phone,
   Trash2,
+  ShieldCheck,
 } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
