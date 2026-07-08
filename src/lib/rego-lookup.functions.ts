@@ -61,13 +61,9 @@ export const lookupRego = createServerFn({ method: "POST" })
     if (key.length !== 40) {
       throw new Error(`CARJAM_API_KEY looks malformed (expected 40 hex characters, got ${key.length}). Please check the secret in Backend → Secrets.`);
     }
-    // DEBUG: force throw to verify code reload
-    throw new Error("DEBUG server function reloaded OK");
-
     const plate = data.rego.replace(/\s+/g, "").toUpperCase();
 
-
-    const url = `https://api.carjam.co.nz/api/car/?plate=${encodeURIComponent(plate)}&key=${encodeURIComponent(key as string)}&format=json&info=basic,identification,other,inspections`;
+    const url = `https://api.carjam.co.nz/api/car/?plate=${encodeURIComponent(plate)}&key=${encodeURIComponent(key)}&format=json&info=basic,identification,other,inspections`;
 
     const res = await fetch(url, { method: "GET" });
     if (!res.ok) {
