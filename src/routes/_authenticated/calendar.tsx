@@ -837,12 +837,12 @@ function CalendarPage() {
                             )}
                           </div>
                           {height > 32 && (
-                            <div className="text-[10px] font-semibold text-foreground truncate">
+                            <div className="text-[10px] font-semibold text-current/90 truncate">
                               {bike}
                             </div>
                           )}
                           {height > 48 && (
-                            <div className="text-[9px] text-muted-foreground truncate">
+                            <div className="text-[9px] text-current/80 truncate">
                               {customer}
                             </div>
                           )}
