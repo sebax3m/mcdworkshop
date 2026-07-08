@@ -916,17 +916,44 @@ function CalendarPage() {
                     </div>
 
                     <div>
-                      <div className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground">Scheduled</div>
-                      <div className="font-display text-lg font-bold">
-                        {format(new Date(b.scheduled_date + "T00:00:00"), "EEE d MMM yyyy")}
-                        {b.drop_off_time && (
-                          <span className="ml-2 text-sm text-muted-foreground tabular-nums">
-                            <Clock className="inline h-3.5 w-3.5 mr-1" />
-                            {b.drop_off_time.slice(0, 5)}
-                          </span>
-                        )}
+                      <div className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground mb-1.5">Scheduled</div>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <input
+                          type="date"
+                          defaultValue={b.scheduled_date}
+                          onBlur={async (e) => {
+                            const v = e.target.value;
+                            if (!v || v === b.scheduled_date) return;
+                            const clash = findOverlap(v, timeToMin(b.drop_off_time), Number(b.estimated_hours) || 1, b.id);
+                            if (clash) return toast.error(`Slot taken (${clash.service_type} at ${String(clash.drop_off_time).slice(0,5)})`);
+                            const { error } = await supabase.from("bookings").update({ scheduled_date: v }).eq("id", b.id);
+                            if (error) return toast.error(error.message);
+                            setSelectedBooking({ ...b, scheduled_date: v });
+                            qc.invalidateQueries({ queryKey: ["calendar-bookings"] });
+                            toast.success("Date updated");
+                          }}
+                          className="rounded-md border border-border bg-background px-2 py-1 text-sm tabular-nums focus:border-primary/60 outline-none"
+                        />
+                        <input
+                          type="time"
+                          defaultValue={b.drop_off_time ? String(b.drop_off_time).slice(0,5) : ""}
+                          onBlur={async (e) => {
+                            const v = e.target.value;
+                            if (!v || v === (b.drop_off_time ? String(b.drop_off_time).slice(0,5) : "")) return;
+                            const [hh, mm] = v.split(":");
+                            const totalMin = Number(hh) * 60 + Number(mm);
+                            const clash = findOverlap(b.scheduled_date, totalMin, Number(b.estimated_hours) || 1, b.id);
+                            if (clash) return toast.error(`Slot taken (${clash.service_type} at ${String(clash.drop_off_time).slice(0,5)})`);
+                            const { error } = await supabase.from("bookings").update({ drop_off_time: v + ":00" }).eq("id", b.id);
+                            if (error) return toast.error(error.message);
+                            setSelectedBooking({ ...b, drop_off_time: v + ":00" });
+                            qc.invalidateQueries({ queryKey: ["calendar-bookings"] });
+                            toast.success("Time updated");
+                          }}
+                          className="rounded-md border border-border bg-background px-2 py-1 text-sm tabular-nums focus:border-primary/60 outline-none"
+                        />
                       </div>
-                      <div className="text-xs text-muted-foreground mt-1 flex items-center gap-2">
+                      <div className="text-xs text-muted-foreground mt-2 flex items-center gap-2">
                         <span>Estimated:</span>
                         <input
                           type="number"
@@ -951,45 +978,37 @@ function CalendarPage() {
                         <span>h</span>
                       </div>
 
-                      <div className="mt-2 flex items-center gap-2 flex-wrap">
-                        <span className="text-xs text-muted-foreground">Color:</span>
-                        {[
-                          { name: "Default", value: null, sw: "bg-muted border-border" },
-                          { name: "Red", value: "#ef4444", sw: "" },
-                          { name: "Orange", value: "#f97316", sw: "" },
-                          { name: "Amber", value: "#f59e0b", sw: "" },
-                          { name: "Green", value: "#22c55e", sw: "" },
-                          { name: "Teal", value: "#14b8a6", sw: "" },
-                          { name: "Blue", value: "#3b82f6", sw: "" },
-                          { name: "Indigo", value: "#6366f1", sw: "" },
-                          { name: "Purple", value: "#a855f7", sw: "" },
-                          { name: "Pink", value: "#ec4899", sw: "" },
-                        ].map((opt) => {
-                          const active = (b.color ?? null) === opt.value;
-                          return (
-                            <button
-                              key={opt.name}
-                              type="button"
-                              title={opt.name}
-                              onClick={async () => {
-                                const { error } = await supabase
-                                  .from("bookings")
-                                  .update({ color: opt.value })
-                                  .eq("id", b.id);
-                                if (error) return toast.error(error.message);
-                                setSelectedBooking({ ...b, color: opt.value });
-                                qc.invalidateQueries({ queryKey: ["calendar-bookings"] });
-                                toast.success(opt.value ? `Color set to ${opt.name}` : "Color reset");
-                              }}
-                              className={`h-6 w-6 rounded-full border-2 transition-all ${
-                                active ? "ring-2 ring-offset-2 ring-offset-background ring-primary scale-110" : "hover:scale-110"
-                              } ${opt.sw}`}
-                              style={opt.value ? { backgroundColor: opt.value, borderColor: opt.value } : undefined}
-                            />
-                          );
-                        })}
+                      <div className="mt-3">
+                        <div className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground mb-1.5">Service type</div>
+                        <div className="flex flex-wrap gap-1.5">
+                          {SERVICE_TYPES.map((s) => {
+                            const sc = serviceColor(s);
+                            const active = (b.service_type ?? "").toLowerCase() === s.toLowerCase();
+                            return (
+                              <button
+                                key={s}
+                                type="button"
+                                onClick={async () => {
+                                  const { error } = await supabase
+                                    .from("bookings")
+                                    .update({ service_type: s, color: sc.hex })
+                                    .eq("id", b.id);
+                                  if (error) return toast.error(error.message);
+                                  setSelectedBooking({ ...b, service_type: s, color: sc.hex });
+                                  qc.invalidateQueries({ queryKey: ["calendar-bookings"] });
+                                  toast.success(`Set to ${s}`);
+                                }}
+                                className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-wider ring-1 transition-all ${sc.bg} ${sc.ring} ${sc.label} ${active ? "ring-2 scale-[1.03]" : "opacity-70 hover:opacity-100"}`}
+                              >
+                                <span className="h-1.5 w-1.5 rounded-full bg-current" />
+                                {s}
+                              </button>
+                            );
+                          })}
+                        </div>
                       </div>
                     </div>
+
 
                     <div className="grid grid-cols-1 gap-3 pt-1 border-t border-border/60">
                       <div>
