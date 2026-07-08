@@ -53,15 +53,15 @@ const DAILY_CAPACITY_HOURS = 16;
 
 type ViewMode = "month" | "week";
 
-const SERVICE_COLORS: Record<string, { bg: string; ring: string; label: string; hex: string }> = {
-  basic: { bg: "bg-status-new/20", ring: "ring-status-new/40", label: "text-status-new", hex: "#22c55e" },
-  standard: { bg: "bg-primary/20", ring: "ring-primary/40", label: "text-primary", hex: "#3b82f6" },
-  full: { bg: "bg-status-assigned/20", ring: "ring-status-assigned/40", label: "text-status-assigned", hex: "#f59e0b" },
-  dyno: { bg: "bg-status-dyno/20", ring: "ring-status-dyno/40", label: "text-status-dyno", hex: "#a855f7" },
-  diagnostic: { bg: "bg-status-progress/20", ring: "ring-status-progress/40", label: "text-status-progress", hex: "#14b8a6" },
-  insurance: { bg: "bg-status-insurance/20", ring: "ring-status-insurance/40", label: "text-status-insurance", hex: "#ef4444" },
-  postbike: { bg: "bg-cyan-400/20", ring: "ring-cyan-400/40", label: "text-cyan-400", hex: "#06b6d4" },
-  default: { bg: "bg-muted", ring: "ring-border", label: "text-foreground", hex: "#3b82f6" },
+const SERVICE_COLORS: Record<string, { bg: string; ring: string; label: string; text: string; hex: string }> = {
+  basic: { bg: "bg-status-new/85", ring: "ring-status-new", label: "text-status-new", text: "text-white", hex: "#22c55e" },
+  standard: { bg: "bg-primary/85", ring: "ring-primary", label: "text-primary", text: "text-white", hex: "#3b82f6" },
+  full: { bg: "bg-status-assigned/85", ring: "ring-status-assigned", label: "text-status-assigned", text: "text-white", hex: "#f59e0b" },
+  dyno: { bg: "bg-status-dyno/85", ring: "ring-status-dyno", label: "text-status-dyno", text: "text-black", hex: "#a855f7" },
+  diagnostic: { bg: "bg-status-progress/85", ring: "ring-status-progress", label: "text-status-progress", text: "text-black", hex: "#14b8a6" },
+  insurance: { bg: "bg-status-insurance/85", ring: "ring-status-insurance", label: "text-status-insurance", text: "text-white", hex: "#ef4444" },
+  postbike: { bg: "bg-cyan-400/85", ring: "ring-cyan-400", label: "text-cyan-400", text: "text-black", hex: "#06b6d4" },
+  default: { bg: "bg-muted", ring: "ring-border", label: "text-foreground", text: "text-white", hex: "#3b82f6" },
 };
 
 function serviceColor(t: string | null | undefined) {
