@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { BikeMakeModelYear } from "@/components/BikeMakeModelYear";
 import { uploadPhoto } from "@/lib/photos";
 import { generateBikeImage } from "@/lib/bike-image.functions";
+import { lookupRego } from "@/lib/rego-lookup.functions";
 
 export const Route = createFileRoute("/_authenticated/motorcycles/$bikeId")({
   component: BikeProfile,
@@ -45,6 +46,30 @@ function BikeProfile() {
   const [saving, setSaving] = useState(false);
   const [aiPreview, setAiPreview] = useState<{ dataUrl: string; file: File; label: string } | null>(null);
   const [savingAi, setSavingAi] = useState(false);
+  const [lookingUp, setLookingUp] = useState(false);
+
+  async function fetchFromRego() {
+    const plate = (form?.rego || "").trim();
+    if (!plate) return toast.error("Enter a rego first");
+    setLookingUp(true);
+    try {
+      const r = await lookupRego({ data: { rego: plate } });
+      setForm((f: any) => ({
+        ...f,
+        make: r.make || f.make,
+        model: r.model || f.model,
+        year: r.year ?? f.year,
+        vin: r.vin || f.vin,
+        wof_expiry: r.wof_expiry || f.wof_expiry,
+        rego_expiry: r.rego_expiry || f.rego_expiry,
+      }));
+      toast.success(`Found ${[r.year, r.make, r.model].filter(Boolean).join(" ") || plate}`);
+    } catch (e: any) {
+      toast.error(e?.message || "Lookup failed");
+    } finally {
+      setLookingUp(false);
+    }
+  }
 
   const bike = useQuery({
     queryKey: ["bike", bikeId],
@@ -287,6 +312,9 @@ function BikeProfile() {
                   onChange={(v) => setForm({ ...form, make: v.make, model: v.model, year: v.year })}
                 />
                 <Input placeholder="Rego" value={form.rego} onChange={(e) => setForm({ ...form, rego: e.target.value.toUpperCase() })} />
+                <Button type="button" size="sm" variant="outline" onClick={fetchFromRego} disabled={lookingUp || !form.rego?.trim()} className="gap-1.5">
+                  <Sparkles className="h-3.5 w-3.5" /> {lookingUp ? "Looking up…" : "Fetch from rego (Carjam)"}
+                </Button>
               </div>
             ) : (
               <>
