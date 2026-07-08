@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Trash2, Save } from "lucide-react";
+import { ArrowLeft, Trash2, Save, Bike, Plus, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 import {
   AlertDialog,
