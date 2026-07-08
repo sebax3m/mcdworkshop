@@ -154,6 +154,8 @@ function BikeProfile() {
         rego: form.rego || null,
         mileage: form.mileage ? parseInt(String(form.mileage)) : null,
         vin: form.vin || null,
+        rego_expiry: form.rego_expiry || null,
+        wof_expiry: form.wof_expiry || null,
         ecu_info: form.ecu_info || null,
         modifications: form.modifications || null,
         notes: form.notes || null,
