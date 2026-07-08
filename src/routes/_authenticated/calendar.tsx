@@ -61,6 +61,7 @@ const SERVICE_COLORS: Record<string, { bg: string; ring: string; label: string; 
   diagnostic: { bg: "bg-status-progress/70", ring: "ring-status-progress", label: "text-status-progress", text: "text-black", hex: "#14b8a6" },
   insurance: { bg: "bg-status-insurance/70", ring: "ring-status-insurance", label: "text-status-insurance", text: "text-white", hex: "#ef4444" },
   postbike: { bg: "bg-cyan-400/70", ring: "ring-cyan-400", label: "text-cyan-400", text: "text-black", hex: "#06b6d4" },
+  other: { bg: "bg-muted-foreground/70", ring: "ring-muted-foreground", label: "text-muted-foreground", text: "text-white", hex: "#64748b" },
   default: { bg: "bg-muted", ring: "ring-border", label: "text-foreground", text: "text-white", hex: "#3b82f6" },
 };
 
@@ -74,6 +75,7 @@ function serviceColor(t: string | null | undefined) {
   if (k.includes("standard")) return SERVICE_COLORS.standard;
   if (k.includes("basic")) return SERVICE_COLORS.basic;
   if (k.includes("diag")) return SERVICE_COLORS.diagnostic;
+  if (k === "other") return SERVICE_COLORS.other;
   return SERVICE_COLORS.default;
 }
 
@@ -85,6 +87,7 @@ const SERVICE_TYPES = [
   "Diagnostic",
   "Insurance / Crash",
   "Post Bike",
+  "Other",
 ];
 
 
@@ -123,6 +126,7 @@ function CalendarPage() {
   const [qBikeYear, setQBikeYear] = useState("");
   const [qBikeRego, setQBikeRego] = useState("");
   const [qService, setQService] = useState<string>("Standard Service");
+  const [qServiceOther, setQServiceOther] = useState<string>("");
   const [qEstHours, setQEstHours] = useState<string>("1");
   const [creatingQuick, setCreatingQuick] = useState(false);
   const [hoverSlot, setHoverSlot] = useState<{ dayKey: string; slotIdx: number } | null>(null);
@@ -227,7 +231,7 @@ function CalendarPage() {
     setQCustomerId(null); setQBikeId(null);
     setQFirst(""); setQLast(""); setQPhone("");
     setQBikeMake(""); setQBikeModel(""); setQBikeYear(""); setQBikeRego("");
-    setQService("Standard Service"); setQEstHours("1");
+    setQService("Standard Service"); setQServiceOther(""); setQEstHours("1");
   }
 
   async function createQuickBooking() {
@@ -276,6 +280,7 @@ function CalendarPage() {
         customer_id: customerId!,
         motorcycle_id: bikeId!,
         service_type: qService,
+        service_type_other: qService === "Other" ? qServiceOther.trim() || null : null,
         scheduled_date: format(quickSlot.date, "yyyy-MM-dd"),
         drop_off_time: quickSlot.time,
         estimated_hours: Number(qEstHours) || 1,
@@ -320,7 +325,7 @@ function CalendarPage() {
       const { data, error } = await supabase
         .from("bookings")
         .select(
-          "id, service_type, scheduled_date, drop_off_time, estimated_hours, status, color, complaints, notes, assigned_tech_id, customer_id, motorcycle_id, confirmed, loan_bike, loan_bike_id, loan_bike_expected_return, job_id, customers(first_name,last_name,phone,email), motorcycles(year,make,model,rego), loan_bikes(id,name)",
+          "id, service_type, service_type_other, scheduled_date, drop_off_time, estimated_hours, status, color, complaints, notes, assigned_tech_id, customer_id, motorcycle_id, confirmed, loan_bike, loan_bike_id, loan_bike_expected_return, job_id, customers(first_name,last_name,phone,email), motorcycles(year,make,model,rego), loan_bikes(id,name)",
         )
         .gte("scheduled_date", format(visibleRange.start, "yyyy-MM-dd"))
         .lte("scheduled_date", format(visibleRange.end, "yyyy-MM-dd"))
@@ -844,6 +849,7 @@ function CalendarPage() {
                                 ? b.drop_off_time.slice(0, 5)
                                 : ""}{" "}
                               · {b.service_type}
+                              {b.service_type === "Other" && b.service_type_other ? ` — ${b.service_type_other}` : ""}
                             </span>
                             {b.confirmed && (
                               <span className="h-1.5 w-1.5 rounded-full bg-green-500 shrink-0" />
@@ -1021,6 +1027,29 @@ function CalendarPage() {
                             );
                           })}
                         </div>
+                        {(b.service_type ?? "").toLowerCase() === "other" && (
+                          <div className="mt-2">
+                            <label className="text-[10px] uppercase tracking-wider text-muted-foreground">Other service details</label>
+                            <textarea
+                              key={`other-${b.id}`}
+                              defaultValue={b.service_type_other ?? ""}
+                              placeholder="Describe the service..."
+                              onBlur={async (e) => {
+                                const v = e.target.value.trim();
+                                if (v === (b.service_type_other ?? "")) return;
+                                const { error } = await supabase
+                                  .from("bookings")
+                                  .update({ service_type_other: v || null })
+                                  .eq("id", b.id);
+                                if (error) return toast.error(error.message);
+                                setSelectedBooking({ ...b, service_type_other: v || null });
+                                qc.invalidateQueries({ queryKey: ["calendar-bookings"] });
+                                toast.success("Service details updated");
+                              }}
+                              className="mt-1 w-full min-h-[64px] rounded-lg border border-border bg-background/60 px-3 py-2 text-sm focus:border-primary/60 focus:outline-none resize-y"
+                            />
+                          </div>
+                        )}
                       </div>
                     </div>
 
@@ -1465,15 +1494,7 @@ function CalendarPage() {
               <div>
                 <label className="text-[10px] uppercase tracking-wider text-muted-foreground">Service</label>
                 <div className="mt-1.5 flex flex-wrap gap-1.5">
-                  {[
-                    "Basic Service",
-                    "Standard Service",
-                    "Full Service",
-                    "Tuning",
-                    "Diagnostic",
-                    "Insurance / Crash",
-                    "Post Bike",
-                  ].map((s) => {
+                  {SERVICE_TYPES.map((s) => {
                     const c = serviceColor(s);
                     const active = qService === s;
                     return (
@@ -1489,6 +1510,17 @@ function CalendarPage() {
                     );
                   })}
                 </div>
+                {qService === "Other" && (
+                  <div className="mt-2">
+                    <label className="text-[10px] uppercase tracking-wider text-muted-foreground">Other service details</label>
+                    <textarea
+                      value={qServiceOther}
+                      onChange={(e) => setQServiceOther(e.target.value)}
+                      placeholder="Describe the service..."
+                      className="mt-1 w-full min-h-[64px] rounded-lg border border-border bg-background/60 px-3 py-2 text-sm focus:border-primary/60 focus:outline-none resize-y"
+                    />
+                  </div>
+                )}
               </div>
 
               <div className="flex gap-2 pt-2 border-t border-border/60">

@@ -45,6 +45,7 @@ function NewBooking() {
   const [customerId, setCustomerId] = useState<string | null>(null);
   const [bikeId, setBikeId] = useState<string | null>(null);
   const [serviceType, setServiceType] = useState<string>("Standard Service");
+  const [serviceTypeOther, setServiceTypeOther] = useState<string>("");
   const [priority, setPriority] = useState<string>("normal");
   const [scheduledDate, setScheduledDate] = useState<string>(search.date || today);
   const [dropTime, setDropTime] = useState<string>(search.time || "09:00");
@@ -222,6 +223,7 @@ function NewBooking() {
           motorcycle_id: bike.id,
           assigned_tech_id: techId,
           service_type: serviceType,
+          service_type_other: serviceType === "Other" ? serviceTypeOther.trim() || null : null,
           priority,
           scheduled_date: scheduledDate,
           drop_off_time: dropTime || null,
@@ -497,6 +499,17 @@ function NewBooking() {
                 </button>
               ))}
             </div>
+            {serviceType === "Other" && (
+              <div className="space-y-1.5">
+                <Label className="text-xs uppercase tracking-wider text-muted-foreground">Other service details</Label>
+                <Textarea
+                  value={serviceTypeOther}
+                  onChange={(e) => setServiceTypeOther(e.target.value)}
+                  placeholder="Describe the service..."
+                  className="min-h-[64px]"
+                />
+              </div>
+            )}
           </section>
 
           <section className="card-surface p-4 space-y-3">

@@ -1,0 +1,1 @@
+ALTER TABLE public.bookings ADD COLUMN service_type_other text;
