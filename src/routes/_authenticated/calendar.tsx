@@ -128,6 +128,9 @@ function CalendarPage() {
   const [qService, setQService] = useState<string>("Standard Service");
   const [qServiceOther, setQServiceOther] = useState<string>("");
   const [qEstHours, setQEstHours] = useState<string>("1");
+  const [qLoanBike, setQLoanBike] = useState(false);
+  const [qLoanBikeId, setQLoanBikeId] = useState<string | null>(null);
+  const [qLoanBikeReturn, setQLoanBikeReturn] = useState<string>("");
   const [creatingQuick, setCreatingQuick] = useState(false);
   const [hoverSlot, setHoverSlot] = useState<{ dayKey: string; slotIdx: number } | null>(null);
   const bodyRef = useRef<HTMLDivElement>(null);
@@ -187,6 +190,23 @@ function CalendarPage() {
     },
   });
 
+  const qLoanBikesQ = useQuery({
+    queryKey: ["quick-loan-bikes"],
+    enabled: !!quickSlot,
+    queryFn: async () =>
+      (await supabase.from("loan_bikes").select("id, name, current_km, active").eq("active", true).order("name")).data ?? [],
+  });
+  const qActiveLoansQ = useQuery({
+    queryKey: ["quick-active-loans"],
+    enabled: !!quickSlot,
+    queryFn: async () =>
+      (await supabase
+        .from("bookings")
+        .select("loan_bike_id, loan_bike_expected_return, customers(first_name,last_name)")
+        .not("loan_bike_id", "is", null)
+        .is("loan_bike_returned_at", null)).data ?? [],
+  });
+
   const customerMatches = useMemo(() => {
     const term = qSearch.trim().toLowerCase();
     if (!term || qCustomerId) return [];
@@ -232,6 +252,7 @@ function CalendarPage() {
     setQFirst(""); setQLast(""); setQPhone("");
     setQBikeMake(""); setQBikeModel(""); setQBikeYear(""); setQBikeRego("");
     setQService("Standard Service"); setQServiceOther(""); setQEstHours("1");
+    setQLoanBike(false); setQLoanBikeId(null); setQLoanBikeReturn("");
   }
 
   async function createQuickBooking() {
