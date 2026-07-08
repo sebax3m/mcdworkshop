@@ -374,19 +374,6 @@ function InvoiceDetail() {
     window.location.href = `mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
   }
 
-  // Handle ?action=print|email passed in from "Create & print/email" on the new-invoice page.
-  const actionFiredRef = useRef(false);
-  useEffect(() => {
-    if (!action || actionFiredRef.current) return;
-    actionFiredRef.current = true;
-    const t = setTimeout(() => {
-      if (action === "print") window.print();
-      else if (action === "email") emailInvoice();
-      nav({ to: "/invoices/$invoiceId", params: { invoiceId }, search: {}, replace: true });
-    }, 350);
-    return () => clearTimeout(t);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [action]);
 
   const canDelete = isAdmin && (inv.status ?? "").toLowerCase() === "draft";
 
