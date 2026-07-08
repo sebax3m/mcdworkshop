@@ -7,7 +7,7 @@ export function detectServiceKind(title?: string | null): ServiceKind {
   if (t.includes("annual")) return "annual";
   if (t.includes("standard")) return "standard";
   if (t.includes("basic") || t.includes("minor")) return "basic";
-  if (t.includes("dyno") || t.includes("tune")) return "dyno";
+  if (t.includes("dyno") || t.includes("tune") || t.includes("tuning")) return "dyno";
   return "other";
 }
 
@@ -51,7 +51,7 @@ export const KIND_META: Record<ServiceKind, { label: string; cls: string }> = {
   standard: { label: "Standard Service", cls: "border-status-progress/40 bg-status-progress/10 text-status-progress" },
   annual: { label: "Annual Service", cls: "border-primary/40 bg-primary/10 text-primary" },
   full: { label: "Full Service", cls: "border-status-parts/40 bg-status-parts/10 text-status-parts" },
-  dyno: { label: "Dyno Tune", cls: "border-primary/40 bg-primary/10 text-primary" },
+  dyno: { label: "Tuning", cls: "border-primary/40 bg-primary/10 text-primary" },
   collision: { label: "Collision Repair", cls: "border-orange-500/40 bg-orange-500/10 text-orange-400" },
   other: { label: "Service", cls: "border-border bg-muted text-muted-foreground" },
 

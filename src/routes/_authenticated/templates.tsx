@@ -20,7 +20,7 @@ const META: Record<string, { icon: any; tagline: string }> = {
   "Annual Service": { icon: Wrench, tagline: "Yearly comprehensive service" },
   "Standard Service": { icon: ShieldCheck, tagline: "Recommended service" },
   "Full Service": { icon: Zap, tagline: "Complete performance care" },
-  "Dyno Tune": { icon: Gauge, tagline: "Power, torque & AFR optimisation" },
+  "Tuning": { icon: Gauge, tagline: "Power, torque & AFR optimisation" },
   "Collision Repair": { icon: ShieldAlert, tagline: "Insurance & crash repairs" },
 };
 
