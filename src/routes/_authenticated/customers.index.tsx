@@ -26,6 +26,18 @@ function Customers() {
     queryFn: async () => (await supabase.from("customers").select("*").order("created_at", { ascending: false })).data ?? [],
   });
 
+  const bikes = useQuery({
+    queryKey: ["customers-bikes"],
+    queryFn: async () => (await supabase.from("motorcycles").select("id, customer_id, make, model, year, rego")).data ?? [],
+  });
+
+  const bikesByCustomer = new Map<string, any[]>();
+  for (const b of bikes.data ?? []) {
+    const arr = bikesByCustomer.get(b.customer_id) ?? [];
+    arr.push(b);
+    bikesByCustomer.set(b.customer_id, arr);
+  }
+
   async function save() {
     if (!f.first_name.trim()) return toast.error("First name required");
     const payload = { ...f, last_name: f.last_name.trim() || null };
