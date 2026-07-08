@@ -812,13 +812,13 @@ function CalendarPage() {
                             e.stopPropagation();
                             setSelectedBooking(b);
                           }}
-                          className={`group absolute left-1 right-1 z-10 rounded-md p-2 text-left ring-1 overflow-hidden select-none transition-all hover:z-30 hover:brightness-125 hover:ring-2 hover:ring-primary hover:shadow-[0_8px_24px_rgba(0,0,0,0.35)] cursor-grab active:cursor-grabbing ${
-                            b.color ? "" : `${c.bg} ${c.ring} ${c.label}`
+                          className={`group absolute left-1 right-1 z-10 rounded-md p-2 text-left ring-1 overflow-hidden select-none transition-all hover:z-30 hover:brightness-110 hover:ring-2 hover:ring-primary hover:shadow-[0_8px_24px_rgba(0,0,0,0.35)] cursor-grab active:cursor-grabbing ${
+                            b.color ? "text-foreground" : `${c.bg} ${c.ring} ${c.text}`
                           } ${draggingId === b.id ? "opacity-40" : ""} ${b.loan_bike ? "!ring-2 !ring-amber-400" : ""}`}
                           style={{
                             top: `${top}px`,
                             height: `${height}px`,
-                            ...(b.color ? { backgroundColor: `${b.color}33`, boxShadow: `inset 0 0 0 1px ${b.color}` } : {}),
+                            ...(b.color ? { backgroundColor: `${b.color}CC`, boxShadow: `inset 0 0 0 1px ${b.color}` } : {}),
                           }}
                         >
                           {/* Drag grip indicator — visible on hover */}
