@@ -59,6 +59,28 @@ import {
   validateTimeRange,
 } from "@/lib/booking-conflicts";
 import { displayBike, displayCustomerName, displayServiceType } from "@/lib/display";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar as CalendarPicker } from "@/components/ui/calendar";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { CalendarIcon } from "lucide-react";
+import { cn } from "@/lib/utils";
+
+// Time slots (07:00 – 20:00 in 30-min increments)
+const TIME_SLOTS: string[] = (() => {
+  const out: string[] = [];
+  for (let h = 7; h <= 20; h++) {
+    for (const m of [0, 30]) {
+      out.push(`${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`);
+    }
+  }
+  return out;
+})();
 
 export const Route = createFileRoute("/_authenticated/calendar")({
   component: CalendarPage,
@@ -1984,29 +2006,56 @@ function CalendarPage() {
                 </div>
                 <div className="mt-1 grid grid-cols-2 gap-2">
                   <div>
-                    <label className="text-[10px] uppercase tracking-wider text-muted-foreground">
-                      Date
+                    <label className="text-[10px] uppercase tracking-wider text-muted-foreground flex items-center gap-1">
+                      <CalendarIcon className="h-3 w-3" /> Date
                     </label>
-                    <input
-                      type="date"
-                      value={qEditDate}
-                      onChange={(e) => setQEditDate(e.target.value)}
-                      className="w-full mt-1 rounded-lg border border-border bg-background/60 px-3 py-2 text-sm font-semibold focus:border-primary/60 focus:outline-none"
-                    />
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <button
+                          type="button"
+                          className={cn(
+                            "w-full mt-1 rounded-lg border border-border bg-background/60 px-3 py-2 text-sm font-semibold text-left focus:border-primary/60 focus:outline-none hover:bg-primary/5",
+                            !qEditDate && "text-muted-foreground",
+                          )}
+                        >
+                          {qEditDate
+                            ? format(new Date(qEditDate + "T00:00:00"), "EEE, MMM d, yyyy")
+                            : "Pick a date"}
+                        </button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <CalendarPicker
+                          mode="single"
+                          selected={qEditDate ? new Date(qEditDate + "T00:00:00") : undefined}
+                          onSelect={(d) => {
+                            if (d) setQEditDate(format(d, "yyyy-MM-dd"));
+                          }}
+                          initialFocus
+                          className={cn("p-3 pointer-events-auto")}
+                        />
+                      </PopoverContent>
+                    </Popover>
                   </div>
                   <div>
                     <label className="text-[10px] uppercase tracking-wider text-muted-foreground flex items-center gap-1">
                       <Clock className="h-3 w-3" /> Time
                     </label>
-                    <input
-                      type="time"
-                      value={qEditTime}
-                      onChange={(e) => setQEditTime(e.target.value)}
-                      className="w-full mt-1 rounded-lg border border-border bg-background/60 px-3 py-2 text-sm font-semibold tabular-nums focus:border-primary/60 focus:outline-none"
-                    />
+                    <Select value={qEditTime} onValueChange={setQEditTime}>
+                      <SelectTrigger className="w-full mt-1 rounded-lg border border-border bg-background/60 px-3 py-2 text-sm font-semibold tabular-nums h-auto">
+                        <SelectValue placeholder="Pick a time" />
+                      </SelectTrigger>
+                      <SelectContent className="max-h-72">
+                        {TIME_SLOTS.map((t) => (
+                          <SelectItem key={t} value={t} className="font-mono tabular-nums">
+                            {t}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
               </div>
+
 
 
               {/* Customer search */}
@@ -2214,44 +2263,6 @@ function CalendarPage() {
                     })()}
                 </div>
                 <div className="col-span-1">
-                  <label className="text-[10px] uppercase tracking-wider text-muted-foreground flex items-center gap-1">
-                    <BikeIcon className="h-3 w-3" /> Make *
-                  </label>
-                  <input
-                    list="bike-makes-list"
-                    value={qBikeMake}
-                    onChange={(e) => {
-                      setQBikeMake(e.target.value);
-                      // reset model if make changed
-                      setQBikeModel("");
-                    }}
-                    placeholder="e.g. Yamaha"
-                    className="w-full mt-1 rounded-lg border border-border bg-background/60 px-3 py-2 text-sm focus:border-primary/60 focus:outline-none"
-                  />
-                  <datalist id="bike-makes-list">
-                    {BIKE_MAKE_NAMES.map((m) => (
-                      <option key={m} value={m} />
-                    ))}
-                  </datalist>
-                </div>
-                <div className="col-span-1">
-                  <label className="text-[10px] uppercase tracking-wider text-muted-foreground">
-                    Model *
-                  </label>
-                  <input
-                    list="bike-models-list"
-                    value={qBikeModel}
-                    onChange={(e) => setQBikeModel(e.target.value)}
-                    placeholder="e.g. MT-07"
-                    className="w-full mt-1 rounded-lg border border-border bg-background/60 px-3 py-2 text-sm focus:border-primary/60 focus:outline-none"
-                  />
-                  <datalist id="bike-models-list">
-                    {(BIKE_MAKES[qBikeMake] ?? []).map((m) => (
-                      <option key={m} value={m} />
-                    ))}
-                  </datalist>
-                </div>
-                <div className="col-span-1">
                   <label className="text-[10px] uppercase tracking-wider text-muted-foreground">
                     Year
                   </label>
@@ -2277,7 +2288,8 @@ function CalendarPage() {
                     <input
                       value={qBikeRego}
                       onChange={(e) => setQBikeRego(e.target.value.toUpperCase())}
-                      className="flex-1 rounded-lg border border-border bg-background/60 px-3 py-2 text-sm uppercase tracking-wider focus:border-primary/60 focus:outline-none"
+                      placeholder="ABC123"
+                      className="flex-1 min-w-0 rounded-lg border border-border bg-background/60 px-3 py-2 text-sm uppercase tracking-wider focus:border-primary/60 focus:outline-none"
                     />
                     <button
                       type="button"
@@ -2291,6 +2303,44 @@ function CalendarPage() {
                   </div>
                 </div>
                 <div className="col-span-1">
+                  <label className="text-[10px] uppercase tracking-wider text-muted-foreground flex items-center gap-1">
+                    <BikeIcon className="h-3 w-3" /> Make *
+                  </label>
+                  <input
+                    list="bike-makes-list"
+                    value={qBikeMake}
+                    onChange={(e) => {
+                      setQBikeMake(e.target.value);
+                      setQBikeModel("");
+                    }}
+                    placeholder="e.g. Yamaha"
+                    className="w-full mt-1 rounded-lg border border-border bg-background/60 px-3 py-2 text-sm focus:border-primary/60 focus:outline-none"
+                  />
+                  <datalist id="bike-makes-list">
+                    {BIKE_MAKE_NAMES.map((m) => (
+                      <option key={m} value={m} />
+                    ))}
+                  </datalist>
+                </div>
+                <div className="col-span-1">
+                  <label className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                    Model *
+                  </label>
+                  <input
+                    list="bike-models-list"
+                    value={qBikeModel}
+                    onChange={(e) => setQBikeModel(e.target.value)}
+                    placeholder="e.g. MT-07"
+                    className="w-full mt-1 rounded-lg border border-border bg-background/60 px-3 py-2 text-sm focus:border-primary/60 focus:outline-none"
+                    disabled={!qBikeMake}
+                  />
+                  <datalist id="bike-models-list">
+                    {(BIKE_MAKES[qBikeMake] ?? []).map((m) => (
+                      <option key={m} value={m} />
+                    ))}
+                  </datalist>
+                </div>
+                <div className="col-span-2">
                   <label className="text-[10px] uppercase tracking-wider text-muted-foreground">
                     Est. hours
                   </label>
@@ -2298,9 +2348,11 @@ function CalendarPage() {
                     value={qEstHours}
                     onChange={(e) => setQEstHours(e.target.value)}
                     inputMode="decimal"
+                    placeholder="1"
                     className="w-full mt-1 rounded-lg border border-border bg-background/60 px-3 py-2 text-sm focus:border-primary/60 focus:outline-none"
                   />
                 </div>
+
               </div>
 
               <div>
