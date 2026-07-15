@@ -556,20 +556,50 @@ function CalendarPage() {
     },
   });
 
+  // Daily notes for the visible range
+  const dailyNotesQ = useDailyNotesRange(
+    format(visibleRange.start, "yyyy-MM-dd"),
+    format(visibleRange.end, "yyyy-MM-dd"),
+  );
+  const notesByDay = useMemo(() => {
+    const map = new Map<string, any[]>();
+    for (const n of (dailyNotesQ.data ?? []) as any[]) {
+      const list = map.get(n.note_date) ?? [];
+      list.push(n);
+      map.set(n.note_date, list);
+    }
+    return map;
+  }, [dailyNotesQ.data]);
+
+  // Duration in minutes from a booking row, falling back to 60 min.
+  function bookingDurationMin(bk: any): number {
+    if (bk?.scheduled_end_time && bk?.drop_off_time) {
+      const [sh, sm] = String(bk.drop_off_time).split(":");
+      const [eh, em] = String(bk.scheduled_end_time).split(":");
+      const s = (Number(sh) || 0) * 60 + (Number(sm) || 0);
+      const e = (Number(eh) || 0) * 60 + (Number(em) || 0);
+      const d = e - s;
+      if (d > 0) return d;
+    }
+    return 60;
+  }
+
+  // Client-side pre-check used only for cheap UI hints (empty-slot click).
+  // Authoritative checks use findBookingConflicts RPC.
   function findOverlap(
     dayKey: string,
     startMin: number,
-    hours: number,
+    _hoursIgnored: number,
     excludeId?: string,
   ): any | null {
-    const endMin = startMin + Math.max(0.25, hours) * 60;
+    const endMin = startMin + 30; // treat empty-slot click as a 30-min probe
     for (const bk of bookings as any[]) {
       if (bk.id === excludeId) continue;
       if (bk.scheduled_date !== dayKey) continue;
       if (!bk.drop_off_time) continue;
       const [hh, mm] = String(bk.drop_off_time).split(":");
       const bs = (Number(hh) || 0) * 60 + (Number(mm) || 0);
-      const be = bs + Math.max(0.25, Number(bk.estimated_hours || 1)) * 60;
+      const be = bs + bookingDurationMin(bk);
       if (startMin < be && endMin > bs) return bk;
     }
     return null;
@@ -578,27 +608,36 @@ function CalendarPage() {
   async function moveBooking(bookingId: string, newDate: Date, newTime?: string) {
     const dateStr = format(newDate, "yyyy-MM-dd");
     const current = (bookings as any[]).find((b) => b.id === bookingId);
-    const hours = Math.max(0.25, Number(current?.estimated_hours || 1));
-    if (newTime) {
-      const [hh, mm] = newTime.split(":");
-      const startMin = (Number(hh) || 0) * 60 + (Number(mm) || 0);
-      const clash = findOverlap(dateStr, startMin, hours, bookingId);
-      if (clash) {
-        toast.error(
-          `Slot already booked (${clash.service_type} at ${String(clash.drop_off_time).slice(0, 5)})`,
-        );
-        return;
-      }
+    const durationMin = bookingDurationMin(current);
+    const startTime = newTime ?? (current?.drop_off_time ? String(current.drop_off_time).slice(0, 5) : null);
+    if (!startTime) return;
+    const endTime = addMinutesToTime(startTime, durationMin);
+    const rangeErr = validateTimeRange(startTime, endTime);
+    if (rangeErr) return toast.error(rangeErr);
+    try {
+      const conflicts = await findBookingConflicts({
+        date: dateStr,
+        startTime,
+        endTime,
+        excludeBookingId: bookingId,
+      });
+      if (conflicts.length) return toast.error(formatConflictMessage(conflicts));
+    } catch (e: any) {
+      return toast.error(e?.message ?? "Conflict check failed");
     }
-    const patch: any = { scheduled_date: dateStr };
-    if (newTime) patch.drop_off_time = newTime;
+    const patch: any = {
+      scheduled_date: dateStr,
+      drop_off_time: `${startTime}:00`,
+      scheduled_end_time: `${endTime}:00`,
+    };
     const { error } = await supabase.from("bookings").update(patch).eq("id", bookingId);
     if (error) return toast.error(error.message);
     toast.success(
-      "Booking moved to " + format(newDate, "EEE d MMM") + (newTime ? ` · ${newTime}` : ""),
+      "Booking moved to " + format(newDate, "EEE d MMM") + ` · ${startTime}`,
     );
     qc.invalidateQueries({ queryKey: ["calendar-bookings"] });
   }
+
 
   const totals = useMemo(() => {
     const byDay = new Map<string, number>();
