@@ -281,7 +281,7 @@ function PrintableTemplate({ template, onClose }: { template: any; onClose: () =
           .tpl-sheet .tpl-body > * + * { margin-top: 8px !important; }
           .tpl-sheet .tpl-body li { padding-top: 3px !important; padding-bottom: 3px !important; font-size: 9.5pt !important; line-height: 1.25 !important; }
           .tpl-sheet .tpl-body p, .tpl-sheet .tpl-body .text-sm { font-size: 9.5pt !important; line-height: 1.3 !important; }
-          .tpl-sheet .tpl-body .text-\[10px\] { font-size: 8pt !important; }
+          .tpl-sheet .tpl-body .text-\\[10px\\] { font-size: 8pt !important; }
           .tpl-sheet .tpl-signatures { padding-top: 10px !important; }
           .tpl-sheet .tpl-signatures .mb-6 { margin-bottom: 22px !important; }
           .tpl-sheet ul { page-break-inside: avoid; break-inside: avoid; }
