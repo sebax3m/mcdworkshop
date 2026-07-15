@@ -1,9 +1,29 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Wrench, Gauge, Sparkles, ShieldCheck, Zap, ShieldAlert, Check, Pencil, Plus, Trash2, GripVertical, Printer } from "lucide-react";
+import {
+  Wrench,
+  Gauge,
+  Sparkles,
+  ShieldCheck,
+  Zap,
+  ShieldAlert,
+  Check,
+  Pencil,
+  Plus,
+  Trash2,
+  GripVertical,
+  Printer,
+} from "lucide-react";
 import { useState, useEffect } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
@@ -20,7 +40,7 @@ const META: Record<string, { icon: any; tagline: string }> = {
   "Annual Service": { icon: Wrench, tagline: "Yearly comprehensive service" },
   "Standard Service": { icon: ShieldCheck, tagline: "Recommended service" },
   "Full Service": { icon: Zap, tagline: "Complete performance care" },
-  "Tuning": { icon: Gauge, tagline: "Power, torque & AFR optimisation" },
+  Tuning: { icon: Gauge, tagline: "Power, torque & AFR optimisation" },
   "Collision Repair": { icon: ShieldAlert, tagline: "Insurance & crash repairs" },
 };
 
@@ -34,7 +54,8 @@ function Templates() {
   const qc = useQueryClient();
   const { data: templates = [] } = useQuery({
     queryKey: ["templates-page"],
-    queryFn: async () => (await supabase.from("service_templates").select("*").order("sort_order")).data ?? [],
+    queryFn: async () =>
+      (await supabase.from("service_templates").select("*").order("sort_order")).data ?? [],
   });
 
   const unique = Array.from(new Map((templates as any[]).map((t) => [t.name, t])).values());
@@ -74,9 +95,13 @@ function Templates() {
                   <Icon className="h-5 w-5" />
                 </span>
                 <div className="min-w-0 flex-1">
-                  <div className="text-[10px] uppercase tracking-wider text-primary">{meta.tagline}</div>
+                  <div className="text-[10px] uppercase tracking-wider text-primary">
+                    {meta.tagline}
+                  </div>
                   <div className="font-display text-xl font-bold leading-tight">{t.name}</div>
-                  <div className="text-xs text-muted-foreground mt-0.5">~{t.estimated_hours}h estimated</div>
+                  <div className="text-xs text-muted-foreground mt-0.5">
+                    ~{t.estimated_hours}h estimated
+                  </div>
                 </div>
                 <Button size="sm" variant="outline" onClick={() => setPrinting(t)}>
                   <Printer className="h-3.5 w-3.5 mr-1" /> Print
@@ -86,7 +111,9 @@ function Templates() {
                 </Button>
               </div>
               {t.description && (
-                <p className="text-sm text-muted-foreground mt-3 leading-relaxed">{t.description}</p>
+                <p className="text-sm text-muted-foreground mt-3 leading-relaxed">
+                  {t.description}
+                </p>
               )}
               {tasks.length > 0 && (
                 <ul className="mt-4 space-y-2">
@@ -120,12 +147,20 @@ function Templates() {
   );
 }
 
-function EditTemplateDialog({ template, onClose, onSaved }: { template: any; onClose: () => void; onSaved: () => void }) {
+function EditTemplateDialog({
+  template,
+  onClose,
+  onSaved,
+}: {
+  template: any;
+  onClose: () => void;
+  onSaved: () => void;
+}) {
   const [name, setName] = useState<string>(template.name ?? "");
   const [description, setDescription] = useState<string>(template.description ?? "");
   const [hours, setHours] = useState<string>(String(template.estimated_hours ?? ""));
   const [tasks, setTasks] = useState<string[]>(
-    (Array.isArray(template.tasks) ? template.tasks : []).map(taskLabel).filter(Boolean)
+    (Array.isArray(template.tasks) ? template.tasks : []).map(taskLabel).filter(Boolean),
   );
 
   const save = useMutation({
@@ -136,7 +171,10 @@ function EditTemplateDialog({ template, onClose, onSaved }: { template: any; onC
         estimated_hours: hours ? Number(hours) : null,
         tasks: tasks.filter((t) => t.trim()).map((label) => ({ label: label.trim() })),
       };
-      const { error } = await supabase.from("service_templates").update(payload).eq("id", template.id);
+      const { error } = await supabase
+        .from("service_templates")
+        .update(payload)
+        .eq("id", template.id);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -146,7 +184,8 @@ function EditTemplateDialog({ template, onClose, onSaved }: { template: any; onC
     onError: (e: any) => toast.error(e.message ?? "Update failed"),
   });
 
-  const updateTask = (i: number, v: string) => setTasks((arr) => arr.map((t, idx) => (idx === i ? v : t)));
+  const updateTask = (i: number, v: string) =>
+    setTasks((arr) => arr.map((t, idx) => (idx === i ? v : t)));
   const removeTask = (i: number) => setTasks((arr) => arr.filter((_, idx) => idx !== i));
   const addTask = () => setTasks((arr) => [...arr, ""]);
 
@@ -164,12 +203,21 @@ function EditTemplateDialog({ template, onClose, onSaved }: { template: any; onC
             </div>
             <div>
               <Label>Hours</Label>
-              <Input type="number" step="0.25" value={hours} onChange={(e) => setHours(e.target.value)} />
+              <Input
+                type="number"
+                step="0.25"
+                value={hours}
+                onChange={(e) => setHours(e.target.value)}
+              />
             </div>
           </div>
           <div>
             <Label>Description</Label>
-            <Textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={2} />
+            <Textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              rows={2}
+            />
           </div>
           <div>
             <div className="flex items-center justify-between mb-2">
@@ -195,7 +243,9 @@ function EditTemplateDialog({ template, onClose, onSaved }: { template: any; onC
           </div>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={onClose}>Cancel</Button>
+          <Button variant="outline" onClick={onClose}>
+            Cancel
+          </Button>
           <Button onClick={() => save.mutate()} disabled={save.isPending}>
             {save.isPending ? "Saving…" : "Save changes"}
           </Button>
@@ -231,7 +281,7 @@ function PrintableTemplate({ template, onClose }: { template: any; onClose: () =
           .tpl-sheet .tpl-body > * + * { margin-top: 8px !important; }
           .tpl-sheet .tpl-body li { padding-top: 3px !important; padding-bottom: 3px !important; font-size: 9.5pt !important; line-height: 1.25 !important; }
           .tpl-sheet .tpl-body p, .tpl-sheet .tpl-body .text-sm { font-size: 9.5pt !important; line-height: 1.3 !important; }
-          .tpl-sheet .tpl-body .text-\[10px\] { font-size: 8pt !important; }
+          .tpl-sheet .tpl-body .text-[10px] { font-size: 8pt !important; }
           .tpl-sheet .tpl-signatures { padding-top: 10px !important; }
           .tpl-sheet .tpl-signatures .mb-6 { margin-bottom: 22px !important; }
           .tpl-sheet ul { page-break-inside: avoid; break-inside: avoid; }
@@ -244,7 +294,9 @@ function PrintableTemplate({ template, onClose }: { template: any; onClose: () =
 
       <div className="tpl-print-overlay print:!p-0 print:!bg-white">
         <div className="mx-auto max-w-3xl mb-3 flex justify-end gap-2 print:hidden">
-          <Button variant="outline" onClick={onClose}>Close</Button>
+          <Button variant="outline" onClick={onClose}>
+            Close
+          </Button>
           <Button className="red-surface gap-2" onClick={() => window.print()}>
             <Printer className="h-4 w-4" /> Print
           </Button>
@@ -254,14 +306,24 @@ function PrintableTemplate({ template, onClose }: { template: any; onClose: () =
           <div className="tpl-sheet mx-auto max-w-3xl bg-card text-foreground rounded-xl overflow-hidden shadow-2xl">
             <div className="tpl-header px-8 py-6 flex items-start justify-between gap-4 flex-wrap">
               <div className="flex items-center gap-4">
-                <img src={logoAsset.url} alt="Motorcycle Doctors" className="h-14 w-14 rounded-md object-contain bg-primary/10 p-1" />
+                <img
+                  src={logoAsset.url}
+                  alt="Motorcycle Doctors"
+                  className="h-14 w-14 rounded-md object-contain bg-primary/10 p-1"
+                />
                 <div>
-                  <div className="font-display text-3xl font-black tracking-tight">Motorcycle Doctors</div>
-                  <div className="text-xs uppercase tracking-[0.3em] opacity-80 mt-1">Premium Motorcycle Workshop</div>
+                  <div className="font-display text-3xl font-black tracking-tight">
+                    Motorcycle Doctors
+                  </div>
+                  <div className="text-xs uppercase tracking-[0.3em] opacity-80 mt-1">
+                    Premium Motorcycle Workshop
+                  </div>
                 </div>
               </div>
               <div className="text-right">
-                <div className="text-[10px] uppercase tracking-[0.25em] text-primary">Service Template</div>
+                <div className="text-[10px] uppercase tracking-[0.25em] text-primary">
+                  Service Template
+                </div>
                 <div className="font-display text-2xl font-black">{template.name}</div>
               </div>
             </div>
@@ -273,27 +335,37 @@ function PrintableTemplate({ template, onClose }: { template: any; onClose: () =
                   <div className="font-semibold">{meta.tagline}</div>
                 </div>
                 <div>
-                  <div className="text-[10px] uppercase tracking-wider text-primary">Estimated time</div>
+                  <div className="text-[10px] uppercase tracking-wider text-primary">
+                    Estimated time
+                  </div>
                   <div className="font-semibold">{template.estimated_hours ?? "—"} h</div>
                 </div>
                 <div>
-                  <div className="text-[10px] uppercase tracking-wider text-primary">Checklist items</div>
+                  <div className="text-[10px] uppercase tracking-wider text-primary">
+                    Checklist items
+                  </div>
                   <div className="font-semibold">{tasks.length}</div>
                 </div>
               </div>
 
               {template.description && (
                 <div>
-                  <div className="text-[10px] uppercase tracking-wider text-primary mb-1">Overview</div>
+                  <div className="text-[10px] uppercase tracking-wider text-primary mb-1">
+                    Overview
+                  </div>
                   <p className="text-sm leading-relaxed">{template.description}</p>
                 </div>
               )}
 
               <div>
-                <div className="text-[10px] uppercase tracking-wider text-primary mb-2">What's included</div>
+                <div className="text-[10px] uppercase tracking-wider text-primary mb-2">
+                  What's included
+                </div>
                 <ul className="border-t border-b divide-y border-border">
                   {tasks.length === 0 && (
-                    <li className="py-3 text-sm text-muted-foreground">No checklist items for this template.</li>
+                    <li className="py-3 text-sm text-muted-foreground">
+                      No checklist items for this template.
+                    </li>
                   )}
                   {tasks.map((task, i) => (
                     <li key={i} className="py-2.5 flex items-start gap-3 text-sm">
@@ -301,7 +373,10 @@ function PrintableTemplate({ template, onClose }: { template: any; onClose: () =
                         {i + 1}
                       </span>
                       <span className="flex-1">{taskLabel(task)}</span>
-                      <span className="h-4 w-4 border border-foreground/30 rounded-sm shrink-0 mt-0.5" aria-hidden />
+                      <span
+                        className="h-4 w-4 border border-foreground/30 rounded-sm shrink-0 mt-0.5"
+                        aria-hidden
+                      />
                     </li>
                   ))}
                 </ul>
@@ -319,7 +394,8 @@ function PrintableTemplate({ template, onClose }: { template: any; onClose: () =
               </div>
 
               <div className="text-center text-[10px] text-muted-foreground pt-4 border-t border-border">
-                Motorcycle Doctors · Service reference sheet · Generated {new Date().toLocaleDateString()}
+                Motorcycle Doctors · Service reference sheet · Generated{" "}
+                {new Date().toLocaleDateString()}
               </div>
             </div>
           </div>

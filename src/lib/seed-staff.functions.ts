@@ -83,7 +83,11 @@ export const seedStaff = createServerFn({ method: "POST" })
         user_metadata: { full_name: member.full_name },
       });
       if (error || !data.user) {
-        results.push({ email: member.email, status: "error", message: error?.message ?? "unknown" });
+        results.push({
+          email: member.email,
+          status: "error",
+          message: error?.message ?? "unknown",
+        });
         continue;
       }
       await supabaseAdmin.from("profiles").upsert({

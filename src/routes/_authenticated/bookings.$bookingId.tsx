@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
@@ -26,7 +27,9 @@ function BookingDetail() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("bookings")
-        .select("*, customers(first_name,last_name,phone,email), motorcycles(year,make,model,rego,vin,mileage)")
+        .select(
+          "*, customers(first_name,last_name,phone,email), motorcycles(year,make,model,rego,vin,mileage)",
+        )
         .eq("id", bookingId)
         .single();
       if (error) throw error;
@@ -69,10 +72,17 @@ function BookingDetail() {
         .single();
       if (error) throw error;
       if (tmpl?.tasks) {
-        const tasks = (tmpl.tasks as any[]).map((t: any, i: number) => ({ job_id: job.id, label: t.label, sort_order: i }));
+        const tasks = (tmpl.tasks as any[]).map((t: any, i: number) => ({
+          job_id: job.id,
+          label: t.label,
+          sort_order: i,
+        }));
         if (tasks.length) await supabase.from("job_tasks").insert(tasks);
       }
-      await supabase.from("bookings").update({ job_id: job.id, status: "checked_in" }).eq("id", b.id);
+      await supabase
+        .from("bookings")
+        .update({ job_id: job.id, status: "checked_in" })
+        .eq("id", b.id);
       qc.invalidateQueries({ queryKey: ["calendar-bookings"] });
       toast.success("Job card created");
       nav({ to: "/jobs/$jobId", params: { jobId: job.id } });
@@ -83,12 +93,22 @@ function BookingDetail() {
     }
   }
 
-  if (isLoading || !b) return <div className="card-surface p-8 text-center text-sm text-muted-foreground">Loading…</div>;
+  if (isLoading || !b)
+    return (
+      <div className="card-surface p-8 text-center text-sm text-muted-foreground">Loading…</div>
+    );
 
   return (
-    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-4 max-w-3xl mx-auto">
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="space-y-4 max-w-3xl mx-auto"
+    >
       <header className="flex items-center gap-3">
-        <Link to="/calendar" className="grid h-9 w-9 place-items-center rounded-lg border border-border hover:border-primary/50">
+        <Link
+          to="/calendar"
+          className="grid h-9 w-9 place-items-center rounded-lg border border-border hover:border-primary/50"
+        >
           <ArrowLeft className="h-4 w-4" />
         </Link>
         <div className="min-w-0">
@@ -98,28 +118,62 @@ function BookingDetail() {
       </header>
 
       <div className="card-surface p-4 grid sm:grid-cols-2 gap-4">
-        <InfoRow icon={Calendar} label="Date" value={format(new Date(b.scheduled_date), "EEE d MMM yyyy")} />
-        <InfoRow icon={Clock} label="Drop-off" value={b.drop_off_time ? b.drop_off_time.slice(0, 5) : "—"} />
-        <InfoRow icon={User} label="Customer" value={b.customers ? `${b.customers.first_name} ${b.customers.last_name}` : "—"} sub={b.customers?.phone || b.customers?.email} />
-        <InfoRow icon={BikeIcon} label="Motorcycle" value={fullBike(b.motorcycles)} sub={[b.motorcycles?.rego, b.mileage ? `${b.mileage} km` : null].filter(Boolean).join(" · ")} />
+        <InfoRow
+          icon={Calendar}
+          label="Date"
+          value={format(new Date(b.scheduled_date), "EEE d MMM yyyy")}
+        />
+        <InfoRow
+          icon={Clock}
+          label="Drop-off"
+          value={b.drop_off_time ? b.drop_off_time.slice(0, 5) : "—"}
+        />
+        <InfoRow
+          icon={User}
+          label="Customer"
+          value={b.customers ? `${b.customers.first_name} ${b.customers.last_name}` : "—"}
+          sub={b.customers?.phone || b.customers?.email}
+        />
+        <InfoRow
+          icon={BikeIcon}
+          label="Motorcycle"
+          value={fullBike(b.motorcycles)}
+          sub={[b.motorcycles?.rego, b.mileage ? `${b.mileage} km` : null]
+            .filter(Boolean)
+            .join(" · ")}
+        />
         <InfoRow icon={Wrench} label="Est. hours" value={`${b.estimated_hours ?? "—"}h`} />
         <InfoRow icon={FileText} label="Status" value={b.status} />
       </div>
 
       {b.complaints && (
         <div className="card-surface p-4">
-          <div className="text-xs uppercase tracking-wider text-muted-foreground">Customer complaint</div>
+          <div className="text-xs uppercase tracking-wider text-muted-foreground">
+            Customer complaint
+          </div>
           <p className="text-sm mt-1.5 whitespace-pre-wrap">{b.complaints}</p>
         </div>
       )}
 
       {photoUrls.length > 0 && (
         <div className="card-surface p-4">
-          <div className="text-xs uppercase tracking-wider text-muted-foreground mb-3">Arrival photos</div>
+          <div className="text-xs uppercase tracking-wider text-muted-foreground mb-3">
+            Arrival photos
+          </div>
           <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
             {photoUrls.map((u, i) => (
-              <a key={i} href={u} target="_blank" rel="noreferrer" className="block aspect-square rounded-lg overflow-hidden bg-muted">
-                <img src={u} alt="" className="h-full w-full object-cover hover:scale-105 transition-transform" />
+              <a
+                key={i}
+                href={u}
+                target="_blank"
+                rel="noreferrer"
+                className="block aspect-square rounded-lg overflow-hidden bg-muted"
+              >
+                <img
+                  src={u}
+                  alt=""
+                  className="h-full w-full object-cover hover:scale-105 transition-transform"
+                />
               </a>
             ))}
           </div>
@@ -127,11 +181,19 @@ function BookingDetail() {
       )}
 
       {!b.job_id ? (
-        <Button onClick={createJob} disabled={converting} className="w-full h-14 gold-surface text-base font-bold">
+        <Button
+          onClick={createJob}
+          disabled={converting}
+          className="w-full h-14 gold-surface text-base font-bold"
+        >
           {converting ? "Creating job…" : "→ Create Job Card from Booking"}
         </Button>
       ) : (
-        <Link to="/jobs/$jobId" params={{ jobId: b.job_id }} className="block w-full text-center rounded-xl gold-surface h-14 leading-[3.5rem] font-bold">
+        <Link
+          to="/jobs/$jobId"
+          params={{ jobId: b.job_id }}
+          className="block w-full text-center rounded-xl gold-surface h-14 leading-[3.5rem] font-bold"
+        >
           Open Job Card →
         </Link>
       )}
@@ -139,7 +201,17 @@ function BookingDetail() {
   );
 }
 
-function InfoRow({ icon: Icon, label, value, sub }: { icon: any; label: string; value: string; sub?: string | null }) {
+function InfoRow({
+  icon: Icon,
+  label,
+  value,
+  sub,
+}: {
+  icon: any;
+  label: string;
+  value: string;
+  sub?: string | null;
+}) {
   return (
     <div className="flex items-start gap-3">
       <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-muted">

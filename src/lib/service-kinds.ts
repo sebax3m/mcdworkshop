@@ -2,7 +2,13 @@ export type ServiceKind = "basic" | "standard" | "annual" | "full" | "dyno" | "c
 
 export function detectServiceKind(title?: string | null): ServiceKind {
   const t = (title ?? "").toLowerCase();
-  if (t.includes("collision") || t.includes("insurance") || t.includes("crash") || t.includes("accident")) return "collision";
+  if (
+    t.includes("collision") ||
+    t.includes("insurance") ||
+    t.includes("crash") ||
+    t.includes("accident")
+  )
+    return "collision";
   if (t.includes("full")) return "full";
   if (t.includes("annual")) return "annual";
   if (t.includes("standard")) return "standard";
@@ -11,9 +17,11 @@ export function detectServiceKind(title?: string | null): ServiceKind {
   return "other";
 }
 
-
 /** Which parts/fluid fields apply to each service kind, cumulative basic → full */
-export const SERVICE_PARTS: Record<ServiceKind, Array<{ key: string; label: string; category: string; unitHint?: string }>> = {
+export const SERVICE_PARTS: Record<
+  ServiceKind,
+  Array<{ key: string; label: string; category: string; unitHint?: string }>
+> = {
   basic: [
     { key: "engine_oil", label: "Engine oil", category: "oil", unitHint: "L" },
     { key: "oil_filter", label: "Oil filter", category: "oil_filter", unitHint: "unit" },
@@ -43,16 +51,26 @@ export const SERVICE_PARTS: Record<ServiceKind, Array<{ key: string; label: stri
   dyno: [],
   collision: [],
   other: [],
-
 };
 
 export const KIND_META: Record<ServiceKind, { label: string; cls: string }> = {
-  basic: { label: "Basic Service", cls: "border-status-ready/40 bg-status-ready/10 text-status-ready" },
-  standard: { label: "Standard Service", cls: "border-status-progress/40 bg-status-progress/10 text-status-progress" },
+  basic: {
+    label: "Basic Service",
+    cls: "border-status-ready/40 bg-status-ready/10 text-status-ready",
+  },
+  standard: {
+    label: "Standard Service",
+    cls: "border-status-progress/40 bg-status-progress/10 text-status-progress",
+  },
   annual: { label: "Annual Service", cls: "border-primary/40 bg-primary/10 text-primary" },
-  full: { label: "Full Service", cls: "border-status-parts/40 bg-status-parts/10 text-status-parts" },
+  full: {
+    label: "Full Service",
+    cls: "border-status-parts/40 bg-status-parts/10 text-status-parts",
+  },
   dyno: { label: "Tuning", cls: "border-primary/40 bg-primary/10 text-primary" },
-  collision: { label: "Collision Repair", cls: "border-orange-500/40 bg-orange-500/10 text-orange-400" },
+  collision: {
+    label: "Collision Repair",
+    cls: "border-orange-500/40 bg-orange-500/10 text-orange-400",
+  },
   other: { label: "Service", cls: "border-border bg-muted text-muted-foreground" },
-
 };

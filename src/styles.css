@@ -73,7 +73,7 @@
   --popover-foreground: oklch(0.97 0.01 90);
   --primary: oklch(0.58 0.22 25);
   --primary-foreground: oklch(0.98 0.01 90);
-  --secondary: oklch(0.50 0.08 255);
+  --secondary: oklch(0.5 0.08 255);
   --secondary-foreground: oklch(0.97 0.01 90);
   --muted: oklch(0.18 0 0);
   --muted-foreground: oklch(0.65 0 0);
@@ -82,14 +82,14 @@
   --destructive: oklch(0.55 0.22 25);
   --destructive-foreground: oklch(0.98 0.01 90);
   --border: oklch(0.24 0 0);
-  --input: oklch(0.20 0 0);
+  --input: oklch(0.2 0 0);
   --ring: oklch(0.58 0.22 25);
   --chart-1: oklch(0.58 0.22 25);
-  --chart-2: oklch(0.50 0.08 255);
+  --chart-2: oklch(0.5 0.08 255);
   --chart-3: oklch(0.55 0.22 25);
   --chart-4: oklch(0.45 0.08 255);
   --chart-5: oklch(0.62 0.2 320);
-  --sidebar: oklch(0.10 0 0);
+  --sidebar: oklch(0.1 0 0);
   --sidebar-foreground: oklch(0.97 0.01 90);
   --sidebar-primary: oklch(0.58 0.22 25);
   --sidebar-primary-foreground: oklch(0.98 0.01 90);
@@ -99,13 +99,13 @@
   --sidebar-ring: oklch(0.58 0.22 25);
 
   /* Job status palette */
-  --status-new: oklch(0.55 0.10 255);
+  --status-new: oklch(0.55 0.1 255);
   --status-assigned: oklch(0.65 0.12 280);
   --status-progress: oklch(0.78 0.15 60);
   --status-parts: oklch(0.58 0.22 25);
   --status-ready: oklch(0.78 0.16 150);
   --status-done: oklch(0.6 0.01 80);
-  --status-dyno: oklch(0.80 0.16 95);
+  --status-dyno: oklch(0.8 0.16 95);
   --status-insurance: oklch(0.65 0.18 300);
 
   --gradient-red: linear-gradient(135deg, oklch(0.65 0.22 25) 0%, oklch(0.52 0.22 25) 100%);
@@ -113,10 +113,10 @@
   --shadow-card: 0 1px 0 0 oklch(1 0 0 / 0.04) inset, 0 8px 24px -12px oklch(0 0 0 / 0.6);
 
   /* Blue accent tokens */
-  --md-blue: oklch(0.50 0.08 255);
-  --md-blue-glow: oklch(0.55 0.10 255);
-  --gradient-blue: linear-gradient(135deg, oklch(0.55 0.10 255) 0%, oklch(0.45 0.08 255) 100%);
-  --shadow-blue: 0 8px 32px -8px oklch(0.50 0.08 255 / 0.45);
+  --md-blue: oklch(0.5 0.08 255);
+  --md-blue-glow: oklch(0.55 0.1 255);
+  --gradient-blue: linear-gradient(135deg, oklch(0.55 0.1 255) 0%, oklch(0.45 0.08 255) 100%);
+  --shadow-blue: 0 8px 32px -8px oklch(0.5 0.08 255 / 0.45);
 }
 
 @layer base {
@@ -131,11 +131,14 @@
     -webkit-font-smoothing: antialiased;
     background-image:
       radial-gradient(at 0% 0%, oklch(0.58 0.22 25 / 0.06) 0px, transparent 50%),
-      radial-gradient(at 100% 100%, oklch(0.50 0.08 255 / 0.04) 0px, transparent 50%);
+      radial-gradient(at 100% 100%, oklch(0.5 0.08 255 / 0.04) 0px, transparent 50%);
     background-attachment: fixed;
   }
 
-  h1, h2, h3, h4 {
+  h1,
+  h2,
+  h3,
+  h4 {
     font-family: var(--font-display);
     letter-spacing: -0.02em;
   }
@@ -163,7 +166,9 @@
 }
 
 @utility red-glow {
-  box-shadow: 0 0 0 1px oklch(0.58 0.22 25 / 0.4), 0 10px 40px -10px oklch(0.58 0.22 25 / 0.5);
+  box-shadow:
+    0 0 0 1px oklch(0.58 0.22 25 / 0.4),
+    0 10px 40px -10px oklch(0.58 0.22 25 / 0.5);
 }
 
 @utility text-red-accent {

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -33,14 +34,17 @@ function InsuranceList() {
     const search = q.toLowerCase().trim();
     return (claims.data ?? []).filter((c: any) => {
       if (statusFilter === "open" && c.status === "closed") return false;
-      if (statusFilter !== "all" && statusFilter !== "open" && c.status !== statusFilter) return false;
+      if (statusFilter !== "all" && statusFilter !== "open" && c.status !== statusFilter)
+        return false;
       if (!search) return true;
       const hay = [
         c.claim_number,
         c.insurer_name,
         c.insurer_claim_ref,
         c.customers ? `${c.customers.first_name} ${c.customers.last_name}` : "",
-        c.motorcycles ? `${c.motorcycles.make} ${c.motorcycles.model} ${c.motorcycles.rego ?? ""}` : "",
+        c.motorcycles
+          ? `${c.motorcycles.make} ${c.motorcycles.model} ${c.motorcycles.rego ?? ""}`
+          : "",
       ]
         .join(" ")
         .toLowerCase();
@@ -111,7 +115,10 @@ function InsuranceList() {
         <div className="card-surface p-10 text-center space-y-3">
           <ShieldCheck className="h-10 w-10 mx-auto text-muted-foreground" />
           <p className="text-sm text-muted-foreground">No claims yet.</p>
-          <Link to="/insurance/new" className="inline-flex items-center gap-2 rounded-lg red-surface px-3 py-2 text-sm font-semibold">
+          <Link
+            to="/insurance/new"
+            className="inline-flex items-center gap-2 rounded-lg red-surface px-3 py-2 text-sm font-semibold"
+          >
             <Plus className="h-4 w-4" /> Create the first claim
           </Link>
         </div>
@@ -132,7 +139,9 @@ function InsuranceList() {
               >
                 <div className="flex items-center gap-3 flex-wrap">
                   <div className="font-display text-base font-bold">{c.claim_number}</div>
-                  <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${meta?.cls}`}>
+                  <span
+                    className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${meta?.cls}`}
+                  >
                     {meta?.label ?? c.status}
                   </span>
                   {c.bike_with_customer && (
@@ -146,12 +155,38 @@ function InsuranceList() {
                   <ChevronRight className="h-4 w-4 text-muted-foreground" />
                 </div>
                 <div className="mt-2 grid sm:grid-cols-2 gap-x-4 gap-y-1 text-sm">
-                  <div className="flex items-center gap-1.5"><BikeIcon className="h-3.5 w-3.5 text-muted-foreground" /> {bike} {c.motorcycles?.rego ? `· ${c.motorcycles.rego}` : ""}</div>
-                  <div>{cust} {c.customers?.phone ? <span className="inline-flex items-center gap-1 text-muted-foreground"><Phone className="h-3 w-3" /> {c.customers.phone}</span> : null}</div>
-                  <div className="text-muted-foreground">Insurer: <span className="text-foreground">{c.insurer_name ?? "—"}</span>{c.insurer_claim_ref ? <span className="text-muted-foreground"> · ref {c.insurer_claim_ref}</span> : null}</div>
+                  <div className="flex items-center gap-1.5">
+                    <BikeIcon className="h-3.5 w-3.5 text-muted-foreground" /> {bike}{" "}
+                    {c.motorcycles?.rego ? `· ${c.motorcycles.rego}` : ""}
+                  </div>
+                  <div>
+                    {cust}{" "}
+                    {c.customers?.phone ? (
+                      <span className="inline-flex items-center gap-1 text-muted-foreground">
+                        <Phone className="h-3 w-3" /> {c.customers.phone}
+                      </span>
+                    ) : null}
+                  </div>
                   <div className="text-muted-foreground">
-                    Quote: <span className="text-foreground font-mono">{c.quote_amount != null ? `$${Number(c.quote_amount).toFixed(2)}` : "—"}</span>
-                    {c.approved_amount != null && <span> · Approved <span className="text-status-ready font-mono">${Number(c.approved_amount).toFixed(2)}</span></span>}
+                    Insurer: <span className="text-foreground">{c.insurer_name ?? "—"}</span>
+                    {c.insurer_claim_ref ? (
+                      <span className="text-muted-foreground"> · ref {c.insurer_claim_ref}</span>
+                    ) : null}
+                  </div>
+                  <div className="text-muted-foreground">
+                    Quote:{" "}
+                    <span className="text-foreground font-mono">
+                      {c.quote_amount != null ? `$${Number(c.quote_amount).toFixed(2)}` : "—"}
+                    </span>
+                    {c.approved_amount != null && (
+                      <span>
+                        {" "}
+                        · Approved{" "}
+                        <span className="text-status-ready font-mono">
+                          ${Number(c.approved_amount).toFixed(2)}
+                        </span>
+                      </span>
+                    )}
                   </div>
                 </div>
               </Link>

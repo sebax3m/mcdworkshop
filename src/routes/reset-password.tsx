@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -74,9 +75,7 @@ function ResetPasswordPage() {
 
         <form onSubmit={onSubmit} className="card-surface p-6 space-y-4">
           {!ready && (
-            <p className="text-xs text-muted-foreground text-center">
-              Validating recovery link…
-            </p>
+            <p className="text-xs text-muted-foreground text-center">Validating recovery link…</p>
           )}
           <div className="space-y-2">
             <Label htmlFor="pwd">New password</Label>

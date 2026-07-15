@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -13,7 +14,9 @@ function InvoicesList() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("invoices")
-        .select("id, invoice_number, status, total, created_at, customers(first_name, last_name), motorcycles(make, model, rego), jobs(job_number, title)")
+        .select(
+          "id, invoice_number, status, total, created_at, customers(first_name, last_name), motorcycles(make, model, rego), jobs(job_number, title)",
+        )
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data ?? [];
@@ -36,14 +39,20 @@ function InvoicesList() {
       {!invoices.isLoading && (invoices.data?.length ?? 0) === 0 && (
         <div className="card-surface p-10 text-center">
           <FileText className="h-10 w-10 mx-auto text-muted-foreground/60 mb-2" />
-          <p className="text-sm text-muted-foreground">No invoices yet. Create one from a job card.</p>
+          <p className="text-sm text-muted-foreground">
+            No invoices yet. Create one from a job card.
+          </p>
         </div>
       )}
 
       <div className="grid gap-2">
         {(invoices.data ?? []).map((inv: any) => {
-          const customer = inv.customers ? `${inv.customers.first_name ?? ""} ${inv.customers.last_name ?? ""}`.trim() : "—";
-          const bike = inv.motorcycles ? `${inv.motorcycles.make ?? ""} ${inv.motorcycles.model ?? ""}`.trim() : "";
+          const customer = inv.customers
+            ? `${inv.customers.first_name ?? ""} ${inv.customers.last_name ?? ""}`.trim()
+            : "—";
+          const bike = inv.motorcycles
+            ? `${inv.motorcycles.make ?? ""} ${inv.motorcycles.model ?? ""}`.trim()
+            : "";
           return (
             <Link
               key={inv.id}
@@ -57,12 +66,18 @@ function InvoicesList() {
               <div className="min-w-0 flex-1">
                 <div className="font-semibold truncate">{inv.invoice_number}</div>
                 <div className="text-xs text-muted-foreground truncate">
-                  {customer}{bike ? ` · ${bike}` : ""}{inv.jobs ? ` · Job #${inv.jobs.job_number}` : ""}
+                  {customer}
+                  {bike ? ` · ${bike}` : ""}
+                  {inv.jobs ? ` · Job #${inv.jobs.job_number}` : ""}
                 </div>
               </div>
               <div className="text-right shrink-0">
-                <div className="font-display text-lg font-bold gold-gradient-text">${Number(inv.total).toFixed(2)}</div>
-                <div className="text-[10px] uppercase tracking-wider text-muted-foreground">{inv.status}</div>
+                <div className="font-display text-lg font-bold gold-gradient-text">
+                  ${Number(inv.total).toFixed(2)}
+                </div>
+                <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                  {inv.status}
+                </div>
               </div>
             </Link>
           );

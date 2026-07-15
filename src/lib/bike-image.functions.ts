@@ -38,7 +38,8 @@ export const generateBikeImage = createServerFn({ method: "POST" })
     if (!res.ok) {
       const text = await res.text().catch(() => "");
       if (res.status === 429) throw new Error("AI rate limit hit — try again in a moment");
-      if (res.status === 402) throw new Error("AI credits exhausted — top up in Settings → Plans & credits");
+      if (res.status === 402)
+        throw new Error("AI credits exhausted — top up in Settings → Plans & credits");
       throw new Error(`Image generation failed: ${res.status} ${text}`);
     }
 

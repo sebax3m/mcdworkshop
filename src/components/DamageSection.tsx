@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -16,9 +17,9 @@ type Mark = {
 };
 
 const SEVERITY: Record<Mark["severity"], { color: string; ring: string; label: string }> = {
-  minor:    { color: "#facc15", ring: "ring-yellow-300/60", label: "Minor" },
+  minor: { color: "#facc15", ring: "ring-yellow-300/60", label: "Minor" },
   moderate: { color: "#f97316", ring: "ring-orange-300/60", label: "Moderate" },
-  severe:   { color: "#ef4444", ring: "ring-red-300/60",    label: "Severe" },
+  severe: { color: "#ef4444", ring: "ring-red-300/60", label: "Severe" },
 };
 
 const PRINT_PREFIX = "DAMAGE: ";
@@ -145,7 +146,10 @@ export function DamageSection({
 
   async function deletePhoto(id: string, path: string) {
     if (!confirm("Delete this photo?")) return;
-    await supabase.storage.from("workshop-photos").remove([path]).catch(() => {});
+    await supabase.storage
+      .from("workshop-photos")
+      .remove([path])
+      .catch(() => {});
     await supabase.from("job_photos").delete().eq("id", id);
     qc.invalidateQueries({ queryKey: ["job-damage-photos", jobId] });
   }
@@ -158,7 +162,9 @@ export function DamageSection({
             <AlertTriangle className="h-5 w-5" />
           </div>
           <div>
-            <div className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground font-bold">Collision</div>
+            <div className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground font-bold">
+              Collision
+            </div>
             <h2 className="font-display text-lg font-semibold">Damage report</h2>
           </div>
         </div>
@@ -177,7 +183,9 @@ export function DamageSection({
               key={v}
               onClick={() => setView(v)}
               className={`px-3 py-1.5 text-xs font-semibold uppercase tracking-wider rounded-md transition ${
-                view === v ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"
+                view === v
+                  ? "bg-primary text-primary-foreground"
+                  : "text-muted-foreground hover:text-foreground"
               }`}
             >
               {v === "side" ? "Side view" : "Top view"}
@@ -191,18 +199,28 @@ export function DamageSection({
                 key={s}
                 onClick={() => setSeverity(s)}
                 className={`px-3 py-1.5 text-xs font-bold uppercase tracking-wider rounded-md transition flex items-center gap-1.5 ${
-                  severity === s ? "bg-card text-foreground" : "text-muted-foreground hover:text-foreground"
+                  severity === s
+                    ? "bg-card text-foreground"
+                    : "text-muted-foreground hover:text-foreground"
                 }`}
-                style={severity === s ? { boxShadow: `inset 0 0 0 2px ${SEVERITY[s].color}` } : undefined}
+                style={
+                  severity === s ? { boxShadow: `inset 0 0 0 2px ${SEVERITY[s].color}` } : undefined
+                }
               >
-                <span className="h-2.5 w-2.5 rounded-full" style={{ background: SEVERITY[s].color }} />
+                <span
+                  className="h-2.5 w-2.5 rounded-full"
+                  style={{ background: SEVERITY[s].color }}
+                />
                 {SEVERITY[s].label}
               </button>
             ))}
           </div>
         )}
         {canEdit && viewMarks.length > 0 && (
-          <button onClick={clearView} className="ml-auto inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-destructive">
+          <button
+            onClick={clearView}
+            className="ml-auto inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-destructive"
+          >
             <RotateCcw className="h-3.5 w-3.5" /> Clear {view}
           </button>
         )}
@@ -240,12 +258,24 @@ export function DamageSection({
               </text>
               {canEdit && (
                 <g
-                  onClick={(e) => { e.stopPropagation(); removeMark(m.id); }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    removeMark(m.id);
+                  }}
                   className="cursor-pointer"
                   transform={`translate(${m.x * 600 + 12}, ${m.y * 320 - 14})`}
                 >
-                  <circle r={7} fill="hsl(var(--background))" stroke="hsl(var(--destructive))" strokeWidth={1.5} />
-                  <path d="M -3 -3 L 3 3 M 3 -3 L -3 3" stroke="hsl(var(--destructive))" strokeWidth={1.5} />
+                  <circle
+                    r={7}
+                    fill="hsl(var(--background))"
+                    stroke="hsl(var(--destructive))"
+                    strokeWidth={1.5}
+                  />
+                  <path
+                    d="M -3 -3 L 3 3 M 3 -3 L -3 3"
+                    stroke="hsl(var(--destructive))"
+                    strokeWidth={1.5}
+                  />
                 </g>
               )}
             </g>
@@ -264,7 +294,10 @@ export function DamageSection({
       {marks.length > 0 && (
         <div className="mt-3 grid sm:grid-cols-2 gap-2">
           {marks.map((m, i) => (
-            <div key={m.id} className="flex items-center gap-2 rounded-lg border border-border bg-background/40 px-2.5 py-1.5 text-xs">
+            <div
+              key={m.id}
+              className="flex items-center gap-2 rounded-lg border border-border bg-background/40 px-2.5 py-1.5 text-xs"
+            >
               <span
                 className="grid h-6 w-6 place-items-center rounded-full text-white font-bold text-[11px] shrink-0"
                 style={{ background: SEVERITY[m.severity].color }}
@@ -274,7 +307,10 @@ export function DamageSection({
               <span className="font-semibold capitalize">{m.severity}</span>
               <span className="text-muted-foreground">· {m.view} view</span>
               {canEdit && (
-                <button onClick={() => removeMark(m.id)} className="ml-auto text-muted-foreground hover:text-destructive">
+                <button
+                  onClick={() => removeMark(m.id)}
+                  className="ml-auto text-muted-foreground hover:text-destructive"
+                >
                   <X className="h-3.5 w-3.5" />
                 </button>
               )}
@@ -286,7 +322,9 @@ export function DamageSection({
       {/* Photos */}
       <div className="mt-5">
         <div className="flex items-center justify-between gap-2 mb-2">
-          <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Damage photos</h3>
+          <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">
+            Damage photos
+          </h3>
           {canEdit && (
             <>
               <input
@@ -319,8 +357,16 @@ export function DamageSection({
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
             {(photos.data ?? []).map((p: any) => (
-              <div key={p.id} className="relative group rounded-lg overflow-hidden border border-border bg-card aspect-square">
-                <img src={p.url} alt={p.caption ?? ""} className="w-full h-full object-cover" loading="lazy" />
+              <div
+                key={p.id}
+                className="relative group rounded-lg overflow-hidden border border-border bg-card aspect-square"
+              >
+                <img
+                  src={p.url}
+                  alt={p.caption ?? ""}
+                  className="w-full h-full object-cover"
+                  loading="lazy"
+                />
                 {canEdit && (
                   <button
                     onClick={() => deletePhoto(p.id, p.storage_path)}
@@ -343,7 +389,13 @@ export function DamageSection({
 function BikeSide() {
   // Stylised side view of a motorcycle. Coordinates fit 600×320 viewBox.
   return (
-    <g fill="none" stroke="hsl(var(--muted-foreground))" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+    <g
+      fill="none"
+      stroke="hsl(var(--muted-foreground))"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
       {/* wheels */}
       <circle cx={130} cy={240} r={55} />
       <circle cx={470} cy={240} r={55} />
@@ -374,10 +426,18 @@ function BikeSide() {
       <line x1={370} y1={220} x2={470} y2={240} />
       {/* labels */}
       <g fontSize={9} fill="hsl(var(--muted-foreground))" stroke="none" textAnchor="middle">
-        <text x={200} y={170}>Front</text>
-        <text x={470} y={310}>Rear wheel</text>
-        <text x={130} y={310}>Front wheel</text>
-        <text x={465} y={140}>Tail</text>
+        <text x={200} y={170}>
+          Front
+        </text>
+        <text x={470} y={310}>
+          Rear wheel
+        </text>
+        <text x={130} y={310}>
+          Front wheel
+        </text>
+        <text x={465} y={140}>
+          Tail
+        </text>
       </g>
     </g>
   );
@@ -386,7 +446,13 @@ function BikeSide() {
 function BikeTop() {
   // Top-down view.
   return (
-    <g fill="none" stroke="hsl(var(--muted-foreground))" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+    <g
+      fill="none"
+      stroke="hsl(var(--muted-foreground))"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
       {/* center spine */}
       <line x1={300} y1={50} x2={300} y2={270} strokeDasharray="6 6" stroke="hsl(var(--border))" />
       {/* front wheel */}
@@ -410,10 +476,18 @@ function BikeTop() {
       <rect x={285} y={265} width={30} height={45} rx={6} fill="hsl(var(--muted))" />
       {/* labels */}
       <g fontSize={9} fill="hsl(var(--muted-foreground))" stroke="none" textAnchor="middle">
-        <text x={300} y={42}>Front</text>
-        <text x={300} y={305}>Rear</text>
-        <text x={180} y={114}>L</text>
-        <text x={420} y={114}>R</text>
+        <text x={300} y={42}>
+          Front
+        </text>
+        <text x={300} y={305}>
+          Rear
+        </text>
+        <text x={180} y={114}>
+          L
+        </text>
+        <text x={420} y={114}>
+          R
+        </text>
       </g>
     </g>
   );

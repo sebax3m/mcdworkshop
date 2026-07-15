@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
@@ -37,9 +38,12 @@ function JobsList() {
     queryFn: async () => {
       let q = supabase
         .from("jobs")
-        .select("id, job_number, title, status, technician_id, customers(first_name,last_name), motorcycles(year,make,model,rego)")
+        .select(
+          "id, job_number, title, status, technician_id, customers(first_name,last_name), motorcycles(year,make,model,rego)",
+        )
         .order("created_at", { ascending: false });
-      if (filter === "active") q = q.in("status", ["new", "assigned", "in_progress", "waiting_parts", "ready_for_pickup"]);
+      if (filter === "active")
+        q = q.in("status", ["new", "assigned", "in_progress", "waiting_parts", "ready_for_pickup"]);
       else if (filter !== "all") q = q.eq("status", filter as any);
       const { data, error } = await q;
       if (error) throw error;
@@ -49,7 +53,8 @@ function JobsList() {
 
   const filtered = jobs.filter((j: any) => {
     if (!search) return true;
-    const hay = `${j.job_number} ${j.title} ${j.customers?.first_name ?? ""} ${j.customers?.last_name ?? ""} ${j.motorcycles?.make ?? ""} ${j.motorcycles?.model ?? ""} ${j.motorcycles?.rego ?? ""}`.toLowerCase();
+    const hay =
+      `${j.job_number} ${j.title} ${j.customers?.first_name ?? ""} ${j.customers?.last_name ?? ""} ${j.motorcycles?.make ?? ""} ${j.motorcycles?.model ?? ""} ${j.motorcycles?.rego ?? ""}`.toLowerCase();
     return hay.includes(search.toLowerCase());
   });
 
@@ -91,15 +96,16 @@ function JobsList() {
           <h1 className="font-display text-2xl sm:text-3xl font-bold truncate">Job Board</h1>
         </div>
         <div className="flex items-center gap-2 shrink-0">
-          {isAdmin && (
-            selectMode ? (
+          {isAdmin &&
+            (selectMode ? (
               <>
                 <button
                   onClick={() => setConfirmOpen(true)}
                   disabled={selected.size === 0}
                   className="inline-flex items-center gap-1.5 rounded-lg bg-destructive text-destructive-foreground px-3 py-2 text-sm font-semibold disabled:opacity-40"
                 >
-                  <Trash2 className="h-4 w-4" /> Delete{selected.size > 0 ? ` (${selected.size})` : ""}
+                  <Trash2 className="h-4 w-4" /> Delete
+                  {selected.size > 0 ? ` (${selected.size})` : ""}
                 </button>
                 <button
                   onClick={exitSelect}
@@ -115,10 +121,12 @@ function JobsList() {
               >
                 Select
               </button>
-            )
-          )}
+            ))}
           {isAdmin && !selectMode && (
-            <Link to="/jobs/new" className="inline-flex items-center gap-1.5 rounded-lg gold-surface px-3 py-2 text-sm font-semibold">
+            <Link
+              to="/jobs/new"
+              className="inline-flex items-center gap-1.5 rounded-lg gold-surface px-3 py-2 text-sm font-semibold"
+            >
               <Plus className="h-4 w-4" /> New
             </Link>
           )}
@@ -145,7 +153,9 @@ function JobsList() {
             key={f.id}
             onClick={() => setFilter(f.id)}
             className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold uppercase tracking-wider border transition-colors ${
-              filter === f.id ? "border-primary bg-primary/10 text-primary" : "border-border text-muted-foreground hover:text-foreground"
+              filter === f.id
+                ? "border-primary bg-primary/10 text-primary"
+                : "border-border text-muted-foreground hover:text-foreground"
             }`}
           >
             {f.label}
@@ -189,11 +199,14 @@ function JobsList() {
                 <div className="min-w-0 flex-1">
                   <div className="font-semibold truncate">{j.title}</div>
                   <div className="text-xs text-muted-foreground truncate">
-                    {j.customers ? `${j.customers.first_name} ${j.customers.last_name}` : "—"} · {j.motorcycles ? fullBike(j.motorcycles) : "—"}
+                    {j.customers ? `${j.customers.first_name} ${j.customers.last_name}` : "—"} ·{" "}
+                    {j.motorcycles ? fullBike(j.motorcycles) : "—"}
                     {j.motorcycles?.rego ? ` · ${j.motorcycles.rego}` : ""}
                   </div>
                 </div>
-                <span className={`shrink-0 inline-flex items-center gap-1.5 rounded-full border px-2 py-1 text-[10px] font-semibold uppercase tracking-wider ${meta.cls}`}>
+                <span
+                  className={`shrink-0 inline-flex items-center gap-1.5 rounded-full border px-2 py-1 text-[10px] font-semibold uppercase tracking-wider ${meta.cls}`}
+                >
                   <span className={`h-1.5 w-1.5 rounded-full ${meta.dot}`} />
                   {meta.label}
                 </span>
@@ -231,7 +244,13 @@ function JobsList() {
         </div>
       )}
 
-      <AlertDialog open={confirmOpen} onOpenChange={(open) => { setConfirmOpen(open); if (!open) setDeleteJobId(null); }}>
+      <AlertDialog
+        open={confirmOpen}
+        onOpenChange={(open) => {
+          setConfirmOpen(open);
+          if (!open) setDeleteJobId(null);
+        }}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>
@@ -240,11 +259,15 @@ function JobsList() {
                 : `Delete ${selected.size} job${selected.size === 1 ? "" : "s"}?`}
             </AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently remove the {deleteJobId ? "job" : `selected job${selected.size === 1 ? "" : "s"}`} and any related tasks, time entries, photos and invoices. This action cannot be undone.
+              This will permanently remove the{" "}
+              {deleteJobId ? "job" : `selected job${selected.size === 1 ? "" : "s"}`} and any
+              related tasks, time entries, photos and invoices. This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={deleting} onClick={() => setDeleteJobId(null)}>Cancel</AlertDialogCancel>
+            <AlertDialogCancel disabled={deleting} onClick={() => setDeleteJobId(null)}>
+              Cancel
+            </AlertDialogCancel>
             <AlertDialogAction
               onClick={(e) => {
                 e.preventDefault();

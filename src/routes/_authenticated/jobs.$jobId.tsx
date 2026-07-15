@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -8,7 +9,22 @@ import { Input } from "@/components/ui/input";
 import { STATUS_META, STATUS_ORDER, formatMinutes, fullBike, initials } from "@/lib/format";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { toast } from "sonner";
-import { ArrowLeft, Play, Square, User, Bike as BikeIcon, ChevronDown, Check, Droplet, Wrench, Package, Plus, X, FileText, Printer } from "lucide-react";
+import {
+  ArrowLeft,
+  Play,
+  Square,
+  User,
+  Bike as BikeIcon,
+  ChevronDown,
+  Check,
+  Droplet,
+  Wrench,
+  Package,
+  Plus,
+  X,
+  FileText,
+  Printer,
+} from "lucide-react";
 import { detectServiceKind, KIND_META, SERVICE_PARTS } from "@/lib/service-kinds";
 import { getValveSpec, formatRange, type ValveSpec } from "@/lib/valve-specs";
 import { DamageSection } from "@/components/DamageSection";
@@ -16,14 +32,20 @@ import logoAsset from "@/assets/motorcycle-doctors-logo.png.asset.json";
 
 // Debounced auto-save: fires `save` ~800ms after `value` stops changing.
 // `enabled` guards against saving before the user actually edits (e.g. initial hydration).
-function useAutoSave<T>(value: T, enabled: boolean, save: () => unknown | Promise<unknown>, delay = 800) {
+function useAutoSave<T>(
+  value: T,
+  enabled: boolean,
+  save: () => unknown | Promise<unknown>,
+  delay = 800,
+) {
   const saveRef = useRef(save);
   saveRef.current = save;
   useEffect(() => {
     if (!enabled) return;
-    const t = setTimeout(() => { void saveRef.current(); }, delay);
+    const t = setTimeout(() => {
+      void saveRef.current();
+    }, delay);
     return () => clearTimeout(t);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [value, enabled, delay]);
 }
 
@@ -51,45 +73,100 @@ function JobDetail() {
   });
   const tasks = useQuery({
     queryKey: ["job-tasks", jobId],
-    queryFn: async () => (await supabase.from("job_tasks").select("*").eq("job_id", jobId).order("sort_order")).data ?? [],
+    queryFn: async () =>
+      (await supabase.from("job_tasks").select("*").eq("job_id", jobId).order("sort_order")).data ??
+      [],
   });
   const notes = useQuery({
     queryKey: ["job-notes", jobId],
     queryFn: async () => {
-      const { data } = await supabase.from("job_notes").select("*").eq("job_id", jobId).order("created_at", { ascending: false });
+      const { data } = await supabase
+        .from("job_notes")
+        .select("*")
+        .eq("job_id", jobId)
+        .order("created_at", { ascending: false });
       const ids = [...new Set((data ?? []).map((n) => n.author_id))];
-      const { data: profs } = ids.length ? await supabase.from("profiles").select("id, full_name").in("id", ids) : { data: [] as any[] };
-      const map = new Map<string, string>(); (profs ?? []).forEach((p: any) => map.set(p.id, p.full_name));
+      const { data: profs } = ids.length
+        ? await supabase.from("profiles").select("id, full_name").in("id", ids)
+        : { data: [] as any[] };
+      const map = new Map<string, string>();
+      (profs ?? []).forEach((p: any) => map.set(p.id, p.full_name));
       return (data ?? []).map((n) => ({ ...n, author_name: map.get(n.author_id) ?? "Staff" }));
     },
   });
   const time = useQuery({
     queryKey: ["job-time", jobId],
-    queryFn: async () => (await supabase.from("time_entries").select("*").eq("job_id", jobId)).data ?? [],
+    queryFn: async () =>
+      (await supabase.from("time_entries").select("*").eq("job_id", jobId)).data ?? [],
   });
   const techProfile = useQuery({
     queryKey: ["job-tech", job.data?.technician_id],
     enabled: !!job.data?.technician_id,
-    queryFn: async () => (await supabase.from("profiles").select("full_name").eq("id", job.data!.technician_id!).maybeSingle()).data,
+    queryFn: async () =>
+      (
+        await supabase
+          .from("profiles")
+          .select("full_name")
+          .eq("id", job.data!.technician_id!)
+          .maybeSingle()
+      ).data,
   });
   const partsUsed = useQuery({
     queryKey: ["job-parts", jobId],
-    queryFn: async () => (await supabase.from("parts").select("*").eq("job_id", jobId).order("created_at")).data ?? [],
+    queryFn: async () =>
+      (await supabase.from("parts").select("*").eq("job_id", jobId).order("created_at")).data ?? [],
   });
   const existingInvoice = useQuery({
     queryKey: ["job-invoice", jobId],
-    queryFn: async () => (await supabase.from("invoices").select("id, invoice_number, status, total").eq("job_id", jobId).maybeSingle()).data,
+    queryFn: async () =>
+      (
+        await supabase
+          .from("invoices")
+          .select("id, invoice_number, status, total")
+          .eq("job_id", jobId)
+          .maybeSingle()
+      ).data,
   });
   const booking = useQuery({
     queryKey: ["job-booking", jobId],
-    queryFn: async () => (await supabase.from("bookings").select("notes, complaints, instructions").eq("job_id", jobId).maybeSingle()).data,
+    queryFn: async () =>
+      (
+        await supabase
+          .from("bookings")
+          .select("notes, complaints, instructions")
+          .eq("job_id", jobId)
+          .maybeSingle()
+      ).data,
   });
 
-  const activeTimer = useMemo(() => (time.data ?? []).find((t) => !t.ended_at && t.technician_id === user?.id), [time.data, user]);
-  const totalMinutes = useMemo(() => (time.data ?? []).reduce((s, t) => s + (t.minutes ?? (t.ended_at ? Math.round((+new Date(t.ended_at) - +new Date(t.started_at)) / 60000) : 0)), 0), [time.data]);
+  const activeTimer = useMemo(
+    () => (time.data ?? []).find((t) => !t.ended_at && t.technician_id === user?.id),
+    [time.data, user],
+  );
+  const totalMinutes = useMemo(
+    () =>
+      (time.data ?? []).reduce(
+        (s, t) =>
+          s +
+          (t.minutes ??
+            (t.ended_at
+              ? Math.round((+new Date(t.ended_at) - +new Date(t.started_at)) / 60000)
+              : 0)),
+        0,
+      ),
+    [time.data],
+  );
 
-  if (job.isLoading) return <div className="card-surface p-8 text-center text-sm text-muted-foreground">Loading…</div>;
-  if (!job.data) return <div className="card-surface p-8 text-center text-sm text-muted-foreground">Job not found.</div>;
+  if (job.isLoading)
+    return (
+      <div className="card-surface p-8 text-center text-sm text-muted-foreground">Loading…</div>
+    );
+  if (!job.data)
+    return (
+      <div className="card-surface p-8 text-center text-sm text-muted-foreground">
+        Job not found.
+      </div>
+    );
 
   const j = job.data;
   const meta = STATUS_META[j.status];
@@ -100,9 +177,14 @@ function JobDetail() {
 
   async function toggleTask(taskId: string, isDone: boolean) {
     if (!canEdit) return;
-    const { error } = await supabase.from("job_tasks").update({
-      is_done: !isDone, done_by: !isDone ? user!.id : null, done_at: !isDone ? new Date().toISOString() : null,
-    }).eq("id", taskId);
+    const { error } = await supabase
+      .from("job_tasks")
+      .update({
+        is_done: !isDone,
+        done_by: !isDone ? user!.id : null,
+        done_at: !isDone ? new Date().toISOString() : null,
+      })
+      .eq("id", taskId);
     if (error) return toast.error(error.message);
     qc.invalidateQueries({ queryKey: ["job-tasks", jobId] });
   }
@@ -119,7 +201,9 @@ function JobDetail() {
     const { data, error } = await supabase.from("jobs").update(patch).eq("id", jobId).select("id");
     if (error) return toast.error(error.message);
     if (!data || data.length === 0) {
-      return toast.error("You don't have permission to update this job. Ask an admin to assign it to you.");
+      return toast.error(
+        "You don't have permission to update this job. Ask an admin to assign it to you.",
+      );
     }
     toast.success(`Marked ${STATUS_META[status].label}`);
     qc.invalidateQueries({ queryKey: ["job", jobId] });
@@ -144,10 +228,14 @@ function JobDetail() {
         .eq("id", entry.id);
       if (closeError) return toast.error(closeError.message);
     }
-    const { error } = await supabase.from("time_entries").insert({ job_id: jobId, technician_id: user.id });
+    const { error } = await supabase
+      .from("time_entries")
+      .insert({ job_id: jobId, technician_id: user.id });
     if (error) return toast.error(error.message);
     // Also log a clock_in event so it appears on the Clock page and floating widget
-    await supabase.from("clock_events").insert({ user_id: user.id, event_type: "clock_in", job_id: jobId });
+    await supabase
+      .from("clock_events")
+      .insert({ user_id: user.id, event_type: "clock_in", job_id: jobId });
     if (j.status === "new" || j.status === "assigned") await setStatus("in_progress");
     qc.invalidateQueries({ queryKey: ["job-time", jobId] });
     qc.invalidateQueries({ queryKey: ["clock-events-floating", user.id] });
@@ -160,9 +248,14 @@ function JobDetail() {
     if (!activeTimer || !user) return;
     const ended = new Date();
     const minutes = Math.max(1, Math.round((+ended - +new Date(activeTimer.started_at)) / 60000));
-    const { error } = await supabase.from("time_entries").update({ ended_at: ended.toISOString(), minutes }).eq("id", activeTimer.id);
+    const { error } = await supabase
+      .from("time_entries")
+      .update({ ended_at: ended.toISOString(), minutes })
+      .eq("id", activeTimer.id);
     if (error) return toast.error(error.message);
-    await supabase.from("clock_events").insert({ user_id: user.id, event_type: "clock_out", job_id: jobId });
+    await supabase
+      .from("clock_events")
+      .insert({ user_id: user.id, event_type: "clock_out", job_id: jobId });
     qc.invalidateQueries({ queryKey: ["job-time", jobId] });
     qc.invalidateQueries({ queryKey: ["clock-events-floating", user.id] });
     qc.invalidateQueries({ queryKey: ["clock-floating-active-time-entry", user.id] });
@@ -171,7 +264,10 @@ function JobDetail() {
     toast.success(`Logged ${formatMinutes(minutes)}`);
   }
 
-  const completion = tasks.data && tasks.data.length ? Math.round((tasks.data.filter((t) => t.is_done).length / tasks.data.length) * 100) : 0;
+  const completion =
+    tasks.data && tasks.data.length
+      ? Math.round((tasks.data.filter((t) => t.is_done).length / tasks.data.length) * 100)
+      : 0;
 
   // $130/hr GST-inclusive (NZ 15%). Stored amounts on the invoice are inc-GST;
   // the GST line on the invoice shows the embedded component.
@@ -185,16 +281,17 @@ function JobDetail() {
     // Bill the standard estimated hours for the booked service (e.g. standard service = 2.5h).
     // Fall back to actual tracked time when no estimate is set on the job/template.
     const trackedHours = totalMinutes / 60;
-    const billedHours = Number(j.estimated_hours ?? 0) > 0
-      ? Number(j.estimated_hours)
-      : trackedHours;
+    const billedHours =
+      Number(j.estimated_hours ?? 0) > 0 ? Number(j.estimated_hours) : trackedHours;
     const labour = Math.round(billedHours * LABOUR_RATE * 100) / 100;
     const parts = (partsUsed.data ?? []).reduce(
-      (s, p: any) => s + Number(p.retail ?? 0) * Number(p.quantity ?? 1) * (1 - Number(p.discount_pct ?? 0) / 100),
+      (s, p: any) =>
+        s +
+        Number(p.retail ?? 0) * Number(p.quantity ?? 1) * (1 - Number(p.discount_pct ?? 0) / 100),
       0,
     );
     const subtotal = labour + parts; // inc GST
-    const gst = Math.round((subtotal * 0.15 / 1.15) * 100) / 100; // embedded GST
+    const gst = Math.round(((subtotal * 0.15) / 1.15) * 100) / 100; // embedded GST
     const total = Math.round(subtotal * 100) / 100;
     const year = new Date().getFullYear();
     const { data: last } = await supabase
@@ -204,22 +301,24 @@ function JobDetail() {
       .order("invoice_number", { ascending: false })
       .limit(1)
       .maybeSingle();
-    const nextSeq = last?.invoice_number
-      ? Number(last.invoice_number.split("-").pop()) + 1
-      : 1;
+    const nextSeq = last?.invoice_number ? Number(last.invoice_number.split("-").pop()) + 1 : 1;
     const invoice_number = `MCD-${year}-${String(nextSeq).padStart(5, "0")}`;
-    const { data, error } = await supabase.from("invoices").insert({
-      job_id: jobId,
-      invoice_number,
-      customer_id: j.customer_id,
-      motorcycle_id: j.motorcycle_id,
-      labour_total: labour,
-      parts_total: parts,
-      gst,
-      total,
-      status: "draft",
-      created_by: user.id,
-    }).select("id, invoice_number").maybeSingle();
+    const { data, error } = await supabase
+      .from("invoices")
+      .insert({
+        job_id: jobId,
+        invoice_number,
+        customer_id: j.customer_id,
+        motorcycle_id: j.motorcycle_id,
+        labour_total: labour,
+        parts_total: parts,
+        gst,
+        total,
+        status: "draft",
+        created_by: user.id,
+      })
+      .select("id, invoice_number")
+      .maybeSingle();
     if (error) return toast.error(error.message);
     toast.success(`Invoice ${data?.invoice_number} created`);
     qc.invalidateQueries({ queryKey: ["job-invoice", jobId] });
@@ -249,7 +348,12 @@ function JobDetail() {
             <ArrowLeft className="h-4 w-4" /> Jobs
           </button>
           <div className="flex items-center gap-2">
-            <Button onClick={() => window.print()} variant="outline" size="sm" className="gap-1.5 h-8 px-2.5">
+            <Button
+              onClick={() => window.print()}
+              variant="outline"
+              size="sm"
+              className="gap-1.5 h-8 px-2.5"
+            >
               <Printer className="h-4 w-4" />
               <span className="hidden sm:inline">Print</span>
             </Button>
@@ -259,14 +363,15 @@ function JobDetail() {
         <div className="min-w-0">
           <div className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground flex flex-wrap items-center gap-2">
             <span>Job #{j.job_number}</span>
-            <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${kindMeta.cls}`}>
+            <span
+              className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${kindMeta.cls}`}
+            >
               {kindMeta.label}
             </span>
           </div>
           <h1 className="font-display text-xl sm:text-2xl font-bold mt-1 break-words">{j.title}</h1>
         </div>
       </header>
-
 
       {/* Print-only compact summary */}
       <style>{`
@@ -279,12 +384,17 @@ function JobDetail() {
         }
       `}</style>
       <div className="hidden print:block">
-
         <div className="flex items-start justify-between gap-4 border-b-2 border-black pb-3 mb-4">
           <div className="flex items-center gap-3 min-w-0">
-            <img src={logoAsset.url} alt="Motorcycle Doctors" className="h-14 w-14 rounded-md object-contain bg-black/10 p-1" />
+            <img
+              src={logoAsset.url}
+              alt="Motorcycle Doctors"
+              className="h-14 w-14 rounded-md object-contain bg-black/10 p-1"
+            />
             <div className="min-w-0">
-              <div className="text-[10px] uppercase tracking-[0.25em] text-gray-600">Motorcycle Doctors · Job Card</div>
+              <div className="text-[10px] uppercase tracking-[0.25em] text-gray-600">
+                Motorcycle Doctors · Job Card
+              </div>
               <h1 className="font-display text-2xl font-bold leading-tight">{j.title}</h1>
               <div className="text-xs text-gray-700 mt-1">
                 {kindMeta.label}
@@ -304,130 +414,175 @@ function JobDetail() {
             <div className="text-[9px] uppercase tracking-wider text-gray-500 mb-1">Vehicle</div>
             <div className="font-bold">{fullBike(j.motorcycles as any)}</div>
             <div className="grid grid-cols-2 gap-x-2 mt-1 text-[11px]">
-              <div><span className="text-gray-500">Rego:</span> {(j.motorcycles as any)?.rego ?? "—"}</div>
-              <div><span className="text-gray-500">Year:</span> {(j.motorcycles as any)?.year ?? "—"}</div>
-              <div><span className="text-gray-500">VIN:</span> {(j.motorcycles as any)?.vin ?? "—"}</div>
-              <div><span className="text-gray-500">Odo:</span> {(j.odometer ?? (j.motorcycles as any)?.mileage) != null ? `${Number(j.odometer ?? (j.motorcycles as any)?.mileage).toLocaleString()} km` : "—"}</div>
-              <div><span className="text-gray-500">Cyl:</span> {cylinders}</div>
-              <div><span className="text-gray-500">Colour:</span> {(j.motorcycles as any)?.color ?? "—"}</div>
-              <div><span className="text-gray-500">REGO exp:</span> {(j.motorcycles as any)?.rego_expiry ? new Date((j.motorcycles as any).rego_expiry).toLocaleDateString() : "—"}</div>
-              <div><span className="text-gray-500">WOF exp:</span> {(j.motorcycles as any)?.wof_expiry ? new Date((j.motorcycles as any).wof_expiry).toLocaleDateString() : "—"}</div>
+              <div>
+                <span className="text-gray-500">Rego:</span> {(j.motorcycles as any)?.rego ?? "—"}
+              </div>
+              <div>
+                <span className="text-gray-500">Year:</span> {(j.motorcycles as any)?.year ?? "—"}
+              </div>
+              <div>
+                <span className="text-gray-500">VIN:</span> {(j.motorcycles as any)?.vin ?? "—"}
+              </div>
+              <div>
+                <span className="text-gray-500">Odo:</span>{" "}
+                {(j.odometer ?? (j.motorcycles as any)?.mileage) != null
+                  ? `${Number(j.odometer ?? (j.motorcycles as any)?.mileage).toLocaleString()} km`
+                  : "—"}
+              </div>
+              <div>
+                <span className="text-gray-500">Cyl:</span> {cylinders}
+              </div>
+              <div>
+                <span className="text-gray-500">Colour:</span>{" "}
+                {(j.motorcycles as any)?.color ?? "—"}
+              </div>
+              <div>
+                <span className="text-gray-500">REGO exp:</span>{" "}
+                {(j.motorcycles as any)?.rego_expiry
+                  ? new Date((j.motorcycles as any).rego_expiry).toLocaleDateString()
+                  : "—"}
+              </div>
+              <div>
+                <span className="text-gray-500">WOF exp:</span>{" "}
+                {(j.motorcycles as any)?.wof_expiry
+                  ? new Date((j.motorcycles as any).wof_expiry).toLocaleDateString()
+                  : "—"}
+              </div>
             </div>
           </div>
           <div className="border border-gray-400 rounded p-2">
             <div className="text-[9px] uppercase tracking-wider text-gray-500 mb-1">Customer</div>
-            <div className="font-bold">{j.customers?.first_name ?? ""} {j.customers?.last_name ?? ""}</div>
+            <div className="font-bold">
+              {j.customers?.first_name ?? ""} {j.customers?.last_name ?? ""}
+            </div>
             <div className="text-[11px] mt-1">
-              <div><span className="text-gray-500">Phone:</span> {j.customers?.phone ?? "—"}</div>
-              <div><span className="text-gray-500">Email:</span> {j.customers?.email ?? "—"}</div>
+              <div>
+                <span className="text-gray-500">Phone:</span> {j.customers?.phone ?? "—"}
+              </div>
+              <div>
+                <span className="text-gray-500">Email:</span> {j.customers?.email ?? "—"}
+              </div>
             </div>
           </div>
         </div>
 
         {j.complaint && (
           <div className="border border-gray-400 rounded p-2 mb-4 text-xs">
-            <div className="text-[9px] uppercase tracking-wider text-gray-500 mb-1">Customer Complaint / Instructions</div>
+            <div className="text-[9px] uppercase tracking-wider text-gray-500 mb-1">
+              Customer Complaint / Instructions
+            </div>
             <p className="whitespace-pre-wrap">{j.complaint}</p>
           </div>
         )}
 
-
-        <div className="text-[9px] uppercase tracking-wider text-gray-500 mb-1">Instructions — follow checklist below</div>
+        <div className="text-[9px] uppercase tracking-wider text-gray-500 mb-1">
+          Instructions — follow checklist below
+        </div>
       </div>
 
       {/* Hide-on-print sections wrapped via print:hidden on each card */}
       <div className="print:hidden">
-
-      <div className="card-surface p-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <InfoRow icon={User} label="Customer" value={`${j.customers?.first_name ?? ""} ${j.customers?.last_name ?? ""}`} hint={j.customers?.phone} />
-        <div className="flex items-start gap-3">
-          <BikeIcon className="h-5 w-5 mt-0.5 text-muted-foreground shrink-0" />
-          <div className="min-w-0">
-            <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Motorcycle</div>
-            <div className="font-semibold truncate">{fullBike(j.motorcycles as any)}</div>
-            <div className="text-xs mt-0.5">
-              <span className="text-muted-foreground">REGO:</span>{" "}
-              <span className="font-mono font-bold tracking-wider text-foreground">{(j.motorcycles as any)?.rego ?? "—"}</span>
+        <div className="card-surface p-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <InfoRow
+            icon={User}
+            label="Customer"
+            value={`${j.customers?.first_name ?? ""} ${j.customers?.last_name ?? ""}`}
+            hint={j.customers?.phone}
+          />
+          <div className="flex items-start gap-3">
+            <BikeIcon className="h-5 w-5 mt-0.5 text-muted-foreground shrink-0" />
+            <div className="min-w-0">
+              <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                Motorcycle
+              </div>
+              <div className="font-semibold truncate">{fullBike(j.motorcycles as any)}</div>
+              <div className="text-xs mt-0.5">
+                <span className="text-muted-foreground">REGO:</span>{" "}
+                <span className="font-mono font-bold tracking-wider text-foreground">
+                  {(j.motorcycles as any)?.rego ?? "—"}
+                </span>
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Kilometers / Odometer — technician entry */}
-      <OdometerSection
-        jobId={jobId}
-        bikeId={(j.motorcycles as any)?.id}
-        currentOdo={j.odometer ?? null}
-        bikeMileage={(j.motorcycles as any)?.mileage ?? null}
-        canEdit={canEdit}
-        onSaved={() => {
-          qc.invalidateQueries({ queryKey: ["job", jobId] });
-        }}
-      />
-
-      {/* REGO expiry & WOF expiry — technician entry */}
-      <ExpirySection
-        label="REGO expiry"
-        hint="Technician — enter the registration expiry date shown on the rego label."
-        bikeId={(j.motorcycles as any)?.id}
-        field="rego_expiry"
-        currentValue={(j.motorcycles as any)?.rego_expiry ?? null}
-        canEdit={canEdit}
-        onSaved={() => qc.invalidateQueries({ queryKey: ["job", jobId] })}
-      />
-      <ExpirySection
-        label="WOF expiry"
-        hint="Technician — enter the Warrant of Fitness expiry date."
-        bikeId={(j.motorcycles as any)?.id}
-        field="wof_expiry"
-        currentValue={(j.motorcycles as any)?.wof_expiry ?? null}
-        canEdit={canEdit}
-        onSaved={() => qc.invalidateQueries({ queryKey: ["job", jobId] })}
-      />
-
-
-      {/* Live timer */}
-      <div className="card-surface p-4">
-        <div className="flex items-center justify-between gap-3 flex-wrap">
-          <div>
-            <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Labour logged</div>
-            <div className="font-display text-3xl font-bold gold-gradient-text">{formatMinutes(totalMinutes)}</div>
-            <div className="text-xs text-muted-foreground mt-0.5">
-              Tech: {techProfile.data?.full_name ?? <span className="italic">Unassigned</span>}
-              {j.estimated_hours ? ` · est. ${j.estimated_hours}h` : ""}
-            </div>
-          </div>
-          {canEdit && (
-            <div className="flex items-center gap-2 flex-wrap">
-              {activeTimer ? (
-                <LiveTimerButton startedAt={activeTimer.started_at} onStop={stopTimer} />
-              ) : (
-                <Button onClick={startTimer} className="gold-surface h-12 px-5 font-bold gap-2">
-                  <Play className="h-4 w-4" /> Clock In
-                </Button>
-
-              )}
-              {j.status !== "completed" && (
-                <Button
-                  onClick={async () => {
-                    if (activeTimer) await stopTimer();
-                    await setStatus("completed");
-                  }}
-                  className="h-12 px-5 font-bold gap-2 bg-green-600 hover:bg-green-700 text-white"
-                >
-                  <Check className="h-4 w-4" /> Finish Job
-                </Button>
-              )}
-            </div>
-          )}
-        </div>
-        <TimeEntriesEditor
-          entries={time.data ?? []}
+        {/* Kilometers / Odometer — technician entry */}
+        <OdometerSection
           jobId={jobId}
-          currentUserId={user?.id}
-          isAdmin={isAdmin}
+          bikeId={(j.motorcycles as any)?.id}
+          currentOdo={j.odometer ?? null}
+          bikeMileage={(j.motorcycles as any)?.mileage ?? null}
+          canEdit={canEdit}
+          onSaved={() => {
+            qc.invalidateQueries({ queryKey: ["job", jobId] });
+          }}
         />
-      </div>
+
+        {/* REGO expiry & WOF expiry — technician entry */}
+        <ExpirySection
+          label="REGO expiry"
+          hint="Technician — enter the registration expiry date shown on the rego label."
+          bikeId={(j.motorcycles as any)?.id}
+          field="rego_expiry"
+          currentValue={(j.motorcycles as any)?.rego_expiry ?? null}
+          canEdit={canEdit}
+          onSaved={() => qc.invalidateQueries({ queryKey: ["job", jobId] })}
+        />
+        <ExpirySection
+          label="WOF expiry"
+          hint="Technician — enter the Warrant of Fitness expiry date."
+          bikeId={(j.motorcycles as any)?.id}
+          field="wof_expiry"
+          currentValue={(j.motorcycles as any)?.wof_expiry ?? null}
+          canEdit={canEdit}
+          onSaved={() => qc.invalidateQueries({ queryKey: ["job", jobId] })}
+        />
+
+        {/* Live timer */}
+        <div className="card-surface p-4">
+          <div className="flex items-center justify-between gap-3 flex-wrap">
+            <div>
+              <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                Labour logged
+              </div>
+              <div className="font-display text-3xl font-bold gold-gradient-text">
+                {formatMinutes(totalMinutes)}
+              </div>
+              <div className="text-xs text-muted-foreground mt-0.5">
+                Tech: {techProfile.data?.full_name ?? <span className="italic">Unassigned</span>}
+                {j.estimated_hours ? ` · est. ${j.estimated_hours}h` : ""}
+              </div>
+            </div>
+            {canEdit && (
+              <div className="flex items-center gap-2 flex-wrap">
+                {activeTimer ? (
+                  <LiveTimerButton startedAt={activeTimer.started_at} onStop={stopTimer} />
+                ) : (
+                  <Button onClick={startTimer} className="gold-surface h-12 px-5 font-bold gap-2">
+                    <Play className="h-4 w-4" /> Clock In
+                  </Button>
+                )}
+                {j.status !== "completed" && (
+                  <Button
+                    onClick={async () => {
+                      if (activeTimer) await stopTimer();
+                      await setStatus("completed");
+                    }}
+                    className="h-12 px-5 font-bold gap-2 bg-green-600 hover:bg-green-700 text-white"
+                  >
+                    <Check className="h-4 w-4" /> Finish Job
+                  </Button>
+                )}
+              </div>
+            )}
+          </div>
+          <TimeEntriesEditor
+            entries={time.data ?? []}
+            jobId={jobId}
+            currentUserId={user?.id}
+            isAdmin={isAdmin}
+          />
+        </div>
       </div>
 
       {/* Service Template */}
@@ -438,7 +593,7 @@ function JobDetail() {
         tasks={tasks.data ?? []}
         canEdit={canEdit}
         completion={completion}
-          onToggleTask={(id: string, done: boolean) => toggleTask(id, done)}
+        onToggleTask={(id: string, done: boolean) => toggleTask(id, done)}
         onNoteSaved={() => qc.invalidateQueries({ queryKey: ["job-tasks", jobId] })}
         onTemplateChanged={() => {
           qc.invalidateQueries({ queryKey: ["job", jobId] });
@@ -449,46 +604,51 @@ function JobDetail() {
       {/* Parts used (service-kind aware) */}
       {SERVICE_PARTS[kind].length > 0 && (
         <>
-        <div className="print:hidden"><PartsSection
-          jobId={jobId}
-          canEdit={canEdit}
-          serviceData={(j.service_data as any) ?? {}}
-          fields={SERVICE_PARTS[kind]}
-          parts={partsUsed.data ?? []}
-          onChanged={() => {
-            qc.invalidateQueries({ queryKey: ["job", jobId] });
-            qc.invalidateQueries({ queryKey: ["job-parts", jobId] });
-            qc.invalidateQueries({ queryKey: ["inventory"] });
-          }}
-        /></div>
-        {(partsUsed.data ?? []).length > 0 && (
-          <div className="hidden print:block mt-3">
-            <h2 className="font-display text-base font-bold uppercase tracking-wider border-b border-black pb-1 mb-2">Parts Used</h2>
-            <table className="w-full text-[11px] border-collapse">
-              <thead>
-                <tr className="border-b border-gray-400 text-left">
-                  <th className="py-1 pr-2">Item</th>
-                  <th className="py-1 pr-2 w-16 text-right">Qty</th>
-                  <th className="py-1 pr-2 w-24">Code</th>
-                  <th className="py-1 w-20 text-right">Unit</th>
-                </tr>
-              </thead>
-              <tbody>
-                {(partsUsed.data ?? []).map((p: any) => (
-                  <tr key={p.id} className="border-b border-gray-200">
-                    <td className="py-1 pr-2">{p.name ?? p.description ?? "—"}</td>
-                    <td className="py-1 pr-2 text-right">{p.quantity ?? 1}</td>
-                    <td className="py-1 pr-2">{p.sku ?? p.part_number ?? "—"}</td>
-                    <td className="py-1 text-right">{p.unit_price != null ? `$${Number(p.unit_price).toFixed(2)}` : "—"}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div className="print:hidden">
+            <PartsSection
+              jobId={jobId}
+              canEdit={canEdit}
+              serviceData={(j.service_data as any) ?? {}}
+              fields={SERVICE_PARTS[kind]}
+              parts={partsUsed.data ?? []}
+              onChanged={() => {
+                qc.invalidateQueries({ queryKey: ["job", jobId] });
+                qc.invalidateQueries({ queryKey: ["job-parts", jobId] });
+                qc.invalidateQueries({ queryKey: ["inventory"] });
+              }}
+            />
           </div>
-        )}
+          {(partsUsed.data ?? []).length > 0 && (
+            <div className="hidden print:block mt-3">
+              <h2 className="font-display text-base font-bold uppercase tracking-wider border-b border-black pb-1 mb-2">
+                Parts Used
+              </h2>
+              <table className="w-full text-[11px] border-collapse">
+                <thead>
+                  <tr className="border-b border-gray-400 text-left">
+                    <th className="py-1 pr-2">Item</th>
+                    <th className="py-1 pr-2 w-16 text-right">Qty</th>
+                    <th className="py-1 pr-2 w-24">Code</th>
+                    <th className="py-1 w-20 text-right">Unit</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {(partsUsed.data ?? []).map((p: any) => (
+                    <tr key={p.id} className="border-b border-gray-200">
+                      <td className="py-1 pr-2">{p.name ?? p.description ?? "—"}</td>
+                      <td className="py-1 pr-2 text-right">{p.quantity ?? 1}</td>
+                      <td className="py-1 pr-2">{p.sku ?? p.part_number ?? "—"}</td>
+                      <td className="py-1 text-right">
+                        {p.unit_price != null ? `$${Number(p.unit_price).toFixed(2)}` : "—"}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </>
       )}
-
 
       {/* Valve clearance diagram for Full service — also prints as a worksheet page */}
       {kind === "full" && (
@@ -507,14 +667,18 @@ function JobDetail() {
         <section className="card-surface p-4 border-l-4 border-primary/60">
           <div className="flex items-center gap-2 mb-2">
             <h2 className="font-display text-lg font-semibold">Instructions</h2>
-            <span className="text-[10px] uppercase tracking-wider text-muted-foreground">from book-in</span>
+            <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
+              from book-in
+            </span>
           </div>
           {booking.data?.instructions && (
             <p className="text-sm whitespace-pre-wrap">{booking.data.instructions}</p>
           )}
           {booking.data?.notes && (
             <div className="mt-2 pt-2 border-t border-border/40">
-              <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-0.5">Internal notes</div>
+              <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-0.5">
+                Internal notes
+              </div>
               <p className="text-sm whitespace-pre-wrap">{booking.data.notes}</p>
             </div>
           )}
@@ -531,17 +695,25 @@ function JobDetail() {
         />
       )}
 
-
       <section className="card-surface p-4">
         <h2 className="font-display text-lg font-semibold mb-3">Notes</h2>
-        {canEdit && <AddNote jobId={jobId} onAdded={() => qc.invalidateQueries({ queryKey: ["job-notes", jobId] })} />}
+        {canEdit && (
+          <AddNote
+            jobId={jobId}
+            onAdded={() => qc.invalidateQueries({ queryKey: ["job-notes", jobId] })}
+          />
+        )}
         <div className="space-y-2 mt-3">
           {(notes.data ?? []).map((n: any) => (
             <div key={n.id} className="rounded-lg border border-border bg-background/40 p-3">
               <div className="flex items-center gap-2 mb-1">
-                <span className="grid h-6 w-6 place-items-center rounded-full bg-muted text-[10px] font-semibold">{initials(n.author_name)}</span>
+                <span className="grid h-6 w-6 place-items-center rounded-full bg-muted text-[10px] font-semibold">
+                  {initials(n.author_name)}
+                </span>
                 <span className="text-xs font-semibold">{n.author_name}</span>
-                <span className="text-[10px] text-muted-foreground">{new Date(n.created_at).toLocaleString()}</span>
+                <span className="text-[10px] text-muted-foreground">
+                  {new Date(n.created_at).toLocaleString()}
+                </span>
               </div>
               <p className="text-sm whitespace-pre-wrap">{n.body}</p>
             </div>
@@ -554,7 +726,9 @@ function JobDetail() {
 
       {j.complaint && (
         <section className="card-surface p-4 print:hidden">
-          <div className="text-xs uppercase tracking-wider text-muted-foreground mb-1">Customer Complaint</div>
+          <div className="text-xs uppercase tracking-wider text-muted-foreground mb-1">
+            Customer Complaint
+          </div>
           <p className="text-sm whitespace-pre-wrap">{j.complaint}</p>
         </section>
       )}
@@ -566,7 +740,8 @@ function JobDetail() {
               <h2 className="font-display text-lg font-semibold">Invoice</h2>
               {existingInvoice.data ? (
                 <p className="text-xs text-muted-foreground mt-0.5">
-                  {existingInvoice.data.invoice_number} · {existingInvoice.data.status} · ${Number(existingInvoice.data.total).toFixed(2)}
+                  {existingInvoice.data.invoice_number} · {existingInvoice.data.status} · $
+                  {Number(existingInvoice.data.total).toFixed(2)}
                 </p>
               ) : (
                 <p className="text-xs text-muted-foreground mt-0.5">
@@ -574,10 +749,7 @@ function JobDetail() {
                 </p>
               )}
             </div>
-            <Button
-              onClick={createInvoice}
-              className="gold-surface h-11 px-4 font-bold gap-2"
-            >
+            <Button onClick={createInvoice} className="gold-surface h-11 px-4 font-bold gap-2">
               <FileText className="h-4 w-4" />
               {existingInvoice.data ? "Open Invoice" : "Create Invoice"}
             </Button>
@@ -598,10 +770,22 @@ function JobDetail() {
   );
 }
 
-function InfoRow({ icon: Icon, label, value, hint }: { icon: any; label: string; value: string; hint?: string | null }) {
+function InfoRow({
+  icon: Icon,
+  label,
+  value,
+  hint,
+}: {
+  icon: any;
+  label: string;
+  value: string;
+  hint?: string | null;
+}) {
   return (
     <div className="flex items-start gap-3">
-      <span className="grid h-9 w-9 place-items-center rounded-lg bg-muted text-primary shrink-0"><Icon className="h-4 w-4" /></span>
+      <span className="grid h-9 w-9 place-items-center rounded-lg bg-muted text-primary shrink-0">
+        <Icon className="h-4 w-4" />
+      </span>
       <div className="min-w-0">
         <div className="text-[10px] uppercase tracking-wider text-muted-foreground">{label}</div>
         <div className="font-semibold truncate">{value || "—"}</div>
@@ -611,7 +795,15 @@ function InfoRow({ icon: Icon, label, value, hint }: { icon: any; label: string;
   );
 }
 
-function StatusDropdown({ current, onChange, disabled }: { current: string; onChange: (s: string) => void; disabled?: boolean }) {
+function StatusDropdown({
+  current,
+  onChange,
+  disabled,
+}: {
+  current: string;
+  onChange: (s: string) => void;
+  disabled?: boolean;
+}) {
   const [open, setOpen] = useState(false);
   const meta = STATUS_META[current];
   return (
@@ -634,7 +826,10 @@ function StatusDropdown({ current, onChange, disabled }: { current: string; onCh
               return (
                 <button
                   key={s}
-                  onClick={() => { onChange(s); setOpen(false); }}
+                  onClick={() => {
+                    onChange(s);
+                    setOpen(false);
+                  }}
                   className="w-full flex items-center gap-2 px-2.5 py-2 rounded-lg text-xs font-semibold hover:bg-muted text-left"
                 >
                   <span className={`h-2 w-2 rounded-full ${m.dot}`} />
@@ -656,11 +851,18 @@ function LiveTimerButton({ startedAt, onStop }: { startedAt: string; onStop: () 
     return () => clearInterval(i);
   }, []);
   const sec = Math.max(0, Math.floor((now - +new Date(startedAt)) / 1000));
-  const h = Math.floor(sec / 3600), m = Math.floor((sec % 3600) / 60), s = sec % 60;
+  const h = Math.floor(sec / 3600),
+    m = Math.floor((sec % 3600) / 60),
+    s = sec % 60;
   return (
-    <Button onClick={onStop} className="bg-status-parts hover:bg-status-parts/90 text-white h-12 px-5 font-bold gap-2">
+    <Button
+      onClick={onStop}
+      className="bg-status-parts hover:bg-status-parts/90 text-white h-12 px-5 font-bold gap-2"
+    >
       <Square className="h-4 w-4 fill-white" />
-      <span className="tabular-nums">{String(h).padStart(2,"0")}:{String(m).padStart(2,"0")}:{String(s).padStart(2,"0")}</span>
+      <span className="tabular-nums">
+        {String(h).padStart(2, "0")}:{String(m).padStart(2, "0")}:{String(s).padStart(2, "0")}
+      </span>
       <span>Clock Out</span>
     </Button>
   );
@@ -673,27 +875,57 @@ function AddNote({ jobId, onAdded }: { jobId: string; onAdded: () => void }) {
   async function save() {
     if (!body.trim() || !user) return;
     setSaving(true);
-    const { error } = await supabase.from("job_notes").insert({ job_id: jobId, body, author_id: user.id });
+    const { error } = await supabase
+      .from("job_notes")
+      .insert({ job_id: jobId, body, author_id: user.id });
     setSaving(false);
     if (error) return toast.error(error.message);
-    setBody(""); onAdded();
+    setBody("");
+    onAdded();
   }
   return (
     <div className="space-y-2">
-      <Textarea value={body} onChange={(e) => setBody(e.target.value)} rows={2} placeholder="Add a note for the team…" />
-      <Button onClick={save} disabled={saving || !body.trim()} className="gold-surface w-full sm:w-auto">Post note</Button>
+      <Textarea
+        value={body}
+        onChange={(e) => setBody(e.target.value)}
+        rows={2}
+        placeholder="Add a note for the team…"
+      />
+      <Button
+        onClick={save}
+        disabled={saving || !body.trim()}
+        className="gold-surface w-full sm:w-auto"
+      >
+        Post note
+      </Button>
     </div>
   );
 }
 
-function TaskRow({ task, canEdit, onToggle, onNoteSaved }: { task: any; canEdit: boolean; onToggle: () => void; onNoteSaved: () => void }) {
+function TaskRow({
+  task,
+  canEdit,
+  onToggle,
+  onNoteSaved,
+}: {
+  task: any;
+  canEdit: boolean;
+  onToggle: () => void;
+  onNoteSaved: () => void;
+}) {
   const [note, setNote] = useState(task.note ?? "");
   const [dirty, setDirty] = useState(false);
   const [savedTick, setSavedTick] = useState(false);
-  useEffect(() => { setNote(task.note ?? ""); setDirty(false); }, [task.note]);
+  useEffect(() => {
+    setNote(task.note ?? "");
+    setDirty(false);
+  }, [task.note]);
 
   async function saveNote() {
-    const { error } = await supabase.from("job_tasks").update({ note: note || null }).eq("id", task.id);
+    const { error } = await supabase
+      .from("job_tasks")
+      .update({ note: note || null })
+      .eq("id", task.id);
     if (error) return toast.error(error.message);
     setDirty(false);
     setSavedTick(true);
@@ -712,12 +944,16 @@ function TaskRow({ task, canEdit, onToggle, onNoteSaved }: { task: any; canEdit:
       >
         <Check
           className={`h-3 w-3 mt-0.5 shrink-0 transition-colors print:hidden ${
-            task.is_done ? "text-status-ready" : "text-status-ready/70 group-hover:text-status-ready"
+            task.is_done
+              ? "text-status-ready"
+              : "text-status-ready/70 group-hover:text-status-ready"
           }`}
           strokeWidth={3}
         />
         <span className="hidden print:inline-block h-3.5 w-3.5 mt-0.5 shrink-0 border border-black rounded-[2px]" />
-        <span className={`text-xs leading-snug print:text-[13px] print:text-black ${task.is_done ? "text-muted-foreground line-through print:no-underline print:text-black" : "text-foreground"}`}>
+        <span
+          className={`text-xs leading-snug print:text-[13px] print:text-black ${task.is_done ? "text-muted-foreground line-through print:no-underline print:text-black" : "text-foreground"}`}
+        >
           {task.label}
         </span>
       </button>
@@ -725,27 +961,49 @@ function TaskRow({ task, canEdit, onToggle, onNoteSaved }: { task: any; canEdit:
         <div className="mt-0 pl-5 no-print flex items-center gap-2">
           <input
             value={note}
-            onChange={(e) => { setNote(e.target.value); setDirty(true); }}
-            onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); if (dirty) saveNote(); } }}
+            onChange={(e) => {
+              setNote(e.target.value);
+              setDirty(true);
+            }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                if (dirty) saveNote();
+              }
+            }}
             placeholder="Quick note…"
             maxLength={140}
             className="flex-1 bg-transparent border-0 border-b border-border/30 text-[11px] py-0 focus:outline-none focus:border-primary placeholder:text-muted-foreground/40"
           />
-          {dirty && <span className="text-[9px] uppercase tracking-wider text-muted-foreground/60">saving…</span>}
-          {!dirty && savedTick && <span className="text-[9px] uppercase tracking-wider text-status-ready">✓ saved</span>}
+          {dirty && (
+            <span className="text-[9px] uppercase tracking-wider text-muted-foreground/60">
+              saving…
+            </span>
+          )}
+          {!dirty && savedTick && (
+            <span className="text-[9px] uppercase tracking-wider text-status-ready">✓ saved</span>
+          )}
         </div>
       )}
 
-      {!canEdit && note && <p className="mt-0 pl-5 text-[11px] text-muted-foreground italic">{note}</p>}
+      {!canEdit && note && (
+        <p className="mt-0 pl-5 text-[11px] text-muted-foreground italic">{note}</p>
+      )}
       {note && <p className="hidden print:block pl-5 text-[11px] text-black italic">↳ {note}</p>}
-
     </div>
   );
 }
 
 function ServiceTemplateSection({
-  jobId, currentTemplateId, currentTitle, tasks, canEdit, completion,
-  onToggleTask, onNoteSaved, onTemplateChanged,
+  jobId,
+  currentTemplateId,
+  currentTitle,
+  tasks,
+  canEdit,
+  completion,
+  onToggleTask,
+  onNoteSaved,
+  onTemplateChanged,
 }: {
   jobId: string;
   currentTemplateId: string | null;
@@ -776,20 +1034,29 @@ function ServiceTemplateSection({
   async function pickTemplate(tmpl: any) {
     if (!canEdit) return;
     if (tmpl.id === currentTemplateId) return;
-    if (tasks.length > 0 && !confirm(`Switch template to "${tmpl.name}"? This will replace the task list.`)) return;
+    if (
+      tasks.length > 0 &&
+      !confirm(`Switch template to "${tmpl.name}"? This will replace the task list.`)
+    )
+      return;
     setSwitching(tmpl.id);
     try {
       await supabase.from("job_tasks").delete().eq("job_id", jobId);
       const rows = ((tmpl.tasks as any[]) ?? []).map((t: any, i: number) => ({
-        job_id: jobId, label: t.label, sort_order: i,
+        job_id: jobId,
+        label: t.label,
+        sort_order: i,
       }));
       if (rows.length) await supabase.from("job_tasks").insert(rows);
-      await supabase.from("jobs").update({
-        template_id: tmpl.id,
-        title: tmpl.name,
-        description: tmpl.description,
-        estimated_hours: tmpl.estimated_hours,
-      }).eq("id", jobId);
+      await supabase
+        .from("jobs")
+        .update({
+          template_id: tmpl.id,
+          title: tmpl.name,
+          description: tmpl.description,
+          estimated_hours: tmpl.estimated_hours,
+        })
+        .eq("id", jobId);
       toast.success(`Template set to ${tmpl.name}`);
       onTemplateChanged();
     } catch (e: any) {
@@ -800,7 +1067,9 @@ function ServiceTemplateSection({
   }
 
   const currentTmpl = (templates.data ?? []).find((t: any) => t.id === currentTemplateId);
-  const currentKindLabel = currentTmpl ? currentTmpl.name.replace(" Service", "").toUpperCase() : currentTitle.toUpperCase();
+  const currentKindLabel = currentTmpl
+    ? currentTmpl.name.replace(" Service", "").toUpperCase()
+    : currentTitle.toUpperCase();
 
   return (
     <section className="card-surface p-5 print:p-0 print:border-0 print:shadow-none print:bg-transparent">
@@ -821,8 +1090,12 @@ function ServiceTemplateSection({
               <div className="text-[10px] uppercase tracking-wider font-bold">
                 {tmpl.name.replace(" Service", "")}
               </div>
-              <div className="text-[10px] text-muted-foreground mt-0.5">{tmpl.estimated_hours ?? "—"}h</div>
-              {switching === tmpl.id && <div className="text-[10px] text-muted-foreground">Switching…</div>}
+              <div className="text-[10px] text-muted-foreground mt-0.5">
+                {tmpl.estimated_hours ?? "—"}h
+              </div>
+              {switching === tmpl.id && (
+                <div className="text-[10px] text-muted-foreground">Switching…</div>
+              )}
             </button>
           );
         })}
@@ -849,7 +1122,6 @@ function ServiceTemplateSection({
         </h2>
       </div>
 
-
       <div className="grid grid-cols-1 sm:grid-cols-2 print:grid-cols-3 gap-x-4 gap-y-0">
         {tasks.map((t) => (
           <TaskRow
@@ -861,22 +1133,26 @@ function ServiceTemplateSection({
           />
         ))}
         {tasks.length === 0 && (
-          <p className="text-sm text-muted-foreground text-center py-4">Pick a template above to load the checklist.</p>
+          <p className="text-sm text-muted-foreground text-center py-4">
+            Pick a template above to load the checklist.
+          </p>
         )}
       </div>
 
-      {canEdit && (
-        <AddCustomCheck
-          jobId={jobId}
-          nextOrder={tasks.length}
-          onAdded={onNoteSaved}
-        />
-      )}
+      {canEdit && <AddCustomCheck jobId={jobId} nextOrder={tasks.length} onAdded={onNoteSaved} />}
     </section>
   );
 }
 
-function AddCustomCheck({ jobId, nextOrder, onAdded }: { jobId: string; nextOrder: number; onAdded: () => void }) {
+function AddCustomCheck({
+  jobId,
+  nextOrder,
+  onAdded,
+}: {
+  jobId: string;
+  nextOrder: number;
+  onAdded: () => void;
+}) {
   const [open, setOpen] = useState(false);
   const [label, setLabel] = useState("");
   const [saving, setSaving] = useState(false);
@@ -886,7 +1162,9 @@ function AddCustomCheck({ jobId, nextOrder, onAdded }: { jobId: string; nextOrde
     if (!v) return;
     setSaving(true);
     const { error } = await supabase.from("job_tasks").insert({
-      job_id: jobId, label: v, sort_order: nextOrder,
+      job_id: jobId,
+      label: v,
+      sort_order: nextOrder,
     } as any);
     setSaving(false);
     if (error) return toast.error(error.message);
@@ -913,14 +1191,24 @@ function AddCustomCheck({ jobId, nextOrder, onAdded }: { jobId: string; nextOrde
         autoFocus
         value={label}
         onChange={(e) => setLabel(e.target.value)}
-        onKeyDown={(e) => { if (e.key === "Enter") save(); if (e.key === "Escape") setOpen(false); }}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") save();
+          if (e.key === "Escape") setOpen(false);
+        }}
         placeholder="Custom check item…"
         className="h-9 text-sm"
       />
       <Button onClick={save} disabled={saving || !label.trim()} size="sm" className="gold-surface">
         <Check className="h-3.5 w-3.5 mr-1" /> Add
       </Button>
-      <Button onClick={() => { setOpen(false); setLabel(""); }} variant="ghost" size="sm">
+      <Button
+        onClick={() => {
+          setOpen(false);
+          setLabel("");
+        }}
+        variant="ghost"
+        size="sm"
+      >
         <X className="h-3.5 w-3.5" />
       </Button>
     </div>
@@ -928,19 +1216,32 @@ function AddCustomCheck({ jobId, nextOrder, onAdded }: { jobId: string; nextOrde
 }
 
 function PartsSection({
-  jobId, canEdit, serviceData, fields, parts, onChanged,
+  jobId,
+  canEdit,
+  serviceData,
+  fields,
+  parts,
+  onChanged,
 }: {
-  jobId: string; canEdit: boolean; serviceData: any;
+  jobId: string;
+  canEdit: boolean;
+  serviceData: any;
   fields: Array<{ key: string; label: string; category: string; unitHint?: string }>;
-  parts: any[]; onChanged: () => void;
+  parts: any[];
+  onChanged: () => void;
 }) {
-  const [picker, setPicker] = useState<{ key: string; category: string; label: string } | null>(null);
+  const [picker, setPicker] = useState<{ key: string; category: string; label: string } | null>(
+    null,
+  );
   const used = serviceData?.parts_used ?? {};
 
   async function clearField(key: string) {
     const next = { ...used };
     delete next[key];
-    const { error } = await supabase.from("jobs").update({ service_data: { ...serviceData, parts_used: next } }).eq("id", jobId);
+    const { error } = await supabase
+      .from("jobs")
+      .update({ service_data: { ...serviceData, parts_used: next } })
+      .eq("id", jobId);
     if (error) return toast.error(error.message);
     onChanged();
   }
@@ -949,7 +1250,10 @@ function PartsSection({
     const current = used[key];
     if (!current) return;
     const next = { ...used, [key]: { ...current, quantity: qty } };
-    await supabase.from("jobs").update({ service_data: { ...serviceData, parts_used: next } }).eq("id", jobId);
+    await supabase
+      .from("jobs")
+      .update({ service_data: { ...serviceData, parts_used: next } })
+      .eq("id", jobId);
     onChanged();
   }
 
@@ -965,28 +1269,38 @@ function PartsSection({
           return (
             <div key={f.key} className="rounded-lg border border-border p-3">
               <div className="flex items-center gap-2 justify-between">
-                <div className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">{f.label}</div>
-                {canEdit && (
-                  u ? (
-                    <button onClick={() => clearField(f.key)} className="text-[10px] text-destructive flex items-center gap-1">
+                <div className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">
+                  {f.label}
+                </div>
+                {canEdit &&
+                  (u ? (
+                    <button
+                      onClick={() => clearField(f.key)}
+                      className="text-[10px] text-destructive flex items-center gap-1"
+                    >
                       <X className="h-3 w-3" /> Remove
                     </button>
                   ) : (
                     <button
-                      onClick={() => setPicker({ key: f.key, category: f.category, label: f.label })}
+                      onClick={() =>
+                        setPicker({ key: f.key, category: f.category, label: f.label })
+                      }
                       className="text-[11px] font-semibold text-primary flex items-center gap-1 hover:underline"
                     >
                       <Plus className="h-3 w-3" /> Pick from inventory
                     </button>
-                  )
-                )}
+                  ))}
               </div>
               {u ? (
                 <div className="mt-2 flex items-center gap-2 flex-wrap">
-                  <span className="grid h-9 w-9 place-items-center rounded-md bg-muted text-primary"><Package className="h-4 w-4" /></span>
+                  <span className="grid h-9 w-9 place-items-center rounded-md bg-muted text-primary">
+                    <Package className="h-4 w-4" />
+                  </span>
                   <div className="flex-1 min-w-0">
                     <div className="font-semibold text-sm truncate">{u.name}</div>
-                    <div className="text-xs text-muted-foreground truncate">{[u.brand, u.type].filter(Boolean).join(" · ")}</div>
+                    <div className="text-xs text-muted-foreground truncate">
+                      {[u.brand, u.type].filter(Boolean).join(" · ")}
+                    </div>
                   </div>
                   <div className="flex items-center gap-1.5">
                     <Input
@@ -997,7 +1311,9 @@ function PartsSection({
                       disabled={!canEdit}
                       className="h-9 w-20"
                     />
-                    <span className="text-xs text-muted-foreground">{u.unit || f.unitHint || ""}</span>
+                    <span className="text-xs text-muted-foreground">
+                      {u.unit || f.unitHint || ""}
+                    </span>
                   </div>
                 </div>
               ) : (
@@ -1008,17 +1324,19 @@ function PartsSection({
         })}
       </div>
 
-      {canEdit && (
-        <AddCustomPart jobId={jobId} onAdded={onChanged} />
-      )}
+      {canEdit && <AddCustomPart jobId={jobId} onAdded={onChanged} />}
 
       {parts.length > 0 && (
         <div className="mt-4 pt-3 border-t border-border">
-          <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-2 font-semibold">Stock movements logged</div>
+          <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-2 font-semibold">
+            Stock movements logged
+          </div>
           <ul className="text-xs space-y-1">
             {parts.map((p) => (
               <li key={p.id} className="flex justify-between text-muted-foreground">
-                <span>{p.name} × {Number(p.quantity)}</span>
+                <span>
+                  {p.name} × {Number(p.quantity)}
+                </span>
                 <span>${(Number(p.retail) * Number(p.quantity)).toFixed(2)}</span>
               </li>
             ))}
@@ -1034,16 +1352,32 @@ function PartsSection({
           label={picker.label}
           serviceData={serviceData}
           onClose={() => setPicker(null)}
-          onPicked={() => { setPicker(null); onChanged(); }}
+          onPicked={() => {
+            setPicker(null);
+            onChanged();
+          }}
         />
       )}
     </section>
   );
 }
 
-function InventoryPicker({ jobId, fieldKey, category, label, serviceData, onClose, onPicked }: {
-  jobId: string; fieldKey: string; category: string; label: string; serviceData: any;
-  onClose: () => void; onPicked: () => void;
+function InventoryPicker({
+  jobId,
+  fieldKey,
+  category,
+  label,
+  serviceData,
+  onClose,
+  onPicked,
+}: {
+  jobId: string;
+  fieldKey: string;
+  category: string;
+  label: string;
+  serviceData: any;
+  onClose: () => void;
+  onPicked: () => void;
 }) {
   const { user } = useCurrentUser();
   const [qty, setQty] = useState("1");
@@ -1051,7 +1385,9 @@ function InventoryPicker({ jobId, fieldKey, category, label, serviceData, onClos
 
   const items = useQuery({
     queryKey: ["inventory-pick", category],
-    queryFn: async () => (await supabase.from("inventory_items").select("*").eq("category", category).order("name")).data ?? [],
+    queryFn: async () =>
+      (await supabase.from("inventory_items").select("*").eq("category", category).order("name"))
+        .data ?? [],
   });
 
   async function confirm() {
@@ -1075,13 +1411,23 @@ function InventoryPicker({ jobId, fieldKey, category, label, serviceData, onClos
     };
 
     const updates = await Promise.all([
-      supabase.from("jobs").update({ service_data: { ...serviceData, parts_used: next } }).eq("id", jobId),
+      supabase
+        .from("jobs")
+        .update({ service_data: { ...serviceData, parts_used: next } })
+        .eq("id", jobId),
       supabase.from("parts").insert({
-        job_id: jobId, name: `${item.name}${item.brand ? ` (${item.brand})` : ""}`,
-        quantity: n, supplier: item.brand, cost: Number(item.unit_price), retail: Number(item.unit_price),
+        job_id: jobId,
+        name: `${item.name}${item.brand ? ` (${item.brand})` : ""}`,
+        quantity: n,
+        supplier: item.brand,
+        cost: Number(item.unit_price),
+        retail: Number(item.unit_price),
         added_by: user?.id,
       }),
-      supabase.from("inventory_items").update({ stock_qty: Math.max(0, Number(item.stock_qty) - n) }).eq("id", item.id),
+      supabase
+        .from("inventory_items")
+        .update({ stock_qty: Math.max(0, Number(item.stock_qty) - n) })
+        .eq("id", item.id),
     ]);
     const err = updates.find((u) => u.error)?.error;
     if (err) return toast.error(err.message);
@@ -1090,13 +1436,21 @@ function InventoryPicker({ jobId, fieldKey, category, label, serviceData, onClos
   }
 
   return (
-    <div className="fixed inset-0 z-50 grid place-items-center bg-background/80 p-4" onClick={onClose}>
-      <div className="card-surface p-5 w-full max-w-md space-y-3 max-h-[80vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+    <div
+      className="fixed inset-0 z-50 grid place-items-center bg-background/80 p-4"
+      onClick={onClose}
+    >
+      <div
+        className="card-surface p-5 w-full max-w-md space-y-3 max-h-[80vh] overflow-y-auto"
+        onClick={(e) => e.stopPropagation()}
+      >
         <h3 className="font-display text-lg font-bold">Pick {label}</h3>
         {items.isLoading ? (
           <p className="text-sm text-muted-foreground">Loading…</p>
         ) : (items.data ?? []).length === 0 ? (
-          <p className="text-sm text-muted-foreground">No inventory items in this category. Add some in the Inventory page.</p>
+          <p className="text-sm text-muted-foreground">
+            No inventory items in this category. Add some in the Inventory page.
+          </p>
         ) : (
           <div className="space-y-1.5 max-h-72 overflow-y-auto">
             {(items.data ?? []).map((i: any) => (
@@ -1104,17 +1458,23 @@ function InventoryPicker({ jobId, fieldKey, category, label, serviceData, onClos
                 key={i.id}
                 onClick={() => setPickedId(i.id)}
                 className={`w-full text-left rounded-lg border p-2.5 transition-colors ${
-                  pickedId === i.id ? "border-primary bg-primary/10" : "border-border hover:border-primary/40"
+                  pickedId === i.id
+                    ? "border-primary bg-primary/10"
+                    : "border-border hover:border-primary/40"
                 }`}
               >
                 <div className="flex items-center justify-between gap-2">
                   <div className="min-w-0">
                     <div className="font-semibold text-sm truncate">{i.name}</div>
-                    <div className="text-xs text-muted-foreground truncate">{[i.brand, i.type].filter(Boolean).join(" · ")}</div>
+                    <div className="text-xs text-muted-foreground truncate">
+                      {[i.brand, i.type].filter(Boolean).join(" · ")}
+                    </div>
                   </div>
                   <div className="text-right shrink-0">
                     <div className="text-xs font-bold">${Number(i.unit_price).toFixed(2)}</div>
-                    <div className="text-[10px] text-muted-foreground">{Number(i.stock_qty)} {i.unit}</div>
+                    <div className="text-[10px] text-muted-foreground">
+                      {Number(i.stock_qty)} {i.unit}
+                    </div>
                   </div>
                 </div>
               </button>
@@ -1123,11 +1483,21 @@ function InventoryPicker({ jobId, fieldKey, category, label, serviceData, onClos
         )}
         <div className="flex items-center gap-2">
           <label className="text-xs text-muted-foreground">Quantity</label>
-          <Input type="number" step="0.1" value={qty} onChange={(e) => setQty(e.target.value)} className="h-9 w-24" />
+          <Input
+            type="number"
+            step="0.1"
+            value={qty}
+            onChange={(e) => setQty(e.target.value)}
+            className="h-9 w-24"
+          />
         </div>
         <div className="flex gap-2 justify-end">
-          <Button variant="outline" onClick={onClose}>Cancel</Button>
-          <Button onClick={confirm} disabled={!pickedId} className="gold-surface">Add to job</Button>
+          <Button variant="outline" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button onClick={confirm} disabled={!pickedId} className="gold-surface">
+            Add to job
+          </Button>
         </div>
       </div>
     </div>
@@ -1150,11 +1520,19 @@ function AddCustomPart({ jobId, onAdded }: { jobId: string; onAdded: () => void 
     if (!q || q <= 0) return toast.error("Qty must be > 0");
     setSaving(true);
     const { error } = await supabase.from("parts").insert({
-      job_id: jobId, name: n, quantity: q, cost: p, retail: p, added_by: user?.id,
+      job_id: jobId,
+      name: n,
+      quantity: q,
+      cost: p,
+      retail: p,
+      added_by: user?.id,
     } as any);
     setSaving(false);
     if (error) return toast.error(error.message);
-    setName(""); setQty("1"); setPrice("0"); setOpen(false);
+    setName("");
+    setQty("1");
+    setPrice("0");
+    setOpen(false);
     toast.success("Part added");
     onAdded();
   }
@@ -1172,26 +1550,65 @@ function AddCustomPart({ jobId, onAdded }: { jobId: string; onAdded: () => void 
   return (
     <div className="mt-3 rounded-lg border border-primary/40 p-3 space-y-2 bg-primary/5">
       <div className="grid grid-cols-1 sm:grid-cols-[2fr_70px_90px_auto] gap-2">
-        <Input autoFocus placeholder="Item name" value={name} onChange={(e) => setName(e.target.value)} className="h-9 text-sm" />
-        <Input type="number" step="0.1" placeholder="Qty" value={qty} onChange={(e) => setQty(e.target.value)} className="h-9 text-sm" />
-        <Input type="number" step="0.01" placeholder="$ Price" value={price} onChange={(e) => setPrice(e.target.value)} className="h-9 text-sm" />
+        <Input
+          autoFocus
+          placeholder="Item name"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          className="h-9 text-sm"
+        />
+        <Input
+          type="number"
+          step="0.1"
+          placeholder="Qty"
+          value={qty}
+          onChange={(e) => setQty(e.target.value)}
+          className="h-9 text-sm"
+        />
+        <Input
+          type="number"
+          step="0.01"
+          placeholder="$ Price"
+          value={price}
+          onChange={(e) => setPrice(e.target.value)}
+          className="h-9 text-sm"
+        />
         <div className="flex items-center gap-1">
-          <Button onClick={save} disabled={saving} size="sm" className="gold-surface"><Check className="h-3.5 w-3.5" /></Button>
-          <Button onClick={() => setOpen(false)} variant="ghost" size="sm"><X className="h-3.5 w-3.5" /></Button>
+          <Button onClick={save} disabled={saving} size="sm" className="gold-surface">
+            <Check className="h-3.5 w-3.5" />
+          </Button>
+          <Button onClick={() => setOpen(false)} variant="ghost" size="sm">
+            <X className="h-3.5 w-3.5" />
+          </Button>
         </div>
       </div>
     </div>
   );
 }
 
-function ValveClearanceSection({ jobId, cylinders, canEdit, data, bike, onChanged }: {
-  jobId: string; cylinders: number; canEdit: boolean; data: any; bike: any; onChanged: () => void;
+function ValveClearanceSection({
+  jobId,
+  cylinders,
+  canEdit,
+  data,
+  bike,
+  onChanged,
+}: {
+  jobId: string;
+  cylinders: number;
+  canEdit: boolean;
+  data: any;
+  bike: any;
+  onChanged: () => void;
 }) {
   const [values, setValues] = useState<any>(data ?? {});
   const [saving, setSaving] = useState(false);
   const [dirty, setDirty] = useState(false);
   const [savedTick, setSavedTick] = useState(false);
-  useEffect(() => { setValues(data ?? {}); setDirty(false); }, [data]);
+  useEffect(() => {
+    setValues(data ?? {});
+    setDirty(false);
+  }, [data]);
 
   const intakePerCyl = 2;
   const exhaustPerCyl = 2;
@@ -1206,8 +1623,12 @@ function ValveClearanceSection({ jobId, cylinders, canEdit, data, bike, onChange
 
   async function save(silent = false) {
     setSaving(true);
-    const { data: job } = await supabase.from("jobs").select("service_data").eq("id", jobId).maybeSingle();
-    const next = { ...(job?.service_data as any ?? {}), valves: values };
+    const { data: job } = await supabase
+      .from("jobs")
+      .select("service_data")
+      .eq("id", jobId)
+      .maybeSingle();
+    const next = { ...((job?.service_data as any) ?? {}), valves: values };
     const { error } = await supabase.from("jobs").update({ service_data: next }).eq("id", jobId);
     setSaving(false);
     if (error) return toast.error(error.message);
@@ -1229,13 +1650,15 @@ function ValveClearanceSection({ jobId, cylinders, canEdit, data, bike, onChange
           <h2 className="font-display text-lg font-semibold">Valve Clearance Check</h2>
         </div>
         <p className="text-xs text-muted-foreground mb-3">
-          {cylinders}-cylinder engine. Record measured clearance in mm for each valve (intake & exhaust).
+          {cylinders}-cylinder engine. Record measured clearance in mm for each valve (intake &
+          exhaust).
         </p>
 
         {/* Manufacturer recommendation */}
         <div className="mb-3 rounded-lg border border-primary/40 bg-primary/5 p-3">
           <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold mb-1">
-            Manufacturer recommendation {spec.generic && <span className="text-status-parts">· generic — verify manual</span>}
+            Manufacturer recommendation{" "}
+            {spec.generic && <span className="text-status-parts">· generic — verify manual</span>}
           </div>
           <div className="grid grid-cols-2 gap-3 text-sm">
             <div>
@@ -1247,7 +1670,12 @@ function ValveClearanceSection({ jobId, cylinders, canEdit, data, bike, onChange
               <div className="font-mono font-bold">{formatRange(spec.exhaust)}</div>
             </div>
           </div>
-          <div className="mt-1.5 text-[10px] text-muted-foreground">Source: {spec.source}{bike?.make ? ` · ${bike.make} ${bike.model ?? ""}${bike.year ? ` ${bike.year}` : ""}` : ""}</div>
+          <div className="mt-1.5 text-[10px] text-muted-foreground">
+            Source: {spec.source}
+            {bike?.make
+              ? ` · ${bike.make} ${bike.model ?? ""}${bike.year ? ` ${bike.year}` : ""}`
+              : ""}
+          </div>
           {spec.note && <div className="mt-1 text-[10px] text-status-parts">{spec.note}</div>}
         </div>
 
@@ -1282,7 +1710,10 @@ function ValveClearanceSection({ jobId, cylinders, canEdit, data, bike, onChange
                     ))}
                   </div>
                   {/* Spark plug center */}
-                  <div className="h-4 w-4 rounded-full bg-muted-foreground/30 border border-muted-foreground/50" title="Spark plug" />
+                  <div
+                    className="h-4 w-4 rounded-full bg-muted-foreground/30 border border-muted-foreground/50"
+                    title="Spark plug"
+                  />
                   {/* Exhaust row — two big circles */}
                   <div className="flex gap-2">
                     {Array.from({ length: exhaustPerCyl }).map((_, i) => (
@@ -1303,10 +1734,21 @@ function ValveClearanceSection({ jobId, cylinders, canEdit, data, bike, onChange
           </div>
         </div>
         <div className="mt-3 flex items-center gap-3 text-[10px] text-muted-foreground flex-wrap">
-          <span className="inline-flex items-center gap-1"><span className="h-3 w-3 rounded-full bg-status-progress/40 border border-status-progress/60" /> Intake</span>
-          <span className="inline-flex items-center gap-1"><span className="h-3 w-3 rounded-full bg-destructive/40 border border-destructive/60" /> Exhaust</span>
-          <span className="inline-flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-muted-foreground/40 border border-muted-foreground/60" /> Spark plug</span>
-          <span className="ml-auto">Spec: I {formatRange(spec.intake)} · E {formatRange(spec.exhaust)}</span>
+          <span className="inline-flex items-center gap-1">
+            <span className="h-3 w-3 rounded-full bg-status-progress/40 border border-status-progress/60" />{" "}
+            Intake
+          </span>
+          <span className="inline-flex items-center gap-1">
+            <span className="h-3 w-3 rounded-full bg-destructive/40 border border-destructive/60" />{" "}
+            Exhaust
+          </span>
+          <span className="inline-flex items-center gap-1">
+            <span className="h-2 w-2 rounded-full bg-muted-foreground/40 border border-muted-foreground/60" />{" "}
+            Spark plug
+          </span>
+          <span className="ml-auto">
+            Spec: I {formatRange(spec.intake)} · E {formatRange(spec.exhaust)}
+          </span>
         </div>
         {canEdit && (
           <div className="mt-3 flex justify-end items-center gap-3 text-[10px] uppercase tracking-wider text-muted-foreground">
@@ -1322,9 +1764,15 @@ function ValveClearanceSection({ jobId, cylinders, canEdit, data, bike, onChange
 }
 
 function ValveClearancePrintSheet({
-  bike, cylinders, values, spec,
+  bike,
+  cylinders,
+  values,
+  spec,
 }: {
-  bike: any; cylinders: number; values: any; spec: ValveSpec;
+  bike: any;
+  cylinders: number;
+  values: any;
+  spec: ValveSpec;
 }) {
   return (
     <div
@@ -1337,19 +1785,28 @@ function ValveClearancePrintSheet({
       `}</style>
       <div className="flex items-center justify-between gap-3 border-b-2 border-black pb-1 mb-3">
         <div className="min-w-0">
-          <div className="text-[10px] uppercase tracking-[0.25em] text-gray-600">Valve Clearance Worksheet</div>
+          <div className="text-[10px] uppercase tracking-[0.25em] text-gray-600">
+            Valve Clearance Worksheet
+          </div>
           <h1 className="font-display text-lg font-bold leading-tight">
-            {bike?.make ?? ""} {bike?.model ?? ""} {bike?.year ?? ""} · {cylinders}-cyl · Rego {bike?.rego ?? "—"}
+            {bike?.make ?? ""} {bike?.model ?? ""} {bike?.year ?? ""} · {cylinders}-cyl · Rego{" "}
+            {bike?.rego ?? "—"}
           </h1>
         </div>
         <div className="text-right shrink-0 text-[11px]">
-          <b>Spec (cold)</b> · I <span className="font-mono">{formatRange(spec.intake)}</span> · E <span className="font-mono">{formatRange(spec.exhaust)}</span>
-          <div className="text-[9px] text-gray-500">{spec.generic ? "Generic — verify manual · " : ""}{spec.source}</div>
+          <b>Spec (cold)</b> · I <span className="font-mono">{formatRange(spec.intake)}</span> · E{" "}
+          <span className="font-mono">{formatRange(spec.exhaust)}</span>
+          <div className="text-[9px] text-gray-500">
+            {spec.generic ? "Generic — verify manual · " : ""}
+            {spec.source}
+          </div>
         </div>
       </div>
 
       {spec.note && (
-        <div className="text-[10px] text-gray-700 mb-2"><b>Note:</b> {spec.note}</div>
+        <div className="text-[10px] text-gray-700 mb-2">
+          <b>Note:</b> {spec.note}
+        </div>
       )}
 
       <div className="text-[10px] uppercase tracking-[0.2em] text-gray-600 text-center mb-2">
@@ -1359,13 +1816,22 @@ function ValveClearancePrintSheet({
         {Array.from({ length: cylinders }).map((_, c) => {
           const cyl = c + 1;
           return (
-            <div key={cyl} className="border border-gray-400 rounded-2xl p-3 flex flex-col items-center gap-2 flex-1" style={{ maxWidth: 220 }}>
-              <div className="text-[11px] uppercase tracking-wider text-gray-700 font-bold">Cyl {cyl}</div>
+            <div
+              key={cyl}
+              className="border border-gray-400 rounded-2xl p-3 flex flex-col items-center gap-2 flex-1"
+              style={{ maxWidth: 220 }}
+            >
+              <div className="text-[11px] uppercase tracking-wider text-gray-700 font-bold">
+                Cyl {cyl}
+              </div>
               <div className="flex gap-2">
                 {Array.from({ length: 2 }).map((_, i) => {
                   const v = values?.[`c${cyl}_intake_${i}`] ?? "";
                   return (
-                    <div key={i} className="h-20 w-20 rounded-full border-2 border-gray-700 flex items-center justify-center font-mono text-base font-bold bg-white">
+                    <div
+                      key={i}
+                      className="h-20 w-20 rounded-full border-2 border-gray-700 flex items-center justify-center font-mono text-base font-bold bg-white"
+                    >
                       {v || ""}
                     </div>
                   );
@@ -1376,7 +1842,10 @@ function ValveClearancePrintSheet({
                 {Array.from({ length: 2 }).map((_, i) => {
                   const v = values?.[`c${cyl}_exhaust_${i}`] ?? "";
                   return (
-                    <div key={i} className="h-20 w-20 rounded-full border-2 border-black flex items-center justify-center font-mono text-base font-bold bg-white">
+                    <div
+                      key={i}
+                      className="h-20 w-20 rounded-full border-2 border-black flex items-center justify-center font-mono text-base font-bold bg-white"
+                    >
                       {v || ""}
                     </div>
                   );
@@ -1389,7 +1858,7 @@ function ValveClearancePrintSheet({
 
       <div className="flex items-center justify-between gap-3 text-[10px] text-gray-700 mt-3 pt-1 border-t border-gray-300">
         <span>New shim = Current + (Measured − Target). Target = mid-spec.</span>
-        <span>Technician: ______________  Date: ___ / ___ / ______</span>
+        <span>Technician: ______________ Date: ___ / ___ / ______</span>
       </div>
     </div>
   );
@@ -1451,11 +1920,19 @@ function OdometerSection({
     <div className="card-surface p-4 print:hidden">
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <div>
-          <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Kilometers (odometer)</div>
+          <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+            Kilometers (odometer)
+          </div>
           <div className="text-xs text-muted-foreground mt-0.5">
             Technician — enter the bike's current km reading at intake.
             {bikeMileage != null && (
-              <> Last recorded: <span className="font-semibold text-foreground">{bikeMileage.toLocaleString()} km</span></>
+              <>
+                {" "}
+                Last recorded:{" "}
+                <span className="font-semibold text-foreground">
+                  {bikeMileage.toLocaleString()} km
+                </span>
+              </>
             )}
           </div>
         </div>
@@ -1465,11 +1942,16 @@ function OdometerSection({
               inputMode="numeric"
               placeholder="e.g. 24,500"
               value={display}
-              onChange={(e) => { setValue(e.target.value.replace(/\D/g, "")); setDirty(true); }}
+              onChange={(e) => {
+                setValue(e.target.value.replace(/\D/g, ""));
+                setDirty(true);
+              }}
               disabled={!canEdit || saving}
               className="pr-12 w-44 h-11 font-mono text-base"
             />
-            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground font-semibold pointer-events-none">km</span>
+            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground font-semibold pointer-events-none">
+              km
+            </span>
           </div>
           <span className="text-[10px] uppercase tracking-wider text-muted-foreground min-w-[52px]">
             {saving || dirty ? "saving…" : savedTick ? "✓ saved" : "\u00A0"}
@@ -1543,7 +2025,16 @@ function ExpirySection({
           <div className="text-xs text-muted-foreground mt-0.5">
             {hint}
             {currentValue && (
-              <> Current: <span className={`font-semibold ${expired ? "text-destructive" : "text-foreground"}`}>{currentValue}{expired ? " (expired)" : ""}</span></>
+              <>
+                {" "}
+                Current:{" "}
+                <span
+                  className={`font-semibold ${expired ? "text-destructive" : "text-foreground"}`}
+                >
+                  {currentValue}
+                  {expired ? " (expired)" : ""}
+                </span>
+              </>
             )}
           </div>
         </div>
@@ -1551,7 +2042,10 @@ function ExpirySection({
           <Input
             type="date"
             value={value}
-            onChange={(e) => { setValue(e.target.value); setDirty(true); }}
+            onChange={(e) => {
+              setValue(e.target.value);
+              setDirty(true);
+            }}
             disabled={!canEdit || saving}
             className="w-48 h-11 font-mono text-base"
           />
@@ -1579,9 +2073,15 @@ function localInputToIso(v: string): string | null {
 }
 
 function TimeEntriesEditor({
-  entries, jobId, currentUserId, isAdmin,
+  entries,
+  jobId,
+  currentUserId,
+  isAdmin,
 }: {
-  entries: any[]; jobId: string; currentUserId?: string; isAdmin: boolean;
+  entries: any[];
+  jobId: string;
+  currentUserId?: string;
+  isAdmin: boolean;
 }) {
   const qc = useQueryClient();
   const [expanded, setExpanded] = useState(false);
@@ -1590,7 +2090,10 @@ function TimeEntriesEditor({
   const [endVal, setEndVal] = useState("");
   const [saving, setSaving] = useState(false);
 
-  const techIds = useMemo(() => [...new Set(entries.map((e) => e.technician_id).filter(Boolean))], [entries]);
+  const techIds = useMemo(
+    () => [...new Set(entries.map((e) => e.technician_id).filter(Boolean))],
+    [entries],
+  );
   const techs = useQuery({
     queryKey: ["job-time-techs", jobId, techIds.join(",")],
     enabled: techIds.length > 0,
@@ -1628,7 +2131,9 @@ function TimeEntriesEditor({
     if (endIso && +new Date(endIso) <= +new Date(startIso)) {
       return toast.error("End time must be after start time");
     }
-    const minutes = endIso ? Math.max(1, Math.round((+new Date(endIso) - +new Date(startIso)) / 60000)) : null;
+    const minutes = endIso
+      ? Math.max(1, Math.round((+new Date(endIso) - +new Date(startIso)) / 60000))
+      : null;
     setSaving(true);
     const { error } = await supabase
       .from("time_entries")
@@ -1658,8 +2163,12 @@ function TimeEntriesEditor({
         onClick={() => setExpanded((v) => !v)}
         className="w-full flex items-center justify-between text-[10px] uppercase tracking-wider text-muted-foreground hover:text-foreground"
       >
-        <span>Time entries ({sorted.length}){isAdmin ? " · admin can edit any" : ""}</span>
-        <ChevronDown className={`h-3.5 w-3.5 transition-transform ${expanded ? "rotate-180" : ""}`} />
+        <span>
+          Time entries ({sorted.length}){isAdmin ? " · admin can edit any" : ""}
+        </span>
+        <ChevronDown
+          className={`h-3.5 w-3.5 transition-transform ${expanded ? "rotate-180" : ""}`}
+        />
       </button>
       {expanded && (
         <ul className="mt-2 space-y-1.5">
@@ -1667,26 +2176,59 @@ function TimeEntriesEditor({
             const editable = canEditEntry(e);
             const isEditing = editing === e.id;
             const tech = techs.data?.get(e.technician_id) ?? "Staff";
-            const mins = e.minutes ?? (e.ended_at ? Math.round((+new Date(e.ended_at) - +new Date(e.started_at)) / 60000) : 0);
+            const mins =
+              e.minutes ??
+              (e.ended_at
+                ? Math.round((+new Date(e.ended_at) - +new Date(e.started_at)) / 60000)
+                : 0);
             return (
-              <li key={e.id} className="rounded-md border border-border/50 bg-background/40 p-2 text-xs">
+              <li
+                key={e.id}
+                className="rounded-md border border-border/50 bg-background/40 p-2 text-xs"
+              >
                 {isEditing ? (
                   <div className="flex flex-col sm:flex-row sm:items-center gap-2">
                     <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-2">
                       <label className="flex flex-col gap-0.5">
-                        <span className="text-[9px] uppercase tracking-wider text-muted-foreground">Start</span>
-                        <Input type="datetime-local" value={startVal} onChange={(ev) => setStartVal(ev.target.value)} className="h-8 text-xs" />
+                        <span className="text-[9px] uppercase tracking-wider text-muted-foreground">
+                          Start
+                        </span>
+                        <Input
+                          type="datetime-local"
+                          value={startVal}
+                          onChange={(ev) => setStartVal(ev.target.value)}
+                          className="h-8 text-xs"
+                        />
                       </label>
                       <label className="flex flex-col gap-0.5">
-                        <span className="text-[9px] uppercase tracking-wider text-muted-foreground">End (blank = still running)</span>
-                        <Input type="datetime-local" value={endVal} onChange={(ev) => setEndVal(ev.target.value)} className="h-8 text-xs" />
+                        <span className="text-[9px] uppercase tracking-wider text-muted-foreground">
+                          End (blank = still running)
+                        </span>
+                        <Input
+                          type="datetime-local"
+                          value={endVal}
+                          onChange={(ev) => setEndVal(ev.target.value)}
+                          className="h-8 text-xs"
+                        />
                       </label>
                     </div>
                     <div className="flex items-center gap-1 shrink-0">
-                      <Button size="sm" onClick={() => save(e)} disabled={saving} className="h-8 gold-surface text-[11px]">
+                      <Button
+                        size="sm"
+                        onClick={() => save(e)}
+                        disabled={saving}
+                        className="h-8 gold-surface text-[11px]"
+                      >
                         {saving ? "Saving…" : "Save"}
                       </Button>
-                      <Button size="sm" variant="outline" onClick={cancel} className="h-8 text-[11px]">Cancel</Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={cancel}
+                        className="h-8 text-[11px]"
+                      >
+                        Cancel
+                      </Button>
                     </div>
                   </div>
                 ) : (
@@ -1695,15 +2237,31 @@ function TimeEntriesEditor({
                       <div className="font-semibold truncate">{tech}</div>
                       <div className="text-[10px] text-muted-foreground">
                         {new Date(e.started_at).toLocaleString()} →{" "}
-                        {e.ended_at ? new Date(e.ended_at).toLocaleString() : <span className="text-status-progress">running…</span>}
+                        {e.ended_at ? (
+                          new Date(e.ended_at).toLocaleString()
+                        ) : (
+                          <span className="text-status-progress">running…</span>
+                        )}
                       </div>
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
                       <span className="font-mono font-bold">{formatMinutes(mins)}</span>
                       {editable && (
                         <>
-                          <Button size="sm" variant="outline" onClick={() => beginEdit(e)} className="h-7 text-[10px] px-2">Edit</Button>
-                          <Button size="sm" variant="outline" onClick={() => remove(e)} className="h-7 text-[10px] px-2 text-destructive hover:text-destructive">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => beginEdit(e)}
+                            className="h-7 text-[10px] px-2"
+                          >
+                            Edit
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => remove(e)}
+                            className="h-7 text-[10px] px-2 text-destructive hover:text-destructive"
+                          >
                             <X className="h-3 w-3" />
                           </Button>
                         </>
@@ -1719,6 +2277,3 @@ function TimeEntriesEditor({
     </div>
   );
 }
-
-
-

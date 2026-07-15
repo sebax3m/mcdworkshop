@@ -107,9 +107,7 @@ export function ActiveUserSwitcher() {
         <DropdownMenuContent align="end" className="w-64">
           <DropdownMenuLabel>Switch user</DropdownMenuLabel>
           <DropdownMenuSeparator />
-          {loading && (
-            <div className="px-2 py-3 text-xs text-muted-foreground">Loading…</div>
-          )}
+          {loading && <div className="px-2 py-3 text-xs text-muted-foreground">Loading…</div>}
           {!loading && technicians.length === 0 && (
             <div className="px-2 py-3 text-xs text-muted-foreground">No staff found</div>
           )}
@@ -150,8 +148,8 @@ export function ActiveUserSwitcher() {
           <DialogHeader>
             <DialogTitle>Sign in as {target?.full_name}</DialogTitle>
             <DialogDescription>
-              Enter the password for <span className="font-medium">{target?.email}</span> to
-              switch users.
+              Enter the password for <span className="font-medium">{target?.email}</span> to switch
+              users.
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={confirmSwitch} className="space-y-3">

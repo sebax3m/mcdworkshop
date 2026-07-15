@@ -1,8 +1,23 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Bike as BikeIcon, ChevronLeft, Gauge, User, Hash, Wrench, Pencil, Sparkles, Camera, X, Save, Calendar, ShieldCheck } from "lucide-react";
+import {
+  Bike as BikeIcon,
+  ChevronLeft,
+  Gauge,
+  User,
+  Hash,
+  Wrench,
+  Pencil,
+  Sparkles,
+  Camera,
+  X,
+  Save,
+  Calendar,
+  ShieldCheck,
+} from "lucide-react";
 import { fullBike } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,25 +30,30 @@ import { lookupRego } from "@/lib/rego-lookup.functions";
 
 export const Route = createFileRoute("/_authenticated/motorcycles/$bikeId")({
   component: BikeProfile,
-  errorComponent: ({ error, reset }) => {
-    const router = useRouter();
-    return (
-      <div className="card-surface p-6 space-y-3">
-        <div className="font-semibold">Couldn't load bike</div>
-        <div className="text-sm text-muted-foreground">{error.message}</div>
-        <button
-          className="text-sm text-primary"
-          onClick={() => { reset(); router.invalidate(); }}
-        >
-          Try again
-        </button>
-      </div>
-    );
-  },
+  errorComponent: BikeErrorComponent,
   notFoundComponent: () => (
     <div className="card-surface p-6 text-sm text-muted-foreground">Bike not found.</div>
   ),
 });
+
+function BikeErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
+  const router = useRouter();
+  return (
+    <div className="card-surface p-6 space-y-3">
+      <div className="font-semibold">Couldn't load bike</div>
+      <div className="text-sm text-muted-foreground">{error.message}</div>
+      <button
+        className="text-sm text-primary"
+        onClick={() => {
+          reset();
+          router.invalidate();
+        }}
+      >
+        Try again
+      </button>
+    </div>
+  );
+}
 
 function BikeProfile() {
   const { bikeId } = Route.useParams();
@@ -44,7 +64,9 @@ function BikeProfile() {
   const [generating, setGenerating] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [aiPreview, setAiPreview] = useState<{ dataUrl: string; file: File; label: string } | null>(null);
+  const [aiPreview, setAiPreview] = useState<{ dataUrl: string; file: File; label: string } | null>(
+    null,
+  );
   const [savingAi, setSavingAi] = useState(false);
   const [lookingUp, setLookingUp] = useState(false);
 
@@ -107,20 +129,24 @@ function BikeProfile() {
     setPhotos(Array.isArray(b.photos) ? b.photos : []);
   }, [bike.data]);
 
-
   const jobs = useQuery({
     queryKey: ["bike-jobs", bikeId],
-    queryFn: async () => (await supabase
-      .from("jobs")
-      .select("id, job_number, title, status, created_at")
-      .eq("motorcycle_id", bikeId)
-      .order("created_at", { ascending: false })
-      .limit(20)).data ?? [],
+    queryFn: async () =>
+      (
+        await supabase
+          .from("jobs")
+          .select("id, job_number, title, status, created_at")
+          .eq("motorcycle_id", bikeId)
+          .order("created_at", { ascending: false })
+          .limit(20)
+      ).data ?? [],
   });
 
-  if (bike.isLoading) return <div className="card-surface p-6 text-sm text-muted-foreground">Loading…</div>;
+  if (bike.isLoading)
+    return <div className="card-surface p-6 text-sm text-muted-foreground">Loading…</div>;
   const b: any = bike.data;
-  if (!b) return <div className="card-surface p-6 text-sm text-muted-foreground">Bike not found.</div>;
+  if (!b)
+    return <div className="card-surface p-6 text-sm text-muted-foreground">Bike not found.</div>;
 
   const hero = photos[0];
 
@@ -155,7 +181,10 @@ function BikeProfile() {
       const path = await uploadPhoto(aiPreview.file, "bikes");
       const next = asHero ? [path, ...photos] : [...photos, path];
       setPhotos(next);
-      const { error } = await supabase.from("motorcycles").update({ photos: next }).eq("id", bikeId);
+      const { error } = await supabase
+        .from("motorcycles")
+        .update({ photos: next })
+        .eq("id", bikeId);
       if (error) throw error;
       qc.invalidateQueries({ queryKey: ["bike", bikeId] });
       qc.invalidateQueries({ queryKey: ["bikes-list"] });
@@ -167,7 +196,6 @@ function BikeProfile() {
       setSavingAi(false);
     }
   }
-
 
   async function handlePhotos(files: FileList | null) {
     if (!files?.length) return;
@@ -211,12 +239,15 @@ function BikeProfile() {
       const { error } = await supabase.from("motorcycles").update(payload).eq("id", bikeId);
       if (error) throw error;
       if (b.customer_id) {
-        const { error: cErr } = await supabase.from("customers").update({
-          first_name: form.customer_first_name.trim(),
-          last_name: form.customer_last_name.trim(),
-          phone: form.customer_phone || null,
-          email: form.customer_email || null,
-        }).eq("id", b.customer_id);
+        const { error: cErr } = await supabase
+          .from("customers")
+          .update({
+            first_name: form.customer_first_name.trim(),
+            last_name: form.customer_last_name.trim(),
+            phone: form.customer_phone || null,
+            email: form.customer_email || null,
+          })
+          .eq("id", b.customer_id);
         if (cErr) throw cErr;
       }
       toast.success("Bike updated");
@@ -225,7 +256,6 @@ function BikeProfile() {
       qc.invalidateQueries({ queryKey: ["bikes-list"] });
       qc.invalidateQueries({ queryKey: ["customers"] });
       if (b.customer_id) qc.invalidateQueries({ queryKey: ["customer", b.customer_id] });
-
     } catch (err: any) {
       toast.error(err.message ?? "Save failed");
     } finally {
@@ -236,18 +266,38 @@ function BikeProfile() {
   return (
     <div className="space-y-5">
       <div className="flex items-center justify-between gap-2">
-        <Link to="/motorcycles" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
+        <Link
+          to="/motorcycles"
+          className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
+        >
           <ChevronLeft className="h-4 w-4" /> All bikes
         </Link>
         {editing ? (
           <div className="flex items-center gap-2">
-            <button onClick={() => { setEditing(false); setForm({ ...form, ...b, year: b.year ?? "", mileage: b.mileage ?? "" }); setPhotos(Array.isArray(b.photos) ? b.photos : []); }} className="text-xs px-3 py-1.5 rounded-lg text-muted-foreground hover:text-foreground">Cancel</button>
-            <Button onClick={saveEdits} disabled={saving} size="sm" className="gold-surface gap-1.5 font-bold">
+            <button
+              onClick={() => {
+                setEditing(false);
+                setForm({ ...form, ...b, year: b.year ?? "", mileage: b.mileage ?? "" });
+                setPhotos(Array.isArray(b.photos) ? b.photos : []);
+              }}
+              className="text-xs px-3 py-1.5 rounded-lg text-muted-foreground hover:text-foreground"
+            >
+              Cancel
+            </button>
+            <Button
+              onClick={saveEdits}
+              disabled={saving}
+              size="sm"
+              className="gold-surface gap-1.5 font-bold"
+            >
               <Save className="h-3.5 w-3.5" /> {saving ? "Saving…" : "Save"}
             </Button>
           </div>
         ) : (
-          <button onClick={() => setEditing(true)} className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-xs font-semibold hover:border-primary/50">
+          <button
+            onClick={() => setEditing(true)}
+            className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-xs font-semibold hover:border-primary/50"
+          >
             <Pencil className="h-3.5 w-3.5" /> Edit
           </button>
         )}
@@ -277,7 +327,14 @@ function BikeProfile() {
             </button>
             <label className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-xs font-semibold hover:border-primary/50 cursor-pointer">
               <Camera className="h-3.5 w-3.5" /> {uploading ? "Uploading…" : "Upload"}
-              <input type="file" accept="image/*" multiple capture="environment" className="hidden" onChange={(e) => handlePhotos(e.target.files)} />
+              <input
+                type="file"
+                accept="image/*"
+                multiple
+                capture="environment"
+                className="hidden"
+                onChange={(e) => handlePhotos(e.target.files)}
+              />
             </label>
           </div>
 
@@ -285,7 +342,12 @@ function BikeProfile() {
             <div className="grid grid-cols-3 gap-2">
               {photos.slice(1).map((p, i) => (
                 <div key={i} className="relative">
-                  <img src={p} alt="" loading="lazy" className="rounded-lg border border-border object-cover aspect-square w-full" />
+                  <img
+                    src={p}
+                    alt=""
+                    loading="lazy"
+                    className="rounded-lg border border-border object-cover aspect-square w-full"
+                  />
                   {editing && (
                     <button
                       onClick={() => setPhotos((arr) => arr.filter((x) => x !== p))}
@@ -309,17 +371,32 @@ function BikeProfile() {
                   value={{ make: form.make, model: form.model, year: String(form.year ?? "") }}
                   onChange={(v) => setForm({ ...form, make: v.make, model: v.model, year: v.year })}
                 />
-                <Input placeholder="Rego" value={form.rego} onChange={(e) => setForm({ ...form, rego: e.target.value.toUpperCase() })} />
-                <Button type="button" size="sm" variant="outline" onClick={fetchFromRego} disabled={lookingUp || !form.rego?.trim()} className="gap-1.5">
-                  <Sparkles className="h-3.5 w-3.5" /> {lookingUp ? "Looking up…" : "Fetch from rego (Carjam)"}
+                <Input
+                  placeholder="Rego"
+                  value={form.rego}
+                  onChange={(e) => setForm({ ...form, rego: e.target.value.toUpperCase() })}
+                />
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={fetchFromRego}
+                  disabled={lookingUp || !form.rego?.trim()}
+                  className="gap-1.5"
+                >
+                  <Sparkles className="h-3.5 w-3.5" />{" "}
+                  {lookingUp ? "Looking up…" : "Fetch from rego (Carjam)"}
                 </Button>
               </div>
             ) : (
               <>
-                <div className="text-xs uppercase tracking-[0.25em] text-muted-foreground">{b.make}</div>
+                <div className="text-xs uppercase tracking-[0.25em] text-muted-foreground">
+                  {b.make}
+                </div>
                 <h1 className="font-display text-2xl font-bold">{b.model}</h1>
                 <div className="text-sm text-muted-foreground">
-                  {b.year ?? "—"}{b.rego ? ` · ${b.rego}` : ""}
+                  {b.year ?? "—"}
+                  {b.rego ? ` · ${b.rego}` : ""}
                 </div>
               </>
             )}
@@ -328,66 +405,156 @@ function BikeProfile() {
           {editing && form ? (
             <div className="card-surface p-4 grid grid-cols-2 gap-2">
               <div>
-                <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Mileage</div>
+                <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">
+                  Mileage
+                </div>
                 <div className="relative">
-                  <Input inputMode="numeric" value={form.mileage ? Number(String(form.mileage).replace(/\D/g, "")).toLocaleString() : ""} onChange={(e) => setForm({ ...form, mileage: e.target.value.replace(/\D/g, "") })} className="pr-12" />
-                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground font-semibold pointer-events-none">km</span>
+                  <Input
+                    inputMode="numeric"
+                    value={
+                      form.mileage
+                        ? Number(String(form.mileage).replace(/\D/g, "")).toLocaleString()
+                        : ""
+                    }
+                    onChange={(e) =>
+                      setForm({ ...form, mileage: e.target.value.replace(/\D/g, "") })
+                    }
+                    className="pr-12"
+                  />
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground font-semibold pointer-events-none">
+                    km
+                  </span>
                 </div>
               </div>
               <div>
-                <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">VIN</div>
-                <Input value={form.vin} onChange={(e) => setForm({ ...form, vin: e.target.value })} />
+                <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">
+                  VIN
+                </div>
+                <Input
+                  value={form.vin}
+                  onChange={(e) => setForm({ ...form, vin: e.target.value })}
+                />
               </div>
               <div>
-                <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Rego expiry</div>
-                <Input type="date" value={form.rego_expiry} onChange={(e) => setForm({ ...form, rego_expiry: e.target.value })} />
+                <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">
+                  Rego expiry
+                </div>
+                <Input
+                  type="date"
+                  value={form.rego_expiry}
+                  onChange={(e) => setForm({ ...form, rego_expiry: e.target.value })}
+                />
               </div>
               <div>
-                <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">WOF expiry</div>
-                <Input type="date" value={form.wof_expiry} onChange={(e) => setForm({ ...form, wof_expiry: e.target.value })} />
+                <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">
+                  WOF expiry
+                </div>
+                <Input
+                  type="date"
+                  value={form.wof_expiry}
+                  onChange={(e) => setForm({ ...form, wof_expiry: e.target.value })}
+                />
               </div>
             </div>
           ) : (
             <div className="grid grid-cols-2 gap-2">
-              <Stat icon={<Gauge className="h-4 w-4" />} label="Mileage" value={b.mileage ? `${b.mileage.toLocaleString()} km` : "—"} />
+              <Stat
+                icon={<Gauge className="h-4 w-4" />}
+                label="Mileage"
+                value={b.mileage ? `${b.mileage.toLocaleString()} km` : "—"}
+              />
               <Stat icon={<Hash className="h-4 w-4" />} label="VIN" value={b.vin || "—"} />
-              <Stat icon={<Calendar className="h-4 w-4" />} label="Rego expiry" value={b.rego_expiry ? new Date(b.rego_expiry).toLocaleDateString() : "—"} />
-              <Stat icon={<ShieldCheck className="h-4 w-4" />} label="WOF expiry" value={b.wof_expiry ? new Date(b.wof_expiry).toLocaleDateString() : "—"} />
+              <Stat
+                icon={<Calendar className="h-4 w-4" />}
+                label="Rego expiry"
+                value={b.rego_expiry ? new Date(b.rego_expiry).toLocaleDateString() : "—"}
+              />
+              <Stat
+                icon={<ShieldCheck className="h-4 w-4" />}
+                label="WOF expiry"
+                value={b.wof_expiry ? new Date(b.wof_expiry).toLocaleDateString() : "—"}
+              />
             </div>
           )}
 
           {editing && form && b.customer_id ? (
             <div className="card-surface p-4 space-y-2">
-              <div className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground flex items-center gap-1"><User className="h-3 w-3" /> Owner</div>
+              <div className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground flex items-center gap-1">
+                <User className="h-3 w-3" /> Owner
+              </div>
               <div className="grid grid-cols-2 gap-2">
-                <Input placeholder="First name" value={form.customer_first_name} onChange={(e) => setForm({ ...form, customer_first_name: e.target.value })} />
-                <Input placeholder="Last name" value={form.customer_last_name} onChange={(e) => setForm({ ...form, customer_last_name: e.target.value })} />
-                <Input placeholder="Phone" value={form.customer_phone} onChange={(e) => setForm({ ...form, customer_phone: e.target.value })} />
-                <Input placeholder="Email" value={form.customer_email} onChange={(e) => setForm({ ...form, customer_email: e.target.value })} />
+                <Input
+                  placeholder="First name"
+                  value={form.customer_first_name}
+                  onChange={(e) => setForm({ ...form, customer_first_name: e.target.value })}
+                />
+                <Input
+                  placeholder="Last name"
+                  value={form.customer_last_name}
+                  onChange={(e) => setForm({ ...form, customer_last_name: e.target.value })}
+                />
+                <Input
+                  placeholder="Phone"
+                  value={form.customer_phone}
+                  onChange={(e) => setForm({ ...form, customer_phone: e.target.value })}
+                />
+                <Input
+                  placeholder="Email"
+                  value={form.customer_email}
+                  onChange={(e) => setForm({ ...form, customer_email: e.target.value })}
+                />
               </div>
             </div>
-          ) : b.customers && (
-            <Link to="/customers/$customerId" params={{ customerId: b.customers.id }} className="card-surface p-4 space-y-1 block hover:border-primary/40">
-              <div className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground flex items-center gap-1"><User className="h-3 w-3" /> Owner</div>
-              <div className="font-semibold">{b.customers.first_name} {b.customers.last_name}</div>
-              <div className="text-sm text-muted-foreground">{b.customers.phone || b.customers.email || ""}</div>
-            </Link>
+          ) : (
+            b.customers && (
+              <Link
+                to="/customers/$customerId"
+                params={{ customerId: b.customers.id }}
+                className="card-surface p-4 space-y-1 block hover:border-primary/40"
+              >
+                <div className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground flex items-center gap-1">
+                  <User className="h-3 w-3" /> Owner
+                </div>
+                <div className="font-semibold">
+                  {b.customers.first_name} {b.customers.last_name}
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  {b.customers.phone || b.customers.email || ""}
+                </div>
+              </Link>
+            )
           )}
-
 
           {editing && form ? (
             <div className="card-surface p-4 space-y-3">
               <div>
-                <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Modifications</div>
-                <Textarea rows={2} value={form.modifications} onChange={(e) => setForm({ ...form, modifications: e.target.value })} />
+                <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">
+                  Modifications
+                </div>
+                <Textarea
+                  rows={2}
+                  value={form.modifications}
+                  onChange={(e) => setForm({ ...form, modifications: e.target.value })}
+                />
               </div>
               <div>
-                <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">ECU info</div>
-                <Input value={form.ecu_info} onChange={(e) => setForm({ ...form, ecu_info: e.target.value })} />
+                <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">
+                  ECU info
+                </div>
+                <Input
+                  value={form.ecu_info}
+                  onChange={(e) => setForm({ ...form, ecu_info: e.target.value })}
+                />
               </div>
               <div>
-                <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Notes</div>
-                <Textarea rows={2} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
+                <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">
+                  Notes
+                </div>
+                <Textarea
+                  rows={2}
+                  value={form.notes}
+                  onChange={(e) => setForm({ ...form, notes: e.target.value })}
+                />
               </div>
             </div>
           ) : (
@@ -416,9 +583,13 @@ function BikeProfile() {
               >
                 <div className="min-w-0">
                   <div className="font-semibold truncate text-sm">{j.title || j.job_number}</div>
-                  <div className="text-xs text-muted-foreground">{j.job_number} · {new Date(j.created_at).toLocaleDateString()}</div>
+                  <div className="text-xs text-muted-foreground">
+                    {j.job_number} · {new Date(j.created_at).toLocaleDateString()}
+                  </div>
                 </div>
-                <span className="text-[10px] uppercase tracking-wider px-2 py-1 rounded-md bg-muted">{j.status}</span>
+                <span className="text-[10px] uppercase tracking-wider px-2 py-1 rounded-md bg-muted">
+                  {j.status}
+                </span>
               </Link>
             ))}
           </div>
@@ -489,7 +660,10 @@ function BikeProfile() {
 function Stat({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
   return (
     <div className="card-surface p-3">
-      <div className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground flex items-center gap-1">{icon}{label}</div>
+      <div className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground flex items-center gap-1">
+        {icon}
+        {label}
+      </div>
       <div className="font-semibold text-sm mt-1 truncate">{value}</div>
     </div>
   );

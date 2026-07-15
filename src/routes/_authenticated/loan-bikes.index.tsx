@@ -1,14 +1,28 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Bike as BikeIcon, ChevronRight, Plus, CalendarClock, Wrench, User as UserIcon } from "lucide-react";
+import {
+  Bike as BikeIcon,
+  ChevronRight,
+  Plus,
+  CalendarClock,
+  Wrench,
+  User as UserIcon,
+} from "lucide-react";
 import { format } from "date-fns";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 
 export const Route = createFileRoute("/_authenticated/loan-bikes/")({
   component: LoanBikesIndex,
@@ -41,10 +55,7 @@ function LoanBikesIndex() {
   const bikes = useQuery({
     queryKey: ["loan-bikes"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("loan_bikes")
-        .select("*")
-        .order("name");
+      const { data, error } = await supabase.from("loan_bikes").select("*").order("name");
       if (error) throw error;
       return (data ?? []) as BikeRow[];
     },
@@ -55,7 +66,9 @@ function LoanBikesIndex() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("bookings")
-        .select("id, loan_bike_id, scheduled_date, loan_bike_expected_return, loan_bike_returned_at, job_id, customers(first_name,last_name)")
+        .select(
+          "id, loan_bike_id, scheduled_date, loan_bike_expected_return, loan_bike_returned_at, job_id, customers(first_name,last_name)",
+        )
         .not("loan_bike_id", "is", null)
         .is("loan_bike_returned_at", null);
       if (error) throw error;
@@ -82,7 +95,11 @@ function LoanBikesIndex() {
       if (error) throw error;
       toast.success("Loan bike added");
       setCreating(false);
-      setNName(""); setNMake(""); setNModel(""); setNColor(""); setNRego("");
+      setNName("");
+      setNMake("");
+      setNModel("");
+      setNColor("");
+      setNRego("");
       bikes.refetch();
     } catch (e: any) {
       toast.error(e.message ?? "Failed");
@@ -109,7 +126,9 @@ function LoanBikesIndex() {
       {bikes.isLoading ? (
         <div className="card-surface p-8 text-center text-sm text-muted-foreground">Loading…</div>
       ) : (bikes.data ?? []).length === 0 ? (
-        <div className="card-surface p-8 text-center text-sm text-muted-foreground">No loan bikes yet.</div>
+        <div className="card-surface p-8 text-center text-sm text-muted-foreground">
+          No loan bikes yet.
+        </div>
       ) : (
         <div className="space-y-2">
           {(bikes.data ?? []).map((b) => {
@@ -131,11 +150,17 @@ function LoanBikesIndex() {
                 <span className="min-w-0 flex-1">
                   <span className="flex items-center gap-2 flex-wrap">
                     <span className="font-semibold truncate">{b.name}</span>
-                    {b.rego && <span className="text-[10px] text-muted-foreground">· {b.rego}</span>}
+                    {b.rego && (
+                      <span className="text-[10px] text-muted-foreground">· {b.rego}</span>
+                    )}
                     {isOut ? (
-                      <span className="rounded-full bg-destructive/15 text-destructive px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider">Out</span>
+                      <span className="rounded-full bg-destructive/15 text-destructive px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider">
+                        Out
+                      </span>
                     ) : (
-                      <span className="rounded-full bg-emerald-500/15 text-emerald-500 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider">Available</span>
+                      <span className="rounded-full bg-emerald-500/15 text-emerald-500 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider">
+                        Available
+                      </span>
                     )}
                     {serviceSoon && (
                       <span className="rounded-full bg-amber-400/15 text-amber-400 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider inline-flex items-center gap-1">
@@ -150,12 +175,18 @@ function LoanBikesIndex() {
                       <>
                         <span className="inline-flex items-center gap-1">
                           <UserIcon className="h-3 w-3" />
-                          {current.customers ? `${current.customers.first_name} ${current.customers.last_name}` : "—"}
+                          {current.customers
+                            ? `${current.customers.first_name} ${current.customers.last_name}`
+                            : "—"}
                         </span>
                         {current.loan_bike_expected_return && (
                           <span className="inline-flex items-center gap-1 text-amber-400">
                             <CalendarClock className="h-3 w-3" />
-                            Back {format(new Date(current.loan_bike_expected_return + "T00:00:00"), "EEE d MMM")}
+                            Back{" "}
+                            {format(
+                              new Date(current.loan_bike_expected_return + "T00:00:00"),
+                              "EEE d MMM",
+                            )}
                           </span>
                         )}
                       </>
@@ -177,18 +208,38 @@ function LoanBikesIndex() {
           <div className="space-y-3">
             <div>
               <Label>Name *</Label>
-              <Input value={nName} onChange={(e) => setNName(e.target.value)} placeholder="e.g. Yamaha MT-07" />
+              <Input
+                value={nName}
+                onChange={(e) => setNName(e.target.value)}
+                placeholder="e.g. Yamaha MT-07"
+              />
             </div>
             <div className="grid grid-cols-2 gap-3">
-              <div><Label>Make</Label><Input value={nMake} onChange={(e) => setNMake(e.target.value)} /></div>
-              <div><Label>Model</Label><Input value={nModel} onChange={(e) => setNModel(e.target.value)} /></div>
-              <div><Label>Colour</Label><Input value={nColor} onChange={(e) => setNColor(e.target.value)} /></div>
-              <div><Label>Rego</Label><Input value={nRego} onChange={(e) => setNRego(e.target.value)} /></div>
+              <div>
+                <Label>Make</Label>
+                <Input value={nMake} onChange={(e) => setNMake(e.target.value)} />
+              </div>
+              <div>
+                <Label>Model</Label>
+                <Input value={nModel} onChange={(e) => setNModel(e.target.value)} />
+              </div>
+              <div>
+                <Label>Colour</Label>
+                <Input value={nColor} onChange={(e) => setNColor(e.target.value)} />
+              </div>
+              <div>
+                <Label>Rego</Label>
+                <Input value={nRego} onChange={(e) => setNRego(e.target.value)} />
+              </div>
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setCreating(false)}>Cancel</Button>
-            <Button onClick={createBike} disabled={saving}>{saving ? "Saving…" : "Add bike"}</Button>
+            <Button variant="outline" onClick={() => setCreating(false)}>
+              Cancel
+            </Button>
+            <Button onClick={createBike} disabled={saving}>
+              {saving ? "Saving…" : "Add bike"}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

@@ -1,20 +1,27 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { toast } from "sonner";
-import { ArrowLeft, Check, RefreshCw, Mail, Clock, Pencil, Star, UserPlus, KeyRound } from "lucide-react";
+import {
+  ArrowLeft,
+  Check,
+  RefreshCw,
+  Mail,
+  Clock,
+  Pencil,
+  Star,
+  UserPlus,
+  KeyRound,
+} from "lucide-react";
 import { listUsersWithLogins, updateUserDetails, type UserLoginRow } from "@/lib/users.functions";
 import { seedStaff } from "@/lib/seed-staff.functions";
 import { resetStaffPasswords } from "@/lib/reset-passwords.functions";
 import { createTechnician } from "@/lib/create-technician.functions";
 
-
 import { initials } from "@/lib/format";
-import {
-  useActiveTechnicianId,
-  setActiveTechnicianId,
-} from "@/hooks/use-active-technician";
+import { useActiveTechnicianId, setActiveTechnicianId } from "@/hooks/use-active-technician";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/users")({
@@ -47,7 +54,6 @@ function UsersPage() {
 
   const activeId = useActiveTechnicianId();
   const [editing, setEditing] = useState<UserLoginRow | null>(null);
-
 
   const { data, isLoading, error, refetch, isFetching } = useQuery({
     queryKey: ["users-login-logs"],
@@ -91,7 +97,9 @@ function UsersPage() {
                 const created = r.results.filter((x) => x.status === "created");
                 const exists = r.results.filter((x) => x.status === "exists").length;
                 const errs = r.results.filter((x) => x.status === "error");
-                toast.success(`Staff seeded — ${created.length} created, ${exists} already existed${errs.length ? `, ${errs.length} errors` : ""}`);
+                toast.success(
+                  `Staff seeded — ${created.length} created, ${exists} already existed${errs.length ? `, ${errs.length} errors` : ""}`,
+                );
                 // New accounts get a strong random password. Surface it once so
                 // the admin can hand it over out-of-band; it is not stored on
                 // the client and cannot be retrieved later.
@@ -133,12 +141,15 @@ function UsersPage() {
           </button>
           <button
             onClick={async () => {
-              if (!confirm("Reset ALL staff passwords?\n\nAdmins → MCDR26\nTechnicians → Moto26")) return;
+              if (!confirm("Reset ALL staff passwords?\n\nAdmins → MCDR26\nTechnicians → Moto26"))
+                return;
               try {
                 const r = await resetPwdsFn({ data: undefined });
                 const ok = r.results.filter((x) => x.status === "ok").length;
                 const errs = r.results.filter((x) => x.status === "error");
-                toast.success(`Passwords reset — ${ok} updated${errs.length ? `, ${errs.length} errors` : ""}`);
+                toast.success(
+                  `Passwords reset — ${ok} updated${errs.length ? `, ${errs.length} errors` : ""}`,
+                );
                 if (errs.length) console.error(errs);
               } catch (e: any) {
                 toast.error(e.message ?? "Failed to reset passwords");
@@ -159,12 +170,8 @@ function UsersPage() {
         </div>
       </header>
 
-
-
       {error && (
-        <div className="card-surface p-4 text-sm text-destructive">
-          {(error as Error).message}
-        </div>
+        <div className="card-surface p-4 text-sm text-destructive">{(error as Error).message}</div>
       )}
 
       {isLoading ? (
@@ -231,9 +238,7 @@ function UsersPage() {
                   </div>
                   <div className="flex items-center gap-1.5 text-sm">
                     <Clock className="h-3.5 w-3.5 text-muted-foreground" />
-                    <span title={fullDate(u.last_sign_in_at)}>
-                      {formatWhen(u.last_sign_in_at)}
-                    </span>
+                    <span title={fullDate(u.last_sign_in_at)}>{formatWhen(u.last_sign_in_at)}</span>
                   </div>
                   <div className="flex md:justify-end items-center gap-2">
                     <button
@@ -269,24 +274,15 @@ function UsersPage() {
       )}
 
       <p className="text-xs text-muted-foreground">
-        Only admins can view this page. "Last sign in" comes from authentication
-        records.
+        Only admins can view this page. "Last sign in" comes from authentication records.
       </p>
 
-      {editing && (
-        <EditUserDialog user={editing} onClose={() => setEditing(null)} />
-      )}
+      {editing && <EditUserDialog user={editing} onClose={() => setEditing(null)} />}
     </div>
   );
 }
 
-function EditUserDialog({
-  user,
-  onClose,
-}: {
-  user: UserLoginRow;
-  onClose: () => void;
-}) {
+function EditUserDialog({ user, onClose }: { user: UserLoginRow; onClose: () => void }) {
   const qc = useQueryClient();
   const updateFn = useServerFn(updateUserDetails);
   const [fullName, setFullName] = useState(user.full_name ?? "");
@@ -319,10 +315,7 @@ function EditUserDialog({
   }
 
   return (
-    <div
-      className="fixed inset-0 z-50 grid place-items-center bg-black/60 p-4"
-      onClick={onClose}
-    >
+    <div className="fixed inset-0 z-50 grid place-items-center bg-black/60 p-4" onClick={onClose}>
       <div
         className="card-surface w-full max-w-md p-5 space-y-4"
         onClick={(e) => e.stopPropagation()}
@@ -331,9 +324,7 @@ function EditUserDialog({
 
         <div className="space-y-3">
           <label className="block text-xs">
-            <span className="text-muted-foreground uppercase tracking-wider">
-              Full name
-            </span>
+            <span className="text-muted-foreground uppercase tracking-wider">Full name</span>
             <input
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
@@ -341,9 +332,7 @@ function EditUserDialog({
             />
           </label>
           <label className="block text-xs">
-            <span className="text-muted-foreground uppercase tracking-wider">
-              Email
-            </span>
+            <span className="text-muted-foreground uppercase tracking-wider">Email</span>
             <input
               type="email"
               value={email}
@@ -352,14 +341,10 @@ function EditUserDialog({
             />
           </label>
           <label className="block text-xs">
-            <span className="text-muted-foreground uppercase tracking-wider">
-              Role
-            </span>
+            <span className="text-muted-foreground uppercase tracking-wider">Role</span>
             <select
               value={role}
-              onChange={(e) =>
-                setRole(e.target.value as "admin" | "technician")
-              }
+              onChange={(e) => setRole(e.target.value as "admin" | "technician")}
               className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
             >
               <option value="technician">Technician</option>
