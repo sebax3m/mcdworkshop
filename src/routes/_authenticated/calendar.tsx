@@ -2292,18 +2292,7 @@ function CalendarPage() {
                 </div>
                 <div className="col-span-1">
                   <label className="text-[10px] uppercase tracking-wider text-muted-foreground">
-                    End time
-                  </label>
-                  <input
-                    type="time"
-                    value={qEndTime}
-                    onChange={(e) => setQEndTime(e.target.value)}
-                    className="w-full mt-1 rounded-lg border border-border bg-background/60 px-3 py-2 text-sm focus:border-primary/60 focus:outline-none"
-                  />
-                </div>
-                <div className="col-span-1">
-                  <label className="text-[10px] uppercase tracking-wider text-muted-foreground">
-                    Est. hours (info)
+                    Est. hours
                   </label>
                   <input
                     value={qEstHours}
