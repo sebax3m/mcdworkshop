@@ -29,24 +29,7 @@ import { lookupRego } from "@/lib/rego-lookup.functions";
 
 export const Route = createFileRoute("/_authenticated/motorcycles/$bikeId")({
   component: BikeProfile,
-  errorComponent: ({ error, reset }) => {
-    const router = useRouter();
-    return (
-      <div className="card-surface p-6 space-y-3">
-        <div className="font-semibold">Couldn't load bike</div>
-        <div className="text-sm text-muted-foreground">{error.message}</div>
-        <button
-          className="text-sm text-primary"
-          onClick={() => {
-            reset();
-            router.invalidate();
-          }}
-        >
-          Try again
-        </button>
-      </div>
-    );
-  },
+  errorComponent: BikeErrorComponent,
   notFoundComponent: () => (
     <div className="card-surface p-6 text-sm text-muted-foreground">Bike not found.</div>
   ),
