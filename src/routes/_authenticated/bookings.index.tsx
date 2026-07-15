@@ -120,6 +120,46 @@ function BookingsList() {
         </div>
       </header>
 
+      <div className="card-surface p-3 flex flex-wrap items-center gap-2">
+        <button
+          onClick={() => setFocusDate((d) => shiftISO(d, -1))}
+          className="rounded-lg border border-border bg-card px-2.5 py-1.5 text-xs font-semibold hover:bg-muted"
+          title="Previous day"
+        >
+          ← Prev
+        </button>
+        <button
+          onClick={() => setFocusDate(todayISO())}
+          className={`rounded-lg border px-2.5 py-1.5 text-xs font-semibold ${focusDate === todayISO() ? "border-primary bg-primary/10 text-primary" : "border-border bg-card hover:bg-muted"}`}
+        >
+          Today
+        </button>
+        <button
+          onClick={() => setFocusDate(tomorrowISO())}
+          className={`rounded-lg border px-2.5 py-1.5 text-xs font-semibold ${focusDate === tomorrowISO() ? "border-primary bg-primary/10 text-primary" : "border-border bg-card hover:bg-muted"}`}
+        >
+          Tomorrow
+        </button>
+        <button
+          onClick={() => setFocusDate((d) => shiftISO(d, 1))}
+          className="rounded-lg border border-border bg-card px-2.5 py-1.5 text-xs font-semibold hover:bg-muted"
+          title="Next day"
+        >
+          Next →
+        </button>
+        <input
+          type="date"
+          value={focusDate}
+          onChange={(e) => setFocusDate(e.target.value || tomorrowISO())}
+          className="rounded-lg border border-border bg-card px-2 py-1.5 text-xs"
+        />
+        <div className="ml-auto text-xs uppercase tracking-wider text-muted-foreground">
+          Showing <span className="text-foreground font-semibold">{focusLabel}</span> ·{" "}
+          {bookings.length} booking{bookings.length === 1 ? "" : "s"}
+        </div>
+      </div>
+
+
       <div className="flex flex-wrap items-center gap-2">
         <span className="text-xs uppercase tracking-wider text-muted-foreground">Sort by</span>
         <div className="flex rounded-lg border border-border overflow-hidden">
