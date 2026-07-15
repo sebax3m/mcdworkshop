@@ -260,6 +260,14 @@ function CalendarPage() {
     return () => clearInterval(t);
   }, []);
 
+  // Keep editable date/time in sync when the quick booking modal opens on a fresh slot
+  useEffect(() => {
+    if (quickSlot) {
+      setQEditDate(format(quickSlot.date, "yyyy-MM-dd"));
+      setQEditTime(quickSlot.time);
+    }
+  }, [quickSlot]);
+
   useEffect(() => {
     const el = bodyRef.current;
     if (!el) return;
