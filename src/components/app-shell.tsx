@@ -1,5 +1,18 @@
 import { Link, Outlet, useRouterState, useNavigate, useRouter } from "@tanstack/react-router";
-import { CalendarDays, Wrench, Bike, Timer, LogOut, ClipboardList, FileText, Settings as SettingsIcon, BarChart3, ShieldCheck, KeyRound, ArrowLeft } from "lucide-react";
+import {
+  CalendarDays,
+  Wrench,
+  Bike,
+  Timer,
+  LogOut,
+  ClipboardList,
+  FileText,
+  Settings as SettingsIcon,
+  BarChart3,
+  ShieldCheck,
+  KeyRound,
+  ArrowLeft,
+} from "lucide-react";
 import { useRef, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useCurrentUser } from "@/hooks/use-current-user";
@@ -61,7 +74,6 @@ export function AppShell() {
   const isRootPage = pathname === "/" || pathname === "/calendar";
   const showMobileBack = !isRootPage;
 
-
   const tabs = isAdmin
     ? [
         { to: "/calendar", label: "Calendar", icon: CalendarDays, color: "#60a5fa" },
@@ -106,8 +118,12 @@ export function AppShell() {
               className="h-14 w-auto shrink-0 drop-shadow-[0_0_12px_oklch(0.58_0.22_25/0.35)] transition-transform group-hover:scale-105"
             />
             <div className="hidden sm:block min-w-0">
-              <div className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground leading-none">Workshop OS</div>
-              <div className="font-display text-sm font-bold tracking-wide truncate">Motorcycle Doctors</div>
+              <div className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground leading-none">
+                Workshop OS
+              </div>
+              <div className="font-display text-sm font-bold tracking-wide truncate">
+                Motorcycle Doctors
+              </div>
             </div>
           </Link>
           <div className="ml-auto flex items-center gap-2">
@@ -148,7 +164,12 @@ export function AppShell() {
                 )}
                 title={`Signed in as ${roleLabel}`}
               >
-                <span className={cn("h-1.5 w-1.5 rounded-full", isAdmin ? "bg-primary" : isTechnician ? "bg-foreground/60" : "bg-destructive")} />
+                <span
+                  className={cn(
+                    "h-1.5 w-1.5 rounded-full",
+                    isAdmin ? "bg-primary" : isTechnician ? "bg-foreground/60" : "bg-destructive",
+                  )}
+                />
                 {roleLabel}
               </span>
             )}
@@ -183,9 +204,11 @@ export function AppShell() {
         </button>
       )}
 
-
       {/* ===== DESKTOP SIDEBAR ===== */}
-      <aside className="hidden sm:flex fixed left-0 top-[80px] z-40 w-[220px] h-[calc(100vh-80px)] flex-col border-r border-border/60 bg-card/80 backdrop-blur-xl text-sidebar-foreground" style={{ overflow: "visible" }}>
+      <aside
+        className="hidden sm:flex fixed left-0 top-[80px] z-40 w-[220px] h-[calc(100vh-80px)] flex-col border-r border-border/60 bg-card/80 backdrop-blur-xl text-sidebar-foreground"
+        style={{ overflow: "visible" }}
+      >
         <div className="px-4 pt-4 pb-2 text-[10px] font-bold uppercase tracking-[0.25em] text-sidebar-foreground/50">
           Main Menu
         </div>
@@ -214,16 +237,24 @@ export function AppShell() {
                     }}
                     className={cn(
                       "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium will-change-transform",
-                      active ? "bg-primary text-primary-foreground" : "text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent",
+                      active
+                        ? "bg-primary text-primary-foreground"
+                        : "text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent",
                     )}
                   >
                     <Icon
                       className="h-5 w-5 shrink-0"
-                      style={{ color: active ? undefined : t.color, filter: `drop-shadow(0 0 6px ${t.color}55)` }}
+                      style={{
+                        color: active ? undefined : t.color,
+                        filter: `drop-shadow(0 0 6px ${t.color}55)`,
+                      }}
                     />
                     <span
                       className="origin-left"
-                      style={{ transform: scale > 1 ? `scale(${1 / scale})` : undefined, transition: "transform 320ms cubic-bezier(0.22, 1, 0.36, 1)" }}
+                      style={{
+                        transform: scale > 1 ? `scale(${1 / scale})` : undefined,
+                        transition: "transform 320ms cubic-bezier(0.22, 1, 0.36, 1)",
+                      }}
                     >
                       {t.label}
                     </span>

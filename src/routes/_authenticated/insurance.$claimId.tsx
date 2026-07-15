@@ -7,9 +7,29 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
-  ArrowLeft, ShieldCheck, Phone, MessageSquare, Wrench, Printer, Send, Check, X,
-  Bike as BikeIcon, ExternalLink, Trash2, Mail,
-  Inbox, ClipboardList, FileEdit, FileCheck2, ThumbsUp, Package, Hammer, PackageCheck, Archive, ChevronRight,
+  ArrowLeft,
+  ShieldCheck,
+  Phone,
+  MessageSquare,
+  Wrench,
+  Printer,
+  Send,
+  Check,
+  X,
+  Bike as BikeIcon,
+  ExternalLink,
+  Trash2,
+  Mail,
+  Inbox,
+  ClipboardList,
+  FileEdit,
+  FileCheck2,
+  ThumbsUp,
+  Package,
+  Hammer,
+  PackageCheck,
+  Archive,
+  ChevronRight,
 } from "lucide-react";
 
 import { toast } from "sonner";
@@ -60,7 +80,10 @@ function ClaimDetail() {
   const c = claim.data;
 
   async function updateClaim(patch: any, eventNote?: string) {
-    const { error } = await (supabase as any).from("insurance_claims").update(patch).eq("id", claimId);
+    const { error } = await (supabase as any)
+      .from("insurance_claims")
+      .update(patch)
+      .eq("id", claimId);
     if (error) return toast.error(error.message);
     if (eventNote) {
       await (supabase as any).from("insurance_claim_events").insert({
@@ -87,13 +110,22 @@ function ClaimDetail() {
     }
     // Build quote summary from current quote_items so the technician sees
     // exactly which parts to replace/repair and the labour budget.
-    const items: Array<{ kind: "part" | "labour"; item_code?: string; item_name?: string; description: string; qty: number; unit_price: number }> =
-      Array.isArray(c.quote_items) ? c.quote_items : [];
+    const items: Array<{
+      kind: "part" | "labour";
+      item_code?: string;
+      item_name?: string;
+      description: string;
+      qty: number;
+      unit_price: number;
+    }> = Array.isArray(c.quote_items) ? c.quote_items : [];
     const label = (it: { item_code?: string; item_name?: string; description: string }) => {
       const code = (it.item_code ?? "").trim();
       const name = (it.item_name ?? "").trim();
       const desc = (it.description ?? "").trim();
-      return [code && `[${code}]`, name || desc, name && desc ? `— ${desc}` : ""].filter(Boolean).join(" ").trim();
+      return [code && `[${code}]`, name || desc, name && desc ? `— ${desc}` : ""]
+        .filter(Boolean)
+        .join(" ")
+        .trim();
     };
     const parts = items.filter((it) => it.kind === "part" && label(it));
     const labours = items.filter((it) => it.kind === "labour" && label(it));
@@ -132,7 +164,8 @@ function ClaimDetail() {
     if (error) return toast.error(error.message);
 
     // Seed checklist tasks so the technician can tick each item as completed.
-    const tasks: Array<{ job_id: string; label: string; sort_order: number; note: string | null }> = [];
+    const tasks: Array<{ job_id: string; label: string; sort_order: number; note: string | null }> =
+      [];
     let order = 0;
     for (const p of parts) {
       tasks.push({
@@ -164,12 +197,13 @@ function ClaimDetail() {
     nav({ to: "/jobs/$jobId", params: { jobId: job.id } });
   }
 
-
   async function markSent() {
     const sentAt = new Date().toISOString();
     await updateClaim({ status: "quote_sent", quote_sent_at: sentAt });
     await (supabase as any).from("insurance_claim_events").insert({
-      claim_id: claimId, event_type: "quote_sent", note: "Quote sent to insurer",
+      claim_id: claimId,
+      event_type: "quote_sent",
+      note: "Quote sent to insurer",
     });
     qc.invalidateQueries({ queryKey: ["insurance-claim-events", claimId] });
     toast.success("Marked as sent to insurer");
@@ -184,8 +218,12 @@ function ClaimDetail() {
     nav({ to: "/insurance" });
   }
 
-  if (claim.isLoading) return <div className="card-surface p-8 text-center text-muted-foreground">Loading…</div>;
-  if (!c) return <div className="card-surface p-8 text-center text-muted-foreground">Claim not found.</div>;
+  if (claim.isLoading)
+    return <div className="card-surface p-8 text-center text-muted-foreground">Loading…</div>;
+  if (!c)
+    return (
+      <div className="card-surface p-8 text-center text-muted-foreground">Claim not found.</div>
+    );
 
   const meta = CLAIM_STATUS_META[c.status as ClaimStatus];
   const next = nextStatus(c.status as ClaimStatus);
@@ -195,17 +233,24 @@ function ClaimDetail() {
   return (
     <div className="space-y-5 max-w-5xl mx-auto pb-12">
       <header className="flex items-center gap-3 flex-wrap">
-        <Link to="/insurance" className="grid h-9 w-9 place-items-center rounded-lg border border-border">
+        <Link
+          to="/insurance"
+          className="grid h-9 w-9 place-items-center rounded-lg border border-border"
+        >
           <ArrowLeft className="h-4 w-4" />
         </Link>
         <div className="grid h-10 w-10 place-items-center rounded-xl bg-primary/10 text-primary">
           <ShieldCheck className="h-5 w-5" />
         </div>
         <div className="min-w-0 flex-1">
-          <div className="text-xs uppercase tracking-[0.25em] text-muted-foreground">Insurance Claim</div>
+          <div className="text-xs uppercase tracking-[0.25em] text-muted-foreground">
+            Insurance Claim
+          </div>
           <h1 className="font-display text-2xl font-bold flex items-center gap-2 flex-wrap">
             {c.claim_number}
-            <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${meta?.cls}`}>
+            <span
+              className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${meta?.cls}`}
+            >
               {meta?.label}
             </span>
           </h1>
@@ -214,7 +259,12 @@ function ClaimDetail() {
           <Printer className="h-4 w-4" /> Print Quote
         </Button>
         {isAdmin && (
-          <Button onClick={deleteClaim} variant="outline" size="sm" className="gap-2 text-destructive border-destructive/40">
+          <Button
+            onClick={deleteClaim}
+            variant="outline"
+            size="sm"
+            className="gap-2 text-destructive border-destructive/40"
+          >
             <Trash2 className="h-4 w-4" /> Delete
           </Button>
         )}
@@ -223,29 +273,43 @@ function ClaimDetail() {
       {/* Pipeline flowchart */}
       <PipelineFlow currentStatus={c.status as ClaimStatus} onPick={setStatus} next={next} />
 
-
       {/* Customer / bike / insurer */}
       <section className="grid sm:grid-cols-2 gap-4">
         <div className="card-surface p-4">
-          <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold mb-1">Customer</div>
-          <div className="font-bold">{c.customers?.first_name} {c.customers?.last_name}</div>
+          <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold mb-1">
+            Customer
+          </div>
+          <div className="font-bold">
+            {c.customers?.first_name} {c.customers?.last_name}
+          </div>
           <div className="text-xs text-muted-foreground mt-0.5">{c.customers?.email ?? "—"}</div>
           {phone && (
             <div className="mt-2 flex gap-2">
-              <a href={`tel:${phone}`} className="inline-flex items-center gap-1 rounded-md border border-border px-2.5 py-1 text-xs font-semibold hover:border-primary/40">
+              <a
+                href={`tel:${phone}`}
+                className="inline-flex items-center gap-1 rounded-md border border-border px-2.5 py-1 text-xs font-semibold hover:border-primary/40"
+              >
                 <Phone className="h-3 w-3" /> {phone}
               </a>
-              <a href={`sms:${phone}`} className="inline-flex items-center gap-1 rounded-md border border-border px-2.5 py-1 text-xs font-semibold hover:border-primary/40">
+              <a
+                href={`sms:${phone}`}
+                className="inline-flex items-center gap-1 rounded-md border border-border px-2.5 py-1 text-xs font-semibold hover:border-primary/40"
+              >
                 <MessageSquare className="h-3 w-3" /> Text
               </a>
             </div>
           )}
         </div>
         <div className="card-surface p-4">
-          <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold mb-1">Motorcycle</div>
-          <div className="font-bold flex items-center gap-1.5"><BikeIcon className="h-4 w-4" /> {bikeText}</div>
+          <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold mb-1">
+            Motorcycle
+          </div>
+          <div className="font-bold flex items-center gap-1.5">
+            <BikeIcon className="h-4 w-4" /> {bikeText}
+          </div>
           <div className="text-xs text-muted-foreground mt-0.5">
-            Rego {c.motorcycles?.rego ?? "—"} · VIN {c.motorcycles?.vin ?? "—"} · {c.motorcycles?.mileage ?? "—"}km
+            Rego {c.motorcycles?.rego ?? "—"} · VIN {c.motorcycles?.vin ?? "—"} ·{" "}
+            {c.motorcycles?.mileage ?? "—"}km
           </div>
         </div>
       </section>
@@ -271,13 +335,14 @@ function ClaimDetail() {
         onStartJob={startQuote}
       />
 
-
       {/* Notes */}
       <ClaimNotesCard c={c} onUpdate={updateClaim} />
 
       {/* Timeline */}
       <section className="card-surface p-4 print:hidden">
-        <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold mb-2">Timeline</div>
+        <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold mb-2">
+          Timeline
+        </div>
         {events.isLoading ? (
           <div className="text-sm text-muted-foreground">Loading…</div>
         ) : (events.data ?? []).length === 0 ? (
@@ -292,12 +357,20 @@ function ClaimDetail() {
                 <div className="min-w-0">
                   {e.event_type === "status_changed" ? (
                     <span>
-                      Status: <b>{CLAIM_STATUS_META[e.from_status as ClaimStatus]?.label ?? e.from_status ?? "—"}</b>
+                      Status:{" "}
+                      <b>
+                        {CLAIM_STATUS_META[e.from_status as ClaimStatus]?.label ??
+                          e.from_status ??
+                          "—"}
+                      </b>
                       {" → "}
                       <b>{CLAIM_STATUS_META[e.to_status as ClaimStatus]?.label ?? e.to_status}</b>
                     </span>
                   ) : (
-                    <span><b className="capitalize">{e.event_type.replace(/_/g, " ")}</b>{e.note ? ` — ${e.note}` : ""}</span>
+                    <span>
+                      <b className="capitalize">{e.event_type.replace(/_/g, " ")}</b>
+                      {e.note ? ` — ${e.note}` : ""}
+                    </span>
                   )}
                 </div>
               </li>
@@ -327,7 +400,7 @@ type QuoteItem = {
 
 function newItem(kind: QuoteItem["kind"], unit_price = 0): QuoteItem {
   return {
-    id: (globalThis.crypto?.randomUUID?.() ?? Math.random().toString(36).slice(2)),
+    id: globalThis.crypto?.randomUUID?.() ?? Math.random().toString(36).slice(2),
     kind,
     item_code: "",
     item_name: "",
@@ -338,9 +411,16 @@ function newItem(kind: QuoteItem["kind"], unit_price = 0): QuoteItem {
 }
 
 function QuoteBuilder({
-  c, bikeText, onUpdate, onMarkSent, onApprove, onDecline, onStartJob,
+  c,
+  bikeText,
+  onUpdate,
+  onMarkSent,
+  onApprove,
+  onDecline,
+  onStartJob,
 }: {
-  c: any; bikeText: string;
+  c: any;
+  bikeText: string;
   onUpdate: (p: any) => any;
   onMarkSent: () => void;
   onApprove: () => void;
@@ -353,7 +433,10 @@ function QuoteBuilder({
   const [dirty, setDirty] = useState(false);
   const [saving, setSaving] = useState(false);
 
-  const subtotal = items.reduce((s, it) => s + (Number(it.qty) || 0) * (Number(it.unit_price) || 0), 0);
+  const subtotal = items.reduce(
+    (s, it) => s + (Number(it.qty) || 0) * (Number(it.unit_price) || 0),
+    0,
+  );
   const gst = subtotal * 0.15;
   const total = subtotal + gst;
 
@@ -379,7 +462,7 @@ function QuoteBuilder({
 
   function quickAddPart(p: (typeof CRASH_PARTS)[number]) {
     const partItem: QuoteItem = {
-      id: (globalThis.crypto?.randomUUID?.() ?? Math.random().toString(36).slice(2)),
+      id: globalThis.crypto?.randomUUID?.() ?? Math.random().toString(36).slice(2),
       kind: "part",
       item_code: "",
       item_name: p.name,
@@ -389,7 +472,7 @@ function QuoteBuilder({
     };
     const hrs = p.labourHrs[damageLevel];
     const labourItem: QuoteItem = {
-      id: (globalThis.crypto?.randomUUID?.() ?? Math.random().toString(36).slice(2)),
+      id: globalThis.crypto?.randomUUID?.() ?? Math.random().toString(36).slice(2),
       kind: "labour",
       item_code: "",
       item_name: `R&R ${p.name}`,
@@ -402,15 +485,18 @@ function QuoteBuilder({
   }
 
   function quickAddLabour(preset: (typeof LABOUR_PRESETS)[number]) {
-    setItems((arr) => [...arr, {
-      id: (globalThis.crypto?.randomUUID?.() ?? Math.random().toString(36).slice(2)),
-      kind: "labour",
-      item_code: "",
-      item_name: preset.name,
-      description: "",
-      qty: preset.hrs,
-      unit_price: rate,
-    }]);
+    setItems((arr) => [
+      ...arr,
+      {
+        id: globalThis.crypto?.randomUUID?.() ?? Math.random().toString(36).slice(2),
+        kind: "labour",
+        item_code: "",
+        item_name: preset.name,
+        description: "",
+        qty: preset.hrs,
+        unit_price: rate,
+      },
+    ]);
     setDirty(true);
   }
 
@@ -437,17 +523,26 @@ function QuoteBuilder({
             <Wrench className="h-5 w-5" />
           </div>
           <div>
-            <div className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground font-bold">Quotation</div>
+            <div className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground font-bold">
+              Quotation
+            </div>
             <h2 className="font-display text-lg font-semibold">Parts & labour estimate</h2>
           </div>
         </div>
         <div className="flex items-center gap-2 print:hidden">
           <div className="flex items-center gap-1.5">
-            <Label className="text-[10px] uppercase tracking-wider text-muted-foreground">Labour $/hr</Label>
+            <Label className="text-[10px] uppercase tracking-wider text-muted-foreground">
+              Labour $/hr
+            </Label>
             <Input
-              type="number" step="1" min="0"
+              type="number"
+              step="1"
+              min="0"
               value={rate}
-              onChange={(e) => { setRate(Number(e.target.value) || 0); setDirty(true); }}
+              onChange={(e) => {
+                setRate(Number(e.target.value) || 0);
+                setDirty(true);
+              }}
               className="w-20 h-8 text-sm"
             />
           </div>
@@ -476,18 +571,24 @@ function QuoteBuilder({
           </thead>
           <tbody>
             {items.length === 0 && (
-              <tr><td colSpan={8} className="py-6 text-center text-sm text-muted-foreground">
-                No line items yet. Add parts or labour below.
-              </td></tr>
+              <tr>
+                <td colSpan={8} className="py-6 text-center text-sm text-muted-foreground">
+                  No line items yet. Add parts or labour below.
+                </td>
+              </tr>
             )}
             {items.map((it) => {
               const line = (Number(it.qty) || 0) * (Number(it.unit_price) || 0);
               return (
                 <tr key={it.id} className="border-b border-border/50 align-middle">
                   <td className="py-1.5 pr-2">
-                    <span className={`inline-flex items-center rounded-md border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
-                      it.kind === "labour" ? "border-blue-500/40 bg-blue-500/10 text-blue-400" : "border-amber-500/40 bg-amber-500/10 text-amber-400"
-                    }`}>
+                    <span
+                      className={`inline-flex items-center rounded-md border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
+                        it.kind === "labour"
+                          ? "border-blue-500/40 bg-blue-500/10 text-blue-400"
+                          : "border-amber-500/40 bg-amber-500/10 text-amber-400"
+                      }`}
+                    >
                       {it.kind}
                     </span>
                   </td>
@@ -511,13 +612,19 @@ function QuoteBuilder({
                     <Input
                       value={it.description}
                       onChange={(e) => patch(it.id, { description: e.target.value })}
-                      placeholder={it.kind === "labour" ? "Notes, severity, paint blend…" : "Details / condition / fitment"}
+                      placeholder={
+                        it.kind === "labour"
+                          ? "Notes, severity, paint blend…"
+                          : "Details / condition / fitment"
+                      }
                       className="h-8 text-sm print:border-0 print:bg-transparent print:px-0"
                     />
                   </td>
                   <td className="py-1.5 px-2">
                     <Input
-                      type="number" step="0.25" min="0"
+                      type="number"
+                      step="0.25"
+                      min="0"
                       value={it.qty}
                       onChange={(e) => patch(it.id, { qty: Number(e.target.value) || 0 })}
                       className="h-8 text-sm text-right tabular-nums"
@@ -525,7 +632,9 @@ function QuoteBuilder({
                   </td>
                   <td className="py-1.5 px-2">
                     <Input
-                      type="number" step="0.01" min="0"
+                      type="number"
+                      step="0.01"
+                      min="0"
                       value={it.unit_price}
                       onChange={(e) => patch(it.id, { unit_price: Number(e.target.value) || 0 })}
                       className="h-8 text-sm text-right tabular-nums"
@@ -535,54 +644,78 @@ function QuoteBuilder({
                     ${line.toFixed(2)}
                   </td>
                   <td className="py-1.5 pl-2 pr-1 print:hidden" style={{ width: 36 }}>
-                    <button onClick={() => remove(it.id)} className="grid h-8 w-8 place-items-center rounded-md border border-border text-muted-foreground hover:text-destructive hover:border-destructive/50">
+                    <button
+                      onClick={() => remove(it.id)}
+                      className="grid h-8 w-8 place-items-center rounded-md border border-border text-muted-foreground hover:text-destructive hover:border-destructive/50"
+                    >
                       <Trash className="h-3.5 w-3.5" />
                     </button>
                   </td>
-
                 </tr>
               );
             })}
           </tbody>
           <tfoot className="text-sm">
             <tr>
-              <td colSpan={6} className="pt-3 pr-3 text-right text-muted-foreground">Subtotal</td>
-              <td className="pt-3 pl-2 pr-3 text-right font-mono tabular-nums whitespace-nowrap">${subtotal.toFixed(2)}</td>
+              <td colSpan={6} className="pt-3 pr-3 text-right text-muted-foreground">
+                Subtotal
+              </td>
+              <td className="pt-3 pl-2 pr-3 text-right font-mono tabular-nums whitespace-nowrap">
+                ${subtotal.toFixed(2)}
+              </td>
               <td className="print:hidden" />
             </tr>
             <tr>
-              <td colSpan={6} className="pr-3 text-right text-muted-foreground">GST (15%)</td>
-              <td className="pl-2 pr-3 text-right font-mono tabular-nums whitespace-nowrap">${gst.toFixed(2)}</td>
+              <td colSpan={6} className="pr-3 text-right text-muted-foreground">
+                GST (15%)
+              </td>
+              <td className="pl-2 pr-3 text-right font-mono tabular-nums whitespace-nowrap">
+                ${gst.toFixed(2)}
+              </td>
               <td className="print:hidden" />
             </tr>
             <tr className="border-t border-border">
-              <td colSpan={6} className="pt-2 pr-3 text-right font-bold uppercase tracking-wider text-xs">Quote total</td>
-              <td className="pt-2 pl-2 pr-3 text-right font-mono font-bold text-base tabular-nums text-primary whitespace-nowrap">${total.toFixed(2)}</td>
+              <td
+                colSpan={6}
+                className="pt-2 pr-3 text-right font-bold uppercase tracking-wider text-xs"
+              >
+                Quote total
+              </td>
+              <td className="pt-2 pl-2 pr-3 text-right font-mono font-bold text-base tabular-nums text-primary whitespace-nowrap">
+                ${total.toFixed(2)}
+              </td>
               <td className="print:hidden" />
             </tr>
           </tfoot>
         </table>
       </div>
 
-
       {/* Quick add catalog */}
       <div className="mt-4 rounded-lg border border-border bg-muted/30 p-3 print:hidden">
         <div className="flex items-center justify-between gap-2 flex-wrap mb-2">
-          <div className="text-[10px] uppercase tracking-[0.2em] font-bold text-muted-foreground">Quick add — crash parts</div>
+          <div className="text-[10px] uppercase tracking-[0.2em] font-bold text-muted-foreground">
+            Quick add — crash parts
+          </div>
           <div className="flex items-center gap-1.5">
-            <Label className="text-[10px] uppercase tracking-wider text-muted-foreground">Damage</Label>
-            {(["minor","moderate","severe"] as DamageLevel[]).map((lvl) => (
+            <Label className="text-[10px] uppercase tracking-wider text-muted-foreground">
+              Damage
+            </Label>
+            {(["minor", "moderate", "severe"] as DamageLevel[]).map((lvl) => (
               <button
                 key={lvl}
                 onClick={() => setDamageLevel(lvl)}
                 className={`px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider border ${
                   damageLevel === lvl
-                    ? lvl === "minor" ? "bg-emerald-500/20 border-emerald-500/50 text-emerald-400"
-                    : lvl === "moderate" ? "bg-amber-500/20 border-amber-500/50 text-amber-400"
-                    : "bg-red-500/20 border-red-500/50 text-red-400"
+                    ? lvl === "minor"
+                      ? "bg-emerald-500/20 border-emerald-500/50 text-emerald-400"
+                      : lvl === "moderate"
+                        ? "bg-amber-500/20 border-amber-500/50 text-amber-400"
+                        : "bg-red-500/20 border-red-500/50 text-red-400"
                     : "border-border text-muted-foreground hover:text-foreground"
                 }`}
-              >{lvl}</button>
+              >
+                {lvl}
+              </button>
             ))}
           </div>
         </div>
@@ -592,9 +725,13 @@ function QuoteBuilder({
               key={cat}
               onClick={() => setQuickCat(cat)}
               className={`px-2.5 py-1 rounded-md text-xs border ${
-                quickCat === cat ? "bg-primary/15 border-primary/50 text-primary" : "border-border text-muted-foreground hover:text-foreground"
+                quickCat === cat
+                  ? "bg-primary/15 border-primary/50 text-primary"
+                  : "border-border text-muted-foreground hover:text-foreground"
               }`}
-            >{cat}</button>
+            >
+              {cat}
+            </button>
           ))}
         </div>
         <div className="flex flex-wrap gap-1.5">
@@ -609,13 +746,17 @@ function QuoteBuilder({
               >
                 <Plus className="h-3 w-3 text-primary" />
                 <span className="font-medium">{p.name}</span>
-                <span className="text-[10px] text-muted-foreground tabular-nums">${p.estPrice} · {hrs}h</span>
+                <span className="text-[10px] text-muted-foreground tabular-nums">
+                  ${p.estPrice} · {hrs}h
+                </span>
               </button>
             );
           })}
         </div>
         <div className="mt-3 pt-3 border-t border-border/60">
-          <div className="text-[10px] uppercase tracking-[0.2em] font-bold text-muted-foreground mb-2">Quick add — labour bundles</div>
+          <div className="text-[10px] uppercase tracking-[0.2em] font-bold text-muted-foreground mb-2">
+            Quick add — labour bundles
+          </div>
           <div className="flex flex-wrap gap-1.5">
             {LABOUR_PRESETS.map((l) => (
               <button
@@ -645,7 +786,8 @@ function QuoteBuilder({
           <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
             <Label className="text-[10px] uppercase tracking-wider">Approved $</Label>
             <Input
-              type="number" step="0.01"
+              type="number"
+              step="0.01"
               defaultValue={c.approved_amount ?? ""}
               onBlur={(e) => {
                 const v = e.target.value === "" ? null : Number(e.target.value);
@@ -663,10 +805,19 @@ function QuoteBuilder({
           )}
           {c.status === "quote_sent" && (
             <>
-              <Button onClick={onApprove} size="sm" className="gap-2 bg-green-600 hover:bg-green-700 text-white">
+              <Button
+                onClick={onApprove}
+                size="sm"
+                className="gap-2 bg-green-600 hover:bg-green-700 text-white"
+              >
                 <Check className="h-3.5 w-3.5" /> Approved
               </Button>
-              <Button onClick={onDecline} variant="outline" size="sm" className="gap-2 text-destructive border-destructive/40">
+              <Button
+                onClick={onDecline}
+                variant="outline"
+                size="sm"
+                className="gap-2 text-destructive border-destructive/40"
+              >
                 <X className="h-3.5 w-3.5" /> Declined
               </Button>
             </>
@@ -687,7 +838,9 @@ function QuoteBuilder({
                   .maybeSingle();
                 const liveMarks = Array.isArray(fresh?.damage_marks)
                   ? fresh.damage_marks
-                  : Array.isArray(c.damage_marks) ? c.damage_marks : [];
+                  : Array.isArray(c.damage_marks)
+                    ? c.damage_marks
+                    : [];
                 const blob = await buildClaimPdf({
                   claim: c,
                   bikeText,
@@ -710,8 +863,6 @@ function QuoteBuilder({
           >
             <Printer className="h-3.5 w-3.5" /> Download PDF
           </Button>
-
-
         </div>
       </div>
 
@@ -729,7 +880,10 @@ function QuoteBuilder({
         ) : (
           <>
             <span className="text-xs text-muted-foreground">Ready for the workshop?</span>
-            <button onClick={onStartJob} className="text-xs font-semibold text-primary hover:underline">
+            <button
+              onClick={onStartJob}
+              className="text-xs font-semibold text-primary hover:underline"
+            >
               Create Collision Repair job card
             </button>
           </>
@@ -739,8 +893,6 @@ function QuoteBuilder({
   );
 }
 
-
-
 function ClaimInsurerCard({ c, onUpdate }: { c: any; onUpdate: (p: any) => void }) {
   const [insurer, setInsurer] = useState(c.insurer_name ?? "");
   const [ref, setRef] = useState(c.insurer_claim_ref ?? "");
@@ -748,11 +900,23 @@ function ClaimInsurerCard({ c, onUpdate }: { c: any; onUpdate: (p: any) => void 
     <section className="card-surface p-4 grid sm:grid-cols-2 gap-3">
       <div>
         <Label>Insurer</Label>
-        <Input value={insurer} onChange={(e) => setInsurer(e.target.value)} onBlur={() => insurer !== (c.insurer_name ?? "") && onUpdate({ insurer_name: insurer || null })} />
+        <Input
+          value={insurer}
+          onChange={(e) => setInsurer(e.target.value)}
+          onBlur={() =>
+            insurer !== (c.insurer_name ?? "") && onUpdate({ insurer_name: insurer || null })
+          }
+        />
       </div>
       <div>
         <Label>Insurer claim reference</Label>
-        <Input value={ref} onChange={(e) => setRef(e.target.value)} onBlur={() => ref !== (c.insurer_claim_ref ?? "") && onUpdate({ insurer_claim_ref: ref || null })} />
+        <Input
+          value={ref}
+          onChange={(e) => setRef(e.target.value)}
+          onBlur={() =>
+            ref !== (c.insurer_claim_ref ?? "") && onUpdate({ insurer_claim_ref: ref || null })
+          }
+        />
       </div>
     </section>
   );
@@ -762,15 +926,19 @@ function ClaimCustodyCard({ c, onUpdate }: { c: any; onUpdate: (p: any) => void 
   const location: "workshop" | "customer" = c.bike_with_customer ? "customer" : "workshop";
   return (
     <section className="card-surface p-4 space-y-3">
-      <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold">Bike custody</div>
+      <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold">
+        Bike custody
+      </div>
       <div className="flex flex-wrap gap-2">
         <button
           type="button"
-          onClick={() => onUpdate({
-            bike_with_customer: false,
-            workshop_entry_date: c.workshop_entry_date ?? new Date().toISOString().slice(0, 10),
-            expected_return_date: null,
-          })}
+          onClick={() =>
+            onUpdate({
+              bike_with_customer: false,
+              workshop_entry_date: c.workshop_entry_date ?? new Date().toISOString().slice(0, 10),
+              expected_return_date: null,
+            })
+          }
           className={`px-3 py-2 rounded-md text-sm border ${location === "workshop" ? "bg-primary text-primary-foreground border-primary" : "bg-background border-border"}`}
         >
           In workshop
@@ -789,7 +957,10 @@ function ClaimCustodyCard({ c, onUpdate }: { c: any; onUpdate: (p: any) => void 
           <Input
             type="date"
             defaultValue={c.workshop_entry_date ?? ""}
-            onBlur={(e) => e.target.value !== (c.workshop_entry_date ?? "") && onUpdate({ workshop_entry_date: e.target.value || null })}
+            onBlur={(e) =>
+              e.target.value !== (c.workshop_entry_date ?? "") &&
+              onUpdate({ workshop_entry_date: e.target.value || null })
+            }
           />
         </div>
       )}
@@ -799,7 +970,10 @@ function ClaimCustodyCard({ c, onUpdate }: { c: any; onUpdate: (p: any) => void 
           <Input
             type="date"
             defaultValue={c.expected_return_date ?? ""}
-            onBlur={(e) => e.target.value !== (c.expected_return_date ?? "") && onUpdate({ expected_return_date: e.target.value || null })}
+            onBlur={(e) =>
+              e.target.value !== (c.expected_return_date ?? "") &&
+              onUpdate({ expected_return_date: e.target.value || null })
+            }
           />
         </div>
       )}
@@ -827,26 +1001,40 @@ function PrintQuoteHeader({ c, bikeText }: { c: any; bikeText: string }) {
   return (
     <div id="claim-print-area" className="hidden print:block">
       <div className="border-b-2 border-black pb-3 mb-4">
-        <div className="text-[10px] uppercase tracking-[0.25em] text-gray-600">Motorcycle Doctors · Insurance Quote</div>
+        <div className="text-[10px] uppercase tracking-[0.25em] text-gray-600">
+          Motorcycle Doctors · Insurance Quote
+        </div>
         <div className="flex items-end justify-between gap-4">
           <h1 className="font-display text-2xl font-bold leading-tight">Claim {c.claim_number}</h1>
           <div className="text-right text-xs">
-            <div><b>Insurer:</b> {c.insurer_name ?? "—"}</div>
-            <div><b>Ref:</b> {c.insurer_claim_ref ?? "—"}</div>
-            <div><b>Received:</b> {format(new Date(c.date_received), "d MMM yyyy")}</div>
+            <div>
+              <b>Insurer:</b> {c.insurer_name ?? "—"}
+            </div>
+            <div>
+              <b>Ref:</b> {c.insurer_claim_ref ?? "—"}
+            </div>
+            <div>
+              <b>Received:</b> {format(new Date(c.date_received), "d MMM yyyy")}
+            </div>
           </div>
         </div>
       </div>
       <div className="grid grid-cols-2 gap-4 text-xs mb-3">
         <div className="border border-gray-400 rounded p-2">
           <div className="text-[9px] uppercase tracking-wider text-gray-500 mb-1">Customer</div>
-          <div className="font-bold">{c.customers?.first_name} {c.customers?.last_name}</div>
-          <div>{c.customers?.phone ?? "—"} · {c.customers?.email ?? "—"}</div>
+          <div className="font-bold">
+            {c.customers?.first_name} {c.customers?.last_name}
+          </div>
+          <div>
+            {c.customers?.phone ?? "—"} · {c.customers?.email ?? "—"}
+          </div>
         </div>
         <div className="border border-gray-400 rounded p-2">
           <div className="text-[9px] uppercase tracking-wider text-gray-500 mb-1">Vehicle</div>
           <div className="font-bold">{bikeText}</div>
-          <div>Rego {c.motorcycles?.rego ?? "—"} · VIN {c.motorcycles?.vin ?? "—"}</div>
+          <div>
+            Rego {c.motorcycles?.rego ?? "—"} · VIN {c.motorcycles?.vin ?? "—"}
+          </div>
         </div>
       </div>
       {c.notes && (
@@ -855,46 +1043,89 @@ function PrintQuoteHeader({ c, bikeText }: { c: any; bikeText: string }) {
           <p className="whitespace-pre-wrap">{c.notes}</p>
         </div>
       )}
-      {Array.isArray(c.quote_items) && c.quote_items.length > 0 && (() => {
-        const items = c.quote_items as Array<{ kind: string; item_code?: string; item_name?: string; description: string; qty: number; unit_price: number }>;
-        const subtotal = items.reduce((s, it) => s + (Number(it.qty) || 0) * (Number(it.unit_price) || 0), 0);
-        const gst = subtotal * 0.15;
-        return (
-          <table className="w-full text-xs border border-gray-400 border-collapse mb-3">
-            <thead className="bg-gray-100">
-              <tr>
-                <th className="border border-gray-400 text-left px-2 py-1 w-14">Type</th>
-                <th className="border border-gray-400 text-left px-2 py-1 w-20">Item code</th>
-                <th className="border border-gray-400 text-left px-2 py-1 w-40">Item name</th>
-                <th className="border border-gray-400 text-left px-2 py-1">Description</th>
-                <th className="border border-gray-400 text-right px-2 py-1 w-12">Qty</th>
-                <th className="border border-gray-400 text-right px-2 py-1 w-20">Unit $</th>
-                <th className="border border-gray-400 text-right px-2 py-1 w-20">Line $</th>
-              </tr>
-            </thead>
-            <tbody>
-              {items.map((it, i) => (
-                <tr key={i}>
-                  <td className="border border-gray-400 px-2 py-1 capitalize">{it.kind}</td>
-                  <td className="border border-gray-400 px-2 py-1 font-mono">{it.item_code || "—"}</td>
-                  <td className="border border-gray-400 px-2 py-1">{it.item_name || "—"}</td>
-                  <td className="border border-gray-400 px-2 py-1">{it.description || "—"}</td>
-                  <td className="border border-gray-400 px-2 py-1 text-right font-mono">{Number(it.qty).toFixed(2)}</td>
-                  <td className="border border-gray-400 px-2 py-1 text-right font-mono">${Number(it.unit_price).toFixed(2)}</td>
-                  <td className="border border-gray-400 px-2 py-1 text-right font-mono">${((Number(it.qty)||0)*(Number(it.unit_price)||0)).toFixed(2)}</td>
+      {Array.isArray(c.quote_items) &&
+        c.quote_items.length > 0 &&
+        (() => {
+          const items = c.quote_items as Array<{
+            kind: string;
+            item_code?: string;
+            item_name?: string;
+            description: string;
+            qty: number;
+            unit_price: number;
+          }>;
+          const subtotal = items.reduce(
+            (s, it) => s + (Number(it.qty) || 0) * (Number(it.unit_price) || 0),
+            0,
+          );
+          const gst = subtotal * 0.15;
+          return (
+            <table className="w-full text-xs border border-gray-400 border-collapse mb-3">
+              <thead className="bg-gray-100">
+                <tr>
+                  <th className="border border-gray-400 text-left px-2 py-1 w-14">Type</th>
+                  <th className="border border-gray-400 text-left px-2 py-1 w-20">Item code</th>
+                  <th className="border border-gray-400 text-left px-2 py-1 w-40">Item name</th>
+                  <th className="border border-gray-400 text-left px-2 py-1">Description</th>
+                  <th className="border border-gray-400 text-right px-2 py-1 w-12">Qty</th>
+                  <th className="border border-gray-400 text-right px-2 py-1 w-20">Unit $</th>
+                  <th className="border border-gray-400 text-right px-2 py-1 w-20">Line $</th>
                 </tr>
-              ))}
-              <tr><td colSpan={6} className="border border-gray-400 px-2 py-1 text-right">Subtotal</td><td className="border border-gray-400 px-2 py-1 text-right font-mono">${subtotal.toFixed(2)}</td></tr>
-              <tr><td colSpan={6} className="border border-gray-400 px-2 py-1 text-right">GST (15%)</td><td className="border border-gray-400 px-2 py-1 text-right font-mono">${gst.toFixed(2)}</td></tr>
-              <tr className="bg-gray-100"><td colSpan={6} className="border border-gray-400 px-2 py-1 text-right font-bold">Total (incl. GST)</td><td className="border border-gray-400 px-2 py-1 text-right font-mono font-bold">${(subtotal+gst).toFixed(2)}</td></tr>
-            </tbody>
-          </table>
-        );
-      })()}
+              </thead>
+              <tbody>
+                {items.map((it, i) => (
+                  <tr key={i}>
+                    <td className="border border-gray-400 px-2 py-1 capitalize">{it.kind}</td>
+                    <td className="border border-gray-400 px-2 py-1 font-mono">
+                      {it.item_code || "—"}
+                    </td>
+                    <td className="border border-gray-400 px-2 py-1">{it.item_name || "—"}</td>
+                    <td className="border border-gray-400 px-2 py-1">{it.description || "—"}</td>
+                    <td className="border border-gray-400 px-2 py-1 text-right font-mono">
+                      {Number(it.qty).toFixed(2)}
+                    </td>
+                    <td className="border border-gray-400 px-2 py-1 text-right font-mono">
+                      ${Number(it.unit_price).toFixed(2)}
+                    </td>
+                    <td className="border border-gray-400 px-2 py-1 text-right font-mono">
+                      ${((Number(it.qty) || 0) * (Number(it.unit_price) || 0)).toFixed(2)}
+                    </td>
+                  </tr>
+                ))}
+                <tr>
+                  <td colSpan={6} className="border border-gray-400 px-2 py-1 text-right">
+                    Subtotal
+                  </td>
+                  <td className="border border-gray-400 px-2 py-1 text-right font-mono">
+                    ${subtotal.toFixed(2)}
+                  </td>
+                </tr>
+                <tr>
+                  <td colSpan={6} className="border border-gray-400 px-2 py-1 text-right">
+                    GST (15%)
+                  </td>
+                  <td className="border border-gray-400 px-2 py-1 text-right font-mono">
+                    ${gst.toFixed(2)}
+                  </td>
+                </tr>
+                <tr className="bg-gray-100">
+                  <td colSpan={6} className="border border-gray-400 px-2 py-1 text-right font-bold">
+                    Total (incl. GST)
+                  </td>
+                  <td className="border border-gray-400 px-2 py-1 text-right font-mono font-bold">
+                    ${(subtotal + gst).toFixed(2)}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          );
+        })()}
       <div className="text-xs">
-        <b>Quote total:</b> <span className="font-mono">${c.quote_amount != null ? Number(c.quote_amount).toFixed(2) : "_______"}</span>
+        <b>Quote total:</b>{" "}
+        <span className="font-mono">
+          ${c.quote_amount != null ? Number(c.quote_amount).toFixed(2) : "_______"}
+        </span>
       </div>
-
     </div>
   );
 }
@@ -908,15 +1139,114 @@ const FLOW_STAGES: Array<{
   /** Tailwind color group for this stage. */
   hue: { ring: string; bg: string; text: string; border: string; soft: string };
 }> = [
-  { key: "intake",            label: "Intake",          icon: Inbox,         hue: { ring: "ring-sky-400/60",     bg: "bg-sky-500",      text: "text-sky-300",     border: "border-sky-400/50",     soft: "bg-sky-500/10" } },
-  { key: "assessing",         label: "Assessing",       icon: ClipboardList, hue: { ring: "ring-cyan-400/60",    bg: "bg-cyan-500",     text: "text-cyan-300",    border: "border-cyan-400/50",    soft: "bg-cyan-500/10" } },
-  { key: "quote_in_progress", label: "Quote drafting",  icon: FileEdit,      hue: { ring: "ring-violet-400/60",  bg: "bg-violet-500",   text: "text-violet-300",  border: "border-violet-400/50",  soft: "bg-violet-500/10" } },
-  { key: "quote_sent",        label: "Quote sent",      icon: FileCheck2,    hue: { ring: "ring-indigo-400/60",  bg: "bg-indigo-500",   text: "text-indigo-300",  border: "border-indigo-400/50",  soft: "bg-indigo-500/10" } },
-  { key: "approved",          label: "Approved",        icon: ThumbsUp,      hue: { ring: "ring-emerald-400/60", bg: "bg-emerald-500",  text: "text-emerald-300", border: "border-emerald-400/50", soft: "bg-emerald-500/10" } },
-  { key: "waiting_parts",     label: "Waiting parts",   icon: Package,       hue: { ring: "ring-amber-400/60",   bg: "bg-amber-500",    text: "text-amber-300",   border: "border-amber-400/50",   soft: "bg-amber-500/10" } },
-  { key: "in_repair",         label: "In repair",       icon: Hammer,        hue: { ring: "ring-orange-400/60",  bg: "bg-orange-500",   text: "text-orange-300",  border: "border-orange-400/50",  soft: "bg-orange-500/10" } },
-  { key: "ready_for_pickup",  label: "Ready",           icon: PackageCheck,  hue: { ring: "ring-lime-400/60",    bg: "bg-lime-500",     text: "text-lime-300",    border: "border-lime-400/50",    soft: "bg-lime-500/10" } },
-  { key: "closed",            label: "Closed",          icon: Archive,       hue: { ring: "ring-slate-400/60",   bg: "bg-slate-500",    text: "text-slate-300",   border: "border-slate-400/50",   soft: "bg-slate-500/10" } },
+  {
+    key: "intake",
+    label: "Intake",
+    icon: Inbox,
+    hue: {
+      ring: "ring-sky-400/60",
+      bg: "bg-sky-500",
+      text: "text-sky-300",
+      border: "border-sky-400/50",
+      soft: "bg-sky-500/10",
+    },
+  },
+  {
+    key: "assessing",
+    label: "Assessing",
+    icon: ClipboardList,
+    hue: {
+      ring: "ring-cyan-400/60",
+      bg: "bg-cyan-500",
+      text: "text-cyan-300",
+      border: "border-cyan-400/50",
+      soft: "bg-cyan-500/10",
+    },
+  },
+  {
+    key: "quote_in_progress",
+    label: "Quote drafting",
+    icon: FileEdit,
+    hue: {
+      ring: "ring-violet-400/60",
+      bg: "bg-violet-500",
+      text: "text-violet-300",
+      border: "border-violet-400/50",
+      soft: "bg-violet-500/10",
+    },
+  },
+  {
+    key: "quote_sent",
+    label: "Quote sent",
+    icon: FileCheck2,
+    hue: {
+      ring: "ring-indigo-400/60",
+      bg: "bg-indigo-500",
+      text: "text-indigo-300",
+      border: "border-indigo-400/50",
+      soft: "bg-indigo-500/10",
+    },
+  },
+  {
+    key: "approved",
+    label: "Approved",
+    icon: ThumbsUp,
+    hue: {
+      ring: "ring-emerald-400/60",
+      bg: "bg-emerald-500",
+      text: "text-emerald-300",
+      border: "border-emerald-400/50",
+      soft: "bg-emerald-500/10",
+    },
+  },
+  {
+    key: "waiting_parts",
+    label: "Waiting parts",
+    icon: Package,
+    hue: {
+      ring: "ring-amber-400/60",
+      bg: "bg-amber-500",
+      text: "text-amber-300",
+      border: "border-amber-400/50",
+      soft: "bg-amber-500/10",
+    },
+  },
+  {
+    key: "in_repair",
+    label: "In repair",
+    icon: Hammer,
+    hue: {
+      ring: "ring-orange-400/60",
+      bg: "bg-orange-500",
+      text: "text-orange-300",
+      border: "border-orange-400/50",
+      soft: "bg-orange-500/10",
+    },
+  },
+  {
+    key: "ready_for_pickup",
+    label: "Ready",
+    icon: PackageCheck,
+    hue: {
+      ring: "ring-lime-400/60",
+      bg: "bg-lime-500",
+      text: "text-lime-300",
+      border: "border-lime-400/50",
+      soft: "bg-lime-500/10",
+    },
+  },
+  {
+    key: "closed",
+    label: "Closed",
+    icon: Archive,
+    hue: {
+      ring: "ring-slate-400/60",
+      bg: "bg-slate-500",
+      text: "text-slate-300",
+      border: "border-slate-400/50",
+      soft: "bg-slate-500/10",
+    },
+  },
 ];
 
 function PipelineFlow({
@@ -935,7 +1265,9 @@ function PipelineFlow({
     <section className="card-surface p-4 sm:p-5 print:hidden">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <div className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground font-bold">Claim flow</div>
+          <div className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground font-bold">
+            Claim flow
+          </div>
           <h2 className="font-display text-lg font-semibold">Progress</h2>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
@@ -945,7 +1277,12 @@ function PipelineFlow({
             </Button>
           )}
           {!declined && currentStatus !== "closed" && (
-            <Button onClick={() => onPick("declined")} variant="outline" size="sm" className="gap-1.5 text-destructive border-destructive/40">
+            <Button
+              onClick={() => onPick("declined")}
+              variant="outline"
+              size="sm"
+              className="gap-1.5 text-destructive border-destructive/40"
+            >
               <X className="h-3.5 w-3.5" /> Declined
             </Button>
           )}
@@ -992,14 +1329,18 @@ function PipelineFlow({
                 />
               )}
               <div className="flex items-center gap-2.5">
-                <div className={`grid h-9 w-9 place-items-center rounded-full transition-all ${nodeCls}`}>
+                <div
+                  className={`grid h-9 w-9 place-items-center rounded-full transition-all ${nodeCls}`}
+                >
                   <Icon className="h-4 w-4" />
                 </div>
                 <div className="min-w-0">
                   <div className="text-[9px] uppercase tracking-wider text-muted-foreground font-bold">
                     Step {i + 1}
                   </div>
-                  <div className={`text-sm font-bold leading-tight truncate ${active ? stage.hue.text : past ? stage.hue.text : "text-foreground/80"}`}>
+                  <div
+                    className={`text-sm font-bold leading-tight truncate ${active ? stage.hue.text : past ? stage.hue.text : "text-foreground/80"}`}
+                  >
                     {stage.label}
                   </div>
                 </div>
@@ -1010,7 +1351,9 @@ function PipelineFlow({
                 </div>
               )}
               {past && (
-                <div className={`mt-2 inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider ${stage.hue.text}`}>
+                <div
+                  className={`mt-2 inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider ${stage.hue.text}`}
+                >
                   <Check className="h-3 w-3" /> Done
                 </div>
               )}
@@ -1037,4 +1380,3 @@ function PipelineFlow({
     </section>
   );
 }
-

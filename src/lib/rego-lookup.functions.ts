@@ -59,7 +59,9 @@ export const lookupRego = createServerFn({ method: "POST" })
     const key = process.env.CARJAM_API_KEY;
     if (!key) throw new Error("Missing CARJAM_API_KEY — add it in Backend → Secrets");
     if (key.length !== 40) {
-      throw new Error(`CARJAM_API_KEY looks malformed (expected 40 hex characters, got ${key.length}). Please check the secret in Backend → Secrets.`);
+      throw new Error(
+        `CARJAM_API_KEY looks malformed (expected 40 hex characters, got ${key.length}). Please check the secret in Backend → Secrets.`,
+      );
     }
     const plate = data.rego.replace(/\s+/g, "").toUpperCase();
 
@@ -77,8 +79,11 @@ export const lookupRego = createServerFn({ method: "POST" })
     const bodyText = await res.text();
     let json: any;
     if (contentType.includes("application/json") || bodyText.trimStart().startsWith("{")) {
-      try { json = JSON.parse(bodyText); }
-      catch { throw new Error("Carjam JSON parse failed"); }
+      try {
+        json = JSON.parse(bodyText);
+      } catch {
+        throw new Error("Carjam JSON parse failed");
+      }
     } else {
       // Default Carjam response is XML — parse it.
       const { XMLParser } = await import("fast-xml-parser");
@@ -100,12 +105,13 @@ export const lookupRego = createServerFn({ method: "POST" })
 
     // Carjam error responses are returned with HTTP 200 and a code field.
     if (json?.code === -1 || json?.scode === "err-invalid-api-key") {
-      throw new Error("Carjam rejected the API key (err-invalid-api-key). Please check the secret in Backend → Secrets.");
+      throw new Error(
+        "Carjam rejected the API key (err-invalid-api-key). Please check the secret in Backend → Secrets.",
+      );
     }
     if (json?.code === -1 && json?.message) {
       throw new Error(`Carjam error: ${json.message}`);
     }
-
 
     // Carjam nests fields inconsistently — do a recursive deep search.
     // Also flatten any array of {key,value} / {name,value} / idh entries into a flat map.
@@ -113,12 +119,19 @@ export const lookupRego = createServerFn({ method: "POST" })
     const norm = (s: string) => s.toLowerCase().replace(/[\s_\-]/g, "");
     function walk(node: any) {
       if (node == null) return;
-      if (Array.isArray(node)) { node.forEach(walk); return; }
+      if (Array.isArray(node)) {
+        node.forEach(walk);
+        return;
+      }
       if (typeof node !== "object") return;
       // key/value pair rows (Carjam <idh key="make">HONDA</idh> becomes { key:"make", "#text":"HONDA" })
       const k = node.key ?? node.name ?? node.field ?? node.label;
       const v = node.value ?? node["#text"] ?? node.text;
-      if (typeof k === "string" && v !== undefined && (typeof v === "string" || typeof v === "number")) {
+      if (
+        typeof k === "string" &&
+        v !== undefined &&
+        (typeof v === "string" || typeof v === "number")
+      ) {
         flat[norm(k)] = v;
       }
       for (const [ck, cv] of Object.entries(node)) {
@@ -152,8 +165,12 @@ export const lookupRego = createServerFn({ method: "POST" })
       color: get("main_colour", "maincolour", "colour", "color"),
       cc: ccNum,
       fuel: get("fuel_type", "fueltype", "fuel"),
-      wof_expiry: toISODate(get("wof_expiry", "wofexpiry", "next_inspection", "nextinspection", "wof")),
-      rego_expiry: toISODate(get("licence_expiry", "licenceexpiry", "rego_expiry", "regoexpiry", "expirydate")),
+      wof_expiry: toISODate(
+        get("wof_expiry", "wofexpiry", "next_inspection", "nextinspection", "wof"),
+      ),
+      rego_expiry: toISODate(
+        get("licence_expiry", "licenceexpiry", "rego_expiry", "regoexpiry", "expirydate"),
+      ),
     };
 
     if (!result.make && !result.model) {

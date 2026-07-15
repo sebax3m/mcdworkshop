@@ -18,7 +18,10 @@ export const createTechnician = createServerFn({ method: "POST" })
     let userId: string | null = null;
     let page = 1;
     outer: while (true) {
-      const { data: list, error } = await supabaseAdmin.auth.admin.listUsers({ page, perPage: 200 });
+      const { data: list, error } = await supabaseAdmin.auth.admin.listUsers({
+        page,
+        perPage: 200,
+      });
       if (error) throw new Error(error.message);
       for (const u of list.users) {
         if (u.email?.toLowerCase() === data.email.toLowerCase()) {

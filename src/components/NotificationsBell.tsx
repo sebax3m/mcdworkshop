@@ -149,18 +149,32 @@ export function NotificationsBell() {
                     !isRead && "bg-primary/[0.04]",
                   )}
                 >
-                  <div className={cn("mt-1.5 h-2 w-2 rounded-full shrink-0", isRead ? "bg-transparent" : "bg-primary shadow-[0_0_6px_hsl(var(--primary))]")} />
+                  <div
+                    className={cn(
+                      "mt-1.5 h-2 w-2 rounded-full shrink-0",
+                      isRead ? "bg-transparent" : "bg-primary shadow-[0_0_6px_hsl(var(--primary))]",
+                    )}
+                  />
                   <div className="flex-1 min-w-0">
-                    <div className={cn("text-sm truncate", isRead ? "font-medium text-muted-foreground" : "font-bold text-foreground")}>
+                    <div
+                      className={cn(
+                        "text-sm truncate",
+                        isRead ? "font-medium text-muted-foreground" : "font-bold text-foreground",
+                      )}
+                    >
                       {n.title}
                     </div>
                     {n.body && (
-                      <div className="text-[11px] text-muted-foreground line-clamp-2 mt-0.5">{n.body}</div>
+                      <div className="text-[11px] text-muted-foreground line-clamp-2 mt-0.5">
+                        {n.body}
+                      </div>
                     )}
                     <div className="text-[10px] uppercase tracking-wider text-muted-foreground/70 mt-1 flex items-center gap-2">
                       <span>{n.kind.replace(/_/g, " ")}</span>
                       <span>·</span>
-                      <span>{formatDistanceToNow(new Date(n.created_at), { addSuffix: true })}</span>
+                      <span>
+                        {formatDistanceToNow(new Date(n.created_at), { addSuffix: true })}
+                      </span>
                     </div>
                   </div>
                   {!isRead && (

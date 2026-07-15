@@ -1,7 +1,19 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { ArrowLeft, Printer, Mail, FileDown, Pencil, Check, X, Plus, Trash2, BookOpen, Search } from "lucide-react";
+import {
+  ArrowLeft,
+  Printer,
+  Mail,
+  FileDown,
+  Pencil,
+  Check,
+  X,
+  Plus,
+  Trash2,
+  BookOpen,
+  Search,
+} from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { fullBike } from "@/lib/format";
@@ -43,8 +55,12 @@ function EditableNumber({
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(value.toFixed(decimals));
   const inputRef = useRef<HTMLInputElement>(null);
-  useEffect(() => { if (!editing) setDraft(value.toFixed(decimals)); }, [value, editing, decimals]);
-  useEffect(() => { if (editing) inputRef.current?.select(); }, [editing]);
+  useEffect(() => {
+    if (!editing) setDraft(value.toFixed(decimals));
+  }, [value, editing, decimals]);
+  useEffect(() => {
+    if (editing) inputRef.current?.select();
+  }, [editing]);
 
   function commit() {
     setEditing(false);
@@ -62,8 +78,14 @@ function EditableNumber({
         onChange={(e) => setDraft(e.target.value)}
         onBlur={commit}
         onKeyDown={(e) => {
-          if (e.key === "Enter") { e.preventDefault(); commit(); }
-          if (e.key === "Escape") { setDraft(value.toFixed(decimals)); setEditing(false); }
+          if (e.key === "Enter") {
+            e.preventDefault();
+            commit();
+          }
+          if (e.key === "Escape") {
+            setDraft(value.toFixed(decimals));
+            setEditing(false);
+          }
         }}
         className={`w-24 rounded-md border border-primary/60 bg-background px-2 py-1 text-right tabular-nums outline-none ${className}`}
       />
@@ -76,7 +98,11 @@ function EditableNumber({
       className={`group inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 hover:bg-primary/10 hover:text-foreground transition-colors tabular-nums ${className}`}
       title="Click to edit"
     >
-      <span>{prefix}{value.toFixed(decimals)}{suffix}</span>
+      <span>
+        {prefix}
+        {value.toFixed(decimals)}
+        {suffix}
+      </span>
       <Pencil className="h-3 w-3 opacity-0 group-hover:opacity-60 no-print" />
     </button>
   );
@@ -94,8 +120,12 @@ function EditableText({
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(value);
   const inputRef = useRef<HTMLInputElement>(null);
-  useEffect(() => { if (!editing) setDraft(value); }, [value, editing]);
-  useEffect(() => { if (editing) inputRef.current?.select(); }, [editing]);
+  useEffect(() => {
+    if (!editing) setDraft(value);
+  }, [value, editing]);
+  useEffect(() => {
+    if (editing) inputRef.current?.select();
+  }, [editing]);
 
   function commit() {
     setEditing(false);
@@ -113,8 +143,14 @@ function EditableText({
         onChange={(e) => setDraft(e.target.value)}
         onBlur={commit}
         onKeyDown={(e) => {
-          if (e.key === "Enter") { e.preventDefault(); commit(); }
-          if (e.key === "Escape") { setDraft(value); setEditing(false); }
+          if (e.key === "Enter") {
+            e.preventDefault();
+            commit();
+          }
+          if (e.key === "Escape") {
+            setDraft(value);
+            setEditing(false);
+          }
         }}
         className="w-full rounded-md border border-primary/60 bg-background px-2 py-0.5 text-sm outline-none"
       />
@@ -135,7 +171,8 @@ function EditableText({
 
 export const Route = createFileRoute("/_authenticated/invoices/$invoiceId")({
   validateSearch: (s: Record<string, unknown>) => ({
-    action: s.action === "print" || s.action === "email" ? (s.action as "print" | "email") : undefined,
+    action:
+      s.action === "print" || s.action === "email" ? (s.action as "print" | "email") : undefined,
   }),
   component: InvoiceDetail,
 });
@@ -163,7 +200,14 @@ function InvoiceDetail() {
   const parts = useQuery({
     queryKey: ["invoice-parts", invoiceId, invoice.data?.job_id],
     enabled: !!invoice.data?.job_id,
-    queryFn: async () => (await supabase.from("parts").select("*").eq("job_id", invoice.data!.job_id!).order("created_at")).data ?? [],
+    queryFn: async () =>
+      (
+        await supabase
+          .from("parts")
+          .select("*")
+          .eq("job_id", invoice.data!.job_id!)
+          .order("created_at")
+      ).data ?? [],
   });
 
   // Inventory library picker (re-used by snapshot lines AND job parts)
@@ -173,36 +217,42 @@ function InvoiceDetail() {
   const [librarySearch, setLibrarySearch] = useState("");
   const library = useQuery({
     queryKey: ["inv-detail-library"],
-    queryFn: async () => (await supabase.from("inventory_items").select("*").order("name")).data ?? [],
+    queryFn: async () =>
+      (await supabase.from("inventory_items").select("*").order("name")).data ?? [],
   });
 
   const timeEntries = useQuery({
     queryKey: ["invoice-time", invoiceId, invoice.data?.job_id],
     enabled: !!invoice.data?.job_id,
     queryFn: async () =>
-      (await supabase.from("time_entries").select("minutes").eq("job_id", invoice.data!.job_id!)).data ?? [],
+      (await supabase.from("time_entries").select("minutes").eq("job_id", invoice.data!.job_id!))
+        .data ?? [],
   });
 
   const checks = useQuery({
     queryKey: ["invoice-checks", invoiceId, invoice.data?.job_id],
     enabled: !!invoice.data?.job_id,
     queryFn: async () =>
-      (await supabase
-        .from("job_tasks")
-        .select("id,label,is_done,note,sort_order")
-        .eq("job_id", invoice.data!.job_id!)
-        .order("sort_order")).data ?? [],
+      (
+        await supabase
+          .from("job_tasks")
+          .select("id,label,is_done,note,sort_order")
+          .eq("job_id", invoice.data!.job_id!)
+          .order("sort_order")
+      ).data ?? [],
   });
 
   const jobNotes = useQuery({
     queryKey: ["invoice-job-notes", invoiceId, invoice.data?.job_id],
     enabled: !!invoice.data?.job_id,
     queryFn: async () =>
-      (await supabase
-        .from("job_notes")
-        .select("id, body, created_at")
-        .eq("job_id", invoice.data!.job_id!)
-        .order("created_at")).data ?? [],
+      (
+        await supabase
+          .from("job_notes")
+          .select("id, body, created_at")
+          .eq("job_id", invoice.data!.job_id!)
+          .order("created_at")
+      ).data ?? [],
   });
 
   // Ensure every invoice carries a default $30 shop consumables line. Auto-insert
@@ -210,24 +260,33 @@ function InvoiceDetail() {
   useEffect(() => {
     const jobId = invoice.data?.job_id;
     if (!jobId || !parts.data) return;
-    const hasConsumables = parts.data.some(
-      (p: any) => (p.name ?? "").toLowerCase().includes("consumable"),
+    const hasConsumables = parts.data.some((p: any) =>
+      (p.name ?? "").toLowerCase().includes("consumable"),
     );
     if (hasConsumables) return;
     (async () => {
-      const { error } = await supabase
-        .from("parts")
-        .insert({ job_id: jobId, name: "Shop consumables", quantity: 1, retail: 30, on_invoice: true });
+      const { error } = await supabase.from("parts").insert({
+        job_id: jobId,
+        name: "Shop consumables",
+        quantity: 1,
+        retail: 30,
+        on_invoice: true,
+      });
       if (error) return;
       const fresh = await supabase.from("parts").select("*").eq("job_id", jobId);
       const partsSum = (fresh.data ?? []).reduce(
-        (s: number, p: any) => s + Number(p.retail ?? 0) * Number(p.quantity ?? 1) * (1 - Number(p.discount_pct ?? 0) / 100),
+        (s: number, p: any) =>
+          s +
+          Number(p.retail ?? 0) * Number(p.quantity ?? 1) * (1 - Number(p.discount_pct ?? 0) / 100),
         0,
       );
       const subtotal = Number(invoice.data!.labour_total) + partsSum;
-      const gst = Math.round((subtotal * GST_RATE / (1 + GST_RATE)) * 100) / 100;
+      const gst = Math.round(((subtotal * GST_RATE) / (1 + GST_RATE)) * 100) / 100;
       const total = Math.round(subtotal * 100) / 100;
-      await supabase.from("invoices").update({ parts_total: partsSum, gst, total }).eq("id", invoiceId);
+      await supabase
+        .from("invoices")
+        .update({ parts_total: partsSum, gst, total })
+        .eq("id", invoiceId);
       qc.invalidateQueries({ queryKey: ["invoice-parts", invoiceId, jobId] });
       qc.invalidateQueries({ queryKey: ["invoice", invoiceId] });
     })();
@@ -249,19 +308,26 @@ function InvoiceDetail() {
           const name = customer ? `${customer.first_name ?? ""}`.trim() : "there";
           const subject = `Invoice ${inv.invoice_number} from Motorcycle Doctors`;
           const issuedAt = new Date(inv.created_at);
-          const dueAt = new Date(issuedAt); dueAt.setDate(dueAt.getDate() + 14);
+          const dueAt = new Date(issuedAt);
+          dueAt.setDate(dueAt.getDate() + 14);
           const body = [
-            `Hi ${name || "there"},`, ``,
-            `Please find your invoice ${inv.invoice_number} below.`, ``,
+            `Hi ${name || "there"},`,
+            ``,
+            `Please find your invoice ${inv.invoice_number} below.`,
+            ``,
             `Bike: ${bike ? fullBike(bike) : "—"}`,
             `Issued: ${issuedAt.toLocaleDateString()}`,
-            `Due: ${dueAt.toLocaleDateString()}`, ``,
+            `Due: ${dueAt.toLocaleDateString()}`,
+            ``,
             `Labour:  $${Number(inv.labour_total).toFixed(2)}`,
             `Parts:   $${Number(inv.parts_total).toFixed(2)}`,
             `GST:     $${Number(inv.gst).toFixed(2)}`,
-            `TOTAL:   $${Number(inv.total).toFixed(2)}`, ``,
-            `View online: ${window.location.href}`, ``,
-            `Thanks,`, `Motorcycle Doctors`,
+            `TOTAL:   $${Number(inv.total).toFixed(2)}`,
+            ``,
+            `View online: ${window.location.href}`,
+            ``,
+            `Thanks,`,
+            `Motorcycle Doctors`,
           ].join("\n");
           window.location.href = `mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
         }
@@ -272,9 +338,16 @@ function InvoiceDetail() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [action]);
 
-  if (invoice.isLoading) return <div className="card-surface p-8 text-center text-sm text-muted-foreground">Loading…</div>;
-  if (!invoice.data) return <div className="card-surface p-8 text-center text-sm text-muted-foreground">Invoice not found.</div>;
-
+  if (invoice.isLoading)
+    return (
+      <div className="card-surface p-8 text-center text-sm text-muted-foreground">Loading…</div>
+    );
+  if (!invoice.data)
+    return (
+      <div className="card-surface p-8 text-center text-sm text-muted-foreground">
+        Invoice not found.
+      </div>
+    );
 
   const inv = invoice.data;
   const defaultHours =
@@ -291,17 +364,28 @@ function InvoiceDetail() {
     const labour = Number(nextLabour ?? inv.labour_total);
     const partsSum = (parts.data ?? []).reduce((s: number, p: any) => s + lineNet(p), 0);
     const subtotal = labour + partsSum; // inc GST
-    const gst = Math.round((subtotal * GST_RATE / (1 + GST_RATE)) * 100) / 100;
+    const gst = Math.round(((subtotal * GST_RATE) / (1 + GST_RATE)) * 100) / 100;
     const total = Math.round(subtotal * 100) / 100;
     const { error } = await supabase
       .from("invoices")
       .update({ labour_total: labour, parts_total: partsSum, gst, total })
       .eq("id", invoiceId);
-    if (error) { toast.error(error.message); return; }
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
     qc.invalidateQueries({ queryKey: ["invoice", invoiceId] });
   }
 
-  async function updateLabour({ qty, unit, amount }: { qty?: number; unit?: number; amount?: number }) {
+  async function updateLabour({
+    qty,
+    unit,
+    amount,
+  }: {
+    qty?: number;
+    unit?: number;
+    amount?: number;
+  }) {
     const currentLabour = Number(inv.labour_total);
     const currentUnit = LABOUR_RATE;
     const currentQty = currentLabour / currentUnit;
@@ -313,9 +397,21 @@ function InvoiceDetail() {
     await recomputeInvoiceTotals(nextAmount);
   }
 
-  async function updatePart(id: string, patch: { quantity?: number; retail?: number; name?: string; supplier?: string; discount_pct?: number }) {
+  async function updatePart(
+    id: string,
+    patch: {
+      quantity?: number;
+      retail?: number;
+      name?: string;
+      supplier?: string;
+      discount_pct?: number;
+    },
+  ) {
     const { error } = await supabase.from("parts").update(patch).eq("id", id);
-    if (error) { toast.error(error.message); return; }
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
     await refreshPartsTotals();
   }
 
@@ -324,9 +420,12 @@ function InvoiceDetail() {
     const fresh = await supabase.from("parts").select("*").eq("job_id", inv.job_id!);
     const partsSum = (fresh.data ?? []).reduce((s: number, p: any) => s + lineNet(p), 0);
     const subtotal = Number(inv.labour_total) + partsSum;
-    const gst = Math.round((subtotal * GST_RATE / (1 + GST_RATE)) * 100) / 100;
+    const gst = Math.round(((subtotal * GST_RATE) / (1 + GST_RATE)) * 100) / 100;
     const total = Math.round(subtotal * 100) / 100;
-    await supabase.from("invoices").update({ parts_total: partsSum, gst, total }).eq("id", invoiceId);
+    await supabase
+      .from("invoices")
+      .update({ parts_total: partsSum, gst, total })
+      .eq("id", invoiceId);
     qc.invalidateQueries({ queryKey: ["invoice", invoiceId] });
   }
 
@@ -341,40 +440,63 @@ function InvoiceDetail() {
       discount_pct: 0,
       added_by: user?.id,
     } as any);
-    if (error) { toast.error(error.message); return; }
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
     await refreshPartsTotals();
   }
 
   async function deletePart(id: string) {
     const { error } = await supabase.from("parts").delete().eq("id", id);
-    if (error) { toast.error(error.message); return; }
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
     await refreshPartsTotals();
   }
 
-  async function saveSnapshotLines(items: { description: string; quantity: number; unit: number; discount_pct?: number }[]) {
+  async function saveSnapshotLines(
+    items: { description: string; quantity: number; unit: number; discount_pct?: number }[],
+  ) {
     const partsSum = items.reduce(
-      (s, l) => s + Number(l.unit || 0) * Number(l.quantity || 0) * (1 - Number(l.discount_pct ?? 0) / 100),
+      (s, l) =>
+        s + Number(l.unit || 0) * Number(l.quantity || 0) * (1 - Number(l.discount_pct ?? 0) / 100),
       0,
     );
     const subtotal = partsSum; // labour stays 0 for standalone
-    const gst = Math.round((subtotal * GST_RATE / (1 + GST_RATE)) * 100) / 100;
+    const gst = Math.round(((subtotal * GST_RATE) / (1 + GST_RATE)) * 100) / 100;
     const total = Math.round(subtotal * 100) / 100;
     const newSnap = { ...((inv.snapshot as any) ?? {}), line_items: items };
     const { error } = await supabase
       .from("invoices")
       .update({ snapshot: newSnap, parts_total: partsSum, gst, total })
       .eq("id", invoiceId);
-    if (error) { toast.error(error.message); return; }
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
     qc.invalidateQueries({ queryKey: ["invoice", invoiceId] });
   }
-  function currentSnapshotLines(): { description: string; quantity: number; unit: number; discount_pct?: number }[] {
+  function currentSnapshotLines(): {
+    description: string;
+    quantity: number;
+    unit: number;
+    discount_pct?: number;
+  }[] {
     const items = (inv.snapshot as any)?.line_items;
     return Array.isArray(items) ? items : [];
   }
   async function addSnapshotLine() {
-    await saveSnapshotLines([...currentSnapshotLines(), { description: "New item", quantity: 1, unit: 0, discount_pct: 0 }]);
+    await saveSnapshotLines([
+      ...currentSnapshotLines(),
+      { description: "New item", quantity: 1, unit: 0, discount_pct: 0 },
+    ]);
   }
-  async function updateSnapshotLine(idx: number, patch: Partial<{ description: string; quantity: number; unit: number; discount_pct: number }>) {
+  async function updateSnapshotLine(
+    idx: number,
+    patch: Partial<{ description: string; quantity: number; unit: number; discount_pct: number }>,
+  ) {
     const items = currentSnapshotLines().map((it, i) => (i === idx ? { ...it, ...patch } : it));
     await saveSnapshotLines(items);
   }
@@ -384,7 +506,8 @@ function InvoiceDetail() {
   const customer = inv.customers;
   const bike = inv.motorcycles;
   const issuedAt = new Date(inv.created_at);
-  const dueAt = new Date(issuedAt); dueAt.setDate(dueAt.getDate() + 14);
+  const dueAt = new Date(issuedAt);
+  dueAt.setDate(dueAt.getDate() + 14);
   const subtotalInc = Number(inv.labour_total) + Number(inv.parts_total);
   const subtotalEx = subtotalInc / (1 + GST_RATE);
 
@@ -414,18 +537,22 @@ function InvoiceDetail() {
     window.location.href = `mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
   }
 
-
   const canDelete = isAdmin && (inv.status ?? "").toLowerCase() === "draft";
 
   // Disc % column only appears when at least one line has a discount.
-  const snapshotItems: any[] = Array.isArray((inv.snapshot as any)?.line_items) ? (inv.snapshot as any).line_items : [];
+  const snapshotItems: any[] = Array.isArray((inv.snapshot as any)?.line_items)
+    ? (inv.snapshot as any).line_items
+    : [];
   const hasDiscount = inv.job_id
     ? (parts.data ?? []).some((p: any) => Number(p.discount_pct ?? 0) > 0)
     : snapshotItems.some((it) => Number(it?.discount_pct ?? 0) > 0);
 
   async function deleteInvoice() {
     const { error } = await supabase.from("invoices").delete().eq("id", invoiceId);
-    if (error) { toast.error(error.message); return; }
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
     toast.success("Invoice deleted");
     qc.invalidateQueries({ queryKey: ["invoices"] });
     nav({ to: "/invoices" });
@@ -481,14 +608,18 @@ function InvoiceDetail() {
         }
       `}</style>
 
-
       <header className="flex items-center gap-3 print:hidden">
-        <button onClick={() => nav({ to: "/invoices" })} className="grid h-9 w-9 place-items-center rounded-lg border border-border">
+        <button
+          onClick={() => nav({ to: "/invoices" })}
+          className="grid h-9 w-9 place-items-center rounded-lg border border-border"
+        >
           <ArrowLeft className="h-4 w-4" />
         </button>
         <div className="min-w-0 flex-1">
           <div className="text-xs uppercase tracking-[0.25em] text-muted-foreground">Invoice</div>
-          <h1 className="font-display text-xl sm:text-2xl font-bold truncate">{inv.invoice_number}</h1>
+          <h1 className="font-display text-xl sm:text-2xl font-bold truncate">
+            {inv.invoice_number}
+          </h1>
         </div>
         <div className="flex items-center gap-2 flex-wrap justify-end">
           <Button
@@ -534,10 +665,18 @@ function InvoiceDetail() {
         {/* Gold banner */}
         <div className="red-surface px-8 py-6 flex items-start justify-between gap-4 flex-wrap">
           <div className="flex items-center gap-4">
-            <img src={logoAsset.url} alt="Motorcycle Doctors" className="h-14 w-14 rounded-md object-contain bg-black/10 p-1" />
+            <img
+              src={logoAsset.url}
+              alt="Motorcycle Doctors"
+              className="h-14 w-14 rounded-md object-contain bg-black/10 p-1"
+            />
             <div>
-              <div className="font-display text-3xl font-black tracking-tight">Motorcycle Doctors</div>
-              <div className="text-xs uppercase tracking-[0.3em] opacity-80 mt-1">Premium Motorcycle Workshop</div>
+              <div className="font-display text-3xl font-black tracking-tight">
+                Motorcycle Doctors
+              </div>
+              <div className="text-xs uppercase tracking-[0.3em] opacity-80 mt-1">
+                Premium Motorcycle Workshop
+              </div>
             </div>
           </div>
           <div className="text-right">
@@ -550,7 +689,9 @@ function InvoiceDetail() {
           {/* Meta strip */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
             <div>
-              <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Issued</div>
+              <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                Issued
+              </div>
               <div className="font-semibold">{issuedAt.toLocaleDateString()}</div>
             </div>
             <div>
@@ -558,7 +699,9 @@ function InvoiceDetail() {
               <div className="font-semibold">{dueAt.toLocaleDateString()}</div>
             </div>
             <div>
-              <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Status</div>
+              <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                Status
+              </div>
               <div className="font-semibold uppercase">{inv.status}</div>
             </div>
             <div>
@@ -570,14 +713,26 @@ function InvoiceDetail() {
           {/* Bill to + Bike */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-5 border-t border-border">
             <div>
-              <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-2">Bill To</div>
-              <div className="font-display text-lg font-bold">{customer ? `${customer.first_name ?? ""} ${customer.last_name ?? ""}`.trim() : "—"}</div>
-              {customer?.email && <div className="text-sm text-muted-foreground">{customer.email}</div>}
-              {customer?.phone && <div className="text-sm text-muted-foreground">{customer.phone}</div>}
+              <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-2">
+                Bill To
+              </div>
+              <div className="font-display text-lg font-bold">
+                {customer ? `${customer.first_name ?? ""} ${customer.last_name ?? ""}`.trim() : "—"}
+              </div>
+              {customer?.email && (
+                <div className="text-sm text-muted-foreground">{customer.email}</div>
+              )}
+              {customer?.phone && (
+                <div className="text-sm text-muted-foreground">{customer.phone}</div>
+              )}
             </div>
             <div>
-              <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-2">Motorcycle</div>
-              <div className="font-display text-lg font-bold">{bike ? fullBike(bike as any) : "—"}</div>
+              <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-2">
+                Motorcycle
+              </div>
+              <div className="font-display text-lg font-bold">
+                {bike ? fullBike(bike as any) : "—"}
+              </div>
               {bike?.rego && <div className="text-sm text-muted-foreground">Rego: {bike.rego}</div>}
               {(inv.jobs?.odometer ?? bike?.mileage) != null && (
                 <div className="text-sm text-muted-foreground">
@@ -592,12 +747,13 @@ function InvoiceDetail() {
             jobId={inv.job_id}
             title={inv.jobs?.title ?? null}
             items={checks.data ?? []}
-            onChanged={() => qc.invalidateQueries({ queryKey: ["invoice-checks", invoiceId, inv.job_id] })}
+            onChanged={() =>
+              qc.invalidateQueries({ queryKey: ["invoice-checks", invoiceId, inv.job_id] })
+            }
           />
 
           {/* Line items */}
           <div className="pt-5 border-t border-border">
-            
             <table className="w-full text-sm">
               <thead>
                 <tr className="text-left text-[10px] uppercase tracking-wider text-muted-foreground border-b border-border">
@@ -609,157 +765,91 @@ function InvoiceDetail() {
                 </tr>
               </thead>
               <tbody>
-                {inv.job_id && (() => {
-                  const rate = LABOUR_RATE;
-                  const hours = Number(inv.labour_total) / rate;
-                  const delta = hours - defaultHours;
-                  const deltaLabel =
-                    Math.abs(delta) < 0.01
-                      ? null
-                      : `${delta > 0 ? "+" : ""}${delta.toFixed(2)}h vs tracked`;
-                  return (
-                    <tr className="border-b border-border/40">
-                      <td className="py-3">
-                        <div className="font-medium">Workshop labour</div>
-                        <div className="text-xs text-muted-foreground">
-                          Diagnostics, service & repair · $130/hr (incl. GST)
-                          {defaultHours > 0 && (
-                            <span className="no-print"> · tracked {defaultHours.toFixed(2)}h</span>
-                          )}
-                        </div>
-                      </td>
-                      <td className="py-3 text-right">
-                        <EditableNumber value={hours} onCommit={(n) => updateLabour({ qty: n })} suffix="h" />
-                        {deltaLabel && (
-                          <div className={`text-[10px] mt-0.5 no-print ${delta > 0 ? "text-amber-500" : "text-emerald-500"}`}>
-                            {deltaLabel}
-                          </div>
-                        )}
-                      </td>
-                      <td className="py-3 text-right">
-                        <EditableNumber value={rate} onCommit={(n) => updateLabour({ unit: n })} prefix="$" />
-                      </td>
-                      {hasDiscount && <td className="py-3 text-right text-muted-foreground">—</td>}
-                      <td className="py-3 text-right font-semibold">
-                        <EditableNumber value={Number(inv.labour_total)} onCommit={(n) => updateLabour({ amount: n })} prefix="$" />
-                      </td>
-                    </tr>
-                  );
-                })()}
-                {inv.job_id && (parts.data ?? []).map((p: any) => {
-                  const unit = Number(p.retail ?? 0);
-                  const qty = Number(p.quantity ?? 1);
-                  const disc = Number(p.discount_pct ?? 0);
-                  const gross = unit * qty;
-                  const net = gross * (1 - disc / 100);
-                  return (
-                    <tr key={p.id} className="border-b border-border/40 group">
-                      <td className="py-3">
-                        <div className="flex items-start gap-2">
-                          <div className="flex-1">
-                            <EditableText value={p.name ?? ""} onCommit={(v) => updatePart(p.id, { name: v })} className="font-medium" />
-                            <EditableText
-                              value={p.supplier ?? ""}
-                              onCommit={(v) => updatePart(p.id, { supplier: v })}
-                              className="text-xs text-muted-foreground block"
-                            />
-                          </div>
-                          <button
-                            onClick={() => { setLibrarySearch(""); setLibraryTarget({ kind: "part", id: p.id }); }}
-                            className="no-print shrink-0 rounded border border-border p-1 text-muted-foreground hover:text-foreground hover:border-primary"
-                            title="Pick from inventory library"
-                          >
-                            <BookOpen className="h-3.5 w-3.5" />
-                          </button>
-                        </div>
-                      </td>
-                      <td className="py-3 text-right">
-                        <EditableNumber value={qty} decimals={0} onCommit={(n) => updatePart(p.id, { quantity: n })} />
-                      </td>
-                      <td className="py-3 text-right">
-                        <EditableNumber
-                          value={unit}
-                          prefix="$"
-                          onCommit={(n) => updatePart(p.id, { retail: n })}
-                        />
-                        {!hasDiscount && (
-                          <button
-                            onClick={() => updatePart(p.id, { discount_pct: 10 })}
-                            className="no-print block ml-auto mt-0.5 text-[10px] text-muted-foreground hover:text-primary opacity-0 group-hover:opacity-100"
-                            title="Add a discount on this line"
-                          >+ Disc</button>
-                        )}
-                      </td>
-                      {hasDiscount && (
-                        <td className="py-3 text-right">
-                          <div className="inline-flex items-center gap-1">
-                            <EditableNumber
-                              value={disc}
-                              suffix="%"
-                              onCommit={(n) => updatePart(p.id, { discount_pct: Math.max(0, Math.min(100, n)) })}
-                              className={disc > 0 ? "text-emerald-500 font-semibold" : ""}
-                            />
-                            {disc > 0 && (
-                              <button
-                                onClick={() => updatePart(p.id, { discount_pct: 0 })}
-                                className="no-print text-muted-foreground hover:text-destructive"
-                                title="Remove discount"
-                              >
-                                <X className="h-3.5 w-3.5" />
-                              </button>
+                {inv.job_id &&
+                  (() => {
+                    const rate = LABOUR_RATE;
+                    const hours = Number(inv.labour_total) / rate;
+                    const delta = hours - defaultHours;
+                    const deltaLabel =
+                      Math.abs(delta) < 0.01
+                        ? null
+                        : `${delta > 0 ? "+" : ""}${delta.toFixed(2)}h vs tracked`;
+                    return (
+                      <tr className="border-b border-border/40">
+                        <td className="py-3">
+                          <div className="font-medium">Workshop labour</div>
+                          <div className="text-xs text-muted-foreground">
+                            Diagnostics, service & repair · $130/hr (incl. GST)
+                            {defaultHours > 0 && (
+                              <span className="no-print">
+                                {" "}
+                                · tracked {defaultHours.toFixed(2)}h
+                              </span>
                             )}
                           </div>
                         </td>
-                      )}
-                      <td className="py-3 text-right font-semibold">
-                        {disc > 0 && (
-                          <div className="text-[10px] text-muted-foreground line-through tabular-nums">${gross.toFixed(2)}</div>
+                        <td className="py-3 text-right">
+                          <EditableNumber
+                            value={hours}
+                            onCommit={(n) => updateLabour({ qty: n })}
+                            suffix="h"
+                          />
+                          {deltaLabel && (
+                            <div
+                              className={`text-[10px] mt-0.5 no-print ${delta > 0 ? "text-amber-500" : "text-emerald-500"}`}
+                            >
+                              {deltaLabel}
+                            </div>
+                          )}
+                        </td>
+                        <td className="py-3 text-right">
+                          <EditableNumber
+                            value={rate}
+                            onCommit={(n) => updateLabour({ unit: n })}
+                            prefix="$"
+                          />
+                        </td>
+                        {hasDiscount && (
+                          <td className="py-3 text-right text-muted-foreground">—</td>
                         )}
-                        <span className="tabular-nums">${net.toFixed(2)}</span>
-                        {disc > 0 && (
-                          <div className="text-[10px] text-emerald-500 font-semibold">−${(gross - net).toFixed(2)} ({disc}% off)</div>
-                        )}
-                        <button
-                          onClick={() => deletePart(p.id)}
-                          className="ml-2 no-print opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive"
-                          title="Remove line"
-                        >
-                          <Trash2 className="h-3.5 w-3.5 inline" />
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })}
-                {inv.job_id && (
-                  <tr className="no-print">
-                    <td colSpan={hasDiscount ? 5 : 4} className="pt-2">
-                      <button onClick={addJobPart} className="text-xs text-primary hover:underline inline-flex items-center gap-1">
-                        <Plus className="h-3 w-3" /> Add line item
-                      </button>
-                    </td>
-                  </tr>
-                )}
-                {!inv.job_id && (() => {
-                  const items: { description: string; quantity: number; unit: number; discount_pct?: number }[] =
-                    Array.isArray((inv.snapshot as any)?.line_items) ? (inv.snapshot as any).line_items : [];
-                  if (items.length === 0) {
-                    return (
-                      <tr><td colSpan={hasDiscount ? 5 : 4} className="py-6 text-center text-xs text-muted-foreground">
-                        No line items. <button onClick={() => addSnapshotLine()} className="text-primary underline no-print">Add one</button>
-                      </td></tr>
+                        <td className="py-3 text-right font-semibold">
+                          <EditableNumber
+                            value={Number(inv.labour_total)}
+                            onCommit={(n) => updateLabour({ amount: n })}
+                            prefix="$"
+                          />
+                        </td>
+                      </tr>
                     );
-                  }
-                  return items.map((it, idx) => {
-                    const disc = Number(it.discount_pct ?? 0);
-                    const gross = Number(it.unit) * Number(it.quantity);
+                  })()}
+                {inv.job_id &&
+                  (parts.data ?? []).map((p: any) => {
+                    const unit = Number(p.retail ?? 0);
+                    const qty = Number(p.quantity ?? 1);
+                    const disc = Number(p.discount_pct ?? 0);
+                    const gross = unit * qty;
                     const net = gross * (1 - disc / 100);
                     return (
-                      <tr key={idx} className="border-b border-border/40 group">
+                      <tr key={p.id} className="border-b border-border/40 group">
                         <td className="py-3">
                           <div className="flex items-start gap-2">
-                            <div className="flex-1"><EditableText value={it.description} onCommit={(v) => updateSnapshotLine(idx, { description: v })} className="font-medium" /></div>
+                            <div className="flex-1">
+                              <EditableText
+                                value={p.name ?? ""}
+                                onCommit={(v) => updatePart(p.id, { name: v })}
+                                className="font-medium"
+                              />
+                              <EditableText
+                                value={p.supplier ?? ""}
+                                onCommit={(v) => updatePart(p.id, { supplier: v })}
+                                className="text-xs text-muted-foreground block"
+                              />
+                            </div>
                             <button
-                              onClick={() => { setLibrarySearch(""); setLibraryTarget({ kind: "snapshot", idx }); }}
+                              onClick={() => {
+                                setLibrarySearch("");
+                                setLibraryTarget({ kind: "part", id: p.id });
+                              }}
                               className="no-print shrink-0 rounded border border-border p-1 text-muted-foreground hover:text-foreground hover:border-primary"
                               title="Pick from inventory library"
                             >
@@ -768,16 +858,26 @@ function InvoiceDetail() {
                           </div>
                         </td>
                         <td className="py-3 text-right">
-                          <EditableNumber value={Number(it.quantity)} decimals={0} onCommit={(n) => updateSnapshotLine(idx, { quantity: n })} />
+                          <EditableNumber
+                            value={qty}
+                            decimals={0}
+                            onCommit={(n) => updatePart(p.id, { quantity: n })}
+                          />
                         </td>
                         <td className="py-3 text-right">
-                          <EditableNumber value={Number(it.unit)} prefix="$" onCommit={(n) => updateSnapshotLine(idx, { unit: n })} />
+                          <EditableNumber
+                            value={unit}
+                            prefix="$"
+                            onCommit={(n) => updatePart(p.id, { retail: n })}
+                          />
                           {!hasDiscount && (
                             <button
-                              onClick={() => updateSnapshotLine(idx, { discount_pct: 10 })}
+                              onClick={() => updatePart(p.id, { discount_pct: 10 })}
                               className="no-print block ml-auto mt-0.5 text-[10px] text-muted-foreground hover:text-primary opacity-0 group-hover:opacity-100"
                               title="Add a discount on this line"
-                            >+ Disc</button>
+                            >
+                              + Disc
+                            </button>
                           )}
                         </td>
                         {hasDiscount && (
@@ -786,12 +886,14 @@ function InvoiceDetail() {
                               <EditableNumber
                                 value={disc}
                                 suffix="%"
-                                onCommit={(n) => updateSnapshotLine(idx, { discount_pct: Math.max(0, Math.min(100, n)) })}
+                                onCommit={(n) =>
+                                  updatePart(p.id, { discount_pct: Math.max(0, Math.min(100, n)) })
+                                }
                                 className={disc > 0 ? "text-emerald-500 font-semibold" : ""}
                               />
                               {disc > 0 && (
                                 <button
-                                  onClick={() => updateSnapshotLine(idx, { discount_pct: 0 })}
+                                  onClick={() => updatePart(p.id, { discount_pct: 0 })}
                                   className="no-print text-muted-foreground hover:text-destructive"
                                   title="Remove discount"
                                 >
@@ -803,14 +905,18 @@ function InvoiceDetail() {
                         )}
                         <td className="py-3 text-right font-semibold">
                           {disc > 0 && (
-                            <div className="text-[10px] text-muted-foreground line-through tabular-nums">${gross.toFixed(2)}</div>
+                            <div className="text-[10px] text-muted-foreground line-through tabular-nums">
+                              ${gross.toFixed(2)}
+                            </div>
                           )}
                           <span className="tabular-nums">${net.toFixed(2)}</span>
                           {disc > 0 && (
-                            <div className="text-[10px] text-emerald-500 font-semibold">−${(gross - net).toFixed(2)} ({disc}% off)</div>
+                            <div className="text-[10px] text-emerald-500 font-semibold">
+                              −${(gross - net).toFixed(2)} ({disc}% off)
+                            </div>
                           )}
                           <button
-                            onClick={() => removeSnapshotLine(idx)}
+                            onClick={() => deletePart(p.id)}
                             className="ml-2 no-print opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive"
                             title="Remove line"
                           >
@@ -819,22 +925,171 @@ function InvoiceDetail() {
                         </td>
                       </tr>
                     );
-                  });
-                })()}
-                {!inv.job_id && (
+                  })}
+                {inv.job_id && (
                   <tr className="no-print">
                     <td colSpan={hasDiscount ? 5 : 4} className="pt-2">
-                      <button onClick={() => addSnapshotLine()} className="text-xs text-primary hover:underline inline-flex items-center gap-1">
+                      <button
+                        onClick={addJobPart}
+                        className="text-xs text-primary hover:underline inline-flex items-center gap-1"
+                      >
                         <Plus className="h-3 w-3" /> Add line item
                       </button>
                     </td>
                   </tr>
                 )}
-                {inv.job_id && Number(inv.labour_total) === 0 && (parts.data ?? []).length === 0 && (
-                  <tr><td colSpan={hasDiscount ? 5 : 4} className="py-6 text-center text-xs text-muted-foreground">No line items</td></tr>
+                {!inv.job_id &&
+                  (() => {
+                    const items: {
+                      description: string;
+                      quantity: number;
+                      unit: number;
+                      discount_pct?: number;
+                    }[] = Array.isArray((inv.snapshot as any)?.line_items)
+                      ? (inv.snapshot as any).line_items
+                      : [];
+                    if (items.length === 0) {
+                      return (
+                        <tr>
+                          <td
+                            colSpan={hasDiscount ? 5 : 4}
+                            className="py-6 text-center text-xs text-muted-foreground"
+                          >
+                            No line items.{" "}
+                            <button
+                              onClick={() => addSnapshotLine()}
+                              className="text-primary underline no-print"
+                            >
+                              Add one
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    }
+                    return items.map((it, idx) => {
+                      const disc = Number(it.discount_pct ?? 0);
+                      const gross = Number(it.unit) * Number(it.quantity);
+                      const net = gross * (1 - disc / 100);
+                      return (
+                        <tr key={idx} className="border-b border-border/40 group">
+                          <td className="py-3">
+                            <div className="flex items-start gap-2">
+                              <div className="flex-1">
+                                <EditableText
+                                  value={it.description}
+                                  onCommit={(v) => updateSnapshotLine(idx, { description: v })}
+                                  className="font-medium"
+                                />
+                              </div>
+                              <button
+                                onClick={() => {
+                                  setLibrarySearch("");
+                                  setLibraryTarget({ kind: "snapshot", idx });
+                                }}
+                                className="no-print shrink-0 rounded border border-border p-1 text-muted-foreground hover:text-foreground hover:border-primary"
+                                title="Pick from inventory library"
+                              >
+                                <BookOpen className="h-3.5 w-3.5" />
+                              </button>
+                            </div>
+                          </td>
+                          <td className="py-3 text-right">
+                            <EditableNumber
+                              value={Number(it.quantity)}
+                              decimals={0}
+                              onCommit={(n) => updateSnapshotLine(idx, { quantity: n })}
+                            />
+                          </td>
+                          <td className="py-3 text-right">
+                            <EditableNumber
+                              value={Number(it.unit)}
+                              prefix="$"
+                              onCommit={(n) => updateSnapshotLine(idx, { unit: n })}
+                            />
+                            {!hasDiscount && (
+                              <button
+                                onClick={() => updateSnapshotLine(idx, { discount_pct: 10 })}
+                                className="no-print block ml-auto mt-0.5 text-[10px] text-muted-foreground hover:text-primary opacity-0 group-hover:opacity-100"
+                                title="Add a discount on this line"
+                              >
+                                + Disc
+                              </button>
+                            )}
+                          </td>
+                          {hasDiscount && (
+                            <td className="py-3 text-right">
+                              <div className="inline-flex items-center gap-1">
+                                <EditableNumber
+                                  value={disc}
+                                  suffix="%"
+                                  onCommit={(n) =>
+                                    updateSnapshotLine(idx, {
+                                      discount_pct: Math.max(0, Math.min(100, n)),
+                                    })
+                                  }
+                                  className={disc > 0 ? "text-emerald-500 font-semibold" : ""}
+                                />
+                                {disc > 0 && (
+                                  <button
+                                    onClick={() => updateSnapshotLine(idx, { discount_pct: 0 })}
+                                    className="no-print text-muted-foreground hover:text-destructive"
+                                    title="Remove discount"
+                                  >
+                                    <X className="h-3.5 w-3.5" />
+                                  </button>
+                                )}
+                              </div>
+                            </td>
+                          )}
+                          <td className="py-3 text-right font-semibold">
+                            {disc > 0 && (
+                              <div className="text-[10px] text-muted-foreground line-through tabular-nums">
+                                ${gross.toFixed(2)}
+                              </div>
+                            )}
+                            <span className="tabular-nums">${net.toFixed(2)}</span>
+                            {disc > 0 && (
+                              <div className="text-[10px] text-emerald-500 font-semibold">
+                                −${(gross - net).toFixed(2)} ({disc}% off)
+                              </div>
+                            )}
+                            <button
+                              onClick={() => removeSnapshotLine(idx)}
+                              className="ml-2 no-print opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive"
+                              title="Remove line"
+                            >
+                              <Trash2 className="h-3.5 w-3.5 inline" />
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    });
+                  })()}
+                {!inv.job_id && (
+                  <tr className="no-print">
+                    <td colSpan={hasDiscount ? 5 : 4} className="pt-2">
+                      <button
+                        onClick={() => addSnapshotLine()}
+                        className="text-xs text-primary hover:underline inline-flex items-center gap-1"
+                      >
+                        <Plus className="h-3 w-3" /> Add line item
+                      </button>
+                    </td>
+                  </tr>
                 )}
+                {inv.job_id &&
+                  Number(inv.labour_total) === 0 &&
+                  (parts.data ?? []).length === 0 && (
+                    <tr>
+                      <td
+                        colSpan={hasDiscount ? 5 : 4}
+                        className="py-6 text-center text-xs text-muted-foreground"
+                      >
+                        No line items
+                      </td>
+                    </tr>
+                  )}
               </tbody>
-
             </table>
           </div>
 
@@ -847,13 +1102,27 @@ function InvoiceDetail() {
               onSaved={() => qc.invalidateQueries({ queryKey: ["invoice", invoiceId] })}
             />
             <div className="space-y-2 text-sm">
-              <div className="flex justify-between"><span className="text-muted-foreground">Labour (incl GST)</span><span className="tabular-nums">${Number(inv.labour_total).toFixed(2)}</span></div>
-              <div className="flex justify-between"><span className="text-muted-foreground">Parts (incl GST)</span><span className="tabular-nums">${Number(inv.parts_total).toFixed(2)}</span></div>
-              <div className="flex justify-between pb-2 border-b border-border"><span className="text-muted-foreground">Subtotal (excl GST)</span><span className="tabular-nums">${subtotalEx.toFixed(2)}</span></div>
-              <div className="flex justify-between"><span className="text-muted-foreground">GST 15% (incl. in above)</span><span className="tabular-nums">${Number(inv.gst).toFixed(2)}</span></div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Labour (incl GST)</span>
+                <span className="tabular-nums">${Number(inv.labour_total).toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Parts (incl GST)</span>
+                <span className="tabular-nums">${Number(inv.parts_total).toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between pb-2 border-b border-border">
+                <span className="text-muted-foreground">Subtotal (excl GST)</span>
+                <span className="tabular-nums">${subtotalEx.toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">GST 15% (incl. in above)</span>
+                <span className="tabular-nums">${Number(inv.gst).toFixed(2)}</span>
+              </div>
               <div className="flex justify-between pt-3 mt-1 border-t-2 border-foreground/80 font-display text-xl font-black">
                 <span>TOTAL</span>
-                <span className="red-gradient-text tabular-nums">${Number(inv.total).toFixed(2)}</span>
+                <span className="red-gradient-text tabular-nums">
+                  ${Number(inv.total).toFixed(2)}
+                </span>
               </div>
             </div>
           </div>
@@ -861,12 +1130,22 @@ function InvoiceDetail() {
           {/* Payment info */}
           <div className="pt-5 border-t border-border text-sm">
             <div>
-              <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-2">Payment Details</div>
+              <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-2">
+                Payment Details
+              </div>
               <div className="space-y-0.5 text-xs">
-                <div><span className="text-muted-foreground">Account:</span> Motorcycle Doctors</div>
-                <div><span className="text-muted-foreground">BSB:</span> 000-000</div>
-                <div><span className="text-muted-foreground">Account #:</span> 0000 0000</div>
-                <div><span className="text-muted-foreground">Reference:</span> {inv.invoice_number}</div>
+                <div>
+                  <span className="text-muted-foreground">Account:</span> Motorcycle Doctors
+                </div>
+                <div>
+                  <span className="text-muted-foreground">BSB:</span> 000-000
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Account #:</span> 0000 0000
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Reference:</span> {inv.invoice_number}
+                </div>
               </div>
             </div>
           </div>
@@ -880,7 +1159,11 @@ function InvoiceDetail() {
 
       {inv.job_id && (
         <div className="print:hidden text-center">
-          <Link to="/jobs/$jobId" params={{ jobId: inv.job_id }} className="text-xs text-muted-foreground hover:text-foreground underline">
+          <Link
+            to="/jobs/$jobId"
+            params={{ jobId: inv.job_id }}
+            className="text-xs text-muted-foreground hover:text-foreground underline"
+          >
             Back to job card
           </Link>
         </div>
@@ -905,14 +1188,19 @@ function InvoiceDetail() {
           <div className="overflow-y-auto flex-1 -mx-1 px-1">
             {(() => {
               const q = librarySearch.toLowerCase().trim();
-              const items = (library.data ?? []).filter((it: any) =>
-                !q ||
-                (it.name ?? "").toLowerCase().includes(q) ||
-                (it.sku ?? "").toLowerCase().includes(q) ||
-                (it.brand ?? "").toLowerCase().includes(q),
+              const items = (library.data ?? []).filter(
+                (it: any) =>
+                  !q ||
+                  (it.name ?? "").toLowerCase().includes(q) ||
+                  (it.sku ?? "").toLowerCase().includes(q) ||
+                  (it.brand ?? "").toLowerCase().includes(q),
               );
               if (items.length === 0) {
-                return <div className="py-8 text-center text-sm text-muted-foreground">No items found.</div>;
+                return (
+                  <div className="py-8 text-center text-sm text-muted-foreground">
+                    No items found.
+                  </div>
+                );
               }
               return (
                 <ul className="divide-y divide-border">
@@ -923,9 +1211,16 @@ function InvoiceDetail() {
                           const price = Number(it.unit_price ?? 0);
                           const name = [it.sku, it.name].filter(Boolean).join(" — ");
                           if (libraryTarget?.kind === "snapshot") {
-                            await updateSnapshotLine(libraryTarget.idx, { description: name, unit: price });
+                            await updateSnapshotLine(libraryTarget.idx, {
+                              description: name,
+                              unit: price,
+                            });
                           } else if (libraryTarget?.kind === "part") {
-                            await updatePart(libraryTarget.id, { name, retail: price, supplier: it.brand ?? "" });
+                            await updatePart(libraryTarget.id, {
+                              name,
+                              retail: price,
+                              supplier: it.brand ?? "",
+                            });
                           }
                           setLibraryTarget(null);
                         }}
@@ -989,7 +1284,10 @@ function ServiceChecks({
     const trimmed = label.trim();
     if (!trimmed) return;
     const { error } = await supabase.from("job_tasks").update({ label: trimmed }).eq("id", id);
-    if (error) { toast.error(error.message); return; }
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
     onChanged();
   }
 
@@ -1044,7 +1342,10 @@ function ServiceChecks({
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
           onKeyDown={(e) => {
-            if (e.key === "Enter") { e.preventDefault(); addItem(); }
+            if (e.key === "Enter") {
+              e.preventDefault();
+              addItem();
+            }
           }}
           placeholder="Add an item performed…"
           className="flex-1 rounded-md border border-border bg-background px-3 py-1.5 text-sm outline-none focus:border-primary"
@@ -1075,7 +1376,9 @@ function NotesBox({
   const [value, setValue] = useState(initial);
   const [saving, setSaving] = useState(false);
   const [savedAt, setSavedAt] = useState<number | null>(null);
-  useEffect(() => { setValue(initial); }, [initial]);
+  useEffect(() => {
+    setValue(initial);
+  }, [initial]);
 
   // If the invoice has no notes yet, seed the editor with notes from the job card.
   useEffect(() => {
@@ -1088,12 +1391,12 @@ function NotesBox({
   async function save() {
     if (value === initial) return;
     setSaving(true);
-    const { error } = await supabase
-      .from("invoices")
-      .update({ notes: value })
-      .eq("id", invoiceId);
+    const { error } = await supabase.from("invoices").update({ notes: value }).eq("id", invoiceId);
     setSaving(false);
-    if (error) { toast.error(error.message); return; }
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
     setSavedAt(Date.now());
     onSaved();
   }

@@ -100,15 +100,22 @@ function CustomerProfile() {
   }
 
   if (customer.isLoading) {
-    return <div className="card-surface p-8 text-center text-sm text-muted-foreground">Loading…</div>;
+    return (
+      <div className="card-surface p-8 text-center text-sm text-muted-foreground">Loading…</div>
+    );
   }
   if (!customer.data) {
     return (
       <div className="space-y-4">
-        <Link to="/customers" className="inline-flex items-center gap-1 text-sm text-muted-foreground">
+        <Link
+          to="/customers"
+          className="inline-flex items-center gap-1 text-sm text-muted-foreground"
+        >
           <ArrowLeft className="h-4 w-4" /> Back
         </Link>
-        <div className="card-surface p-8 text-center text-sm text-muted-foreground">Customer not found.</div>
+        <div className="card-surface p-8 text-center text-sm text-muted-foreground">
+          Customer not found.
+        </div>
       </div>
     );
   }
@@ -116,10 +123,18 @@ function CustomerProfile() {
   return (
     <div className="space-y-4 max-w-2xl mx-auto">
       <div className="flex items-center justify-between gap-3">
-        <Link to="/customers" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
+        <Link
+          to="/customers"
+          className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
+        >
           <ArrowLeft className="h-4 w-4" /> Customers
         </Link>
-        <Button variant="destructive" size="sm" onClick={() => setConfirmDel(true)} className="gap-1.5">
+        <Button
+          variant="destructive"
+          size="sm"
+          onClick={() => setConfirmDel(true)}
+          className="gap-1.5"
+        >
           <Trash2 className="h-4 w-4" /> Delete
         </Button>
       </div>
@@ -135,11 +150,17 @@ function CustomerProfile() {
         <div className="grid grid-cols-2 gap-2">
           <div>
             <label className="text-xs text-muted-foreground">First name *</label>
-            <Input value={f.first_name} onChange={(e) => setF({ ...f, first_name: e.target.value })} />
+            <Input
+              value={f.first_name}
+              onChange={(e) => setF({ ...f, first_name: e.target.value })}
+            />
           </div>
           <div>
             <label className="text-xs text-muted-foreground">Last name</label>
-            <Input value={f.last_name} onChange={(e) => setF({ ...f, last_name: e.target.value })} />
+            <Input
+              value={f.last_name}
+              onChange={(e) => setF({ ...f, last_name: e.target.value })}
+            />
           </div>
         </div>
         <div>
@@ -148,7 +169,11 @@ function CustomerProfile() {
         </div>
         <div>
           <label className="text-xs text-muted-foreground">Email</label>
-          <Input type="email" value={f.email} onChange={(e) => setF({ ...f, email: e.target.value })} />
+          <Input
+            type="email"
+            value={f.email}
+            onChange={(e) => setF({ ...f, email: e.target.value })}
+          />
         </div>
         <div>
           <label className="text-xs text-muted-foreground">Address</label>
@@ -156,7 +181,11 @@ function CustomerProfile() {
         </div>
         <div>
           <label className="text-xs text-muted-foreground">Notes</label>
-          <Textarea rows={3} value={f.notes} onChange={(e) => setF({ ...f, notes: e.target.value })} />
+          <Textarea
+            rows={3}
+            value={f.notes}
+            onChange={(e) => setF({ ...f, notes: e.target.value })}
+          />
         </div>
         <Button onClick={save} disabled={saving} className="gold-surface w-full gap-1.5">
           <Save className="h-4 w-4" /> {saving ? "Saving…" : "Save changes"}
@@ -165,19 +194,22 @@ function CustomerProfile() {
 
       <BikesSection customerId={customerId} />
 
-
       <AlertDialog open={confirmDel} onOpenChange={setConfirmDel}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Delete this customer?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently remove {f.first_name} {f.last_name}. Related bookings, bikes, or invoices
-              may block deletion.
+              This will permanently remove {f.first_name} {f.last_name}. Related bookings, bikes, or
+              invoices may block deletion.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={remove} disabled={deleting} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+            <AlertDialogAction
+              onClick={remove}
+              disabled={deleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
               {deleting ? "Deleting…" : "Delete"}
             </AlertDialogAction>
           </AlertDialogFooter>
@@ -231,7 +263,12 @@ function BikesSection({ customerId }: { customerId: string }) {
         <div className="text-xs uppercase tracking-[0.25em] text-muted-foreground flex items-center gap-1.5">
           <Bike className="h-3 w-3" /> Bikes ({bikes.data?.length ?? 0})
         </div>
-        <Button size="sm" variant="outline" onClick={() => setAdding((v) => !v)} className="gap-1.5 h-8">
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={() => setAdding((v) => !v)}
+          className="gap-1.5 h-8"
+        >
           <Plus className="h-3.5 w-3.5" /> Add
         </Button>
       </div>
@@ -239,14 +276,35 @@ function BikesSection({ customerId }: { customerId: string }) {
       {adding && (
         <div className="card-surface p-3 space-y-2">
           <div className="grid grid-cols-2 gap-2">
-            <Input placeholder="Make *" value={nb.make} onChange={(e) => setNb({ ...nb, make: e.target.value })} />
-            <Input placeholder="Model *" value={nb.model} onChange={(e) => setNb({ ...nb, model: e.target.value })} />
-            <Input placeholder="Year" inputMode="numeric" value={nb.year} onChange={(e) => setNb({ ...nb, year: e.target.value.replace(/\D/g, "") })} />
-            <Input placeholder="Rego" value={nb.rego} onChange={(e) => setNb({ ...nb, rego: e.target.value })} />
+            <Input
+              placeholder="Make *"
+              value={nb.make}
+              onChange={(e) => setNb({ ...nb, make: e.target.value })}
+            />
+            <Input
+              placeholder="Model *"
+              value={nb.model}
+              onChange={(e) => setNb({ ...nb, model: e.target.value })}
+            />
+            <Input
+              placeholder="Year"
+              inputMode="numeric"
+              value={nb.year}
+              onChange={(e) => setNb({ ...nb, year: e.target.value.replace(/\D/g, "") })}
+            />
+            <Input
+              placeholder="Rego"
+              value={nb.rego}
+              onChange={(e) => setNb({ ...nb, rego: e.target.value })}
+            />
           </div>
           <div className="flex gap-2">
-            <Button onClick={addBike} disabled={busy} className="gold-surface flex-1">{busy ? "Adding…" : "Add bike"}</Button>
-            <Button variant="ghost" onClick={() => setAdding(false)}>Cancel</Button>
+            <Button onClick={addBike} disabled={busy} className="gold-surface flex-1">
+              {busy ? "Adding…" : "Add bike"}
+            </Button>
+            <Button variant="ghost" onClick={() => setAdding(false)}>
+              Cancel
+            </Button>
           </div>
         </div>
       )}
@@ -263,7 +321,8 @@ function BikesSection({ customerId }: { customerId: string }) {
           </span>
           <div className="min-w-0 flex-1">
             <div className="font-semibold truncate text-sm">
-              {b.make} {b.model}{b.year ? ` · ${b.year}` : ""}
+              {b.make} {b.model}
+              {b.year ? ` · ${b.year}` : ""}
             </div>
             <div className="text-xs text-muted-foreground truncate">
               {b.rego ? `Rego ${b.rego}` : "No rego"}
@@ -277,7 +336,9 @@ function BikesSection({ customerId }: { customerId: string }) {
       ))}
 
       {(bikes.data ?? []).length === 0 && !adding && (
-        <div className="card-surface p-6 text-center text-sm text-muted-foreground">No bikes yet.</div>
+        <div className="card-surface p-6 text-center text-sm text-muted-foreground">
+          No bikes yet.
+        </div>
       )}
     </div>
   );

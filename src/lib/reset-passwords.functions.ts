@@ -29,7 +29,12 @@ export const resetStaffPasswords = createServerFn({ method: "POST" })
       if (r.role === "admin" || !cur) roleByUser.set(r.user_id, r.role as "admin" | "technician");
     }
 
-    const results: Array<{ user_id: string; role: string; status: "ok" | "error"; message?: string }> = [];
+    const results: Array<{
+      user_id: string;
+      role: string;
+      status: "ok" | "error";
+      message?: string;
+    }> = [];
     for (const [userId, role] of roleByUser) {
       const password = role === "admin" ? ADMIN_PASSWORD : TECH_PASSWORD;
       const { error } = await supabaseAdmin.auth.admin.updateUserById(userId, { password });

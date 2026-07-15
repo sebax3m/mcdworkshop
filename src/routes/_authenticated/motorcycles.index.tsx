@@ -20,7 +20,17 @@ function Bikes() {
   const qc = useQueryClient();
   const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
-  const [f, setF] = useState({ customer_id: "", make: "", model: "", year: "", vin: "", rego: "", mileage: "", ecu_info: "", modifications: "" });
+  const [f, setF] = useState({
+    customer_id: "",
+    make: "",
+    model: "",
+    year: "",
+    vin: "",
+    rego: "",
+    mileage: "",
+    ecu_info: "",
+    modifications: "",
+  });
   const [photos, setPhotos] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
   const [generating, setGenerating] = useState(false);
@@ -28,24 +38,51 @@ function Bikes() {
   const [newCust, setNewCust] = useState({ first_name: "", last_name: "", phone: "", email: "" });
   const [savingCust, setSavingCust] = useState(false);
 
-  const customers = useQuery({ queryKey: ["customers-options"], queryFn: async () => (await supabase.from("customers").select("id, first_name, last_name").order("first_name")).data ?? [] });
+  const customers = useQuery({
+    queryKey: ["customers-options"],
+    queryFn: async () =>
+      (await supabase.from("customers").select("id, first_name, last_name").order("first_name"))
+        .data ?? [],
+  });
   const bikes = useQuery({
     queryKey: ["bikes-list"],
-    queryFn: async () => (await supabase.from("motorcycles").select("*, customers(first_name,last_name)").order("created_at", { ascending: false })).data ?? [],
+    queryFn: async () =>
+      (
+        await supabase
+          .from("motorcycles")
+          .select("*, customers(first_name,last_name)")
+          .order("created_at", { ascending: false })
+      ).data ?? [],
   });
 
   const filtered = (bikes.data ?? []).filter((b: any) => {
-    const s = `${b.make} ${b.model} ${b.year ?? ""} ${b.rego ?? ""} ${b.customers?.first_name ?? ""} ${b.customers?.last_name ?? ""}`.toLowerCase();
+    const s =
+      `${b.make} ${b.model} ${b.year ?? ""} ${b.rego ?? ""} ${b.customers?.first_name ?? ""} ${b.customers?.last_name ?? ""}`.toLowerCase();
     return s.includes(search.toLowerCase());
   });
 
   async function save() {
     if (!f.customer_id) return toast.error("Pick a customer");
     if (!f.make || !f.model) return toast.error("Make and model required");
-    const payload: any = { ...f, year: f.year ? parseInt(f.year) : null, mileage: f.mileage ? parseInt(f.mileage) : null, photos };
+    const payload: any = {
+      ...f,
+      year: f.year ? parseInt(f.year) : null,
+      mileage: f.mileage ? parseInt(f.mileage) : null,
+      photos,
+    };
     const { error } = await supabase.from("motorcycles").insert(payload);
     if (error) return toast.error(error.message);
-    setF({ customer_id: "", make: "", model: "", year: "", vin: "", rego: "", mileage: "", ecu_info: "", modifications: "" });
+    setF({
+      customer_id: "",
+      make: "",
+      model: "",
+      year: "",
+      vin: "",
+      rego: "",
+      mileage: "",
+      ecu_info: "",
+      modifications: "",
+    });
     setPhotos([]);
     setOpen(false);
     toast.success("Bike added");
@@ -95,12 +132,16 @@ function Bikes() {
     if (!newCust.first_name.trim()) return toast.error("First name required");
     setSavingCust(true);
     try {
-      const { data, error } = await supabase.from("customers").insert({
-        first_name: newCust.first_name.trim(),
-        last_name: newCust.last_name.trim() || null,
-        phone: newCust.phone.trim() || null,
-        email: newCust.email.trim() || null,
-      }).select("id, first_name, last_name").single();
+      const { data, error } = await supabase
+        .from("customers")
+        .insert({
+          first_name: newCust.first_name.trim(),
+          last_name: newCust.last_name.trim() || null,
+          phone: newCust.phone.trim() || null,
+          email: newCust.email.trim() || null,
+        })
+        .select("id, first_name, last_name")
+        .single();
       if (error) throw error;
       await qc.invalidateQueries({ queryKey: ["customers-options"] });
       setF((p) => ({ ...p, customer_id: data.id }));
@@ -119,23 +160,38 @@ function Bikes() {
       <header className="grid grid-cols-[minmax(0,1fr)_auto] gap-3 items-center">
         <div className="min-w-0">
           <div className="text-xs uppercase tracking-[0.25em] text-muted-foreground">Garage</div>
-          <h1 className="font-display text-2xl sm:text-3xl font-bold">{bikes.data?.length ?? 0} bikes</h1>
+          <h1 className="font-display text-2xl sm:text-3xl font-bold">
+            {bikes.data?.length ?? 0} bikes
+          </h1>
         </div>
-        <Button onClick={() => setOpen((o) => !o)} className="gold-surface gap-1.5 shrink-0"><Plus className="h-4 w-4" /> Add</Button>
+        <Button onClick={() => setOpen((o) => !o)} className="gold-surface gap-1.5 shrink-0">
+          <Plus className="h-4 w-4" /> Add
+        </Button>
       </header>
 
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search make, model, rego, owner" className="w-full rounded-xl bg-card border border-border pl-10 pr-3 py-3 text-sm" />
+        <input
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search make, model, rego, owner"
+          className="w-full rounded-xl bg-card border border-border pl-10 pr-3 py-3 text-sm"
+        />
       </div>
 
       {open && (
         <div className="card-surface p-4 space-y-3">
           <div className="flex gap-2">
-            <select value={f.customer_id} onChange={(e) => setF({ ...f, customer_id: e.target.value })} className="flex-1 rounded-md bg-input border border-border px-3 py-2 text-sm">
+            <select
+              value={f.customer_id}
+              onChange={(e) => setF({ ...f, customer_id: e.target.value })}
+              className="flex-1 rounded-md bg-input border border-border px-3 py-2 text-sm"
+            >
               <option value="">Select customer…</option>
               {(customers.data ?? []).map((c: any) => (
-                <option key={c.id} value={c.id}>{c.first_name} {c.last_name}</option>
+                <option key={c.id} value={c.id}>
+                  {c.first_name} {c.last_name}
+                </option>
               ))}
             </select>
             <button
@@ -148,16 +204,44 @@ function Bikes() {
           </div>
           {newCustOpen && (
             <div className="rounded-lg border border-border bg-muted/30 p-3 space-y-2">
-              <div className="text-xs uppercase tracking-wider text-muted-foreground">New customer</div>
+              <div className="text-xs uppercase tracking-wider text-muted-foreground">
+                New customer
+              </div>
               <div className="grid grid-cols-2 gap-2">
-                <Input placeholder="First name *" value={newCust.first_name} onChange={(e) => setNewCust({ ...newCust, first_name: e.target.value })} />
-                <Input placeholder="Last name (optional)" value={newCust.last_name} onChange={(e) => setNewCust({ ...newCust, last_name: e.target.value })} />
-                <Input placeholder="Phone" inputMode="tel" value={newCust.phone} onChange={(e) => setNewCust({ ...newCust, phone: e.target.value })} />
-                <Input placeholder="Email (optional)" inputMode="email" value={newCust.email} onChange={(e) => setNewCust({ ...newCust, email: e.target.value })} />
+                <Input
+                  placeholder="First name *"
+                  value={newCust.first_name}
+                  onChange={(e) => setNewCust({ ...newCust, first_name: e.target.value })}
+                />
+                <Input
+                  placeholder="Last name (optional)"
+                  value={newCust.last_name}
+                  onChange={(e) => setNewCust({ ...newCust, last_name: e.target.value })}
+                />
+                <Input
+                  placeholder="Phone"
+                  inputMode="tel"
+                  value={newCust.phone}
+                  onChange={(e) => setNewCust({ ...newCust, phone: e.target.value })}
+                />
+                <Input
+                  placeholder="Email (optional)"
+                  inputMode="email"
+                  value={newCust.email}
+                  onChange={(e) => setNewCust({ ...newCust, email: e.target.value })}
+                />
               </div>
               <div className="flex gap-2">
-                <Button onClick={saveNewCustomer} disabled={savingCust} className="gold-surface flex-1">{savingCust ? "Saving…" : "Save customer"}</Button>
-                <Button variant="ghost" onClick={() => setNewCustOpen(false)}>Cancel</Button>
+                <Button
+                  onClick={saveNewCustomer}
+                  disabled={savingCust}
+                  className="gold-surface flex-1"
+                >
+                  {savingCust ? "Saving…" : "Save customer"}
+                </Button>
+                <Button variant="ghost" onClick={() => setNewCustOpen(false)}>
+                  Cancel
+                </Button>
               </div>
             </div>
           )}
@@ -167,7 +251,11 @@ function Bikes() {
             required
           />
           <div className="grid grid-cols-2 gap-2">
-            <Input placeholder="Rego" value={f.rego} onChange={(e) => setF({ ...f, rego: e.target.value.toUpperCase() })} />
+            <Input
+              placeholder="Rego"
+              value={f.rego}
+              onChange={(e) => setF({ ...f, rego: e.target.value.toUpperCase() })}
+            />
             <div className="relative">
               <Input
                 placeholder="Mileage (optional)"
@@ -176,12 +264,27 @@ function Bikes() {
                 onChange={(e) => setF({ ...f, mileage: e.target.value.replace(/\D/g, "") })}
                 className="pr-12"
               />
-              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground font-semibold pointer-events-none">km</span>
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground font-semibold pointer-events-none">
+                km
+              </span>
             </div>
           </div>
-          <Input placeholder="VIN" value={f.vin} onChange={(e) => setF({ ...f, vin: e.target.value })} />
-          <Input placeholder="ECU info" value={f.ecu_info} onChange={(e) => setF({ ...f, ecu_info: e.target.value })} />
-          <Textarea placeholder="Modifications" rows={2} value={f.modifications} onChange={(e) => setF({ ...f, modifications: e.target.value })} />
+          <Input
+            placeholder="VIN"
+            value={f.vin}
+            onChange={(e) => setF({ ...f, vin: e.target.value })}
+          />
+          <Input
+            placeholder="ECU info"
+            value={f.ecu_info}
+            onChange={(e) => setF({ ...f, ecu_info: e.target.value })}
+          />
+          <Textarea
+            placeholder="Modifications"
+            rows={2}
+            value={f.modifications}
+            onChange={(e) => setF({ ...f, modifications: e.target.value })}
+          />
 
           <div className="space-y-2">
             <div className="flex items-center justify-between">
@@ -197,14 +300,24 @@ function Bikes() {
                 </button>
                 <label className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-xs font-semibold hover:border-primary/50 cursor-pointer">
                   <Camera className="h-3.5 w-3.5" /> {uploading ? "Uploading…" : "Add photo"}
-                  <input type="file" accept="image/*" multiple capture="environment" className="hidden" onChange={(e) => handleBikePhotos(e.target.files)} />
+                  <input
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    capture="environment"
+                    className="hidden"
+                    onChange={(e) => handleBikePhotos(e.target.files)}
+                  />
                 </label>
               </div>
             </div>
             {photos.length > 0 && (
               <div className="grid grid-cols-4 gap-2">
                 {photos.map((p) => (
-                  <div key={p} className="relative aspect-square rounded-lg overflow-hidden bg-muted">
+                  <div
+                    key={p}
+                    className="relative aspect-square rounded-lg overflow-hidden bg-muted"
+                  >
                     <BikePhotoThumb path={p} />
                     <button
                       onClick={() => setPhotos((arr) => arr.filter((x) => x !== p))}
@@ -219,7 +332,9 @@ function Bikes() {
             )}
           </div>
 
-          <Button onClick={save} className="gold-surface w-full">Save bike</Button>
+          <Button onClick={save} className="gold-surface w-full">
+            Save bike
+          </Button>
         </div>
       )}
 
@@ -232,7 +347,12 @@ function Bikes() {
             className="card-surface p-3 flex items-center gap-3 transition hover:border-primary/40 hover:bg-card/80 active:scale-[0.99]"
           >
             {Array.isArray(b.photos) && b.photos[0] ? (
-              <img src={b.photos[0]} alt={fullBike(b)} loading="lazy" className="h-14 w-20 rounded-lg object-cover border border-border" />
+              <img
+                src={b.photos[0]}
+                alt={fullBike(b)}
+                loading="lazy"
+                className="h-14 w-20 rounded-lg object-cover border border-border"
+              />
             ) : (
               <span className="grid h-14 w-20 place-items-center rounded-lg bg-muted">
                 <BikeIcon className="h-5 w-5 text-primary" />
@@ -243,12 +363,16 @@ function Bikes() {
               <div className="text-xs text-muted-foreground truncate">
                 {b.customers ? `${b.customers.first_name} ${b.customers.last_name}` : "—"}
                 {b.rego ? ` · ${b.rego}` : ""}
-            {b.mileage ? ` · ${Number(b.mileage).toLocaleString()} km` : ""}
+                {b.mileage ? ` · ${Number(b.mileage).toLocaleString()} km` : ""}
               </div>
             </div>
           </Link>
         ))}
-        {filtered.length === 0 && <div className="card-surface p-8 text-center text-sm text-muted-foreground">No bikes yet.</div>}
+        {filtered.length === 0 && (
+          <div className="card-surface p-8 text-center text-sm text-muted-foreground">
+            No bikes yet.
+          </div>
+        )}
       </div>
     </div>
   );

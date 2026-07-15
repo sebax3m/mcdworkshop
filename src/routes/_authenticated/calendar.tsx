@@ -56,23 +56,81 @@ const DAILY_CAPACITY_HOURS = 16;
 
 type ViewMode = "month" | "week";
 
-const SERVICE_COLORS: Record<string, { bg: string; ring: string; label: string; text: string; hex: string }> = {
-  basic: { bg: "bg-status-new/70", ring: "ring-status-new", label: "text-status-new", text: "text-white", hex: "#22c55e" },
-  standard: { bg: "bg-primary/70", ring: "ring-primary", label: "text-primary", text: "text-white", hex: "#3b82f6" },
-  full: { bg: "bg-status-assigned/70", ring: "ring-status-assigned", label: "text-status-assigned", text: "text-white", hex: "#f59e0b" },
-  dyno: { bg: "bg-status-dyno/70", ring: "ring-status-dyno", label: "text-status-dyno", text: "text-black", hex: "#a855f7" },
-  diagnostic: { bg: "bg-status-progress/70", ring: "ring-status-progress", label: "text-status-progress", text: "text-black", hex: "#14b8a6" },
-  insurance: { bg: "bg-status-insurance/70", ring: "ring-status-insurance", label: "text-status-insurance", text: "text-white", hex: "#ef4444" },
-  postbike: { bg: "bg-cyan-400/70", ring: "ring-cyan-400", label: "text-cyan-400", text: "text-black", hex: "#06b6d4" },
-  other: { bg: "bg-muted-foreground/70", ring: "ring-muted-foreground", label: "text-muted-foreground", text: "text-white", hex: "#64748b" },
-  default: { bg: "bg-muted", ring: "ring-border", label: "text-foreground", text: "text-white", hex: "#3b82f6" },
+const SERVICE_COLORS: Record<
+  string,
+  { bg: string; ring: string; label: string; text: string; hex: string }
+> = {
+  basic: {
+    bg: "bg-status-new/70",
+    ring: "ring-status-new",
+    label: "text-status-new",
+    text: "text-white",
+    hex: "#22c55e",
+  },
+  standard: {
+    bg: "bg-primary/70",
+    ring: "ring-primary",
+    label: "text-primary",
+    text: "text-white",
+    hex: "#3b82f6",
+  },
+  full: {
+    bg: "bg-status-assigned/70",
+    ring: "ring-status-assigned",
+    label: "text-status-assigned",
+    text: "text-white",
+    hex: "#f59e0b",
+  },
+  dyno: {
+    bg: "bg-status-dyno/70",
+    ring: "ring-status-dyno",
+    label: "text-status-dyno",
+    text: "text-black",
+    hex: "#a855f7",
+  },
+  diagnostic: {
+    bg: "bg-status-progress/70",
+    ring: "ring-status-progress",
+    label: "text-status-progress",
+    text: "text-black",
+    hex: "#14b8a6",
+  },
+  insurance: {
+    bg: "bg-status-insurance/70",
+    ring: "ring-status-insurance",
+    label: "text-status-insurance",
+    text: "text-white",
+    hex: "#ef4444",
+  },
+  postbike: {
+    bg: "bg-cyan-400/70",
+    ring: "ring-cyan-400",
+    label: "text-cyan-400",
+    text: "text-black",
+    hex: "#06b6d4",
+  },
+  other: {
+    bg: "bg-muted-foreground/70",
+    ring: "ring-muted-foreground",
+    label: "text-muted-foreground",
+    text: "text-white",
+    hex: "#64748b",
+  },
+  default: {
+    bg: "bg-muted",
+    ring: "ring-border",
+    label: "text-foreground",
+    text: "text-white",
+    hex: "#3b82f6",
+  },
 };
 
 function serviceColor(t: string | null | undefined) {
   if (!t) return SERVICE_COLORS.default;
   const k = t.toLowerCase();
   if (k.includes("post") && k.includes("bike")) return SERVICE_COLORS.postbike;
-  if (k.includes("collision") || k.includes("insurance") || k.includes("crash")) return SERVICE_COLORS.insurance;
+  if (k.includes("collision") || k.includes("insurance") || k.includes("crash"))
+    return SERVICE_COLORS.insurance;
   if (k.includes("tuning") || k.includes("dyno")) return SERVICE_COLORS.dyno;
   if (k.includes("full")) return SERVICE_COLORS.full;
   if (k.includes("standard")) return SERVICE_COLORS.standard;
@@ -93,11 +151,9 @@ const SERVICE_TYPES = [
   "Other",
 ];
 
-
 function isSunday(d: Date) {
   return d.getDay() === 0;
 }
-
 
 function chunk<T>(arr: T[], size: number): T[][] {
   const res: T[][] = [];
@@ -112,7 +168,9 @@ function CalendarPage() {
   const nav = useNavigate();
   const [viewMode, setViewMode] = useState<ViewMode>("week");
   const [monthStart, setMonthStart] = useState<Date>(() => startOfMonth(new Date()));
-  const [weekStart, setWeekStart] = useState<Date>(() => startOfWeek(new Date(), { weekStartsOn: 1 }));
+  const [weekStart, setWeekStart] = useState<Date>(() =>
+    startOfWeek(new Date(), { weekStartsOn: 1 }),
+  );
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [selectedBooking, setSelectedBooking] = useState<any | null>(null);
   const [deleteBooking, setDeleteBooking] = useState<any | null>(null);
@@ -203,7 +261,6 @@ function CalendarPage() {
     },
   });
 
-
   const quickBikes = useQuery({
     queryKey: ["quick-bikes", qCustomerId],
     enabled: !!qCustomerId,
@@ -220,17 +277,25 @@ function CalendarPage() {
     queryKey: ["quick-loan-bikes"],
     enabled: !!quickSlot,
     queryFn: async () =>
-      (await supabase.from("loan_bikes").select("id, name, current_km, active").eq("active", true).order("name")).data ?? [],
+      (
+        await supabase
+          .from("loan_bikes")
+          .select("id, name, current_km, active")
+          .eq("active", true)
+          .order("name")
+      ).data ?? [],
   });
   const qActiveLoansQ = useQuery({
     queryKey: ["quick-active-loans"],
     enabled: !!quickSlot,
     queryFn: async () =>
-      (await supabase
-        .from("bookings")
-        .select("loan_bike_id, loan_bike_expected_return, customers(first_name,last_name)")
-        .not("loan_bike_id", "is", null)
-        .is("loan_bike_returned_at", null)).data ?? [],
+      (
+        await supabase
+          .from("bookings")
+          .select("loan_bike_id, loan_bike_expected_return, customers(first_name,last_name)")
+          .not("loan_bike_id", "is", null)
+          .is("loan_bike_returned_at", null)
+      ).data ?? [],
   });
 
   const customerMatches = useMemo(() => {
@@ -253,7 +318,9 @@ function CalendarPage() {
       const term = qSearch.trim().toUpperCase();
       const { data } = await (supabase as any)
         .from("motorcycles")
-        .select("id, year, make, model, rego, customer_id, customers(id, first_name, last_name, phone, email)")
+        .select(
+          "id, year, make, model, rego, customer_id, customers(id, first_name, last_name, phone, email)",
+        )
         .ilike("rego", `%${term}%`)
         .not("customer_id", "is", null)
         .limit(6);
@@ -269,7 +336,10 @@ function CalendarPage() {
     setQPhone(c.phone ?? "");
     setQSearch(`${c.first_name ?? ""} ${c.last_name ?? ""}`.trim());
     setQBikeId(null);
-    setQBikeMake(""); setQBikeModel(""); setQBikeYear(""); setQBikeRego("");
+    setQBikeMake("");
+    setQBikeModel("");
+    setQBikeYear("");
+    setQBikeRego("");
   }
 
   function pickRegoMatch(m: any) {
@@ -299,19 +369,35 @@ function CalendarPage() {
   function clearCustomerSelection() {
     setQCustomerId(null);
     setQBikeId(null);
-    setQFirst(""); setQLast(""); setQPhone("");
-    setQBikeMake(""); setQBikeModel(""); setQBikeYear(""); setQBikeRego("");
+    setQFirst("");
+    setQLast("");
+    setQPhone("");
+    setQBikeMake("");
+    setQBikeModel("");
+    setQBikeYear("");
+    setQBikeRego("");
     setQSearch("");
   }
 
   function resetQuickForm() {
     setQSearch("");
-    setQCustomerId(null); setQBikeId(null);
-    setQFirst(""); setQLast(""); setQPhone("");
-    setQBikeMake(""); setQBikeModel(""); setQBikeYear(""); setQBikeRego("");
-    setQService("Standard Service"); setQServiceOther(""); setQEstHours("1");
-    setQWofNeeded(false); setQWofExpiry("");
-    setQLoanBike(false); setQLoanBikeId(null); setQLoanBikeReturn("");
+    setQCustomerId(null);
+    setQBikeId(null);
+    setQFirst("");
+    setQLast("");
+    setQPhone("");
+    setQBikeMake("");
+    setQBikeModel("");
+    setQBikeYear("");
+    setQBikeRego("");
+    setQService("Standard Service");
+    setQServiceOther("");
+    setQEstHours("1");
+    setQWofNeeded(false);
+    setQWofExpiry("");
+    setQLoanBike(false);
+    setQLoanBikeId(null);
+    setQLoanBikeReturn("");
   }
 
   async function createQuickBooking() {
@@ -320,8 +406,15 @@ function CalendarPage() {
     if (!qBikeMake.trim() || !qBikeModel.trim()) return toast.error("Bike make and model required");
     const [qh, qm] = quickSlot.time.split(":");
     const startMin = (Number(qh) || 0) * 60 + (Number(qm) || 0);
-    const clash = findOverlap(format(quickSlot.date, "yyyy-MM-dd"), startMin, Number(qEstHours) || 1);
-    if (clash) return toast.error(`Slot already booked (${clash.service_type} at ${String(clash.drop_off_time).slice(0,5)})`);
+    const clash = findOverlap(
+      format(quickSlot.date, "yyyy-MM-dd"),
+      startMin,
+      Number(qEstHours) || 1,
+    );
+    if (clash)
+      return toast.error(
+        `Slot already booked (${clash.service_type} at ${String(clash.drop_off_time).slice(0, 5)})`,
+      );
     setCreatingQuick(true);
     try {
       let customerId = qCustomerId;
@@ -405,7 +498,11 @@ function CalendarPage() {
   }, [viewMode, weekStart, monthStart]);
 
   const { data: bookings = [], isLoading } = useQuery({
-    queryKey: ["calendar-bookings", visibleRange.start.toISOString(), visibleRange.end.toISOString()],
+    queryKey: [
+      "calendar-bookings",
+      visibleRange.start.toISOString(),
+      visibleRange.end.toISOString(),
+    ],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("bookings")
@@ -418,12 +515,18 @@ function CalendarPage() {
       if (error) throw error;
       const rows = data ?? [];
       const techIds = [...new Set(rows.map((r: any) => r.assigned_tech_id).filter(Boolean))];
-      let techMap = new Map<string, string>();
+      const techMap = new Map<string, string>();
       if (techIds.length) {
-        const { data: profs } = await supabase.from("profiles").select("id, full_name").in("id", techIds);
+        const { data: profs } = await supabase
+          .from("profiles")
+          .select("id, full_name")
+          .in("id", techIds);
         (profs ?? []).forEach((p: any) => techMap.set(p.id, p.full_name || ""));
       }
-      return rows.map((r: any) => ({ ...r, tech_name: r.assigned_tech_id ? techMap.get(r.assigned_tech_id) : null }));
+      return rows.map((r: any) => ({
+        ...r,
+        tech_name: r.assigned_tech_id ? techMap.get(r.assigned_tech_id) : null,
+      }));
     },
   });
 
@@ -455,7 +558,9 @@ function CalendarPage() {
       const startMin = (Number(hh) || 0) * 60 + (Number(mm) || 0);
       const clash = findOverlap(dateStr, startMin, hours, bookingId);
       if (clash) {
-        toast.error(`Slot already booked (${clash.service_type} at ${String(clash.drop_off_time).slice(0,5)})`);
+        toast.error(
+          `Slot already booked (${clash.service_type} at ${String(clash.drop_off_time).slice(0, 5)})`,
+        );
         return;
       }
     }
@@ -495,7 +600,10 @@ function CalendarPage() {
   };
 
   const weekEnd = addDays(weekStart, 6);
-  const weekDays = useMemo(() => Array.from({ length: 7 }, (_, i) => addDays(weekStart, i)), [weekStart]);
+  const weekDays = useMemo(
+    () => Array.from({ length: 7 }, (_, i) => addDays(weekStart, i)),
+    [weekStart],
+  );
 
   const monthDays = useMemo(() => {
     if (viewMode !== "month") return [];
@@ -545,7 +653,8 @@ function CalendarPage() {
               <>{format(monthStart, "MMMM yyyy")}</>
             )}
             <span className="ml-3 text-xs tabular-nums">
-              {bookings.length} bookings · {[...totals.values()].reduce((a, b) => a + b, 0).toFixed(1)}h
+              {bookings.length} bookings ·{" "}
+              {[...totals.values()].reduce((a, b) => a + b, 0).toFixed(1)}h
             </span>
           </div>
 
@@ -574,397 +683,428 @@ function CalendarPage() {
       {viewMode === "month" && (
         <div className="overflow-x-auto min-w-full">
           <div className="space-y-1 min-w-[720px]">
-          {/* Day headers */}
-          <div className="grid grid-cols-7 gap-2" style={{ gridTemplateColumns: 'repeat(7, minmax(0, 1fr))' }}>
-            {dayNames.map((name) => (
-              <div key={name} className={`text-center text-[10px] font-bold uppercase tracking-wider py-1 rounded ${
-                name === "Sunday" ? "bg-primary/[0.05] text-primary" : "text-muted-foreground"
-              }`}>
-                {name}
-              </div>
-            ))}
-          </div>
-
-          <div className="grid grid-cols-7 gap-2" style={{ gridTemplateColumns: 'repeat(7, minmax(0, 1fr))' }}>
-            {monthDays.map((day, idx) => {
-              const dayKey = format(day, "yyyy-MM-dd");
-              const dayBookings = (bookings as any[]).filter((b) => b.scheduled_date === dayKey);
-              const loadHours = totals.get(dayKey) ?? 0;
-              const loadPct = Math.min(100, (loadHours / DAILY_CAPACITY_HOURS) * 100);
-              const over = loadHours > DAILY_CAPACITY_HOURS;
-              const today = isToday(day);
-              const inMonth = isSameMonth(day, monthStart);
-
-              return (
-                <motion.div
-                  key={dayKey}
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.2, delay: idx * 0.01 }}
-                  onDragOver={(e) => e.preventDefault()}
-                  onDrop={(e) => {
-                    e.preventDefault();
-                    const id = e.dataTransfer.getData("text/booking-id");
-                    if (id) moveBooking(id, day);
-                    setDraggingId(null);
-                  }}
-                  onClick={() => {
-                    setWeekStart(startOfWeek(day, { weekStartsOn: 1 }));
-                    setViewMode("week");
-                  }}
-                  className={`card-surface p-2 min-h-[160px] flex flex-col cursor-pointer transition-colors hover:ring-1 hover:ring-primary/30 ${
-                    today ? "ring-2 ring-primary/40" : ""
-                  } ${isSunday(day) ? "bg-primary/[0.14]" : ""} ${draggingId ? "border-dashed" : ""} ${!inMonth ? "opacity-40" : ""}`}
+            {/* Day headers */}
+            <div
+              className="grid grid-cols-7 gap-2"
+              style={{ gridTemplateColumns: "repeat(7, minmax(0, 1fr))" }}
+            >
+              {dayNames.map((name) => (
+                <div
+                  key={name}
+                  className={`text-center text-[10px] font-bold uppercase tracking-wider py-1 rounded ${
+                    name === "Sunday" ? "bg-primary/[0.05] text-primary" : "text-muted-foreground"
+                  }`}
                 >
-                  <div className="flex items-center justify-between">
-                    <div
-                      className={`font-display text-lg font-bold leading-none ${
-                        today ? "red-gradient-text" : inMonth ? "text-foreground" : "text-muted-foreground"
-                      }`}
-                    >
-                      {format(day, "d")}
-                    </div>
-                    {over && (
-                      <span title="Overbooked" className="text-[9px] font-bold uppercase tracking-wider text-status-parts">
-                        <AlertTriangle className="h-3 w-3 inline" />
-                      </span>
-                    )}
-                  </div>
+                  {name}
+                </div>
+              ))}
+            </div>
 
-                  {loadHours > 0 && (
-                    <div className="mt-1.5 h-1 rounded-full bg-muted overflow-hidden">
+            <div
+              className="grid grid-cols-7 gap-2"
+              style={{ gridTemplateColumns: "repeat(7, minmax(0, 1fr))" }}
+            >
+              {monthDays.map((day, idx) => {
+                const dayKey = format(day, "yyyy-MM-dd");
+                const dayBookings = (bookings as any[]).filter((b) => b.scheduled_date === dayKey);
+                const loadHours = totals.get(dayKey) ?? 0;
+                const loadPct = Math.min(100, (loadHours / DAILY_CAPACITY_HOURS) * 100);
+                const over = loadHours > DAILY_CAPACITY_HOURS;
+                const today = isToday(day);
+                const inMonth = isSameMonth(day, monthStart);
+
+                return (
+                  <motion.div
+                    key={dayKey}
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.2, delay: idx * 0.01 }}
+                    onDragOver={(e) => e.preventDefault()}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      const id = e.dataTransfer.getData("text/booking-id");
+                      if (id) moveBooking(id, day);
+                      setDraggingId(null);
+                    }}
+                    onClick={() => {
+                      setWeekStart(startOfWeek(day, { weekStartsOn: 1 }));
+                      setViewMode("week");
+                    }}
+                    className={`card-surface p-2 min-h-[160px] flex flex-col cursor-pointer transition-colors hover:ring-1 hover:ring-primary/30 ${
+                      today ? "ring-2 ring-primary/40" : ""
+                    } ${isSunday(day) ? "bg-primary/[0.14]" : ""} ${draggingId ? "border-dashed" : ""} ${!inMonth ? "opacity-40" : ""}`}
+                  >
+                    <div className="flex items-center justify-between">
                       <div
-                        className={`h-full rounded-full ${over ? "bg-status-parts" : "bg-gradient-to-r from-[color:var(--primary)] to-[color:var(--md-blue)]"}`}
-                        style={{ width: `${loadPct}%` }}
-                      />
-                    </div>
-                  )}
-
-                  <div className="mt-1.5 flex-1 flex flex-wrap gap-1 content-start">
-                    {dayBookings.slice(0, 6).map((b: any) => {
-                      const c = serviceColor(b.service_type);
-                      return (
-                        <div
-                          key={b.id}
-                          className="relative"
-                          title={`${b.service_type} — ${b.motorcycles?.make ?? ""} ${b.motorcycles?.model ?? ""}${b.confirmed ? " · Confirmed" : ""}`}
+                        className={`font-display text-lg font-bold leading-none ${
+                          today
+                            ? "red-gradient-text"
+                            : inMonth
+                              ? "text-foreground"
+                              : "text-muted-foreground"
+                        }`}
+                      >
+                        {format(day, "d")}
+                      </div>
+                      {over && (
+                        <span
+                          title="Overbooked"
+                          className="text-[9px] font-bold uppercase tracking-wider text-status-parts"
                         >
-                          <div
-                            className={`h-2 w-2 rounded-full ${b.color ? "" : `${c.bg} ring-1 ${c.ring}`}`}
-                            style={b.color ? { backgroundColor: b.color, boxShadow: `0 0 0 1px ${b.color}` } : undefined}
-                          />
-                          {b.confirmed && (
-                            <span className="absolute -top-0.5 -right-0.5 h-1.5 w-1.5 rounded-full bg-green-500 ring-1 ring-background" />
-                          )}
-                        </div>
-                      );
-                    })}
-                    {dayBookings.length > 6 && (
-                      <span className="text-[9px] text-muted-foreground font-semibold">+{dayBookings.length - 6}</span>
-                    )}
-                  </div>
+                          <AlertTriangle className="h-3 w-3 inline" />
+                        </span>
+                      )}
+                    </div>
 
-                  <div className="mt-auto flex items-center justify-between text-[9px] text-muted-foreground tabular-nums">
-                    <span>{loadHours.toFixed(1)}h</span>
-                    <span>{dayBookings.length} job{dayBookings.length === 1 ? "" : "s"}</span>
-                  </div>
-                </motion.div>
-              );
-            })}
-          </div>
+                    {loadHours > 0 && (
+                      <div className="mt-1.5 h-1 rounded-full bg-muted overflow-hidden">
+                        <div
+                          className={`h-full rounded-full ${over ? "bg-status-parts" : "bg-gradient-to-r from-[color:var(--primary)] to-[color:var(--md-blue)]"}`}
+                          style={{ width: `${loadPct}%` }}
+                        />
+                      </div>
+                    )}
+
+                    <div className="mt-1.5 flex-1 flex flex-wrap gap-1 content-start">
+                      {dayBookings.slice(0, 6).map((b: any) => {
+                        const c = serviceColor(b.service_type);
+                        return (
+                          <div
+                            key={b.id}
+                            className="relative"
+                            title={`${b.service_type} — ${b.motorcycles?.make ?? ""} ${b.motorcycles?.model ?? ""}${b.confirmed ? " · Confirmed" : ""}`}
+                          >
+                            <div
+                              className={`h-2 w-2 rounded-full ${b.color ? "" : `${c.bg} ring-1 ${c.ring}`}`}
+                              style={
+                                b.color
+                                  ? { backgroundColor: b.color, boxShadow: `0 0 0 1px ${b.color}` }
+                                  : undefined
+                              }
+                            />
+                            {b.confirmed && (
+                              <span className="absolute -top-0.5 -right-0.5 h-1.5 w-1.5 rounded-full bg-green-500 ring-1 ring-background" />
+                            )}
+                          </div>
+                        );
+                      })}
+                      {dayBookings.length > 6 && (
+                        <span className="text-[9px] text-muted-foreground font-semibold">
+                          +{dayBookings.length - 6}
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="mt-auto flex items-center justify-between text-[9px] text-muted-foreground tabular-nums">
+                      <span>{loadHours.toFixed(1)}h</span>
+                      <span>
+                        {dayBookings.length} job{dayBookings.length === 1 ? "" : "s"}
+                      </span>
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </div>
           </div>
         </div>
       )}
 
       {/* WEEK VIEW — Google-Calendar-style time grid */}
-      {viewMode === "week" && (() => {
-        const START_HOUR = 8;
-        const END_HOUR = 18; // exclusive last label; grid ends at 18:00
-        const HOURS = END_HOUR - START_HOUR;
-        const SLOT_H = gridH / HOURS;
-        const GRID_H = gridH;
+      {viewMode === "week" &&
+        (() => {
+          const START_HOUR = 8;
+          const END_HOUR = 18; // exclusive last label; grid ends at 18:00
+          const HOURS = END_HOUR - START_HOUR;
+          const SLOT_H = gridH / HOURS;
+          const GRID_H = gridH;
 
-        const parseTime = (t?: string | null) => {
-          if (!t) return { h: 9, m: 0 };
-          const [hh, mm] = t.split(":");
-          return { h: Number(hh) || 0, m: Number(mm) || 0 };
-        };
+          const parseTime = (t?: string | null) => {
+            if (!t) return { h: 9, m: 0 };
+            const [hh, mm] = t.split(":");
+            return { h: Number(hh) || 0, m: Number(mm) || 0 };
+          };
 
-        const nowMinutes = now.getHours() * 60 + now.getMinutes();
-        const nowTop =
-          ((nowMinutes - START_HOUR * 60) / 60) * SLOT_H;
-        const showNow = nowTop >= 0 && nowTop <= GRID_H;
+          const nowMinutes = now.getHours() * 60 + now.getMinutes();
+          const nowTop = ((nowMinutes - START_HOUR * 60) / 60) * SLOT_H;
+          const showNow = nowTop >= 0 && nowTop <= GRID_H;
 
-        const handleSlotClick = (e: React.MouseEvent<HTMLDivElement>, day: Date) => {
-          const rect = e.currentTarget.getBoundingClientRect();
-          const y = e.clientY - rect.top;
-          const hourFloat = START_HOUR + y / SLOT_H;
-          // snap to 30 min
-          const totalMin = Math.max(START_HOUR * 60, Math.round((hourFloat * 60) / 30) * 30);
-          const h = Math.floor(totalMin / 60);
-          const m = totalMin % 60;
-          const time = `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
-          const dayKey = format(day, "yyyy-MM-dd");
-          const clash = findOverlap(dayKey, totalMin, 0.5);
-          if (clash) {
-            setSelectedBooking(clash);
-            return;
-          }
-          resetQuickForm();
-          setQuickSlot({ date: day, time });
-        };
+          const handleSlotClick = (e: React.MouseEvent<HTMLDivElement>, day: Date) => {
+            const rect = e.currentTarget.getBoundingClientRect();
+            const y = e.clientY - rect.top;
+            const hourFloat = START_HOUR + y / SLOT_H;
+            // snap to 30 min
+            const totalMin = Math.max(START_HOUR * 60, Math.round((hourFloat * 60) / 30) * 30);
+            const h = Math.floor(totalMin / 60);
+            const m = totalMin % 60;
+            const time = `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+            const dayKey = format(day, "yyyy-MM-dd");
+            const clash = findOverlap(dayKey, totalMin, 0.5);
+            if (clash) {
+              setSelectedBooking(clash);
+              return;
+            }
+            resetQuickForm();
+            setQuickSlot({ date: day, time });
+          };
 
-        return (
-          <div className="card-surface p-0 overflow-hidden flex flex-col flex-1 min-h-[560px]">
-            <div className="overflow-x-auto min-w-full min-h-0 flex-1">
-              <div className="min-w-[900px] h-full flex flex-col">
-            {/* Day headers */}
-            <div
-              className="grid border-b border-border/60"
-              style={{ gridTemplateColumns: `56px repeat(7, minmax(0, 1fr))` }}
-            >
-              <div className="text-[9px] font-bold text-muted-foreground/60 uppercase tracking-wider text-center py-2 border-r border-border/60">
-                GMT
-              </div>
-              {weekDays.map((day) => {
-                const today = isToday(day);
-                const dayKey = format(day, "yyyy-MM-dd");
-                const isHovered = hoverSlot?.dayKey === dayKey;
-                return (
+          return (
+            <div className="card-surface p-0 overflow-hidden flex flex-col flex-1 min-h-[560px]">
+              <div className="overflow-x-auto min-w-full min-h-0 flex-1">
+                <div className="min-w-[900px] h-full flex flex-col">
+                  {/* Day headers */}
                   <div
-                    key={dayKey}
-                    className={`text-center py-2 border-r border-border/40 last:border-r-0 transition-colors ${
-                      today ? "bg-primary/5" : isSunday(day) ? "bg-primary/[0.14]" : ""
-                    } ${isHovered ? "bg-primary/10" : ""}`}
+                    className="grid border-b border-border/60"
+                    style={{ gridTemplateColumns: `56px repeat(7, minmax(0, 1fr))` }}
                   >
-                    <div
-                      className={`text-[10px] font-semibold uppercase tracking-wider transition-colors ${
-                        today ? "text-primary" : isSunday(day) ? "text-primary" : isHovered ? "text-foreground" : "text-muted-foreground"
-                      }`}
-                    >
-                      {format(day, "EEEE")}
+                    <div className="text-[9px] font-bold text-muted-foreground/60 uppercase tracking-wider text-center py-2 border-r border-border/60">
+                      GMT
                     </div>
-                    <div
-                      className={`mt-0.5 mx-auto grid place-items-center font-display font-bold text-lg leading-none ${
-                        today
-                          ? "h-8 w-8 rounded-full bg-primary text-primary-foreground"
-                          : isHovered ? "text-primary" : ""
-                      }`}
-                    >
-                      {format(day, "d")}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* Time grid body */}
-            <div
-              ref={bodyRef}
-              className="grid relative flex-1 min-h-[560px]"
-              style={{
-                gridTemplateColumns: `56px repeat(7, minmax(0, 1fr))`,
-              }}
-            >
-              {/* Hours column */}
-              <div className="relative border-r border-border/60">
-                {Array.from({ length: HOURS }, (_, i) => {
-                  const hh = START_HOUR + i;
-                  const label =
-                    hh === 12
-                      ? "12 PM"
-                      : hh > 12
-                        ? `${hh - 12} PM`
-                        : `${hh} AM`;
-                  const activeHour = hoverSlot && Math.floor(hoverSlot.slotIdx / 2) === i;
-                  return (
-                    <div
-                      key={hh}
-                      className={`text-[10px] tabular-nums text-right pr-2 -translate-y-1.5 transition-colors ${
-                        activeHour ? "text-primary font-bold" : "text-muted-foreground"
-                      }`}
-                      style={{
-                        position: "absolute",
-                        top: `${i * SLOT_H}px`,
-                        right: 0,
-                        left: 0,
-                      }}
-                    >
-                      {label}
-                    </div>
-                  );
-                })}
-              </div>
-
-              {/* Day columns */}
-              {weekDays.map((day) => {
-                const dayKey = format(day, "yyyy-MM-dd");
-                const dayBookings = (bookings as any[]).filter(
-                  (b) => b.scheduled_date === dayKey,
-                );
-                const today = isToday(day);
-                return (
-                  <div
-                    key={dayKey}
-                    onClick={(e) => handleSlotClick(e, day)}
-                    onMouseMove={(e) => {
-                      const rect = e.currentTarget.getBoundingClientRect();
-                      const y = e.clientY - rect.top;
-                      const slotIdx = Math.max(
-                        0,
-                        Math.min(HOURS * 2 - 1, Math.floor(y / (SLOT_H / 2))),
-                      );
-                      if (hoverSlot?.dayKey !== dayKey || hoverSlot?.slotIdx !== slotIdx) {
-                        setHoverSlot({ dayKey, slotIdx });
-                      }
-                    }}
-                    onMouseLeave={() => setHoverSlot(null)}
-                    onDragOver={(e) => e.preventDefault()}
-                    onDrop={(e) => {
-                      e.preventDefault();
-                      const id = e.dataTransfer.getData("text/booking-id");
-                      if (!id) return;
-                      const offsetY = Number(e.dataTransfer.getData("text/grab-offset")) || 0;
-                      const rect = e.currentTarget.getBoundingClientRect();
-                      const y = e.clientY - rect.top - offsetY;
-                      const hourFloat = START_HOUR + y / SLOT_H;
-                      const totalMin = Math.max(
-                        START_HOUR * 60,
-                        Math.min(END_HOUR * 60 - 30, Math.round((hourFloat * 60) / 30) * 30),
-                      );
-                      const nh = Math.floor(totalMin / 60);
-                      const nm = totalMin % 60;
-                      const time = `${String(nh).padStart(2, "0")}:${String(nm).padStart(2, "0")}`;
-                      moveBooking(id, day, time);
-                      setDraggingId(null);
-                    }}
-                    className={`relative border-r border-border/40 last:border-r-0 cursor-pointer ${
-                      today ? "bg-primary/[0.03]" : isSunday(day) ? "bg-primary/[0.14]" : ""
-                    } ${draggingId ? "bg-primary/5" : ""}`}
-                    style={{
-                      backgroundImage: `repeating-linear-gradient(to bottom, transparent 0, transparent ${SLOT_H - 1}px, var(--border) ${SLOT_H - 1}px, var(--border) ${SLOT_H}px)`,
-                    }}
-                    title="Click to create booking"
-                  >
-                    {/* Half-hour lighter guides */}
-                    <div
-                      className="absolute inset-0 pointer-events-none opacity-40"
-                      style={{
-                        backgroundImage: `repeating-linear-gradient(to bottom, transparent 0, transparent ${SLOT_H / 2 - 1}px, var(--border) ${SLOT_H / 2 - 1}px, var(--border) ${SLOT_H / 2}px)`,
-                      }}
-                    />
-
-                    {/* Hover slot highlight */}
-                    {hoverSlot?.dayKey === dayKey && (
-                      <div
-                        className="absolute left-0.5 right-0.5 pointer-events-none rounded-md bg-primary/15 ring-1 ring-primary/50 shadow-[0_0_12px_rgba(59,130,246,0.35)] transition-[top] duration-75"
-                        style={{
-                          top: `${hoverSlot.slotIdx * (SLOT_H / 2)}px`,
-                          height: `${SLOT_H / 2}px`,
-                        }}
-                      />
-                    )}
-
-                    {/* Current-time line */}
-                    {today && showNow && (
-                      <div
-                        className="absolute left-0 right-0 z-20 pointer-events-none"
-                        style={{ top: `${nowTop}px` }}
-                      >
-                        <div className="relative h-0">
-                          <div className="absolute -left-1 -top-1 h-2.5 w-2.5 rounded-full bg-status-parts shadow-[0_0_8px_rgba(239,68,68,0.7)]" />
-                          <div className="absolute left-0 right-0 h-[2px] bg-status-parts shadow-[0_0_6px_rgba(239,68,68,0.6)]" />
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Bookings positioned by drop_off_time + estimated_hours */}
-                    {dayBookings.map((b: any) => {
-                      const { h, m } = parseTime(b.drop_off_time);
-                      const top =
-                        ((h + m / 60 - START_HOUR) * SLOT_H);
-                      const hoursDur = Math.max(0.5, Number(b.estimated_hours || 1));
-                      const height = Math.max(24, hoursDur * SLOT_H - 2);
-                      // clamp to grid
-                      if (top + height < 0 || top > GRID_H) return null;
-                      const c = serviceColor(b.service_type);
-                      const bike = b.motorcycles
-                        ? `${b.motorcycles.year ?? ""} ${b.motorcycles.make} ${b.motorcycles.model}`.trim()
-                        : "—";
-                      const customer = b.customers
-                        ? `${b.customers.first_name ?? ""} ${b.customers.last_name ?? ""}`.trim() || "—"
-                        : "—";
+                    {weekDays.map((day) => {
+                      const today = isToday(day);
+                      const dayKey = format(day, "yyyy-MM-dd");
+                      const isHovered = hoverSlot?.dayKey === dayKey;
                       return (
                         <div
-                          key={b.id}
-                          role="button"
-                          tabIndex={0}
-                          draggable
-                          onMouseEnter={() => setHoverSlot(null)}
-                          onMouseMove={(e) => e.stopPropagation()}
-                          onDragStart={(e) => {
-                            const rect = e.currentTarget.getBoundingClientRect();
-                            const grabY = e.clientY - rect.top;
-                            e.dataTransfer.effectAllowed = "move";
-                            e.dataTransfer.setData("text/booking-id", b.id);
-                            e.dataTransfer.setData("text/grab-offset", String(grabY));
-                            setDraggingId(b.id);
-                          }}
-                          onDragEnd={() => setDraggingId(null)}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setSelectedBooking(b);
-                          }}
-                          className={`group absolute left-1 right-1 z-10 rounded-md p-2 text-left ring-1 overflow-hidden select-none transition-all hover:z-30 hover:brightness-110 hover:ring-2 hover:ring-primary hover:shadow-[0_8px_24px_rgba(0,0,0,0.35)] cursor-grab active:cursor-grabbing ${
-                            b.color ? "text-foreground" : `${c.bg} ${c.ring} ${c.text}`
-                          } ${draggingId === b.id ? "opacity-40" : ""} ${b.loan_bike ? "!ring-2 !ring-amber-400" : ""}`}
-                          style={{
-                            top: `${top}px`,
-                            height: `${height}px`,
-                            ...(b.color ? { backgroundColor: `${b.color}B3`, boxShadow: `inset 0 0 0 1px ${b.color}` } : {}),
-                          }}
+                          key={dayKey}
+                          className={`text-center py-2 border-r border-border/40 last:border-r-0 transition-colors ${
+                            today ? "bg-primary/5" : isSunday(day) ? "bg-primary/[0.14]" : ""
+                          } ${isHovered ? "bg-primary/10" : ""}`}
                         >
-                          {/* Drag grip indicator — visible on hover */}
-                          <div className="absolute top-0.5 right-0.5 opacity-0 group-hover:opacity-70 transition-opacity pointer-events-none text-current text-[9px] leading-none font-black">
-                            ⋮⋮
+                          <div
+                            className={`text-[10px] font-semibold uppercase tracking-wider transition-colors ${
+                              today
+                                ? "text-primary"
+                                : isSunday(day)
+                                  ? "text-primary"
+                                  : isHovered
+                                    ? "text-foreground"
+                                    : "text-muted-foreground"
+                            }`}
+                          >
+                            {format(day, "EEEE")}
                           </div>
-                          <div className="flex items-center justify-between gap-1">
-                            <span className="text-[9px] font-bold uppercase tracking-wider truncate">
-                              {b.drop_off_time
-                                ? b.drop_off_time.slice(0, 5)
-                                : ""}{" "}
-                              · {b.service_type}
-                              {b.service_type === "Other" && b.service_type_other ? ` — ${b.service_type_other}` : ""}
-                            </span>
-                            {b.confirmed && (
-                              <span className="h-1.5 w-1.5 rounded-full bg-green-500 shrink-0" />
-                            )}
+                          <div
+                            className={`mt-0.5 mx-auto grid place-items-center font-display font-bold text-lg leading-none ${
+                              today
+                                ? "h-8 w-8 rounded-full bg-primary text-primary-foreground"
+                                : isHovered
+                                  ? "text-primary"
+                                  : ""
+                            }`}
+                          >
+                            {format(day, "d")}
                           </div>
-                          {height > 32 && (
-                            <div className="text-[10px] font-semibold text-current/90 truncate">
-                              {bike}
-                            </div>
-                          )}
-                          {height > 48 && (
-                            <div className="text-[9px] text-current/80 truncate">
-                              {customer}
-                            </div>
-                          )}
                         </div>
                       );
                     })}
                   </div>
-                );
-              })}
+
+                  {/* Time grid body */}
+                  <div
+                    ref={bodyRef}
+                    className="grid relative flex-1 min-h-[560px]"
+                    style={{
+                      gridTemplateColumns: `56px repeat(7, minmax(0, 1fr))`,
+                    }}
+                  >
+                    {/* Hours column */}
+                    <div className="relative border-r border-border/60">
+                      {Array.from({ length: HOURS }, (_, i) => {
+                        const hh = START_HOUR + i;
+                        const label = hh === 12 ? "12 PM" : hh > 12 ? `${hh - 12} PM` : `${hh} AM`;
+                        const activeHour = hoverSlot && Math.floor(hoverSlot.slotIdx / 2) === i;
+                        return (
+                          <div
+                            key={hh}
+                            className={`text-[10px] tabular-nums text-right pr-2 -translate-y-1.5 transition-colors ${
+                              activeHour ? "text-primary font-bold" : "text-muted-foreground"
+                            }`}
+                            style={{
+                              position: "absolute",
+                              top: `${i * SLOT_H}px`,
+                              right: 0,
+                              left: 0,
+                            }}
+                          >
+                            {label}
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    {/* Day columns */}
+                    {weekDays.map((day) => {
+                      const dayKey = format(day, "yyyy-MM-dd");
+                      const dayBookings = (bookings as any[]).filter(
+                        (b) => b.scheduled_date === dayKey,
+                      );
+                      const today = isToday(day);
+                      return (
+                        <div
+                          key={dayKey}
+                          onClick={(e) => handleSlotClick(e, day)}
+                          onMouseMove={(e) => {
+                            const rect = e.currentTarget.getBoundingClientRect();
+                            const y = e.clientY - rect.top;
+                            const slotIdx = Math.max(
+                              0,
+                              Math.min(HOURS * 2 - 1, Math.floor(y / (SLOT_H / 2))),
+                            );
+                            if (hoverSlot?.dayKey !== dayKey || hoverSlot?.slotIdx !== slotIdx) {
+                              setHoverSlot({ dayKey, slotIdx });
+                            }
+                          }}
+                          onMouseLeave={() => setHoverSlot(null)}
+                          onDragOver={(e) => e.preventDefault()}
+                          onDrop={(e) => {
+                            e.preventDefault();
+                            const id = e.dataTransfer.getData("text/booking-id");
+                            if (!id) return;
+                            const offsetY = Number(e.dataTransfer.getData("text/grab-offset")) || 0;
+                            const rect = e.currentTarget.getBoundingClientRect();
+                            const y = e.clientY - rect.top - offsetY;
+                            const hourFloat = START_HOUR + y / SLOT_H;
+                            const totalMin = Math.max(
+                              START_HOUR * 60,
+                              Math.min(END_HOUR * 60 - 30, Math.round((hourFloat * 60) / 30) * 30),
+                            );
+                            const nh = Math.floor(totalMin / 60);
+                            const nm = totalMin % 60;
+                            const time = `${String(nh).padStart(2, "0")}:${String(nm).padStart(2, "0")}`;
+                            moveBooking(id, day, time);
+                            setDraggingId(null);
+                          }}
+                          className={`relative border-r border-border/40 last:border-r-0 cursor-pointer ${
+                            today ? "bg-primary/[0.03]" : isSunday(day) ? "bg-primary/[0.14]" : ""
+                          } ${draggingId ? "bg-primary/5" : ""}`}
+                          style={{
+                            backgroundImage: `repeating-linear-gradient(to bottom, transparent 0, transparent ${SLOT_H - 1}px, var(--border) ${SLOT_H - 1}px, var(--border) ${SLOT_H}px)`,
+                          }}
+                          title="Click to create booking"
+                        >
+                          {/* Half-hour lighter guides */}
+                          <div
+                            className="absolute inset-0 pointer-events-none opacity-40"
+                            style={{
+                              backgroundImage: `repeating-linear-gradient(to bottom, transparent 0, transparent ${SLOT_H / 2 - 1}px, var(--border) ${SLOT_H / 2 - 1}px, var(--border) ${SLOT_H / 2}px)`,
+                            }}
+                          />
+
+                          {/* Hover slot highlight */}
+                          {hoverSlot?.dayKey === dayKey && (
+                            <div
+                              className="absolute left-0.5 right-0.5 pointer-events-none rounded-md bg-primary/15 ring-1 ring-primary/50 shadow-[0_0_12px_rgba(59,130,246,0.35)] transition-[top] duration-75"
+                              style={{
+                                top: `${hoverSlot.slotIdx * (SLOT_H / 2)}px`,
+                                height: `${SLOT_H / 2}px`,
+                              }}
+                            />
+                          )}
+
+                          {/* Current-time line */}
+                          {today && showNow && (
+                            <div
+                              className="absolute left-0 right-0 z-20 pointer-events-none"
+                              style={{ top: `${nowTop}px` }}
+                            >
+                              <div className="relative h-0">
+                                <div className="absolute -left-1 -top-1 h-2.5 w-2.5 rounded-full bg-status-parts shadow-[0_0_8px_rgba(239,68,68,0.7)]" />
+                                <div className="absolute left-0 right-0 h-[2px] bg-status-parts shadow-[0_0_6px_rgba(239,68,68,0.6)]" />
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Bookings positioned by drop_off_time + estimated_hours */}
+                          {dayBookings.map((b: any) => {
+                            const { h, m } = parseTime(b.drop_off_time);
+                            const top = (h + m / 60 - START_HOUR) * SLOT_H;
+                            const hoursDur = Math.max(0.5, Number(b.estimated_hours || 1));
+                            const height = Math.max(24, hoursDur * SLOT_H - 2);
+                            // clamp to grid
+                            if (top + height < 0 || top > GRID_H) return null;
+                            const c = serviceColor(b.service_type);
+                            const bike = b.motorcycles
+                              ? `${b.motorcycles.year ?? ""} ${b.motorcycles.make} ${b.motorcycles.model}`.trim()
+                              : "—";
+                            const customer = b.customers
+                              ? `${b.customers.first_name ?? ""} ${b.customers.last_name ?? ""}`.trim() ||
+                                "—"
+                              : "—";
+                            return (
+                              <div
+                                key={b.id}
+                                role="button"
+                                tabIndex={0}
+                                draggable
+                                onMouseEnter={() => setHoverSlot(null)}
+                                onMouseMove={(e) => e.stopPropagation()}
+                                onDragStart={(e) => {
+                                  const rect = e.currentTarget.getBoundingClientRect();
+                                  const grabY = e.clientY - rect.top;
+                                  e.dataTransfer.effectAllowed = "move";
+                                  e.dataTransfer.setData("text/booking-id", b.id);
+                                  e.dataTransfer.setData("text/grab-offset", String(grabY));
+                                  setDraggingId(b.id);
+                                }}
+                                onDragEnd={() => setDraggingId(null)}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setSelectedBooking(b);
+                                }}
+                                className={`group absolute left-1 right-1 z-10 rounded-md p-2 text-left ring-1 overflow-hidden select-none transition-all hover:z-30 hover:brightness-110 hover:ring-2 hover:ring-primary hover:shadow-[0_8px_24px_rgba(0,0,0,0.35)] cursor-grab active:cursor-grabbing ${
+                                  b.color ? "text-foreground" : `${c.bg} ${c.ring} ${c.text}`
+                                } ${draggingId === b.id ? "opacity-40" : ""} ${b.loan_bike ? "!ring-2 !ring-amber-400" : ""}`}
+                                style={{
+                                  top: `${top}px`,
+                                  height: `${height}px`,
+                                  ...(b.color
+                                    ? {
+                                        backgroundColor: `${b.color}B3`,
+                                        boxShadow: `inset 0 0 0 1px ${b.color}`,
+                                      }
+                                    : {}),
+                                }}
+                              >
+                                {/* Drag grip indicator — visible on hover */}
+                                <div className="absolute top-0.5 right-0.5 opacity-0 group-hover:opacity-70 transition-opacity pointer-events-none text-current text-[9px] leading-none font-black">
+                                  ⋮⋮
+                                </div>
+                                <div className="flex items-center justify-between gap-1">
+                                  <span className="text-[9px] font-bold uppercase tracking-wider truncate">
+                                    {b.drop_off_time ? b.drop_off_time.slice(0, 5) : ""} ·{" "}
+                                    {b.service_type}
+                                    {b.service_type === "Other" && b.service_type_other
+                                      ? ` — ${b.service_type_other}`
+                                      : ""}
+                                  </span>
+                                  {b.confirmed && (
+                                    <span className="h-1.5 w-1.5 rounded-full bg-green-500 shrink-0" />
+                                  )}
+                                </div>
+                                {height > 32 && (
+                                  <div className="text-[10px] font-semibold text-current/90 truncate">
+                                    {bike}
+                                  </div>
+                                )}
+                                {height > 48 && (
+                                  <div className="text-[9px] text-current/80 truncate">
+                                    {customer}
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
-          </div>
-        );
-      })()}
+          );
+        })()}
 
       {/* LEGEND moved to sidebar (only visible on /calendar) */}
-
 
       {/* BOOKING QUICK-VIEW POPUP */}
       <AnimatePresence>
@@ -998,11 +1138,15 @@ function CalendarPage() {
                 const bike = b.motorcycles
                   ? `${b.motorcycles.year ?? ""} ${b.motorcycles.make} ${b.motorcycles.model}`.trim()
                   : "—";
-                const customer = b.customers ? (`${b.customers.first_name ?? ""} ${b.customers.last_name ?? ""}`.trim() || "—") : "—";
+                const customer = b.customers
+                  ? `${b.customers.first_name ?? ""} ${b.customers.last_name ?? ""}`.trim() || "—"
+                  : "—";
                 return (
                   <>
                     <div className="flex items-center gap-2 pr-8">
-                      <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 ring-1 text-[11px] font-bold uppercase tracking-wider ${c.bg} ${c.ring} ${c.text}`}>
+                      <span
+                        className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 ring-1 text-[11px] font-bold uppercase tracking-wider ${c.bg} ${c.ring} ${c.text}`}
+                      >
                         <span className="h-1.5 w-1.5 rounded-full bg-current" />
                         {b.service_type}
                       </span>
@@ -1014,13 +1158,17 @@ function CalendarPage() {
                       {b.loan_bike && (
                         <span className="inline-flex items-center gap-1 rounded-full bg-amber-400/20 border border-amber-400/60 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-amber-300">
                           🏍️ Loan bike {b.loan_bikes?.name ? `· ${b.loan_bikes.name}` : ""}
-                          {b.loan_bike_expected_return ? ` · back ${format(new Date(b.loan_bike_expected_return + "T00:00:00"), "d MMM")}` : ""}
+                          {b.loan_bike_expected_return
+                            ? ` · back ${format(new Date(b.loan_bike_expected_return + "T00:00:00"), "d MMM")}`
+                            : ""}
                         </span>
                       )}
                     </div>
 
                     <div>
-                      <div className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground mb-1.5">Scheduled</div>
+                      <div className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground mb-1.5">
+                        Scheduled
+                      </div>
                       <div className="flex flex-wrap items-center gap-2">
                         <input
                           type="date"
@@ -1029,10 +1177,21 @@ function CalendarPage() {
                             const v = e.target.value;
                             if (!v || v === b.scheduled_date) return;
                             const [th, tm] = String(b.drop_off_time || "00:00").split(":");
-                            const clash = findOverlap(v, (Number(th)||0)*60 + (Number(tm)||0), Number(b.estimated_hours) || 1, b.id);
+                            const clash = findOverlap(
+                              v,
+                              (Number(th) || 0) * 60 + (Number(tm) || 0),
+                              Number(b.estimated_hours) || 1,
+                              b.id,
+                            );
 
-                            if (clash) return toast.error(`Slot taken (${clash.service_type} at ${String(clash.drop_off_time).slice(0,5)})`);
-                            const { error } = await supabase.from("bookings").update({ scheduled_date: v }).eq("id", b.id);
+                            if (clash)
+                              return toast.error(
+                                `Slot taken (${clash.service_type} at ${String(clash.drop_off_time).slice(0, 5)})`,
+                              );
+                            const { error } = await supabase
+                              .from("bookings")
+                              .update({ scheduled_date: v })
+                              .eq("id", b.id);
                             if (error) return toast.error(error.message);
                             setSelectedBooking({ ...b, scheduled_date: v });
                             qc.invalidateQueries({ queryKey: ["calendar-bookings"] });
@@ -1042,15 +1201,30 @@ function CalendarPage() {
                         />
                         <input
                           type="time"
-                          defaultValue={b.drop_off_time ? String(b.drop_off_time).slice(0,5) : ""}
+                          defaultValue={b.drop_off_time ? String(b.drop_off_time).slice(0, 5) : ""}
                           onBlur={async (e) => {
                             const v = e.target.value;
-                            if (!v || v === (b.drop_off_time ? String(b.drop_off_time).slice(0,5) : "")) return;
+                            if (
+                              !v ||
+                              v === (b.drop_off_time ? String(b.drop_off_time).slice(0, 5) : "")
+                            )
+                              return;
                             const [hh, mm] = v.split(":");
                             const totalMin = Number(hh) * 60 + Number(mm);
-                            const clash = findOverlap(b.scheduled_date, totalMin, Number(b.estimated_hours) || 1, b.id);
-                            if (clash) return toast.error(`Slot taken (${clash.service_type} at ${String(clash.drop_off_time).slice(0,5)})`);
-                            const { error } = await supabase.from("bookings").update({ drop_off_time: v + ":00" }).eq("id", b.id);
+                            const clash = findOverlap(
+                              b.scheduled_date,
+                              totalMin,
+                              Number(b.estimated_hours) || 1,
+                              b.id,
+                            );
+                            if (clash)
+                              return toast.error(
+                                `Slot taken (${clash.service_type} at ${String(clash.drop_off_time).slice(0, 5)})`,
+                              );
+                            const { error } = await supabase
+                              .from("bookings")
+                              .update({ drop_off_time: v + ":00" })
+                              .eq("id", b.id);
                             if (error) return toast.error(error.message);
                             setSelectedBooking({ ...b, drop_off_time: v + ":00" });
                             qc.invalidateQueries({ queryKey: ["calendar-bookings"] });
@@ -1078,14 +1252,18 @@ function CalendarPage() {
                             qc.invalidateQueries({ queryKey: ["calendar-bookings"] });
                             toast.success("Estimated hours updated");
                           }}
-                          onKeyDown={(e) => { if (e.key === "Enter") (e.target as HTMLInputElement).blur(); }}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") (e.target as HTMLInputElement).blur();
+                          }}
                           className="w-16 rounded-md border border-border bg-background px-2 py-0.5 text-xs tabular-nums text-foreground focus:border-primary/60 outline-none"
                         />
                         <span>h</span>
                       </div>
 
                       <div className="mt-3">
-                        <div className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground mb-1.5">Service type</div>
+                        <div className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground mb-1.5">
+                          Service type
+                        </div>
                         <div className="flex flex-wrap gap-1.5">
                           {SERVICE_TYPES.map((s) => {
                             const sc = serviceColor(s);
@@ -1114,7 +1292,9 @@ function CalendarPage() {
                         </div>
                         {(b.service_type ?? "").toLowerCase() === "other" && (
                           <div className="mt-2">
-                            <label className="text-[10px] uppercase tracking-wider text-muted-foreground">Other service details</label>
+                            <label className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                              Other service details
+                            </label>
                             <textarea
                               key={`other-${b.id}`}
                               defaultValue={b.service_type_other ?? ""}
@@ -1137,7 +1317,6 @@ function CalendarPage() {
                         )}
                       </div>
                     </div>
-
 
                     <div className="grid grid-cols-1 gap-3 pt-1 border-t border-border/60">
                       <div className="rounded-lg border border-border/60 bg-muted/20 p-3 space-y-2">
@@ -1174,7 +1353,9 @@ function CalendarPage() {
                           />
                         </div>
                         <div>
-                          <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Change customer</div>
+                          <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">
+                            Change customer
+                          </div>
                           <select
                             value={b.customer_id || ""}
                             onChange={async (e) => {
@@ -1185,13 +1366,20 @@ function CalendarPage() {
                                 .update({ customer_id: newCustomerId, motorcycle_id: null })
                                 .eq("id", b.id);
                               if (error) return toast.error(error.message);
-                              const pick = (quickCustomers.data ?? []).find((x: any) => x.id === newCustomerId);
+                              const pick = (quickCustomers.data ?? []).find(
+                                (x: any) => x.id === newCustomerId,
+                              );
                               setSelectedBooking({
                                 ...b,
                                 customer_id: newCustomerId,
                                 motorcycle_id: null,
                                 customers: pick
-                                  ? { first_name: pick.first_name, last_name: pick.last_name, phone: pick.phone, email: pick.email }
+                                  ? {
+                                      first_name: pick.first_name,
+                                      last_name: pick.last_name,
+                                      phone: pick.phone,
+                                      email: pick.email,
+                                    }
                                   : null,
                                 motorcycles: null,
                               });
@@ -1203,7 +1391,10 @@ function CalendarPage() {
                             <option value="">— Select customer —</option>
                             {(quickCustomers.data ?? []).map((c: any) => (
                               <option key={c.id} value={c.id}>
-                                {`${c.first_name ?? ""} ${c.last_name ?? ""}`.trim() || c.email || c.phone || "Unnamed"}
+                                {`${c.first_name ?? ""} ${c.last_name ?? ""}`.trim() ||
+                                  c.email ||
+                                  c.phone ||
+                                  "Unnamed"}
                               </option>
                             ))}
                           </select>
@@ -1216,7 +1407,9 @@ function CalendarPage() {
                         </div>
                         <div className="text-sm font-semibold">{bike}</div>
                         <div className="flex items-center gap-2">
-                          <span className="text-[10px] uppercase tracking-wider text-muted-foreground shrink-0">Rego</span>
+                          <span className="text-[10px] uppercase tracking-wider text-muted-foreground shrink-0">
+                            Rego
+                          </span>
                           <input
                             key={`rego-${b.motorcycle_id}`}
                             type="text"
@@ -1244,7 +1437,9 @@ function CalendarPage() {
                           />
                         </div>
                         <div>
-                          <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Change motorcycle</div>
+                          <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">
+                            Change motorcycle
+                          </div>
                           <select
                             value={b.motorcycle_id || ""}
                             disabled={!b.customer_id}
@@ -1256,12 +1451,19 @@ function CalendarPage() {
                                 .update({ motorcycle_id: newBikeId ?? null })
                                 .eq("id", b.id);
                               if (error) return toast.error(error.message);
-                              const pick = (editBikes.data ?? []).find((x: any) => x.id === newBikeId);
+                              const pick = (editBikes.data ?? []).find(
+                                (x: any) => x.id === newBikeId,
+                              );
                               setSelectedBooking({
                                 ...b,
                                 motorcycle_id: newBikeId,
                                 motorcycles: pick
-                                  ? { year: pick.year, make: pick.make, model: pick.model, rego: pick.rego }
+                                  ? {
+                                      year: pick.year,
+                                      make: pick.make,
+                                      model: pick.model,
+                                      rego: pick.rego,
+                                    }
                                   : null,
                               });
                               qc.invalidateQueries({ queryKey: ["calendar-bookings"] });
@@ -1269,7 +1471,9 @@ function CalendarPage() {
                             }}
                             className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-sm focus:border-primary/60 outline-none disabled:opacity-50"
                           >
-                            <option value="">{b.customer_id ? "— Select motorcycle —" : "Pick a customer first"}</option>
+                            <option value="">
+                              {b.customer_id ? "— Select motorcycle —" : "Pick a customer first"}
+                            </option>
                             {(editBikes.data ?? []).map((m: any) => (
                               <option key={m.id} value={m.id}>
                                 {`${m.year ?? ""} ${m.make ?? ""} ${m.model ?? ""}`.trim()}
@@ -1280,23 +1484,28 @@ function CalendarPage() {
                         </div>
                       </div>
 
-
                       {b.tech_name && (
                         <div>
-                          <div className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground mb-1">Technician</div>
+                          <div className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground mb-1">
+                            Technician
+                          </div>
                           <div className="text-sm font-semibold">{b.tech_name}</div>
                         </div>
                       )}
 
                       {b.complaints && (
                         <div>
-                          <div className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground mb-1">Complaints</div>
+                          <div className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground mb-1">
+                            Complaints
+                          </div>
                           <div className="text-sm">{b.complaints}</div>
                         </div>
                       )}
 
                       <div>
-                        <div className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground mb-1">Notes</div>
+                        <div className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground mb-1">
+                          Notes
+                        </div>
                         <textarea
                           key={`notes-${b.id}`}
                           defaultValue={b.notes ?? ""}
@@ -1364,8 +1573,6 @@ function CalendarPage() {
                         <Trash2 className="h-3.5 w-3.5" />
                       </button>
                     </div>
-
-
                   </>
                 );
               })()}
@@ -1401,7 +1608,9 @@ function CalendarPage() {
               </button>
 
               <div>
-                <div className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground">Quick booking</div>
+                <div className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground">
+                  Quick booking
+                </div>
                 <div className="font-display text-lg font-bold">
                   {format(quickSlot.date, "EEE d MMM")}
                   <span className="ml-2 text-sm text-muted-foreground tabular-nums">
@@ -1413,7 +1622,9 @@ function CalendarPage() {
 
               {/* Customer search */}
               <div className="relative">
-                <label className="text-[10px] uppercase tracking-wider text-muted-foreground">Search by name, phone or rego</label>
+                <label className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                  Search by name, phone or rego
+                </label>
                 <div className="mt-1 flex gap-2">
                   <input
                     value={qSearch}
@@ -1438,7 +1649,9 @@ function CalendarPage() {
                   <div className="absolute z-10 left-0 right-0 mt-1 rounded-lg border border-border bg-popover shadow-xl max-h-72 overflow-y-auto">
                     {regoMatches.length > 0 && (
                       <>
-                        <div className="px-3 py-1 text-[9px] font-bold uppercase tracking-wider text-muted-foreground bg-muted/40 border-b border-border/40">Matching rego</div>
+                        <div className="px-3 py-1 text-[9px] font-bold uppercase tracking-wider text-muted-foreground bg-muted/40 border-b border-border/40">
+                          Matching rego
+                        </div>
                         {regoMatches.map((m: any) => (
                           <button
                             key={`rego-${m.id}`}
@@ -1450,11 +1663,14 @@ function CalendarPage() {
                               <span className="inline-flex items-center gap-1 rounded-md bg-primary/10 border border-primary/30 px-1.5 py-0.5 text-[11px] font-mono font-bold text-primary">
                                 <BikeIcon className="h-3 w-3" /> {m.rego}
                               </span>
-                              <span className="text-[11px] text-muted-foreground">{`${m.year ?? ""} ${m.make ?? ""} ${m.model ?? ""}`.trim()}</span>
+                              <span className="text-[11px] text-muted-foreground">
+                                {`${m.year ?? ""} ${m.make ?? ""} ${m.model ?? ""}`.trim()}
+                              </span>
                             </div>
                             {m.customers && (
                               <div className="mt-0.5 text-[11px] text-muted-foreground">
-                                {`${m.customers.first_name ?? ""} ${m.customers.last_name ?? ""}`.trim() || "—"}
+                                {`${m.customers.first_name ?? ""} ${m.customers.last_name ?? ""}`.trim() ||
+                                  "—"}
                                 {m.customers.phone ? ` · ${m.customers.phone}` : ""}
                               </div>
                             )}
@@ -1464,7 +1680,9 @@ function CalendarPage() {
                     )}
                     {customerMatches.length > 0 && (
                       <>
-                        <div className="px-3 py-1 text-[9px] font-bold uppercase tracking-wider text-muted-foreground bg-muted/40 border-b border-border/40">Matching customer</div>
+                        <div className="px-3 py-1 text-[9px] font-bold uppercase tracking-wider text-muted-foreground bg-muted/40 border-b border-border/40">
+                          Matching customer
+                        </div>
                         {customerMatches.map((c: any) => (
                           <button
                             key={c.id}
@@ -1486,25 +1704,42 @@ function CalendarPage() {
                     )}
                   </div>
                 )}
-                {qSearch.trim().length >= 2 && !qCustomerId && customerMatches.length === 0 && regoMatches.length === 0 && !regoMatchesQ.isFetching && (
-                  <div className="mt-2 rounded-lg border border-dashed border-primary/40 bg-primary/5 px-3 py-2 text-[11px] text-muted-foreground">
-                    No match. Fill in the fields below to create a new customer + bike inline.
-                  </div>
-                )}
+                {qSearch.trim().length >= 2 &&
+                  !qCustomerId &&
+                  customerMatches.length === 0 &&
+                  regoMatches.length === 0 &&
+                  !regoMatchesQ.isFetching && (
+                    <div className="mt-2 rounded-lg border border-dashed border-primary/40 bg-primary/5 px-3 py-2 text-[11px] text-muted-foreground">
+                      No match. Fill in the fields below to create a new customer + bike inline.
+                    </div>
+                  )}
                 {qCustomerId && (quickBikes.data ?? []).length > 0 && (
                   <div className="mt-2">
-                    <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Customer bikes</div>
+                    <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">
+                      Customer bikes
+                    </div>
                     <div className="flex flex-wrap gap-1.5">
                       {((quickBikes.data ?? []) as any[]).map((bk) => {
                         const active = qBikeId === bk.id;
-                        const label = `${bk.year ?? ""} ${bk.make ?? ""} ${bk.model ?? ""}`.trim() || "—";
+                        const label =
+                          `${bk.year ?? ""} ${bk.make ?? ""} ${bk.model ?? ""}`.trim() || "—";
                         return (
                           <button
                             key={bk.id}
                             type="button"
-                            onClick={() => (active ? (setQBikeId(null), setQBikeMake(""), setQBikeModel(""), setQBikeYear(""), setQBikeRego("")) : pickBike(bk))}
+                            onClick={() =>
+                              active
+                                ? (setQBikeId(null),
+                                  setQBikeMake(""),
+                                  setQBikeModel(""),
+                                  setQBikeYear(""),
+                                  setQBikeRego(""))
+                                : pickBike(bk)
+                            }
                             className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-semibold transition-colors ${
-                              active ? "border-primary bg-primary/15 text-primary" : "border-border hover:border-primary/50"
+                              active
+                                ? "border-primary bg-primary/15 text-primary"
+                                : "border-border hover:border-primary/50"
                             }`}
                           >
                             <BikeIcon className="h-3 w-3" />
@@ -1520,7 +1755,9 @@ function CalendarPage() {
 
               <div className="grid grid-cols-2 gap-2">
                 <div className="col-span-1">
-                  <label className="text-[10px] uppercase tracking-wider text-muted-foreground">First name *</label>
+                  <label className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                    First name *
+                  </label>
                   <input
                     value={qFirst}
                     onChange={(e) => setQFirst(e.target.value)}
@@ -1528,7 +1765,9 @@ function CalendarPage() {
                   />
                 </div>
                 <div className="col-span-1">
-                  <label className="text-[10px] uppercase tracking-wider text-muted-foreground">Last name</label>
+                  <label className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                    Last name
+                  </label>
                   <input
                     value={qLast}
                     onChange={(e) => setQLast(e.target.value)}
@@ -1536,7 +1775,9 @@ function CalendarPage() {
                   />
                 </div>
                 <div className="col-span-2 relative">
-                  <label className="text-[10px] uppercase tracking-wider text-muted-foreground flex items-center gap-1"><Phone className="h-3 w-3" /> Phone</label>
+                  <label className="text-[10px] uppercase tracking-wider text-muted-foreground flex items-center gap-1">
+                    <Phone className="h-3 w-3" /> Phone
+                  </label>
                   <input
                     value={qPhone}
                     onChange={(e) => {
@@ -1549,34 +1790,44 @@ function CalendarPage() {
                     placeholder="e.g. 021 123 4567"
                     className="w-full mt-1 rounded-lg border border-border bg-background/60 px-3 py-2 text-sm focus:border-primary/60 focus:outline-none"
                   />
-                  {!qCustomerId && qPhone.trim().length >= 3 && (() => {
-                    const term = qPhone.replace(/\s+/g, "").toLowerCase();
-                    const matches = ((quickCustomers.data ?? []) as any[])
-                      .filter((c) => (c.phone ?? "").replace(/\s+/g, "").toLowerCase().includes(term))
-                      .slice(0, 6);
-                    if (matches.length === 0) return null;
-                    return (
-                      <div className="absolute z-20 left-0 right-0 mt-1 rounded-lg border border-border bg-popover shadow-xl max-h-56 overflow-y-auto">
-                        <div className="px-3 py-1 text-[9px] font-bold uppercase tracking-wider text-muted-foreground bg-muted/40 border-b border-border/40">Matching phone</div>
-                        {matches.map((c: any) => (
-                          <button
-                            key={`ph-${c.id}`}
-                            type="button"
-                            onClick={() => pickCustomer(c)}
-                            className="w-full text-left px-3 py-2 text-sm hover:bg-primary/10 border-b border-border/40 last:border-b-0"
-                          >
-                            <div className="font-semibold">{`${c.first_name ?? ""} ${c.last_name ?? ""}`.trim() || "—"}</div>
-                            <div className="text-[11px] text-muted-foreground flex items-center gap-1">
-                              <Phone className="h-3 w-3" /> {c.phone}
-                            </div>
-                          </button>
-                        ))}
-                      </div>
-                    );
-                  })()}
+                  {!qCustomerId &&
+                    qPhone.trim().length >= 3 &&
+                    (() => {
+                      const term = qPhone.replace(/\s+/g, "").toLowerCase();
+                      const matches = ((quickCustomers.data ?? []) as any[])
+                        .filter((c) =>
+                          (c.phone ?? "").replace(/\s+/g, "").toLowerCase().includes(term),
+                        )
+                        .slice(0, 6);
+                      if (matches.length === 0) return null;
+                      return (
+                        <div className="absolute z-20 left-0 right-0 mt-1 rounded-lg border border-border bg-popover shadow-xl max-h-56 overflow-y-auto">
+                          <div className="px-3 py-1 text-[9px] font-bold uppercase tracking-wider text-muted-foreground bg-muted/40 border-b border-border/40">
+                            Matching phone
+                          </div>
+                          {matches.map((c: any) => (
+                            <button
+                              key={`ph-${c.id}`}
+                              type="button"
+                              onClick={() => pickCustomer(c)}
+                              className="w-full text-left px-3 py-2 text-sm hover:bg-primary/10 border-b border-border/40 last:border-b-0"
+                            >
+                              <div className="font-semibold">
+                                {`${c.first_name ?? ""} ${c.last_name ?? ""}`.trim() || "—"}
+                              </div>
+                              <div className="text-[11px] text-muted-foreground flex items-center gap-1">
+                                <Phone className="h-3 w-3" /> {c.phone}
+                              </div>
+                            </button>
+                          ))}
+                        </div>
+                      );
+                    })()}
                 </div>
                 <div className="col-span-1">
-                  <label className="text-[10px] uppercase tracking-wider text-muted-foreground flex items-center gap-1"><BikeIcon className="h-3 w-3" /> Make *</label>
+                  <label className="text-[10px] uppercase tracking-wider text-muted-foreground flex items-center gap-1">
+                    <BikeIcon className="h-3 w-3" /> Make *
+                  </label>
                   <input
                     list="bike-makes-list"
                     value={qBikeMake}
@@ -1595,7 +1846,9 @@ function CalendarPage() {
                   </datalist>
                 </div>
                 <div className="col-span-1">
-                  <label className="text-[10px] uppercase tracking-wider text-muted-foreground">Model *</label>
+                  <label className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                    Model *
+                  </label>
                   <input
                     list="bike-models-list"
                     value={qBikeModel}
@@ -1610,7 +1863,9 @@ function CalendarPage() {
                   </datalist>
                 </div>
                 <div className="col-span-1">
-                  <label className="text-[10px] uppercase tracking-wider text-muted-foreground">Year</label>
+                  <label className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                    Year
+                  </label>
                   <input
                     list="bike-years-list"
                     value={qBikeYear}
@@ -1626,7 +1881,9 @@ function CalendarPage() {
                   </datalist>
                 </div>
                 <div className="col-span-1">
-                  <label className="text-[10px] uppercase tracking-wider text-muted-foreground">Rego</label>
+                  <label className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                    Rego
+                  </label>
                   <div className="flex gap-1 mt-1">
                     <input
                       value={qBikeRego}
@@ -1645,7 +1902,9 @@ function CalendarPage() {
                   </div>
                 </div>
                 <div className="col-span-2">
-                  <label className="text-[10px] uppercase tracking-wider text-muted-foreground">Est. hours</label>
+                  <label className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                    Est. hours
+                  </label>
                   <input
                     value={qEstHours}
                     onChange={(e) => setQEstHours(e.target.value)}
@@ -1656,7 +1915,9 @@ function CalendarPage() {
               </div>
 
               <div>
-                <label className="text-[10px] uppercase tracking-wider text-muted-foreground">Service</label>
+                <label className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                  Service
+                </label>
                 <div className="mt-1.5 flex flex-wrap gap-1.5">
                   {SERVICE_TYPES.map((s) => {
                     const c = serviceColor(s);
@@ -1676,7 +1937,9 @@ function CalendarPage() {
                 </div>
                 {qService === "Other" && (
                   <div className="mt-2">
-                    <label className="text-[10px] uppercase tracking-wider text-muted-foreground">Other service details</label>
+                    <label className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                      Other service details
+                    </label>
                     <textarea
                       value={qServiceOther}
                       onChange={(e) => setQServiceOther(e.target.value)}
@@ -1689,13 +1952,20 @@ function CalendarPage() {
 
               <div>
                 <label className="flex items-center gap-2 cursor-pointer">
-                  <input type="checkbox" className="h-4 w-4 accent-primary" checked={qWofNeeded} onChange={(e) => setQWofNeeded(e.target.checked)} />
+                  <input
+                    type="checkbox"
+                    className="h-4 w-4 accent-primary"
+                    checked={qWofNeeded}
+                    onChange={(e) => setQWofNeeded(e.target.checked)}
+                  />
                   <ShieldCheck size={16} className="text-primary" />
                   <span className="text-sm font-semibold">Needs WOF</span>
                 </label>
                 {qWofNeeded && (
                   <div className="mt-2 rounded-xl border border-primary/40 bg-primary/5 p-3">
-                    <label className="text-[10px] uppercase tracking-wider text-muted-foreground">Current WOF expiry (optional)</label>
+                    <label className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                      Current WOF expiry (optional)
+                    </label>
                     <input
                       type="date"
                       value={qWofExpiry}
@@ -1708,15 +1978,24 @@ function CalendarPage() {
 
               <div>
                 <label className="flex items-center gap-2 cursor-pointer">
-                  <input type="checkbox" className="h-4 w-4 accent-amber-500" checked={qLoanBike} onChange={(e) => setQLoanBike(e.target.checked)} />
+                  <input
+                    type="checkbox"
+                    className="h-4 w-4 accent-amber-500"
+                    checked={qLoanBike}
+                    onChange={(e) => setQLoanBike(e.target.checked)}
+                  />
                   <span className="text-sm font-semibold">🏍️ Customer needs a loan bike</span>
                 </label>
                 {qLoanBike && (
                   <div className="mt-2 space-y-2 rounded-xl border border-amber-400/40 bg-amber-400/5 p-3">
-                    <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Assign loan bike</div>
+                    <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                      Assign loan bike
+                    </div>
                     <div className="grid gap-1.5">
                       {(qLoanBikesQ.data ?? []).map((lb: any) => {
-                        const outWith = (qActiveLoansQ.data ?? []).find((a: any) => a.loan_bike_id === lb.id);
+                        const outWith = (qActiveLoansQ.data ?? []).find(
+                          (a: any) => a.loan_bike_id === lb.id,
+                        );
                         const busy = !!outWith;
                         const active = qLoanBikeId === lb.id;
                         return (
@@ -1725,27 +2004,43 @@ function CalendarPage() {
                             type="button"
                             onClick={() => setQLoanBikeId(active ? null : lb.id)}
                             className={`rounded-lg border p-2 text-left flex items-center gap-2 ${
-                              active ? "border-amber-400 bg-amber-400/10" : busy ? "border-destructive/40 opacity-70" : "border-border"
+                              active
+                                ? "border-amber-400 bg-amber-400/10"
+                                : busy
+                                  ? "border-destructive/40 opacity-70"
+                                  : "border-border"
                             }`}
                           >
                             <span className="flex-1">
                               <span className="block text-sm font-semibold">{lb.name}</span>
                               <span className="block text-[11px] text-muted-foreground">
                                 {lb.current_km?.toLocaleString?.() ?? 0} km
-                                {busy && outWith?.customers && ` · Out with ${outWith.customers.first_name} ${outWith.customers.last_name}`}
-                                {busy && outWith?.loan_bike_expected_return && ` · back ${outWith.loan_bike_expected_return}`}
+                                {busy &&
+                                  outWith?.customers &&
+                                  ` · Out with ${outWith.customers.first_name} ${outWith.customers.last_name}`}
+                                {busy &&
+                                  outWith?.loan_bike_expected_return &&
+                                  ` · back ${outWith.loan_bike_expected_return}`}
                               </span>
                             </span>
-                            {busy && <span className="rounded-full bg-destructive/15 text-destructive px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider">Out</span>}
+                            {busy && (
+                              <span className="rounded-full bg-destructive/15 text-destructive px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider">
+                                Out
+                              </span>
+                            )}
                           </button>
                         );
                       })}
                       {(qLoanBikesQ.data ?? []).length === 0 && (
-                        <div className="text-xs text-muted-foreground">No loan bikes registered.</div>
+                        <div className="text-xs text-muted-foreground">
+                          No loan bikes registered.
+                        </div>
                       )}
                     </div>
                     <div>
-                      <label className="text-[10px] uppercase tracking-wider text-muted-foreground">Expected return</label>
+                      <label className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                        Expected return
+                      </label>
                       <input
                         type="date"
                         value={qLoanBikeReturn}
@@ -1756,8 +2051,6 @@ function CalendarPage() {
                   </div>
                 )}
               </div>
-
-
 
               <div className="flex gap-2 pt-2 border-t border-border/60">
                 <button
@@ -1779,8 +2072,6 @@ function CalendarPage() {
         )}
       </AnimatePresence>
 
-
-
       <AlertDialog open={!!deleteBooking} onOpenChange={(o) => !o && setDeleteBooking(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -1791,7 +2082,8 @@ function CalendarPage() {
                   Are you sure you want to delete the booking for{" "}
                   <span className="font-semibold text-foreground">
                     {deleteBooking.customers
-                      ? (`${deleteBooking.customers.first_name ?? ""} ${deleteBooking.customers.last_name ?? ""}`.trim() || "this customer")
+                      ? `${deleteBooking.customers.first_name ?? ""} ${deleteBooking.customers.last_name ?? ""}`.trim() ||
+                        "this customer"
                       : "this customer"}
                   </span>{" "}
                   on{" "}

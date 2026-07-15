@@ -20,7 +20,6 @@ const ITEMS = [
   { label: "Other", k: "other" },
 ];
 
-
 export function ServiceLegend() {
   return (
     <div className="rounded-md border border-dashed border-border/60 bg-background/40 px-3 py-2.5">

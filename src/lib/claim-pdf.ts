@@ -13,7 +13,6 @@ const COMPANY = {
   gst: "GST # —",
 };
 
-
 export type DamageMark = {
   id: string;
   view: "left" | "right" | "top" | "side";
@@ -76,7 +75,6 @@ async function fetchAsDataUrl(url: string): Promise<string | null> {
   }
 }
 
-
 async function loadClaimPhotos(claimId: string): Promise<string[]> {
   const { data } = await supabase
     .from("job_photos")
@@ -85,9 +83,10 @@ async function loadClaimPhotos(claimId: string): Promise<string[]> {
     .order("created_at", { ascending: false });
   const rows = data ?? [];
   if (!rows.length) return [];
-  const { data: signed } = await supabase.storage
-    .from("workshop-photos")
-    .createSignedUrls(rows.map((r) => r.storage_path), 60 * 60);
+  const { data: signed } = await supabase.storage.from("workshop-photos").createSignedUrls(
+    rows.map((r) => r.storage_path),
+    60 * 60,
+  );
   const urls = (signed ?? []).map((s) => s.signedUrl).filter(Boolean) as string[];
   const datas = await Promise.all(urls.map(fetchAsDataUrl));
   return datas.filter(Boolean) as string[];
@@ -106,7 +105,9 @@ export async function buildClaimPdf(d: ClaimPdfData): Promise<Blob> {
   const logoH = 18;
   const logoW = 18;
   if (logoData) {
-    try { pdf.addImage(logoData, "PNG", margin, y, logoW, logoH); } catch {}
+    try {
+      pdf.addImage(logoData, "PNG", margin, y, logoW, logoH);
+    } catch {}
   }
   const titleX = margin + logoW + 4;
   pdf.setFont("helvetica", "bold");
@@ -152,7 +153,11 @@ export async function buildClaimPdf(d: ClaimPdfData): Promise<Blob> {
   pdf.setFontSize(9);
   y += 4;
   pdf.text(`${c.customers?.phone ?? "—"}  ·  ${c.customers?.email ?? "—"}`, margin, y);
-  pdf.text(`Rego ${c.motorcycles?.rego ?? "—"}  ·  VIN ${c.motorcycles?.vin ?? "—"}`, margin + colW + 4, y);
+  pdf.text(
+    `Rego ${c.motorcycles?.rego ?? "—"}  ·  VIN ${c.motorcycles?.vin ?? "—"}`,
+    margin + colW + 4,
+    y,
+  );
   y += 4;
   pdf.text(`Date: ${new Date(c.date_received ?? Date.now()).toLocaleDateString()}`, margin, y);
   y += 7;
@@ -195,7 +200,11 @@ export async function buildClaimPdf(d: ClaimPdfData): Promise<Blob> {
     }
     pdf.setFontSize(9);
     pdf.setFont("helvetica", "bold");
-    pdf.text(`${v.title}${viewItems.length ? `  (${viewItems.length} mark${viewItems.length > 1 ? "s" : ""})` : ""}`, margin, y);
+    pdf.text(
+      `${v.title}${viewItems.length ? `  (${viewItems.length} mark${viewItems.length > 1 ? "s" : ""})` : ""}`,
+      margin,
+      y,
+    );
     pdf.setFont("helvetica", "normal");
     y += 2;
     pdf.setDrawColor(0);
@@ -231,7 +240,6 @@ export async function buildClaimPdf(d: ClaimPdfData): Promise<Blob> {
     });
     y += diagH + 4;
   }
-
 
   // ---------- Damage legend ----------
   if (marks.length) {
@@ -302,8 +310,11 @@ export async function buildClaimPdf(d: ClaimPdfData): Promise<Blob> {
     const descParts = [
       (it.item_code ?? "").trim() && `[${(it.item_code ?? "").trim()}]`,
       (it.item_name ?? "").trim(),
-      (it.description ?? "").trim() && ((it.item_name ?? "").trim() ? `— ${it.description}` : it.description),
-    ].filter(Boolean).join(" ");
+      (it.description ?? "").trim() &&
+        ((it.item_name ?? "").trim() ? `— ${it.description}` : it.description),
+    ]
+      .filter(Boolean)
+      .join(" ");
     const desc = pdf.splitTextToSize(descParts || "—", cols.qty - cols.desc - 2);
     pdf.text(desc, cols.desc, y);
     pdf.text(Number(it.qty).toFixed(2), cols.qty, y, { align: "right" });
@@ -406,11 +417,13 @@ async function flipImage(dataUrl: string): Promise<string> {
   });
 }
 
-export async function sendClaimEmailWithPdf(d: ClaimPdfData & {
-  to: string;
-  subject: string;
-  body: string;
-}): Promise<{ shared: boolean }> {
+export async function sendClaimEmailWithPdf(
+  d: ClaimPdfData & {
+    to: string;
+    subject: string;
+    body: string;
+  },
+): Promise<{ shared: boolean }> {
   const blob = await buildClaimPdf(d);
   const filename = `Claim-${d.claim.claim_number}.pdf`;
   const file = new File([blob], filename, { type: "application/pdf" });

@@ -21,7 +21,6 @@ export const Route = createFileRoute("/auth")({
   component: AuthPage,
 });
 
-
 function AuthPage() {
   const nav = useNavigate();
   const [email, setEmail] = useState("");
@@ -36,7 +35,6 @@ function AuthPage() {
     queryFn: () => fetchStaff(),
     staleTime: 60_000,
   });
-
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -97,9 +95,7 @@ function AuthPage() {
           <h1 className="font-display text-3xl font-bold mt-1">
             <span className="gold-gradient-text">Motorcycle Doctors</span>
           </h1>
-          <p className="text-sm text-muted-foreground mt-2">
-            Authorised workshop staff only.
-          </p>
+          <p className="text-sm text-muted-foreground mt-2">Authorised workshop staff only.</p>
         </div>
 
         {!showReset ? (
@@ -149,7 +145,6 @@ function AuthPage() {
                     })()}
                   </SelectContent>
                 </Select>
-
               ) : (
                 <Input
                   id="email"
@@ -191,8 +186,8 @@ function AuthPage() {
               </button>
             </div>
             <p className="text-[11px] text-muted-foreground text-center pt-2 border-t border-border/50">
-              Accounts are created by an administrator. If you need access,
-              contact the workshop admin.
+              Accounts are created by an administrator. If you need access, contact the workshop
+              admin.
             </p>
           </form>
         ) : (

@@ -13,7 +13,21 @@ import {
   subDays,
   parseISO,
 } from "date-fns";
-import { Bar, BarChart, CartesianGrid, Line, LineChart, Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis, Legend, Cell } from "recharts";
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Line,
+  LineChart,
+  Area,
+  AreaChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+  Legend,
+  Cell,
+} from "recharts";
 import { Button } from "@/components/ui/button";
 import { Download, TrendingUp, DollarSign, Receipt, AlertCircle } from "lucide-react";
 
@@ -38,12 +52,15 @@ type Inv = {
 };
 
 const fmt = (n: number) =>
-  new Intl.NumberFormat("en-NZ", { style: "currency", currency: "NZD", maximumFractionDigits: 2 }).format(n || 0);
+  new Intl.NumberFormat("en-NZ", {
+    style: "currency",
+    currency: "NZD",
+    maximumFractionDigits: 2,
+  }).format(n || 0);
 
 function AnalyticsPage() {
   const [fyStart, setFyStart] = useState<"apr" | "jan">("apr"); // NZ FY = Apr–Mar
   const [yearFilter, setYearFilter] = useState<string>(String(new Date().getFullYear())); // default to current year so monthly chart shows
-
 
   const { data: invoices = [] } = useQuery<Inv[]>({
     queryKey: ["analytics-invoices"],
@@ -84,12 +101,11 @@ function AnalyticsPage() {
     const wkB = endOfWeek(now, { weekStartsOn: 1 });
     const mA = startOfMonth(now);
     const mB = endOfMonth(now);
-    const yA = fyStart === "apr"
-      ? new Date(now.getMonth() >= 3 ? now.getFullYear() : now.getFullYear() - 1, 3, 1)
-      : startOfYear(now);
-    const yB = fyStart === "apr"
-      ? new Date(yA.getFullYear() + 1, 2, 31)
-      : endOfYear(now);
+    const yA =
+      fyStart === "apr"
+        ? new Date(now.getMonth() >= 3 ? now.getFullYear() : now.getFullYear() - 1, 3, 1)
+        : startOfYear(now);
+    const yB = fyStart === "apr" ? new Date(yA.getFullYear() + 1, 2, 31) : endOfYear(now);
 
     const week = invoices.filter((i) => inRange(parseISO(i.invoice_date), wkA, wkB));
     const month = invoices.filter((i) => inRange(parseISO(i.invoice_date), mA, mB));
@@ -104,17 +120,29 @@ function AnalyticsPage() {
     return {
       week: { total: sum(week, "total"), count: week.length, gst: sum(week, "gst") },
       month: { total: sum(month, "total"), count: month.length, gst: sum(month, "gst") },
-      year: { total: sum(yearRows, "total"), count: yearRows.length, gst: sum(yearRows, "gst"), subtotal: sum(yearRows, "subtotal_excl_gst") },
+      year: {
+        total: sum(yearRows, "total"),
+        count: yearRows.length,
+        gst: sum(yearRows, "gst"),
+        subtotal: sum(yearRows, "subtotal_excl_gst"),
+      },
       last30: { total: sum(last30, "total") },
-      outstanding: sum(
-        scoped.filter((i) => i.status !== "paid"),
+      outstanding:
+        sum(
+          scoped.filter((i) => i.status !== "paid"),
+          "total",
+        ) -
+        sum(
+          scoped.filter((i) => i.status !== "paid"),
+          "paid_amount",
+        ),
+      paid: sum(
+        scoped.filter((i) => i.status === "paid"),
         "total",
-      ) - sum(scoped.filter((i) => i.status !== "paid"), "paid_amount"),
-      paid: sum(scoped.filter((i) => i.status === "paid"), "total"),
+      ),
       ytdRange: { from: yA, to: yB },
     };
   }, [invoices, scoped, isAll, fyStart, now]);
-
 
   // When viewing a single year: show 12 months Jan–Dec of that year.
   // When viewing All years: show one bar per year.
@@ -128,7 +156,9 @@ function AnalyticsPage() {
         cur.gst += Number(i.gst);
         map.set(key, cur);
       }
-      return Array.from(map.entries()).sort(([a], [b]) => (a < b ? -1 : 1)).map(([, v]) => v);
+      return Array.from(map.entries())
+        .sort(([a], [b]) => (a < b ? -1 : 1))
+        .map(([, v]) => v);
     }
     const months = Array.from({ length: 12 }, (_, m) => ({
       month: format(new Date(selectedYear!, m, 1), "MMM"),
@@ -168,9 +198,10 @@ function AnalyticsPage() {
       cur.count += 1;
       map.set(n, cur);
     }
-    return Array.from(map.values()).sort((a, b) => b.total - a.total).slice(0, 8);
+    return Array.from(map.values())
+      .sort((a, b) => b.total - a.total)
+      .slice(0, 8);
   }, [scoped]);
-
 
   const exportXeroCSV = () => {
     // Xero "Sales Invoices" import format
@@ -247,7 +278,12 @@ function AnalyticsPage() {
         <div>
           <div className="text-xs uppercase tracking-[0.25em] text-muted-foreground">Workshop</div>
           <h1 className="font-display text-2xl sm:text-3xl font-bold">
-            Analytics & Tax {isAll ? <span className="text-muted-foreground">· All years</span> : <span className="text-primary">· {selectedYear}</span>}
+            Analytics & Tax{" "}
+            {isAll ? (
+              <span className="text-muted-foreground">· All years</span>
+            ) : (
+              <span className="text-primary">· {selectedYear}</span>
+            )}
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
             Revenue, GST and outstanding balances — formatted for Xero import.
@@ -261,7 +297,9 @@ function AnalyticsPage() {
           >
             <option value="all">All years</option>
             {availableYears.map((y) => (
-              <option key={y} value={String(y)}>{y}</option>
+              <option key={y} value={String(y)}>
+                {y}
+              </option>
             ))}
           </select>
           <select
@@ -302,16 +340,30 @@ function AnalyticsPage() {
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="#27272a" />
               <XAxis dataKey="month" tick={{ fontSize: 12, fill: "#a1a1aa" }} stroke="#3f3f46" />
-              <YAxis tick={{ fontSize: 12, fill: "#a1a1aa" }} stroke="#3f3f46" tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`} />
+              <YAxis
+                tick={{ fontSize: 12, fill: "#a1a1aa" }}
+                stroke="#3f3f46"
+                tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`}
+              />
               <Tooltip
                 formatter={(v: any) => fmt(Number(v))}
-                contentStyle={{ background: "#0a0a0a", border: "1px solid #3f3f46", borderRadius: 8 }}
+                contentStyle={{
+                  background: "#0a0a0a",
+                  border: "1px solid #3f3f46",
+                  borderRadius: 8,
+                }}
                 labelStyle={{ color: "#fafafa" }}
                 itemStyle={{ color: "#fafafa" }}
                 cursor={{ fill: "rgba(239,68,68,0.08)" }}
               />
               <Legend wrapperStyle={{ fontSize: 12, color: "#a1a1aa" }} />
-              <Bar dataKey="revenue" name="Revenue" stackId="a" fill="url(#barRev)" radius={[0, 0, 0, 0]} />
+              <Bar
+                dataKey="revenue"
+                name="Revenue"
+                stackId="a"
+                fill="url(#barRev)"
+                radius={[0, 0, 0, 0]}
+              />
               <Bar dataKey="gst" name="GST" stackId="a" fill="url(#barGst)" radius={[6, 6, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
@@ -320,16 +372,51 @@ function AnalyticsPage() {
 
       {/* KPI cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <Kpi icon={<TrendingUp className="h-4 w-4" />} label="This week" value={fmt(totals.week.total)} sub={`${totals.week.count} invoices`} />
-        <Kpi icon={<TrendingUp className="h-4 w-4" />} label="This month" value={fmt(totals.month.total)} sub={`${totals.month.count} invoices`} />
-        <Kpi icon={<DollarSign className="h-4 w-4" />} label={isAll ? "FY revenue" : `${selectedYear} revenue`} value={fmt(totals.year.total)} sub={`Excl GST ${fmt(totals.year.subtotal)}`} />
-        <Kpi icon={<Receipt className="h-4 w-4" />} label={isAll ? "GST collected (FY)" : `GST collected ${selectedYear}`} value={fmt(totals.year.gst)} sub="To remit to IRD" />
+        <Kpi
+          icon={<TrendingUp className="h-4 w-4" />}
+          label="This week"
+          value={fmt(totals.week.total)}
+          sub={`${totals.week.count} invoices`}
+        />
+        <Kpi
+          icon={<TrendingUp className="h-4 w-4" />}
+          label="This month"
+          value={fmt(totals.month.total)}
+          sub={`${totals.month.count} invoices`}
+        />
+        <Kpi
+          icon={<DollarSign className="h-4 w-4" />}
+          label={isAll ? "FY revenue" : `${selectedYear} revenue`}
+          value={fmt(totals.year.total)}
+          sub={`Excl GST ${fmt(totals.year.subtotal)}`}
+        />
+        <Kpi
+          icon={<Receipt className="h-4 w-4" />}
+          label={isAll ? "GST collected (FY)" : `GST collected ${selectedYear}`}
+          value={fmt(totals.year.gst)}
+          sub="To remit to IRD"
+        />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
-        <Kpi icon={<AlertCircle className="h-4 w-4 text-amber-400" />} label="Outstanding balance" value={fmt(totals.outstanding)} sub={isAll ? "Unpaid invoices" : `Unpaid in ${selectedYear}`} />
-        <Kpi icon={<DollarSign className="h-4 w-4 text-emerald-400" />} label={isAll ? "Paid (all time)" : `Paid in ${selectedYear}`} value={fmt(totals.paid)} sub="" />
-        <Kpi icon={<TrendingUp className="h-4 w-4" />} label="Last 30 days" value={fmt(totals.last30.total)} sub="" />
+        <Kpi
+          icon={<AlertCircle className="h-4 w-4 text-amber-400" />}
+          label="Outstanding balance"
+          value={fmt(totals.outstanding)}
+          sub={isAll ? "Unpaid invoices" : `Unpaid in ${selectedYear}`}
+        />
+        <Kpi
+          icon={<DollarSign className="h-4 w-4 text-emerald-400" />}
+          label={isAll ? "Paid (all time)" : `Paid in ${selectedYear}`}
+          value={fmt(totals.paid)}
+          sub=""
+        />
+        <Kpi
+          icon={<TrendingUp className="h-4 w-4" />}
+          label="Last 30 days"
+          value={fmt(totals.last30.total)}
+          sub=""
+        />
       </div>
 
       {/* Weekly area chart */}
@@ -349,15 +436,31 @@ function AnalyticsPage() {
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="#27272a" />
               <XAxis dataKey="week" tick={{ fontSize: 12, fill: "#a1a1aa" }} stroke="#3f3f46" />
-              <YAxis tick={{ fontSize: 12, fill: "#a1a1aa" }} stroke="#3f3f46" tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`} />
+              <YAxis
+                tick={{ fontSize: 12, fill: "#a1a1aa" }}
+                stroke="#3f3f46"
+                tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`}
+              />
               <Tooltip
                 formatter={(v: any) => fmt(Number(v))}
-                contentStyle={{ background: "#0a0a0a", border: "1px solid #3f3f46", borderRadius: 8 }}
+                contentStyle={{
+                  background: "#0a0a0a",
+                  border: "1px solid #3f3f46",
+                  borderRadius: 8,
+                }}
                 labelStyle={{ color: "#fafafa" }}
                 itemStyle={{ color: "#fafafa" }}
                 cursor={{ stroke: "#ef4444", strokeWidth: 1, strokeDasharray: "3 3" }}
               />
-              <Area type="monotone" dataKey="revenue" stroke="#ef4444" strokeWidth={2.5} fill="url(#revGrad)" dot={{ r: 4, fill: "#3b82f6", stroke: "#0a0a0a", strokeWidth: 2 }} activeDot={{ r: 6, fill: "#ef4444", stroke: "#fafafa", strokeWidth: 2 }} />
+              <Area
+                type="monotone"
+                dataKey="revenue"
+                stroke="#ef4444"
+                strokeWidth={2.5}
+                fill="url(#revGrad)"
+                dot={{ r: 4, fill: "#3b82f6", stroke: "#0a0a0a", strokeWidth: 2 }}
+                activeDot={{ r: 6, fill: "#ef4444", stroke: "#fafafa", strokeWidth: 2 }}
+              />
             </AreaChart>
           </ResponsiveContainer>
         </div>
@@ -371,31 +474,39 @@ function AnalyticsPage() {
             const max = topCustomers[0]?.total || 1;
             const pct = (c.total / max) * 100;
             const hues = [
-              "oklch(0.58 0.22 25)",   // red
-              "oklch(0.50 0.08 255)",  // blue
-              "oklch(0.78 0.15 60)",   // amber
-              "oklch(0.78 0.16 150)",  // green
-              "oklch(0.62 0.2 320)",   // purple
-              "oklch(0.55 0.10 200)",  // teal
-              "oklch(0.65 0.12 40)",   // orange
-              "oklch(0.55 0.08 280)",  // indigo
+              "oklch(0.58 0.22 25)", // red
+              "oklch(0.50 0.08 255)", // blue
+              "oklch(0.78 0.15 60)", // amber
+              "oklch(0.78 0.16 150)", // green
+              "oklch(0.62 0.2 320)", // purple
+              "oklch(0.55 0.10 200)", // teal
+              "oklch(0.65 0.12 40)", // orange
+              "oklch(0.55 0.08 280)", // indigo
             ];
             return (
               <div key={c.name}>
                 <div className="flex items-center justify-between mb-1">
                   <div className="flex items-center gap-2">
-                    <span className="inline-flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold text-white" style={{ background: hues[i % hues.length] }}>
+                    <span
+                      className="inline-flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold text-white"
+                      style={{ background: hues[i % hues.length] }}
+                    >
                       {i + 1}
                     </span>
                     <span className="font-medium text-sm">{c.name}</span>
                   </div>
                   <div className="text-right">
                     <div className="font-display font-bold text-sm">{fmt(c.total)}</div>
-                    <div className="text-[10px] text-muted-foreground">{c.count} invoice{c.count === 1 ? "" : "s"}</div>
+                    <div className="text-[10px] text-muted-foreground">
+                      {c.count} invoice{c.count === 1 ? "" : "s"}
+                    </div>
                   </div>
                 </div>
                 <div className="h-2 w-full rounded-full bg-muted overflow-hidden">
-                  <div className="h-full rounded-full transition-all duration-500" style={{ width: `${pct}%`, background: hues[i % hues.length] }} />
+                  <div
+                    className="h-full rounded-full transition-all duration-500"
+                    style={{ width: `${pct}%`, background: hues[i % hues.length] }}
+                  />
                 </div>
               </div>
             );
@@ -409,17 +520,35 @@ function AnalyticsPage() {
       <div className="card-surface p-5">
         <h2 className="font-display text-lg font-bold mb-2">About the Xero export</h2>
         <ul className="text-sm text-muted-foreground space-y-1 list-disc pl-5">
-          <li>NZ 15% GST is applied (TaxType <code className="text-foreground">OUTPUT2</code>).</li>
-          <li>Labour & service items map to account <code className="text-foreground">200 — Sales</code>; parts map to <code className="text-foreground">201 — Parts sales</code>.</li>
+          <li>
+            NZ 15% GST is applied (TaxType <code className="text-foreground">OUTPUT2</code>).
+          </li>
+          <li>
+            Labour & service items map to account{" "}
+            <code className="text-foreground">200 — Sales</code>; parts map to{" "}
+            <code className="text-foreground">201 — Parts sales</code>.
+          </li>
           <li>Dates are formatted DD/MM/YYYY (NZ).</li>
-          <li>Upload in Xero via <em>Business → Invoices → Import</em>.</li>
+          <li>
+            Upload in Xero via <em>Business → Invoices → Import</em>.
+          </li>
         </ul>
       </div>
     </div>
   );
 }
 
-function Kpi({ icon, label, value, sub }: { icon: React.ReactNode; label: string; value: string; sub?: string }) {
+function Kpi({
+  icon,
+  label,
+  value,
+  sub,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: string;
+  sub?: string;
+}) {
   return (
     <div className="card-surface p-4">
       <div className="flex items-center gap-2 text-xs uppercase tracking-wider text-muted-foreground">

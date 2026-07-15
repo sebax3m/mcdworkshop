@@ -81,12 +81,14 @@ export const listUsersWithLogins = createServerFn({ method: "GET" })
 
 export const updateUserDetails = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: {
-    userId: string;
-    full_name?: string;
-    email?: string;
-    role?: "admin" | "technician";
-  }) => input)
+  .inputValidator(
+    (input: {
+      userId: string;
+      full_name?: string;
+      email?: string;
+      role?: "admin" | "technician";
+    }) => input,
+  )
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 

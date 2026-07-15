@@ -80,18 +80,38 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "Motorcycle Doctors — Workshop OS" },
-      { name: "description", content: "Motorcycle Doctors — performance motorcycle workshop management. Bookings, tuning, technician workflow." },
+      {
+        name: "description",
+        content:
+          "Motorcycle Doctors — performance motorcycle workshop management. Bookings, tuning, technician workflow.",
+      },
       { name: "author", content: "Motorcycle Doctors" },
       { name: "theme-color", content: "#0a0a0a" },
       { property: "og:title", content: "Motorcycle Doctors — Workshop OS" },
-      { property: "og:description", content: "Motorcycle Doctors — performance motorcycle workshop management. Bookings, tuning, technician workflow." },
+      {
+        property: "og:description",
+        content:
+          "Motorcycle Doctors — performance motorcycle workshop management. Bookings, tuning, technician workflow.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:site", content: "@Lovable" },
       { name: "twitter:title", content: "Motorcycle Doctors — Workshop OS" },
-      { name: "twitter:description", content: "Motorcycle Doctors — performance motorcycle workshop management. Bookings, tuning, technician workflow." },
-      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/f63523b6-1f81-41aa-ab9c-fc9f222881f4/id-preview-0381f70f--80c643f4-9977-4dc2-9be7-ea889a0af85c.lovable.app-1782131308093.png" },
-      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/f63523b6-1f81-41aa-ab9c-fc9f222881f4/id-preview-0381f70f--80c643f4-9977-4dc2-9be7-ea889a0af85c.lovable.app-1782131308093.png" },
+      {
+        name: "twitter:description",
+        content:
+          "Motorcycle Doctors — performance motorcycle workshop management. Bookings, tuning, technician workflow.",
+      },
+      {
+        property: "og:image",
+        content:
+          "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/f63523b6-1f81-41aa-ab9c-fc9f222881f4/id-preview-0381f70f--80c643f4-9977-4dc2-9be7-ea889a0af85c.lovable.app-1782131308093.png",
+      },
+      {
+        name: "twitter:image",
+        content:
+          "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/f63523b6-1f81-41aa-ab9c-fc9f222881f4/id-preview-0381f70f--80c643f4-9977-4dc2-9be7-ea889a0af85c.lovable.app-1782131308093.png",
+      },
     ],
     links: [
       {

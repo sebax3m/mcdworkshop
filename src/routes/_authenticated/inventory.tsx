@@ -46,7 +46,9 @@ function Inventory() {
 
   const items = useQuery({
     queryKey: ["inventory"],
-    queryFn: async () => (await supabase.from("inventory_items").select("*").order("category").order("name")).data ?? [],
+    queryFn: async () =>
+      (await supabase.from("inventory_items").select("*").order("category").order("name")).data ??
+      [],
   });
 
   const filtered = useMemo(() => {
@@ -79,7 +81,9 @@ function Inventory() {
               key={c.key}
               onClick={() => setCat(c.key)}
               className={`rounded-full border px-3 py-1.5 text-xs font-semibold uppercase tracking-wider transition-colors ${
-                cat === c.key ? "border-primary bg-primary/10 text-primary" : "border-border text-muted-foreground hover:text-foreground"
+                cat === c.key
+                  ? "border-primary bg-primary/10 text-primary"
+                  : "border-border text-muted-foreground hover:text-foreground"
               }`}
             >
               {c.label}
@@ -87,18 +91,22 @@ function Inventory() {
           ))}
         </div>
         <div className="inline-flex rounded-lg border border-border overflow-hidden shrink-0">
-          {([
-            { k: "grid", icon: LayoutGrid, label: "Grid" },
-            { k: "list", icon: List, label: "List" },
-            { k: "compact", icon: Rows3, label: "Compact" },
-          ] as const).map(({ k, icon: Icon, label }) => (
+          {(
+            [
+              { k: "grid", icon: LayoutGrid, label: "Grid" },
+              { k: "list", icon: List, label: "List" },
+              { k: "compact", icon: Rows3, label: "Compact" },
+            ] as const
+          ).map(({ k, icon: Icon, label }) => (
             <button
               key={k}
               onClick={() => changeView(k)}
               title={label}
               aria-label={label}
               className={`px-2.5 py-1.5 transition-colors ${
-                view === k ? "bg-primary/15 text-primary" : "text-muted-foreground hover:text-foreground"
+                view === k
+                  ? "bg-primary/15 text-primary"
+                  : "text-muted-foreground hover:text-foreground"
               }`}
             >
               <Icon className="h-4 w-4" />
@@ -120,7 +128,9 @@ function Inventory() {
       {items.isLoading ? (
         <div className="card-surface p-8 text-center text-muted-foreground">Loading…</div>
       ) : filtered.length === 0 ? (
-        <div className="card-surface p-8 text-center text-muted-foreground">No inventory items.</div>
+        <div className="card-surface p-8 text-center text-muted-foreground">
+          No inventory items.
+        </div>
       ) : view === "grid" ? (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
           {filtered.map((i: any) => {
@@ -135,7 +145,9 @@ function Inventory() {
                 <span className="grid h-14 w-14 place-items-center rounded-xl bg-muted text-primary">
                   <Package className="h-7 w-7" />
                 </span>
-                <div className="text-[10px] uppercase tracking-wider text-muted-foreground">{i.category}</div>
+                <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                  {i.category}
+                </div>
                 <div className="font-semibold text-sm truncate w-full">{i.name}</div>
                 <div className="text-xs text-muted-foreground truncate w-full">
                   {[i.brand, i.type].filter(Boolean).join(" · ") || "—"}
@@ -144,7 +156,9 @@ function Inventory() {
                   <span className={low ? "text-destructive font-bold" : "font-bold"}>
                     {Number(i.stock_qty)} {i.unit}
                   </span>
-                  <span className="font-semibold text-primary">${Number(i.unit_price).toFixed(2)}</span>
+                  <span className="font-semibold text-primary">
+                    ${Number(i.unit_price).toFixed(2)}
+                  </span>
                 </div>
                 {low && (
                   <span className="inline-flex items-center gap-1 rounded-full bg-destructive/10 text-destructive px-1.5 py-0.5 text-[10px] font-bold uppercase">
@@ -172,7 +186,9 @@ function Inventory() {
                   </span>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-[10px] uppercase tracking-wider text-muted-foreground">{i.category}</span>
+                      <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                        {i.category}
+                      </span>
                       {low && (
                         <span className="inline-flex items-center gap-1 rounded-full bg-destructive/10 text-destructive px-1.5 py-0.5 text-[10px] font-bold uppercase">
                           <AlertTriangle className="h-3 w-3" /> Low
@@ -188,7 +204,9 @@ function Inventory() {
                         <span className="font-bold text-foreground">{Number(i.stock_qty)}</span>
                         <span className="text-muted-foreground"> {i.unit} in stock</span>
                       </span>
-                      <span className="font-semibold text-primary">${Number(i.unit_price).toFixed(2)}</span>
+                      <span className="font-semibold text-primary">
+                        ${Number(i.unit_price).toFixed(2)}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -209,14 +227,20 @@ function Inventory() {
               >
                 <Package className="h-4 w-4 text-primary shrink-0" />
                 <span className="font-semibold text-sm truncate flex-1">{i.name}</span>
-                <span className="text-[10px] uppercase tracking-wider text-muted-foreground hidden sm:inline w-24 truncate">{i.category}</span>
+                <span className="text-[10px] uppercase tracking-wider text-muted-foreground hidden sm:inline w-24 truncate">
+                  {i.category}
+                </span>
                 <span className="text-xs text-muted-foreground hidden md:inline w-40 truncate">
                   {[i.brand, i.type].filter(Boolean).join(" · ") || "—"}
                 </span>
-                <span className={`text-xs w-20 text-right ${low ? "text-destructive font-bold" : "font-bold"}`}>
+                <span
+                  className={`text-xs w-20 text-right ${low ? "text-destructive font-bold" : "font-bold"}`}
+                >
                   {Number(i.stock_qty)} {i.unit}
                 </span>
-                <span className="text-xs font-semibold text-primary w-16 text-right">${Number(i.unit_price).toFixed(2)}</span>
+                <span className="text-xs font-semibold text-primary w-16 text-right">
+                  ${Number(i.unit_price).toFixed(2)}
+                </span>
                 {low && <AlertTriangle className="h-3.5 w-3.5 text-destructive shrink-0" />}
               </button>
             );
@@ -238,7 +262,15 @@ function Inventory() {
   );
 }
 
-function EditDialog({ item, onClose, onSaved }: { item: any; onClose: () => void; onSaved: () => void }) {
+function EditDialog({
+  item,
+  onClose,
+  onSaved,
+}: {
+  item: any;
+  onClose: () => void;
+  onSaved: () => void;
+}) {
   const isNew = !item?.id;
   const [form, setForm] = useState<any>({
     name: item?.name ?? "",
@@ -256,7 +288,12 @@ function EditDialog({ item, onClose, onSaved }: { item: any; onClose: () => void
   async function save() {
     if (!form.name.trim()) return toast.error("Name required");
     setSaving(true);
-    const payload = { ...form, unit_price: Number(form.unit_price), stock_qty: Number(form.stock_qty), min_stock: Number(form.min_stock) };
+    const payload = {
+      ...form,
+      unit_price: Number(form.unit_price),
+      stock_qty: Number(form.stock_qty),
+      min_stock: Number(form.min_stock),
+    };
     const { error } = isNew
       ? await supabase.from("inventory_items").insert(payload)
       : await supabase.from("inventory_items").update(payload).eq("id", item.id);
@@ -275,33 +312,95 @@ function EditDialog({ item, onClose, onSaved }: { item: any; onClose: () => void
   }
 
   return (
-    <div className="fixed inset-0 z-50 grid place-items-center bg-background/80 p-4" onClick={onClose}>
-      <div className="card-surface p-5 w-full max-w-md space-y-3" onClick={(e) => e.stopPropagation()}>
-        <h3 className="font-display text-lg font-bold">{isNew ? "Add inventory item" : "Edit item"}</h3>
-        <Field label="Name"><Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></Field>
+    <div
+      className="fixed inset-0 z-50 grid place-items-center bg-background/80 p-4"
+      onClick={onClose}
+    >
+      <div
+        className="card-surface p-5 w-full max-w-md space-y-3"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <h3 className="font-display text-lg font-bold">
+          {isNew ? "Add inventory item" : "Edit item"}
+        </h3>
+        <Field label="Name">
+          <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+        </Field>
         <div className="grid grid-cols-2 gap-3">
           <Field label="Category">
-            <select value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} className="w-full h-10 rounded-md bg-background border border-border px-3 text-sm">
-              {CATEGORIES.filter((c) => c.key !== "all").map((c) => <option key={c.key} value={c.key}>{c.label}</option>)}
+            <select
+              value={form.category}
+              onChange={(e) => setForm({ ...form, category: e.target.value })}
+              className="w-full h-10 rounded-md bg-background border border-border px-3 text-sm"
+            >
+              {CATEGORIES.filter((c) => c.key !== "all").map((c) => (
+                <option key={c.key} value={c.key}>
+                  {c.label}
+                </option>
+              ))}
             </select>
           </Field>
-          <Field label="Unit"><Input value={form.unit} onChange={(e) => setForm({ ...form, unit: e.target.value })} /></Field>
+          <Field label="Unit">
+            <Input value={form.unit} onChange={(e) => setForm({ ...form, unit: e.target.value })} />
+          </Field>
         </div>
         <div className="grid grid-cols-2 gap-3">
-          <Field label="Brand"><Input value={form.brand} onChange={(e) => setForm({ ...form, brand: e.target.value })} /></Field>
-          <Field label="Type"><Input value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })} /></Field>
+          <Field label="Brand">
+            <Input
+              value={form.brand}
+              onChange={(e) => setForm({ ...form, brand: e.target.value })}
+            />
+          </Field>
+          <Field label="Type">
+            <Input value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })} />
+          </Field>
         </div>
         <div className="grid grid-cols-3 gap-3">
-          <Field label="Price"><Input type="number" step="0.01" value={form.unit_price} onChange={(e) => setForm({ ...form, unit_price: e.target.value })} /></Field>
-          <Field label="Stock"><Input type="number" step="0.01" value={form.stock_qty} onChange={(e) => setForm({ ...form, stock_qty: e.target.value })} /></Field>
-          <Field label="Min"><Input type="number" step="0.01" value={form.min_stock} onChange={(e) => setForm({ ...form, min_stock: e.target.value })} /></Field>
+          <Field label="Price">
+            <Input
+              type="number"
+              step="0.01"
+              value={form.unit_price}
+              onChange={(e) => setForm({ ...form, unit_price: e.target.value })}
+            />
+          </Field>
+          <Field label="Stock">
+            <Input
+              type="number"
+              step="0.01"
+              value={form.stock_qty}
+              onChange={(e) => setForm({ ...form, stock_qty: e.target.value })}
+            />
+          </Field>
+          <Field label="Min">
+            <Input
+              type="number"
+              step="0.01"
+              value={form.min_stock}
+              onChange={(e) => setForm({ ...form, min_stock: e.target.value })}
+            />
+          </Field>
         </div>
-        <Field label="SKU"><Input value={form.sku} onChange={(e) => setForm({ ...form, sku: e.target.value })} /></Field>
+        <Field label="SKU">
+          <Input value={form.sku} onChange={(e) => setForm({ ...form, sku: e.target.value })} />
+        </Field>
         <div className="flex gap-2 pt-2">
-          {!isNew && <Button variant="outline" onClick={remove} className="text-destructive border-destructive/40">Delete</Button>}
+          {!isNew && (
+            <Button
+              variant="outline"
+              onClick={remove}
+              className="text-destructive border-destructive/40"
+            >
+              Delete
+            </Button>
+          )}
           <div className="flex-1" />
-          <Button variant="outline" onClick={onClose}>Cancel</Button>
-          <Button onClick={save} disabled={saving} className="gold-surface">{saving ? "Saving…" : "Save"}</Button>
+          <Button variant="outline" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button onClick={save} disabled={saving} className="gold-surface">
+            {saving ? "Saving…" : "Save"}
+          </Button>
         </div>
       </div>
     </div>
@@ -311,7 +410,9 @@ function EditDialog({ item, onClose, onSaved }: { item: any; onClose: () => void
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <label className="block space-y-1">
-      <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">{label}</span>
+      <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">
+        {label}
+      </span>
       {children}
     </label>
   );

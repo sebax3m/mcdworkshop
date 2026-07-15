@@ -10,7 +10,9 @@ export function FloatingClockWidget() {
   const [now, setNow] = useState(Date.now());
   const [pos, setPos] = useState<{ x: number; y: number } | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const dragRef = useRef<{ startX: number; startY: number; initX: number; initY: number } | null>(null);
+  const dragRef = useRef<{ startX: number; startY: number; initX: number; initY: number } | null>(
+    null,
+  );
   const didDragRef = useRef(false);
 
   const events = useQuery({
@@ -40,7 +42,9 @@ export function FloatingClockWidget() {
     queryFn: async () => {
       const { data } = await supabase
         .from("time_entries")
-        .select("job_id, started_at, jobs(id, job_number, complaint, motorcycles(make, model, rego))")
+        .select(
+          "job_id, started_at, jobs(id, job_number, complaint, motorcycles(make, model, rego))",
+        )
         .eq("technician_id", user!.id)
         .is("ended_at", null)
         .order("started_at", { ascending: false })
@@ -53,17 +57,20 @@ export function FloatingClockWidget() {
   const list = events.data ?? [];
   const last = list[0];
   const activeTimerData = activeTimerJob.data as any;
-  const activeTimerStartedAt = activeTimerData?.started_at ? +new Date(activeTimerData.started_at) : 0;
+  const activeTimerStartedAt = activeTimerData?.started_at
+    ? +new Date(activeTimerData.started_at)
+    : 0;
   const lastEventAt = last?.occurred_at ? +new Date(last.occurred_at) : 0;
   const activeTimerIsCurrent = !!activeTimerData && (!last || activeTimerStartedAt > lastEventAt);
   const eventState: "off" | "on" | "break" = !last
     ? "off"
     : last.event_type === "clock_in" || last.event_type === "break_end"
-    ? "on"
-    : last.event_type === "break_start"
-    ? "break"
-    : "off";
-  const state: "off" | "on" | "break" = eventState === "off" && activeTimerIsCurrent ? "on" : eventState;
+      ? "on"
+      : last.event_type === "break_start"
+        ? "break"
+        : "off";
+  const state: "off" | "on" | "break" =
+    eventState === "off" && activeTimerIsCurrent ? "on" : eventState;
 
   // Find active job_id (latest clock_in in current shift)
   const activeJobId = (() => {
@@ -74,7 +81,8 @@ export function FloatingClockWidget() {
     return null;
   })();
 
-  const resolvedJobId = activeJobId ?? (activeTimerIsCurrent ? activeTimerData?.job_id : null) ?? null;
+  const resolvedJobId =
+    activeJobId ?? (activeTimerIsCurrent ? activeTimerData?.job_id : null) ?? null;
 
   const job = useQuery({
     queryKey: ["clock-floating-job", resolvedJobId],
@@ -100,7 +108,9 @@ export function FloatingClockWidget() {
 
   const isBreak = state === "break";
   const timerMatchesResolvedJob = !!resolvedJobId && activeTimerData?.job_id === resolvedJobId;
-  const jobNumber = (job.data as any)?.job_number ?? (timerMatchesResolvedJob ? activeTimerData?.jobs?.job_number : null);
+  const jobNumber =
+    (job.data as any)?.job_number ??
+    (timerMatchesResolvedJob ? activeTimerData?.jobs?.job_number : null);
 
   const handlePointerDown = (e: React.PointerEvent) => {
     e.preventDefault();
@@ -111,7 +121,7 @@ export function FloatingClockWidget() {
       startX: e.clientX,
       startY: e.clientY,
       initX: pos?.x ?? 16,
-      initY: pos?.y ?? (typeof window !== 'undefined' ? window.innerHeight - 140 : 600),
+      initY: pos?.y ?? (typeof window !== "undefined" ? window.innerHeight - 140 : 600),
     };
   };
 

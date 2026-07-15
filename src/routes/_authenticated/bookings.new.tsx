@@ -79,16 +79,20 @@ function NewBooking() {
 
   const customers = useQuery({
     queryKey: ["bk-customers"],
-    queryFn: async () => (await supabase.from("customers").select("*").order("first_name")).data ?? [],
+    queryFn: async () =>
+      (await supabase.from("customers").select("*").order("first_name")).data ?? [],
   });
   const bikes = useQuery({
     queryKey: ["bk-bikes", customerId],
     enabled: !!customerId,
-    queryFn: async () => (await supabase.from("motorcycles").select("*").eq("customer_id", customerId!)).data ?? [],
+    queryFn: async () =>
+      (await supabase.from("motorcycles").select("*").eq("customer_id", customerId!)).data ?? [],
   });
   const allBikes = useQuery({
     queryKey: ["bk-all-bikes"],
-    queryFn: async () => (await supabase.from("motorcycles").select("id, customer_id, rego, year, make, model")).data ?? [],
+    queryFn: async () =>
+      (await supabase.from("motorcycles").select("id, customer_id, rego, year, make, model"))
+        .data ?? [],
   });
   const techs = useQuery({
     queryKey: ["bk-techs"],
@@ -101,14 +105,25 @@ function NewBooking() {
   });
   const loanBikesQ = useQuery({
     queryKey: ["bk-loan-bikes"],
-    queryFn: async () => (await supabase.from("loan_bikes").select("id, name, current_km, active").eq("active", true).order("name")).data ?? [],
+    queryFn: async () =>
+      (
+        await supabase
+          .from("loan_bikes")
+          .select("id, name, current_km, active")
+          .eq("active", true)
+          .order("name")
+      ).data ?? [],
   });
   const activeLoansQ = useQuery({
     queryKey: ["bk-active-loans"],
-    queryFn: async () => (await supabase.from("bookings")
-      .select("loan_bike_id, loan_bike_expected_return, customers(first_name,last_name)")
-      .not("loan_bike_id", "is", null)
-      .is("loan_bike_returned_at", null)).data ?? [],
+    queryFn: async () =>
+      (
+        await supabase
+          .from("bookings")
+          .select("loan_bike_id, loan_bike_expected_return, customers(first_name,last_name)")
+          .not("loan_bike_id", "is", null)
+          .is("loan_bike_returned_at", null)
+      ).data ?? [],
   });
 
   const customer = (customers.data as any[] | undefined)?.find((c) => c.id === customerId);
@@ -127,7 +142,9 @@ function NewBooking() {
     }
     if (searchMode === "mobile") {
       return allC
-        .filter((c) => (c.phone ?? "").toLowerCase().replace(/\s/g, "").includes(s.replace(/\s/g, "")))
+        .filter((c) =>
+          (c.phone ?? "").toLowerCase().replace(/\s/g, "").includes(s.replace(/\s/g, "")),
+        )
         .slice(0, 20)
         .map((c) => ({ customer: c, bike: null }));
     }
@@ -155,7 +172,10 @@ function NewBooking() {
       await qc.invalidateQueries({ queryKey: ["bk-customers"] });
       setCustomerId(data.id);
       setShowNewCustomer(false);
-      setNcFirst(""); setNcLast(""); setNcPhone(""); setNcEmail("");
+      setNcFirst("");
+      setNcLast("");
+      setNcPhone("");
+      setNcEmail("");
       setShowNewBike(true);
       toast.success("Customer created — now add their motorcycle");
     } catch (err: any) {
@@ -170,19 +190,27 @@ function NewBooking() {
     if (!nbMake.trim() || !nbModel.trim()) return toast.error("Make and model required");
     setCreatingBike(true);
     try {
-      const { data, error } = await (supabase as any).from("motorcycles").insert({
-        customer_id: customerId,
-        make: nbMake.trim(),
-        model: nbModel.trim(),
-        year: nbYear ? Number(nbYear) : null,
-        rego: nbRego.trim().toUpperCase() || null,
-        color: nbColor.trim() || null,
-      }).select("id").single();
+      const { data, error } = await (supabase as any)
+        .from("motorcycles")
+        .insert({
+          customer_id: customerId,
+          make: nbMake.trim(),
+          model: nbModel.trim(),
+          year: nbYear ? Number(nbYear) : null,
+          rego: nbRego.trim().toUpperCase() || null,
+          color: nbColor.trim() || null,
+        })
+        .select("id")
+        .single();
       if (error) throw error;
       await qc.invalidateQueries({ queryKey: ["bk-bikes", customerId] });
       await qc.invalidateQueries({ queryKey: ["bk-all-bikes"] });
       setBikeId(data.id);
-      setNbMake(""); setNbModel(""); setNbYear(""); setNbRego(""); setNbColor("");
+      setNbMake("");
+      setNbModel("");
+      setNbYear("");
+      setNbRego("");
+      setNbColor("");
       setShowNewBike(false);
       toast.success("Motorcycle added");
     } catch (err: any) {
@@ -243,7 +271,11 @@ function NewBooking() {
         .select("id")
         .single();
       if (error) throw error;
-      if (mileage) await supabase.from("motorcycles").update({ mileage: parseInt(mileage) }).eq("id", bike.id);
+      if (mileage)
+        await supabase
+          .from("motorcycles")
+          .update({ mileage: parseInt(mileage) })
+          .eq("id", bike.id);
 
       if (openJobCard) {
         const { data: tmpl } = await supabase
@@ -272,7 +304,11 @@ function NewBooking() {
           .single();
         if (jerr) throw jerr;
         if ((tmpl as any)?.tasks) {
-          const tasks = ((tmpl as any).tasks as any[]).map((t: any, i: number) => ({ job_id: job.id, label: t.label, sort_order: i }));
+          const tasks = ((tmpl as any).tasks as any[]).map((t: any, i: number) => ({
+            job_id: job.id,
+            label: t.label,
+            sort_order: i,
+          }));
           if (tasks.length) await supabase.from("job_tasks").insert(tasks);
         }
         await supabase.from("bookings").update({ job_id: job.id }).eq("id", data.id);
@@ -297,7 +333,10 @@ function NewBooking() {
       className="space-y-5 max-w-3xl mx-auto"
     >
       <header className="flex items-center gap-3">
-        <Link to="/calendar" className="grid h-9 w-9 place-items-center rounded-lg border border-border hover:border-primary/50">
+        <Link
+          to="/calendar"
+          className="grid h-9 w-9 place-items-center rounded-lg border border-border hover:border-primary/50"
+        >
           <ArrowLeft className="h-4 w-4" />
         </Link>
         <div>
@@ -311,7 +350,15 @@ function NewBooking() {
         <div className="flex items-center justify-between">
           <Label className="text-xs uppercase tracking-wider text-muted-foreground">Customer</Label>
           {customer && (
-            <button onClick={() => { setCustomerId(null); setBikeId(null); }} className="text-xs text-muted-foreground hover:text-foreground">Change</button>
+            <button
+              onClick={() => {
+                setCustomerId(null);
+                setBikeId(null);
+              }}
+              className="text-xs text-muted-foreground hover:text-foreground"
+            >
+              Change
+            </button>
           )}
         </div>
         {customer ? (
@@ -320,8 +367,12 @@ function NewBooking() {
               {initials(`${customer.first_name} ${customer.last_name}`)}
             </span>
             <div className="min-w-0">
-              <div className="font-semibold truncate">{customer.first_name} {customer.last_name}</div>
-              <div className="text-xs text-muted-foreground truncate">{customer.phone || customer.email || "—"}</div>
+              <div className="font-semibold truncate">
+                {customer.first_name} {customer.last_name}
+              </div>
+              <div className="text-xs text-muted-foreground truncate">
+                {customer.phone || customer.email || "—"}
+              </div>
             </div>
           </div>
         ) : (
@@ -333,9 +384,11 @@ function NewBooking() {
                   value={search$}
                   onChange={(e) => setSearch$(e.target.value)}
                   placeholder={
-                    searchMode === "name" ? "Search by name…" :
-                    searchMode === "rego" ? "Search by rego (plate)…" :
-                    "Search by mobile number…"
+                    searchMode === "name"
+                      ? "Search by name…"
+                      : searchMode === "rego"
+                        ? "Search by rego (plate)…"
+                        : "Search by mobile number…"
                   }
                   className="w-full rounded-xl bg-input border border-border pl-10 pr-3 py-2.5 text-sm focus:outline-none focus:border-primary/50"
                 />
@@ -349,7 +402,9 @@ function NewBooking() {
             </div>
 
             <div className="flex items-center gap-1.5 flex-wrap">
-              <span className="text-[10px] uppercase tracking-wider text-muted-foreground mr-1">Search by:</span>
+              <span className="text-[10px] uppercase tracking-wider text-muted-foreground mr-1">
+                Search by:
+              </span>
               {(["name", "rego", "mobile"] as const).map((m) => (
                 <button
                   key={m}
@@ -368,16 +423,45 @@ function NewBooking() {
 
             {showNewCustomer && (
               <div className="rounded-xl border border-primary/40 bg-primary/5 p-3 space-y-2">
-                <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Add new customer</div>
+                <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                  Add new customer
+                </div>
                 <div className="grid grid-cols-2 gap-2">
-                  <Input placeholder="First name" value={ncFirst} onChange={(e) => setNcFirst(e.target.value)} />
-                  <Input placeholder="Last name (optional)" value={ncLast} onChange={(e) => setNcLast(e.target.value)} />
-                  <Input placeholder="Phone" value={ncPhone} onChange={(e) => setNcPhone(e.target.value)} />
-                  <Input placeholder="Email (optional)" type="email" value={ncEmail} onChange={(e) => setNcEmail(e.target.value)} />
+                  <Input
+                    placeholder="First name"
+                    value={ncFirst}
+                    onChange={(e) => setNcFirst(e.target.value)}
+                  />
+                  <Input
+                    placeholder="Last name (optional)"
+                    value={ncLast}
+                    onChange={(e) => setNcLast(e.target.value)}
+                  />
+                  <Input
+                    placeholder="Phone"
+                    value={ncPhone}
+                    onChange={(e) => setNcPhone(e.target.value)}
+                  />
+                  <Input
+                    placeholder="Email (optional)"
+                    type="email"
+                    value={ncEmail}
+                    onChange={(e) => setNcEmail(e.target.value)}
+                  />
                 </div>
                 <div className="flex justify-end gap-2 pt-1">
-                  <button onClick={() => setShowNewCustomer(false)} className="text-xs px-3 py-1.5 rounded-lg text-muted-foreground hover:text-foreground">Cancel</button>
-                  <Button onClick={createCustomer} disabled={creatingCustomer} size="sm" className="gold-surface font-bold">
+                  <button
+                    onClick={() => setShowNewCustomer(false)}
+                    className="text-xs px-3 py-1.5 rounded-lg text-muted-foreground hover:text-foreground"
+                  >
+                    Cancel
+                  </button>
+                  <Button
+                    onClick={createCustomer}
+                    disabled={creatingCustomer}
+                    size="sm"
+                    className="gold-surface font-bold"
+                  >
                     {creatingCustomer ? "Saving…" : "Add Customer"}
                   </Button>
                 </div>
@@ -398,15 +482,24 @@ function NewBooking() {
                     {initials(`${c.first_name} ${c.last_name ?? ""}`)}
                   </span>
                   <span className="min-w-0 flex-1">
-                    <span className="block text-sm font-semibold truncate">{c.first_name} {c.last_name ?? ""}</span>
+                    <span className="block text-sm font-semibold truncate">
+                      {c.first_name} {c.last_name ?? ""}
+                    </span>
                     <span className="block text-xs text-muted-foreground truncate">
-                      {b ? `${b.rego ?? "—"} · ${[b.year, b.make, b.model].filter(Boolean).join(" ")}` : (c.phone || c.email || "—")}
+                      {b
+                        ? `${b.rego ?? "—"} · ${[b.year, b.make, b.model].filter(Boolean).join(" ")}`
+                        : c.phone || c.email || "—"}
                     </span>
                   </span>
                 </button>
               ))}
               {searchResults.length === 0 && (
-                <button onClick={() => setShowNewCustomer(true)} className="block w-full text-center text-sm text-primary py-3">+ Add new customer</button>
+                <button
+                  onClick={() => setShowNewCustomer(true)}
+                  className="block w-full text-center text-sm text-primary py-3"
+                >
+                  + Add new customer
+                </button>
               )}
             </div>
           </>
@@ -417,38 +510,87 @@ function NewBooking() {
       {customer && (
         <section className="card-surface p-4 space-y-3">
           <div className="flex items-center justify-between">
-            <Label className="text-xs uppercase tracking-wider text-muted-foreground">Motorcycle</Label>
+            <Label className="text-xs uppercase tracking-wider text-muted-foreground">
+              Motorcycle
+            </Label>
             {bike ? (
-              <button onClick={() => setBikeId(null)} className="text-xs text-muted-foreground hover:text-foreground">Change</button>
+              <button
+                onClick={() => setBikeId(null)}
+                className="text-xs text-muted-foreground hover:text-foreground"
+              >
+                Change
+              </button>
             ) : (
-              <button onClick={() => setShowNewBike((v) => !v)} className="inline-flex items-center gap-1 text-xs text-primary font-semibold">
+              <button
+                onClick={() => setShowNewBike((v) => !v)}
+                className="inline-flex items-center gap-1 text-xs text-primary font-semibold"
+              >
                 <Plus className="h-3 w-3" /> New bike
               </button>
             )}
           </div>
           {bike ? (
             <div className="flex items-center gap-3 rounded-xl bg-muted/60 p-3">
-              <span className="grid h-10 w-10 place-items-center rounded-lg bg-background"><BikeIcon className="h-5 w-5 text-primary" /></span>
+              <span className="grid h-10 w-10 place-items-center rounded-lg bg-background">
+                <BikeIcon className="h-5 w-5 text-primary" />
+              </span>
               <div className="min-w-0 flex-1">
                 <div className="font-semibold truncate">{fullBike(bike)}</div>
-                <div className="text-xs text-muted-foreground truncate">{bike.rego ?? "no rego"}{bike.vin ? ` · VIN ${bike.vin.slice(-6)}` : ""}</div>
+                <div className="text-xs text-muted-foreground truncate">
+                  {bike.rego ?? "no rego"}
+                  {bike.vin ? ` · VIN ${bike.vin.slice(-6)}` : ""}
+                </div>
               </div>
             </div>
           ) : (
             <>
               {showNewBike && (
                 <div className="rounded-xl border border-primary/40 bg-primary/5 p-3 space-y-2">
-                  <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Add motorcycle for {customer.first_name}</div>
+                  <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                    Add motorcycle for {customer.first_name}
+                  </div>
                   <div className="grid grid-cols-2 gap-2">
-                    <Input placeholder="Make" value={nbMake} onChange={(e) => setNbMake(e.target.value)} />
-                    <Input placeholder="Model" value={nbModel} onChange={(e) => setNbModel(e.target.value)} />
-                    <Input placeholder="Year" inputMode="numeric" value={nbYear} onChange={(e) => setNbYear(e.target.value)} />
-                    <Input placeholder="Rego (plate)" value={nbRego} onChange={(e) => setNbRego(e.target.value)} />
-                    <Input placeholder="Colour (optional)" value={nbColor} onChange={(e) => setNbColor(e.target.value)} className="col-span-2" />
+                    <Input
+                      placeholder="Make"
+                      value={nbMake}
+                      onChange={(e) => setNbMake(e.target.value)}
+                    />
+                    <Input
+                      placeholder="Model"
+                      value={nbModel}
+                      onChange={(e) => setNbModel(e.target.value)}
+                    />
+                    <Input
+                      placeholder="Year"
+                      inputMode="numeric"
+                      value={nbYear}
+                      onChange={(e) => setNbYear(e.target.value)}
+                    />
+                    <Input
+                      placeholder="Rego (plate)"
+                      value={nbRego}
+                      onChange={(e) => setNbRego(e.target.value)}
+                    />
+                    <Input
+                      placeholder="Colour (optional)"
+                      value={nbColor}
+                      onChange={(e) => setNbColor(e.target.value)}
+                      className="col-span-2"
+                    />
                   </div>
                   <div className="flex justify-end gap-2 pt-1">
-                    <button onClick={() => setShowNewBike(false)} className="text-xs px-3 py-1.5 rounded-lg text-muted-foreground hover:text-foreground">Cancel</button>
-                    <Button onClick={createBike} disabled={creatingBike} size="sm" className="gold-surface font-bold">
+                    <button
+                      onClick={() => setShowNewBike(false)}
+                      className="text-xs px-3 py-1.5 rounded-lg text-muted-foreground hover:text-foreground"
+                    >
+                      Cancel
+                    </button>
+                    <Button
+                      onClick={createBike}
+                      disabled={creatingBike}
+                      size="sm"
+                      className="gold-surface font-bold"
+                    >
                       {creatingBike ? "Saving…" : "Add Motorcycle"}
                     </Button>
                   </div>
@@ -458,14 +600,23 @@ function NewBooking() {
                 <div className="text-sm text-muted-foreground">Loading bikes…</div>
               ) : (bikes.data ?? []).length === 0 ? (
                 !showNewBike && (
-                  <button onClick={() => setShowNewBike(true)} className="block w-full text-center text-sm text-primary py-3">+ Add motorcycle for this customer</button>
+                  <button
+                    onClick={() => setShowNewBike(true)}
+                    className="block w-full text-center text-sm text-primary py-3"
+                  >
+                    + Add motorcycle for this customer
+                  </button>
                 )
               ) : (
                 <div className="grid sm:grid-cols-2 gap-2">
                   {(bikes.data ?? []).map((b: any) => (
                     <button
                       key={b.id}
-                      onClick={() => { setBikeId(b.id); if (b.mileage) setMileage(String(b.mileage)); if (b.wof_expiry) setWof(b.wof_expiry); }}
+                      onClick={() => {
+                        setBikeId(b.id);
+                        if (b.mileage) setMileage(String(b.mileage));
+                        if (b.wof_expiry) setWof(b.wof_expiry);
+                      }}
                       className="text-left rounded-xl border border-border p-3 hover:border-primary/50 transition-colors"
                     >
                       <div className="font-semibold text-sm truncate">{fullBike(b)}</div>
@@ -483,7 +634,9 @@ function NewBooking() {
       {bike && (
         <>
           <section className="card-surface p-4 space-y-3">
-            <Label className="text-xs uppercase tracking-wider text-muted-foreground">Service type</Label>
+            <Label className="text-xs uppercase tracking-wider text-muted-foreground">
+              Service type
+            </Label>
             <div className="flex flex-wrap gap-2">
               {SERVICE_TYPES.map((s) => (
                 <button
@@ -501,7 +654,9 @@ function NewBooking() {
             </div>
             {serviceType === "Other" && (
               <div className="space-y-1.5">
-                <Label className="text-xs uppercase tracking-wider text-muted-foreground">Other service details</Label>
+                <Label className="text-xs uppercase tracking-wider text-muted-foreground">
+                  Other service details
+                </Label>
                 <Textarea
                   value={serviceTypeOther}
                   onChange={(e) => setServiceTypeOther(e.target.value)}
@@ -513,18 +668,34 @@ function NewBooking() {
           </section>
 
           <section className="card-surface p-4 space-y-3">
-            <Label className="text-xs uppercase tracking-wider text-muted-foreground">Priority</Label>
+            <Label className="text-xs uppercase tracking-wider text-muted-foreground">
+              Priority
+            </Label>
             <div className="flex flex-wrap gap-2">
               {[
-                { label: "High", value: "high", color: "border-red-500 bg-red-500/10 text-red-400" },
-                { label: "Normal", value: "normal", color: "border-primary bg-primary/10 text-primary" },
-                { label: "Low", value: "low", color: "border-blue-500 bg-blue-500/10 text-blue-400" },
+                {
+                  label: "High",
+                  value: "high",
+                  color: "border-red-500 bg-red-500/10 text-red-400",
+                },
+                {
+                  label: "Normal",
+                  value: "normal",
+                  color: "border-primary bg-primary/10 text-primary",
+                },
+                {
+                  label: "Low",
+                  value: "low",
+                  color: "border-blue-500 bg-blue-500/10 text-blue-400",
+                },
               ].map((p) => (
                 <button
                   key={p.value}
                   onClick={() => setPriority(p.value)}
                   className={`rounded-full px-3 py-1.5 text-xs font-semibold border transition-colors ${
-                    priority === p.value ? p.color : "border-border text-muted-foreground hover:text-foreground"
+                    priority === p.value
+                      ? p.color
+                      : "border-border text-muted-foreground hover:text-foreground"
                   }`}
                 >
                   {p.label}
@@ -536,28 +707,66 @@ function NewBooking() {
           <section className="card-surface p-4 grid grid-cols-2 gap-3">
             <div>
               <Label className="text-xs uppercase tracking-wider text-muted-foreground">Date</Label>
-              <Input type="date" value={scheduledDate} onChange={(e) => setScheduledDate(e.target.value)} className="mt-1.5" />
+              <Input
+                type="date"
+                value={scheduledDate}
+                onChange={(e) => setScheduledDate(e.target.value)}
+                className="mt-1.5"
+              />
             </div>
             <div>
-              <Label className="text-xs uppercase tracking-wider text-muted-foreground">Drop-off</Label>
-              <Input type="time" value={dropTime} onChange={(e) => setDropTime(e.target.value)} className="mt-1.5" />
+              <Label className="text-xs uppercase tracking-wider text-muted-foreground">
+                Drop-off
+              </Label>
+              <Input
+                type="time"
+                value={dropTime}
+                onChange={(e) => setDropTime(e.target.value)}
+                className="mt-1.5"
+              />
             </div>
             <div>
-              <Label className="text-xs uppercase tracking-wider text-muted-foreground">Est. hours</Label>
-              <Input type="number" min="0.25" step="0.25" value={estHours} onChange={(e) => setEstHours(e.target.value)} className="mt-1.5" />
+              <Label className="text-xs uppercase tracking-wider text-muted-foreground">
+                Est. hours
+              </Label>
+              <Input
+                type="number"
+                min="0.25"
+                step="0.25"
+                value={estHours}
+                onChange={(e) => setEstHours(e.target.value)}
+                className="mt-1.5"
+              />
             </div>
             <div>
-              <Label className="text-xs uppercase tracking-wider text-muted-foreground">Mileage (km)</Label>
-              <Input type="number" inputMode="numeric" value={mileage} onChange={(e) => setMileage(e.target.value)} className="mt-1.5" />
+              <Label className="text-xs uppercase tracking-wider text-muted-foreground">
+                Mileage (km)
+              </Label>
+              <Input
+                type="number"
+                inputMode="numeric"
+                value={mileage}
+                onChange={(e) => setMileage(e.target.value)}
+                className="mt-1.5"
+              />
             </div>
             <div className="col-span-2">
-              <Label className="text-xs uppercase tracking-wider text-muted-foreground">WOF expiry</Label>
-              <Input type="date" value={wof} onChange={(e) => setWof(e.target.value)} className="mt-1.5" />
+              <Label className="text-xs uppercase tracking-wider text-muted-foreground">
+                WOF expiry
+              </Label>
+              <Input
+                type="date"
+                value={wof}
+                onChange={(e) => setWof(e.target.value)}
+                className="mt-1.5"
+              />
             </div>
           </section>
 
           <section className="card-surface p-4 space-y-3">
-            <Label className="text-xs uppercase tracking-wider text-muted-foreground">Assign technician</Label>
+            <Label className="text-xs uppercase tracking-wider text-muted-foreground">
+              Assign technician
+            </Label>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
               <button
                 onClick={() => setTechId(null)}
@@ -571,7 +780,9 @@ function NewBooking() {
                   onClick={() => setTechId(t.id)}
                   className={`rounded-xl border p-3 text-left flex items-center gap-2 ${techId === t.id ? "border-primary bg-primary/10" : "border-border"}`}
                 >
-                  <span className="grid h-7 w-7 place-items-center rounded-full bg-muted text-[10px] font-semibold">{initials(t.full_name || "?")}</span>
+                  <span className="grid h-7 w-7 place-items-center rounded-full bg-muted text-[10px] font-semibold">
+                    {initials(t.full_name || "?")}
+                  </span>
                   <span className="text-sm font-semibold truncate">{t.full_name || "Unnamed"}</span>
                 </button>
               ))}
@@ -579,22 +790,40 @@ function NewBooking() {
           </section>
 
           <section className="card-surface p-4 space-y-3">
-            <Label className="text-xs uppercase tracking-wider text-muted-foreground">Instructions</Label>
-            <Textarea value={instructions} onChange={(e) => setInstructions(e.target.value)} placeholder="Step-by-step instructions for the technician — shown on the Job Card" rows={3} />
+            <Label className="text-xs uppercase tracking-wider text-muted-foreground">
+              Instructions
+            </Label>
+            <Textarea
+              value={instructions}
+              onChange={(e) => setInstructions(e.target.value)}
+              placeholder="Step-by-step instructions for the technician — shown on the Job Card"
+              rows={3}
+            />
             <label className="flex items-center gap-3 rounded-xl border border-border p-3 cursor-pointer hover:border-primary/50">
-              <input type="checkbox" className="h-5 w-5 accent-amber-500" checked={loanBike} onChange={(e) => setLoanBike(e.target.checked)} />
+              <input
+                type="checkbox"
+                className="h-5 w-5 accent-amber-500"
+                checked={loanBike}
+                onChange={(e) => setLoanBike(e.target.checked)}
+              />
               <span className="flex-1">
                 <span className="block text-sm font-semibold">🏍️ Customer needs a loan bike</span>
-                <span className="block text-xs text-muted-foreground">Highlighted on the calendar so the workshop can arrange one</span>
+                <span className="block text-xs text-muted-foreground">
+                  Highlighted on the calendar so the workshop can arrange one
+                </span>
               </span>
             </label>
             {loanBike && (
               <div className="space-y-3 rounded-xl border border-amber-400/40 bg-amber-400/5 p-3">
                 <div>
-                  <Label className="text-xs uppercase tracking-wider text-muted-foreground">Assign loan bike</Label>
+                  <Label className="text-xs uppercase tracking-wider text-muted-foreground">
+                    Assign loan bike
+                  </Label>
                   <div className="grid grid-cols-1 gap-2 mt-1">
                     {(loanBikesQ.data ?? []).map((lb: any) => {
-                      const outWith = (activeLoansQ.data ?? []).find((a: any) => a.loan_bike_id === lb.id);
+                      const outWith = (activeLoansQ.data ?? []).find(
+                        (a: any) => a.loan_bike_id === lb.id,
+                      );
                       const busy = !!outWith;
                       return (
                         <button
@@ -602,31 +831,45 @@ function NewBooking() {
                           type="button"
                           onClick={() => setLoanBikeId(loanBikeId === lb.id ? null : lb.id)}
                           className={`rounded-xl border p-3 text-left flex items-center gap-2 ${
-                            loanBikeId === lb.id ? "border-amber-400 bg-amber-400/10" : busy ? "border-destructive/40 opacity-70" : "border-border"
+                            loanBikeId === lb.id
+                              ? "border-amber-400 bg-amber-400/10"
+                              : busy
+                                ? "border-destructive/40 opacity-70"
+                                : "border-border"
                           }`}
                         >
                           <span className="flex-1">
                             <span className="block text-sm font-semibold">{lb.name}</span>
                             <span className="block text-[11px] text-muted-foreground">
                               {lb.current_km?.toLocaleString?.() ?? 0} km
-                              {busy && outWith?.customers && ` · Out with ${outWith.customers.first_name} ${outWith.customers.last_name}`}
-                              {busy && outWith?.loan_bike_expected_return && ` · back ${outWith.loan_bike_expected_return}`}
+                              {busy &&
+                                outWith?.customers &&
+                                ` · Out with ${outWith.customers.first_name} ${outWith.customers.last_name}`}
+                              {busy &&
+                                outWith?.loan_bike_expected_return &&
+                                ` · back ${outWith.loan_bike_expected_return}`}
                             </span>
                           </span>
                           {busy && (
-                            <span className="rounded-full bg-destructive/15 text-destructive px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider">Out</span>
+                            <span className="rounded-full bg-destructive/15 text-destructive px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider">
+                              Out
+                            </span>
                           )}
                         </button>
                       );
                     })}
                     {(loanBikesQ.data ?? []).length === 0 && (
-                      <div className="text-xs text-muted-foreground">No loan bikes registered. Add them from the Loan Bikes menu.</div>
+                      <div className="text-xs text-muted-foreground">
+                        No loan bikes registered. Add them from the Loan Bikes menu.
+                      </div>
                     )}
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                   <div>
-                    <Label className="text-xs uppercase tracking-wider text-muted-foreground">Expected return</Label>
+                    <Label className="text-xs uppercase tracking-wider text-muted-foreground">
+                      Expected return
+                    </Label>
                     <input
                       type="date"
                       value={loanBikeReturn}
@@ -635,7 +878,9 @@ function NewBooking() {
                     />
                   </div>
                   <div>
-                    <Label className="text-xs uppercase tracking-wider text-muted-foreground">Start km (optional)</Label>
+                    <Label className="text-xs uppercase tracking-wider text-muted-foreground">
+                      Start km (optional)
+                    </Label>
                     <input
                       type="number"
                       inputMode="numeric"
@@ -652,16 +897,28 @@ function NewBooking() {
 
           <section className="card-surface p-4 space-y-3">
             <div className="flex items-center justify-between">
-              <Label className="text-xs uppercase tracking-wider text-muted-foreground">Arrival & damage photos</Label>
+              <Label className="text-xs uppercase tracking-wider text-muted-foreground">
+                Arrival & damage photos
+              </Label>
               <label className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-2 text-xs font-semibold hover:border-primary/50 cursor-pointer">
                 <Camera className="h-3.5 w-3.5" /> {uploading ? "Uploading…" : "Add"}
-                <input type="file" accept="image/*" multiple capture="environment" className="hidden" onChange={(e) => handlePhotos(e.target.files)} />
+                <input
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  capture="environment"
+                  className="hidden"
+                  onChange={(e) => handlePhotos(e.target.files)}
+                />
               </label>
             </div>
             {arrivalPhotos.length > 0 && (
               <div className="grid grid-cols-4 gap-2">
                 {arrivalPhotos.map((p) => (
-                  <div key={p} className="relative aspect-square rounded-lg overflow-hidden bg-muted">
+                  <div
+                    key={p}
+                    className="relative aspect-square rounded-lg overflow-hidden bg-muted"
+                  >
                     <PhotoThumb path={p} />
                     <button
                       onClick={() => setArrivalPhotos((arr) => arr.filter((x) => x !== p))}
@@ -677,10 +934,19 @@ function NewBooking() {
           </section>
 
           <div className="grid sm:grid-cols-2 gap-3">
-            <Button onClick={() => save(false)} disabled={saving} variant="outline" className="w-full h-14 text-base font-bold">
+            <Button
+              onClick={() => save(false)}
+              disabled={saving}
+              variant="outline"
+              className="w-full h-14 text-base font-bold"
+            >
               {saving ? "Saving…" : "Create Booking"}
             </Button>
-            <Button onClick={() => save(true)} disabled={saving} className="w-full h-14 gold-surface text-base font-bold">
+            <Button
+              onClick={() => save(true)}
+              disabled={saving}
+              className="w-full h-14 gold-surface text-base font-bold"
+            >
               {saving ? "Saving…" : "Create & Open Job Card"}
             </Button>
           </div>
