@@ -59,11 +59,9 @@ import {
   validateTimeRange,
 } from "@/lib/booking-conflicts";
 import {
-  dash,
   displayBike,
   displayCustomerName,
   displayServiceType,
-  displayTime,
 } from "@/lib/display";
 
 export const Route = createFileRoute("/_authenticated/calendar")({
