@@ -308,6 +308,14 @@ function CalendarPage() {
     }
   }, [quickSlot]);
 
+  // Reset view to summary + sync notes buffer when selecting a booking
+  useEffect(() => {
+    if (selectedBooking) {
+      setBookingView("summary");
+      setSummaryNotes(selectedBooking.notes ?? "");
+    }
+  }, [selectedBooking?.id]);
+
   useEffect(() => {
     const el = bodyRef.current;
     if (!el) return;
