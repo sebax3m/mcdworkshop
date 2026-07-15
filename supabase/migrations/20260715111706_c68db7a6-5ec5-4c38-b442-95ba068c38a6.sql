@@ -1,0 +1,1 @@
+ALTER TABLE public.bookings ALTER COLUMN motorcycle_id DROP NOT NULL;

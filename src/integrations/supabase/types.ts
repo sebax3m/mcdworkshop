@@ -39,7 +39,7 @@ export type Database = {
           loan_bike_returned_at: string | null
           loan_bike_start_km: number | null
           mileage: number | null
-          motorcycle_id: string
+          motorcycle_id: string | null
           notes: string | null
           priority: string
           rego: string | null
@@ -76,7 +76,7 @@ export type Database = {
           loan_bike_returned_at?: string | null
           loan_bike_start_km?: number | null
           mileage?: number | null
-          motorcycle_id: string
+          motorcycle_id?: string | null
           notes?: string | null
           priority?: string
           rego?: string | null
@@ -113,7 +113,7 @@ export type Database = {
           loan_bike_returned_at?: string | null
           loan_bike_start_km?: number | null
           mileage?: number | null
-          motorcycle_id?: string
+          motorcycle_id?: string | null
           notes?: string | null
           priority?: string
           rego?: string | null
