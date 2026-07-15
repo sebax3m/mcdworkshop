@@ -220,6 +220,11 @@ function CalendarPage() {
   );
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [selectedBooking, setSelectedBooking] = useState<any | null>(null);
+  // View mode for the selected booking modal: quick summary vs full editor
+  const [bookingView, setBookingView] = useState<"summary" | "edit">("summary");
+  // Notes edit buffer for the summary view (independent from the edit view's textarea)
+  const [summaryNotes, setSummaryNotes] = useState<string>("");
+  const [savingSummaryNotes, setSavingSummaryNotes] = useState(false);
   // Functional patch that keeps the modal closed if the user already closed it
   // while an async save was in flight (prevents the modal from reopening after Close).
   const patchSelected = (patch: any) =>
