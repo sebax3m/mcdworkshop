@@ -2263,44 +2263,6 @@ function CalendarPage() {
                     })()}
                 </div>
                 <div className="col-span-1">
-                  <label className="text-[10px] uppercase tracking-wider text-muted-foreground flex items-center gap-1">
-                    <BikeIcon className="h-3 w-3" /> Make *
-                  </label>
-                  <input
-                    list="bike-makes-list"
-                    value={qBikeMake}
-                    onChange={(e) => {
-                      setQBikeMake(e.target.value);
-                      // reset model if make changed
-                      setQBikeModel("");
-                    }}
-                    placeholder="e.g. Yamaha"
-                    className="w-full mt-1 rounded-lg border border-border bg-background/60 px-3 py-2 text-sm focus:border-primary/60 focus:outline-none"
-                  />
-                  <datalist id="bike-makes-list">
-                    {BIKE_MAKE_NAMES.map((m) => (
-                      <option key={m} value={m} />
-                    ))}
-                  </datalist>
-                </div>
-                <div className="col-span-1">
-                  <label className="text-[10px] uppercase tracking-wider text-muted-foreground">
-                    Model *
-                  </label>
-                  <input
-                    list="bike-models-list"
-                    value={qBikeModel}
-                    onChange={(e) => setQBikeModel(e.target.value)}
-                    placeholder="e.g. MT-07"
-                    className="w-full mt-1 rounded-lg border border-border bg-background/60 px-3 py-2 text-sm focus:border-primary/60 focus:outline-none"
-                  />
-                  <datalist id="bike-models-list">
-                    {(BIKE_MAKES[qBikeMake] ?? []).map((m) => (
-                      <option key={m} value={m} />
-                    ))}
-                  </datalist>
-                </div>
-                <div className="col-span-1">
                   <label className="text-[10px] uppercase tracking-wider text-muted-foreground">
                     Year
                   </label>
@@ -2326,7 +2288,8 @@ function CalendarPage() {
                     <input
                       value={qBikeRego}
                       onChange={(e) => setQBikeRego(e.target.value.toUpperCase())}
-                      className="flex-1 rounded-lg border border-border bg-background/60 px-3 py-2 text-sm uppercase tracking-wider focus:border-primary/60 focus:outline-none"
+                      placeholder="ABC123"
+                      className="flex-1 min-w-0 rounded-lg border border-border bg-background/60 px-3 py-2 text-sm uppercase tracking-wider focus:border-primary/60 focus:outline-none"
                     />
                     <button
                       type="button"
@@ -2340,6 +2303,44 @@ function CalendarPage() {
                   </div>
                 </div>
                 <div className="col-span-1">
+                  <label className="text-[10px] uppercase tracking-wider text-muted-foreground flex items-center gap-1">
+                    <BikeIcon className="h-3 w-3" /> Make *
+                  </label>
+                  <input
+                    list="bike-makes-list"
+                    value={qBikeMake}
+                    onChange={(e) => {
+                      setQBikeMake(e.target.value);
+                      setQBikeModel("");
+                    }}
+                    placeholder="e.g. Yamaha"
+                    className="w-full mt-1 rounded-lg border border-border bg-background/60 px-3 py-2 text-sm focus:border-primary/60 focus:outline-none"
+                  />
+                  <datalist id="bike-makes-list">
+                    {BIKE_MAKE_NAMES.map((m) => (
+                      <option key={m} value={m} />
+                    ))}
+                  </datalist>
+                </div>
+                <div className="col-span-1">
+                  <label className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                    Model *
+                  </label>
+                  <input
+                    list="bike-models-list"
+                    value={qBikeModel}
+                    onChange={(e) => setQBikeModel(e.target.value)}
+                    placeholder="e.g. MT-07"
+                    className="w-full mt-1 rounded-lg border border-border bg-background/60 px-3 py-2 text-sm focus:border-primary/60 focus:outline-none"
+                    disabled={!qBikeMake}
+                  />
+                  <datalist id="bike-models-list">
+                    {(BIKE_MAKES[qBikeMake] ?? []).map((m) => (
+                      <option key={m} value={m} />
+                    ))}
+                  </datalist>
+                </div>
+                <div className="col-span-2">
                   <label className="text-[10px] uppercase tracking-wider text-muted-foreground">
                     Est. hours
                   </label>
@@ -2347,9 +2348,11 @@ function CalendarPage() {
                     value={qEstHours}
                     onChange={(e) => setQEstHours(e.target.value)}
                     inputMode="decimal"
+                    placeholder="1"
                     className="w-full mt-1 rounded-lg border border-border bg-background/60 px-3 py-2 text-sm focus:border-primary/60 focus:outline-none"
                   />
                 </div>
+
               </div>
 
               <div>
