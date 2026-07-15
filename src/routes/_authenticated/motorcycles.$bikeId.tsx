@@ -35,6 +35,25 @@ export const Route = createFileRoute("/_authenticated/motorcycles/$bikeId")({
   ),
 });
 
+function BikeErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
+  const router = useRouter();
+  return (
+    <div className="card-surface p-6 space-y-3">
+      <div className="font-semibold">Couldn't load bike</div>
+      <div className="text-sm text-muted-foreground">{error.message}</div>
+      <button
+        className="text-sm text-primary"
+        onClick={() => {
+          reset();
+          router.invalidate();
+        }}
+      >
+        Try again
+      </button>
+    </div>
+  );
+}
+
 function BikeProfile() {
   const { bikeId } = Route.useParams();
   const qc = useQueryClient();
