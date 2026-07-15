@@ -1201,7 +1201,7 @@ function CalendarPage() {
                                     b.color ? "text-foreground" : `${c.bg} ${c.ring} ${c.text}`
                                   } ${draggingId === b.id ? "opacity-40" : ""} ${b.loan_bike ? "!ring-2 !ring-amber-400" : ""}`}
                                   style={{
-                                    top: `${top}px`,
+                                    top: `${top + 1}px`,
                                     height: `${height}px`,
                                     left: `calc(${leftPct}% + 2px)`,
                                     width: `calc(${widthPct}% - 4px)`,
