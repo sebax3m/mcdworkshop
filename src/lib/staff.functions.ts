@@ -1,10 +1,23 @@
 import { createServerFn } from "@tanstack/react-start";
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 export type StaffOption = { id: string; email: string; full_name: string; role: string };
 
-export const listStaffEmails = createServerFn({ method: "GET" }).handler(
-  async (): Promise<StaffOption[]> => {
+export const listStaffEmails = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }): Promise<StaffOption[]> => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    // Only admins may list staff emails.
+    const { data: callerRoles } = await supabaseAdmin
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", context.userId);
+    const isAdmin = (callerRoles ?? []).some((r) => r.role === "admin");
+    if (!isAdmin) {
+      throw new Response("Forbidden", { status: 403 });
+    }
+
     const { data: roles, error: rErr } = await supabaseAdmin
       .from("user_roles")
       .select("user_id, role")
@@ -31,5 +44,4 @@ export const listStaffEmails = createServerFn({ method: "GET" }).handler(
         role: roleByUser.get(p.id) ?? "technician",
       }))
       .sort((a, b) => a.full_name.localeCompare(b.full_name));
-  },
-);
+  });
