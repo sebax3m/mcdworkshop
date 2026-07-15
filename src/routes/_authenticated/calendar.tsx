@@ -448,11 +448,11 @@ function CalendarPage() {
     if (!quickSlot) return;
     if (!qFirst.trim()) return toast.error("First name required");
     if (!qBikeMake.trim() || !qBikeModel.trim()) return toast.error("Bike make and model required");
-    const startTime = quickSlot.time;
-    const endTime = qEndTime && qEndTime.trim() ? qEndTime : addMinutesToTime(startTime, 60);
+    const startTime = (qEditTime || quickSlot.time).slice(0, 5);
+    const endTime = addMinutesToTime(startTime, Math.max(15, Math.round((Number(qEstHours) || 1) * 60)));
     const rangeErr = validateTimeRange(startTime, endTime);
     if (rangeErr) return toast.error(rangeErr);
-    const dateStr = format(quickSlot.date, "yyyy-MM-dd");
+    const dateStr = qEditDate || format(quickSlot.date, "yyyy-MM-dd");
     try {
       const conflicts = await findBookingConflicts({
         date: dateStr,
@@ -497,36 +497,51 @@ function CalendarPage() {
         bikeId = bike.id;
       }
 
-      const { error: bkErr } = await supabase.from("bookings").insert({
-        customer_id: customerId!,
-        motorcycle_id: bikeId!,
-        service_type: qService,
-        service_type_other: qService === "Other" ? qServiceOther.trim() || null : null,
-        scheduled_date: dateStr,
-        drop_off_time: `${startTime}:00`,
-        scheduled_end_time: `${endTime}:00`,
-        estimated_hours: Number(qEstHours) || 1,
-        rego: qBikeRego.trim().toUpperCase() || null,
-        loan_bike: qLoanBike,
-        loan_bike_id: qLoanBike ? qLoanBikeId : null,
-        loan_bike_expected_return: qLoanBike && qLoanBikeReturn ? qLoanBikeReturn : null,
-        status: "booked",
-        wof_expiry: qWofNeeded && qWofExpiry ? qWofExpiry : null,
-        notes: qWofNeeded ? "WOF required" : null,
-      });
+      const { data: created, error: bkErr } = await supabase
+        .from("bookings")
+        .insert({
+          customer_id: customerId!,
+          motorcycle_id: bikeId!,
+          service_type: qService,
+          service_type_other: qService === "Other" ? qServiceOther.trim() || null : null,
+          scheduled_date: dateStr,
+          drop_off_time: `${startTime}:00`,
+          scheduled_end_time: `${endTime}:00`,
+          estimated_hours: Number(qEstHours) || 1,
+          rego: qBikeRego.trim().toUpperCase() || null,
+          loan_bike: qLoanBike,
+          loan_bike_id: qLoanBike ? qLoanBikeId : null,
+          loan_bike_expected_return: qLoanBike && qLoanBikeReturn ? qLoanBikeReturn : null,
+          status: "booked",
+          wof_expiry: qWofNeeded && qWofExpiry ? qWofExpiry : null,
+          notes: qWofNeeded ? "WOF required" : null,
+        })
+        .select(
+          "id, service_type, service_type_other, scheduled_date, drop_off_time, scheduled_end_time, estimated_hours, status, notes, customer_id, motorcycle_id, job_id, customers(first_name,last_name,phone,email), motorcycles(year,make,model,rego)",
+        )
+        .single();
       if (bkErr) throw bkErr;
 
       toast.success("Booking created");
-      setQuickSlot(null);
-      resetQuickForm();
       qc.invalidateQueries({ queryKey: ["calendar-bookings"] });
       qc.invalidateQueries({ queryKey: ["quick-customers"] });
+      // Swap the modal into the "just created" view with quick follow-up actions
+      setJustCreated(created);
+      setJustCreatedNotes(created?.notes ?? "");
     } catch (err: any) {
       toast.error(err.message ?? "Failed to create booking");
     } finally {
       setCreatingQuick(false);
     }
   }
+
+  function closeQuickBooking() {
+    setQuickSlot(null);
+    setJustCreated(null);
+    setJustCreatedNotes("");
+    resetQuickForm();
+  }
+
 
   async function confirmDeleteBooking() {
     if (!deleteBooking) return;
