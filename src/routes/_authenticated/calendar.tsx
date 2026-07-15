@@ -1130,51 +1130,86 @@ function CalendarPage() {
                           )}
 
                           {/* Bookings positioned by drop_off_time + scheduled_end_time */}
-                          {dayBookings.map((b: any) => {
-                            const { h, m } = parseTime(b.drop_off_time);
-                            const top = (h + m / 60 - START_HOUR) * SLOT_H;
-                            const hoursDur = Math.max(0.5, bookingDurationMin(b) / 60);
-                            const height = Math.max(24, hoursDur * SLOT_H - 2);
-                            // clamp to grid
-                            if (top + height < 0 || top > GRID_H) return null;
-                            const c = serviceColor(b.service_type);
-                            const bike = displayBike(b.motorcycles);
-                            const customer = displayCustomerName(b.customers);
-                            return (
-                              <div
-                                key={b.id}
-                                role="button"
-                                tabIndex={0}
-                                draggable
-                                onMouseEnter={() => setHoverSlot(null)}
-                                onMouseMove={(e) => e.stopPropagation()}
-                                onDragStart={(e) => {
-                                  const rect = e.currentTarget.getBoundingClientRect();
-                                  const grabY = e.clientY - rect.top;
-                                  e.dataTransfer.effectAllowed = "move";
-                                  e.dataTransfer.setData("text/booking-id", b.id);
-                                  e.dataTransfer.setData("text/grab-offset", String(grabY));
-                                  setDraggingId(b.id);
-                                }}
-                                onDragEnd={() => setDraggingId(null)}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setSelectedBooking(b);
-                                }}
-                                className={`group absolute left-1 right-1 z-10 rounded-md p-2 text-left ring-1 overflow-hidden select-none transition-all hover:z-30 hover:brightness-110 hover:ring-2 hover:ring-primary hover:shadow-[0_8px_24px_rgba(0,0,0,0.35)] cursor-grab active:cursor-grabbing ${
-                                  b.color ? "text-foreground" : `${c.bg} ${c.ring} ${c.text}`
-                                } ${draggingId === b.id ? "opacity-40" : ""} ${b.loan_bike ? "!ring-2 !ring-amber-400" : ""}`}
-                                style={{
-                                  top: `${top}px`,
-                                  height: `${height}px`,
-                                  ...(b.color
-                                    ? {
-                                        backgroundColor: `${b.color}B3`,
-                                        boxShadow: `inset 0 0 0 1px ${b.color}`,
-                                      }
-                                    : {}),
-                                }}
-                              >
+                          {(() => {
+                            // Compute lanes so overlapping cards do not stack on top of each other
+                            const items = dayBookings
+                              .map((b: any) => {
+                                const { h, m } = parseTime(b.drop_off_time);
+                                const start = h * 60 + m;
+                                const end = start + Math.max(30, bookingDurationMin(b));
+                                return { b, start, end };
+                              })
+                              .sort((a, b) => a.start - b.start || b.end - a.end);
+                            const laneMap = new Map<string, { lane: number; count: number }>();
+                            let cluster: { b: any; start: number; end: number; lane: number }[] = [];
+                            let clusterEnd = -Infinity;
+                            const flush = () => {
+                              if (!cluster.length) return;
+                              const count = Math.max(...cluster.map((x) => x.lane)) + 1;
+                              cluster.forEach((x) => laneMap.set(x.b.id, { lane: x.lane, count }));
+                              cluster = [];
+                            };
+                            for (const it of items) {
+                              if (it.start >= clusterEnd) flush();
+                              const used = new Set(
+                                cluster.filter((x) => x.end > it.start).map((x) => x.lane),
+                              );
+                              let lane = 0;
+                              while (used.has(lane)) lane++;
+                              cluster.push({ ...it, lane });
+                              clusterEnd = Math.max(clusterEnd, it.end);
+                            }
+                            flush();
+                            return dayBookings.map((b: any) => {
+                              const { h, m } = parseTime(b.drop_off_time);
+                              const top = (h + m / 60 - START_HOUR) * SLOT_H;
+                              const hoursDur = Math.max(0.5, bookingDurationMin(b) / 60);
+                              const height = Math.max(24, hoursDur * SLOT_H - 2);
+                              if (top + height < 0 || top > GRID_H) return null;
+                              const c = serviceColor(b.service_type);
+                              const bike = displayBike(b.motorcycles);
+                              const customer = displayCustomerName(b.customers);
+                              const laneInfo = laneMap.get(b.id) ?? { lane: 0, count: 1 };
+                              const widthPct = 100 / laneInfo.count;
+                              const leftPct = laneInfo.lane * widthPct;
+                              return (
+                                <div
+                                  key={b.id}
+                                  role="button"
+                                  tabIndex={0}
+                                  draggable
+                                  onMouseEnter={() => setHoverSlot(null)}
+                                  onMouseMove={(e) => e.stopPropagation()}
+                                  onDragStart={(e) => {
+                                    const rect = e.currentTarget.getBoundingClientRect();
+                                    const grabY = e.clientY - rect.top;
+                                    e.dataTransfer.effectAllowed = "move";
+                                    e.dataTransfer.setData("text/booking-id", b.id);
+                                    e.dataTransfer.setData("text/grab-offset", String(grabY));
+                                    setDraggingId(b.id);
+                                  }}
+                                  onDragEnd={() => setDraggingId(null)}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setSelectedBooking(b);
+                                  }}
+                                  className={`group absolute z-10 rounded-md p-2 text-left ring-1 overflow-hidden select-none transition-all hover:z-30 hover:brightness-110 hover:ring-2 hover:ring-primary hover:shadow-[0_8px_24px_rgba(0,0,0,0.35)] cursor-grab active:cursor-grabbing ${
+                                    b.color ? "text-foreground" : `${c.bg} ${c.ring} ${c.text}`
+                                  } ${draggingId === b.id ? "opacity-40" : ""} ${b.loan_bike ? "!ring-2 !ring-amber-400" : ""}`}
+                                  style={{
+                                    top: `${top}px`,
+                                    height: `${height}px`,
+                                    left: `calc(${leftPct}% + 2px)`,
+                                    width: `calc(${widthPct}% - 4px)`,
+                                    ...(b.color
+                                      ? {
+                                          backgroundColor: `${b.color}B3`,
+                                          boxShadow: `inset 0 0 0 1px ${b.color}`,
+                                        }
+                                      : {}),
+                                  }}
+                                >
+
                                 {/* Drag grip indicator — visible on hover */}
                                 <div className="absolute top-0.5 right-0.5 opacity-0 group-hover:opacity-70 transition-opacity pointer-events-none text-current text-[9px] leading-none font-black">
                                   ⋮⋮
