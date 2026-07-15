@@ -71,6 +71,19 @@ import {
 import { CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
+// Format HH:mm (24h) → h:mm AM/PM
+function fmt12h(t?: string | null): string {
+  if (!t) return "—";
+  const s = String(t);
+  const [hStr, mStr] = s.split(":");
+  const h = Number(hStr);
+  const m = Number(mStr ?? "0");
+  if (!Number.isFinite(h)) return s;
+  const period = h >= 12 ? "PM" : "AM";
+  const h12 = h % 12 === 0 ? 12 : h % 12;
+  return `${h12}:${String(m).padStart(2, "0")} ${period}`;
+}
+
 // Time slots (07:00 – 20:00 in 30-min increments)
 const TIME_SLOTS: string[] = (() => {
   const out: string[] = [];
@@ -207,6 +220,11 @@ function CalendarPage() {
   );
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [selectedBooking, setSelectedBooking] = useState<any | null>(null);
+  // View mode for the selected booking modal: quick summary vs full editor
+  const [bookingView, setBookingView] = useState<"summary" | "edit">("summary");
+  // Notes edit buffer for the summary view (independent from the edit view's textarea)
+  const [summaryNotes, setSummaryNotes] = useState<string>("");
+  const [savingSummaryNotes, setSavingSummaryNotes] = useState(false);
   // Functional patch that keeps the modal closed if the user already closed it
   // while an async save was in flight (prevents the modal from reopening after Close).
   const patchSelected = (patch: any) =>
@@ -289,6 +307,14 @@ function CalendarPage() {
       setQEditTime(quickSlot.time);
     }
   }, [quickSlot]);
+
+  // Reset view to summary + sync notes buffer when selecting a booking
+  useEffect(() => {
+    if (selectedBooking) {
+      setBookingView("summary");
+      setSummaryNotes(selectedBooking.notes ?? "");
+    }
+  }, [selectedBooking?.id]);
 
   useEffect(() => {
     const el = bodyRef.current;
@@ -1272,7 +1298,7 @@ function CalendarPage() {
                                 </div>
                                 <div className="flex items-center justify-between gap-1">
                                   <span className="text-[9px] font-bold uppercase tracking-wider truncate">
-                                    {b.drop_off_time ? b.drop_off_time.slice(0, 5) : ""} ·{" "}
+                                    {b.drop_off_time ? fmt12h(String(b.drop_off_time).slice(0, 5)) : ""} ·{" "}
                                     {b.service_type}
                                     {b.service_type === "Other" && b.service_type_other
                                       ? ` — ${b.service_type_other}`
@@ -1397,6 +1423,145 @@ function CalendarPage() {
                   : currentStart
                     ? addMinutesToTime(currentStart, bookingDurationMin(b))
                     : "";
+                if (bookingView === "summary") {
+                  return (
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-2 pr-8 flex-wrap">
+                        <span
+                          className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 ring-1 text-[11px] font-bold uppercase tracking-wider ${c.bg} ${c.ring} ${c.text}`}
+                        >
+                          <span className="h-1.5 w-1.5 rounded-full bg-current" />
+                          {displayServiceType(b.service_type, b.service_type_other)}
+                        </span>
+                        {b.confirmed && (
+                          <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-green-500">
+                            <span className="h-1.5 w-1.5 rounded-full bg-green-500" /> Confirmed
+                          </span>
+                        )}
+                        {b.loan_bike && (
+                          <span className="inline-flex items-center gap-1 rounded-full bg-amber-400/20 border border-amber-400/60 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-amber-300">
+                            🏍️ Loan{b.loan_bikes?.name ? ` · ${b.loan_bikes.name}` : ""}
+                          </span>
+                        )}
+                      </div>
+
+                      <div>
+                        <div className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground">
+                          Booking
+                        </div>
+                        <div className="font-display text-lg font-bold">{customer}</div>
+                        <div className="text-sm text-muted-foreground">
+                          {b.scheduled_date
+                            ? format(
+                                new Date(b.scheduled_date + "T00:00:00"),
+                                "EEE, MMM d, yyyy",
+                              )
+                            : "—"}{" "}
+                          · {fmt12h(currentStart)}
+                          {currentEnd ? ` – ${fmt12h(currentEnd)}` : ""}
+                        </div>
+                        {bike !== "—" && (
+                          <div className="mt-1 text-sm flex items-center gap-1.5">
+                            <BikeIcon className="h-3.5 w-3.5 text-muted-foreground" />
+                            <span>{bike}</span>
+                            {b.motorcycles?.rego && (
+                              <span className="font-mono text-xs bg-primary/10 border border-primary/30 rounded px-1.5 py-0.5 text-primary">
+                                {b.motorcycles.rego}
+                              </span>
+                            )}
+                          </div>
+                        )}
+                        {b.customers?.phone && (
+                          <div className="mt-1 text-xs text-muted-foreground flex items-center gap-1">
+                            <Phone className="h-3 w-3" /> {b.customers.phone}
+                          </div>
+                        )}
+                      </div>
+
+                      {b.service_type === "Other" && b.service_type_other && (
+                        <div className="rounded-lg border border-border bg-background/40 px-3 py-2 text-sm">
+                          <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-0.5">
+                            Service detail
+                          </div>
+                          {b.service_type_other}
+                        </div>
+                      )}
+
+                      <div>
+                        <label className="text-[10px] uppercase tracking-wider text-muted-foreground flex items-center gap-1">
+                          <StickyNote className="h-3 w-3" /> Notes
+                        </label>
+                        <textarea
+                          value={summaryNotes}
+                          onChange={(e) => setSummaryNotes(e.target.value)}
+                          placeholder="Add notes for this booking..."
+                          className="mt-1 w-full min-h-[90px] rounded-lg border border-border bg-background/60 px-3 py-2 text-sm focus:border-primary/60 focus:outline-none resize-y"
+                        />
+                        <div className="mt-2 flex justify-end">
+                          <button
+                            type="button"
+                            disabled={
+                              savingSummaryNotes || summaryNotes === (b.notes ?? "")
+                            }
+                            onClick={async () => {
+                              setSavingSummaryNotes(true);
+                              const { error } = await supabase
+                                .from("bookings")
+                                .update({ notes: summaryNotes.trim() || null })
+                                .eq("id", b.id);
+                              setSavingSummaryNotes(false);
+                              if (error) return toast.error(error.message);
+                              patchSelected({ notes: summaryNotes.trim() || null });
+                              qc.invalidateQueries({ queryKey: ["calendar-bookings"] });
+                              toast.success("Notes saved");
+                            }}
+                            className="rounded-lg border border-border px-3 py-1.5 text-xs font-semibold hover:border-primary/50 hover:bg-primary/5 disabled:opacity-50"
+                          >
+                            {savingSummaryNotes ? "Saving…" : "Save notes"}
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-2 pt-2 border-t border-border/60">
+                        <button
+                          type="button"
+                          onClick={() => setBookingView("edit")}
+                          className="rounded-lg border border-border px-3 py-2 text-sm font-semibold hover:border-primary/50 hover:bg-primary/5 transition-colors"
+                        >
+                          <FileText className="inline h-3.5 w-3.5 mr-1.5" />
+                          Edit booking
+                        </button>
+                        {b.job_id ? (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const jid = b.job_id;
+                              setSelectedBooking(null);
+                              nav({ to: "/jobs/$jobId", params: { jobId: jid } });
+                            }}
+                            className="rounded-lg red-surface px-3 py-2 text-sm font-semibold hover:scale-[1.02] transition-transform"
+                          >
+                            <Wrench className="inline h-3.5 w-3.5 mr-1.5" />
+                            Open Job Card
+                          </button>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const bookingId = b.id;
+                              setSelectedBooking(null);
+                              nav({ to: "/jobs/new", search: { bookingId } as any });
+                            }}
+                            className="rounded-lg red-surface px-3 py-2 text-sm font-semibold hover:scale-[1.02] transition-transform"
+                          >
+                            <Wrench className="inline h-3.5 w-3.5 mr-1.5" />
+                            Create Job Card
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                }
                 return (
                   <>
                     <div className="flex items-center gap-2 pr-8">
@@ -1911,8 +2076,7 @@ function CalendarPage() {
                       {displayCustomerName(justCreated.customers)}
                     </div>
                     <div className="text-sm text-muted-foreground">
-                      {justCreated.scheduled_date} ·{" "}
-                      {String(justCreated.drop_off_time ?? "").slice(0, 5)}
+                      {justCreated.scheduled_date} · {fmt12h(String(justCreated.drop_off_time ?? "").slice(0, 5))}
                       {justCreated.motorcycles && (
                         <>
                           {" "}
@@ -2042,12 +2206,14 @@ function CalendarPage() {
                     </label>
                     <Select value={qEditTime} onValueChange={setQEditTime}>
                       <SelectTrigger className="w-full mt-1 rounded-lg border border-border bg-background/60 px-3 py-2 text-sm font-semibold tabular-nums h-auto">
-                        <SelectValue placeholder="Pick a time" />
+                        <SelectValue placeholder="Pick a time">
+                          {qEditTime ? fmt12h(qEditTime) : undefined}
+                        </SelectValue>
                       </SelectTrigger>
                       <SelectContent className="max-h-72">
                         {TIME_SLOTS.map((t) => (
-                          <SelectItem key={t} value={t} className="font-mono tabular-nums">
-                            {t}
+                          <SelectItem key={t} value={t} className="tabular-nums">
+                            {fmt12h(t)}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -2323,8 +2489,8 @@ function CalendarPage() {
                   </datalist>
                 </div>
                 <div className="col-span-1">
-                  <label className="text-[10px] uppercase tracking-wider text-muted-foreground">
-                    Model *
+                  <label className="text-[10px] uppercase tracking-wider text-muted-foreground flex items-center gap-1">
+                    <BikeIcon className="h-3 w-3" /> Model *
                   </label>
                   <input
                     list="bike-models-list"
