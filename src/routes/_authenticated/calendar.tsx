@@ -430,17 +430,21 @@ function CalendarPage() {
     if (!quickSlot) return;
     if (!qFirst.trim()) return toast.error("First name required");
     if (!qBikeMake.trim() || !qBikeModel.trim()) return toast.error("Bike make and model required");
-    const [qh, qm] = quickSlot.time.split(":");
-    const startMin = (Number(qh) || 0) * 60 + (Number(qm) || 0);
-    const clash = findOverlap(
-      format(quickSlot.date, "yyyy-MM-dd"),
-      startMin,
-      Number(qEstHours) || 1,
-    );
-    if (clash)
-      return toast.error(
-        `Slot already booked (${clash.service_type} at ${String(clash.drop_off_time).slice(0, 5)})`,
-      );
+    const startTime = quickSlot.time;
+    const endTime = qEndTime && qEndTime.trim() ? qEndTime : addMinutesToTime(startTime, 60);
+    const rangeErr = validateTimeRange(startTime, endTime);
+    if (rangeErr) return toast.error(rangeErr);
+    const dateStr = format(quickSlot.date, "yyyy-MM-dd");
+    try {
+      const conflicts = await findBookingConflicts({
+        date: dateStr,
+        startTime,
+        endTime,
+      });
+      if (conflicts.length) return toast.error(formatConflictMessage(conflicts));
+    } catch (e: any) {
+      return toast.error(e?.message ?? "Conflict check failed");
+    }
     setCreatingQuick(true);
     try {
       let customerId = qCustomerId;
@@ -480,8 +484,9 @@ function CalendarPage() {
         motorcycle_id: bikeId!,
         service_type: qService,
         service_type_other: qService === "Other" ? qServiceOther.trim() || null : null,
-        scheduled_date: format(quickSlot.date, "yyyy-MM-dd"),
-        drop_off_time: quickSlot.time,
+        scheduled_date: dateStr,
+        drop_off_time: `${startTime}:00`,
+        scheduled_end_time: `${endTime}:00`,
         estimated_hours: Number(qEstHours) || 1,
         rego: qBikeRego.trim().toUpperCase() || null,
         loan_bike: qLoanBike,
@@ -504,6 +509,7 @@ function CalendarPage() {
       setCreatingQuick(false);
     }
   }
+
 
   async function confirmDeleteBooking() {
     if (!deleteBooking) return;
