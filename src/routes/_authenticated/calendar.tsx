@@ -48,6 +48,21 @@ import { toast } from "sonner";
 import { initials } from "@/lib/format";
 import { BIKE_MAKES, BIKE_MAKE_NAMES, BIKE_YEARS } from "@/lib/bike-library";
 import { lookupRego } from "@/lib/rego-lookup.functions";
+import { useBookingTypes } from "@/hooks/useBookingTypes";
+import { useDailyNotesRange } from "@/hooks/useDailyNotes";
+import { DailyNoteDialog } from "@/components/booking/DailyNoteDialog";
+import { StickyNote } from "lucide-react";
+import {
+  addMinutesToTime,
+  findBookingConflicts,
+  formatConflictMessage,
+  validateTimeRange,
+} from "@/lib/booking-conflicts";
+import {
+  displayBike,
+  displayCustomerName,
+  displayServiceType,
+} from "@/lib/display";
 
 export const Route = createFileRoute("/_authenticated/calendar")({
   component: CalendarPage,
@@ -141,7 +156,7 @@ function serviceColor(t: string | null | undefined) {
   return SERVICE_COLORS.default;
 }
 
-const SERVICE_TYPES = [
+const FALLBACK_SERVICE_TYPES = [
   "Basic Service",
   "Standard Service",
   "Full Service",
@@ -197,6 +212,14 @@ function CalendarPage() {
   const [qLoanBikeReturn, setQLoanBikeReturn] = useState<string>("");
   const [creatingQuick, setCreatingQuick] = useState(false);
   const [lookingUpRego, setLookingUpRego] = useState(false);
+  const [qEndTime, setQEndTime] = useState<string>("");
+  const [dayNoteFor, setDayNoteFor] = useState<string | null>(null);
+
+  const bookingTypesQ = useBookingTypes(true);
+  const serviceTypesList = useMemo(() => {
+    const active = (bookingTypesQ.data ?? []).map((t) => t.name);
+    return active.length ? active : FALLBACK_SERVICE_TYPES;
+  }, [bookingTypesQ.data]);
 
   async function fetchQuickFromRego() {
     const plate = qBikeRego.trim();
@@ -405,17 +428,21 @@ function CalendarPage() {
     if (!quickSlot) return;
     if (!qFirst.trim()) return toast.error("First name required");
     if (!qBikeMake.trim() || !qBikeModel.trim()) return toast.error("Bike make and model required");
-    const [qh, qm] = quickSlot.time.split(":");
-    const startMin = (Number(qh) || 0) * 60 + (Number(qm) || 0);
-    const clash = findOverlap(
-      format(quickSlot.date, "yyyy-MM-dd"),
-      startMin,
-      Number(qEstHours) || 1,
-    );
-    if (clash)
-      return toast.error(
-        `Slot already booked (${clash.service_type} at ${String(clash.drop_off_time).slice(0, 5)})`,
-      );
+    const startTime = quickSlot.time;
+    const endTime = qEndTime && qEndTime.trim() ? qEndTime : addMinutesToTime(startTime, 60);
+    const rangeErr = validateTimeRange(startTime, endTime);
+    if (rangeErr) return toast.error(rangeErr);
+    const dateStr = format(quickSlot.date, "yyyy-MM-dd");
+    try {
+      const conflicts = await findBookingConflicts({
+        date: dateStr,
+        startTime,
+        endTime,
+      });
+      if (conflicts.length) return toast.error(formatConflictMessage(conflicts));
+    } catch (e: any) {
+      return toast.error(e?.message ?? "Conflict check failed");
+    }
     setCreatingQuick(true);
     try {
       let customerId = qCustomerId;
@@ -455,8 +482,9 @@ function CalendarPage() {
         motorcycle_id: bikeId!,
         service_type: qService,
         service_type_other: qService === "Other" ? qServiceOther.trim() || null : null,
-        scheduled_date: format(quickSlot.date, "yyyy-MM-dd"),
-        drop_off_time: quickSlot.time,
+        scheduled_date: dateStr,
+        drop_off_time: `${startTime}:00`,
+        scheduled_end_time: `${endTime}:00`,
         estimated_hours: Number(qEstHours) || 1,
         rego: qBikeRego.trim().toUpperCase() || null,
         loan_bike: qLoanBike,
@@ -479,6 +507,7 @@ function CalendarPage() {
       setCreatingQuick(false);
     }
   }
+
 
   async function confirmDeleteBooking() {
     if (!deleteBooking) return;
@@ -508,7 +537,7 @@ function CalendarPage() {
       const { data, error } = await supabase
         .from("bookings")
         .select(
-          "id, service_type, service_type_other, scheduled_date, drop_off_time, estimated_hours, status, color, complaints, notes, assigned_tech_id, customer_id, motorcycle_id, confirmed, loan_bike, loan_bike_id, loan_bike_expected_return, job_id, customers(first_name,last_name,phone,email), motorcycles(year,make,model,rego), loan_bikes(id,name)",
+          "id, service_type, service_type_other, scheduled_date, drop_off_time, scheduled_end_time, estimated_hours, status, color, complaints, notes, assigned_tech_id, customer_id, motorcycle_id, confirmed, loan_bike, loan_bike_id, loan_bike_expected_return, job_id, customers(first_name,last_name,phone,email), motorcycles(year,make,model,rego), loan_bikes(id,name)",
         )
         .gte("scheduled_date", format(visibleRange.start, "yyyy-MM-dd"))
         .lte("scheduled_date", format(visibleRange.end, "yyyy-MM-dd"))
@@ -531,20 +560,50 @@ function CalendarPage() {
     },
   });
 
+  // Daily notes for the visible range
+  const dailyNotesQ = useDailyNotesRange(
+    format(visibleRange.start, "yyyy-MM-dd"),
+    format(visibleRange.end, "yyyy-MM-dd"),
+  );
+  const notesByDay = useMemo(() => {
+    const map = new Map<string, any[]>();
+    for (const n of (dailyNotesQ.data ?? []) as any[]) {
+      const list = map.get(n.note_date) ?? [];
+      list.push(n);
+      map.set(n.note_date, list);
+    }
+    return map;
+  }, [dailyNotesQ.data]);
+
+  // Duration in minutes from a booking row, falling back to 60 min.
+  function bookingDurationMin(bk: any): number {
+    if (bk?.scheduled_end_time && bk?.drop_off_time) {
+      const [sh, sm] = String(bk.drop_off_time).split(":");
+      const [eh, em] = String(bk.scheduled_end_time).split(":");
+      const s = (Number(sh) || 0) * 60 + (Number(sm) || 0);
+      const e = (Number(eh) || 0) * 60 + (Number(em) || 0);
+      const d = e - s;
+      if (d > 0) return d;
+    }
+    return 60;
+  }
+
+  // Client-side pre-check used only for cheap UI hints (empty-slot click).
+  // Authoritative checks use findBookingConflicts RPC.
   function findOverlap(
     dayKey: string,
     startMin: number,
-    hours: number,
+    _hoursIgnored: number,
     excludeId?: string,
   ): any | null {
-    const endMin = startMin + Math.max(0.25, hours) * 60;
+    const endMin = startMin + 30; // treat empty-slot click as a 30-min probe
     for (const bk of bookings as any[]) {
       if (bk.id === excludeId) continue;
       if (bk.scheduled_date !== dayKey) continue;
       if (!bk.drop_off_time) continue;
       const [hh, mm] = String(bk.drop_off_time).split(":");
       const bs = (Number(hh) || 0) * 60 + (Number(mm) || 0);
-      const be = bs + Math.max(0.25, Number(bk.estimated_hours || 1)) * 60;
+      const be = bs + bookingDurationMin(bk);
       if (startMin < be && endMin > bs) return bk;
     }
     return null;
@@ -553,27 +612,36 @@ function CalendarPage() {
   async function moveBooking(bookingId: string, newDate: Date, newTime?: string) {
     const dateStr = format(newDate, "yyyy-MM-dd");
     const current = (bookings as any[]).find((b) => b.id === bookingId);
-    const hours = Math.max(0.25, Number(current?.estimated_hours || 1));
-    if (newTime) {
-      const [hh, mm] = newTime.split(":");
-      const startMin = (Number(hh) || 0) * 60 + (Number(mm) || 0);
-      const clash = findOverlap(dateStr, startMin, hours, bookingId);
-      if (clash) {
-        toast.error(
-          `Slot already booked (${clash.service_type} at ${String(clash.drop_off_time).slice(0, 5)})`,
-        );
-        return;
-      }
+    const durationMin = bookingDurationMin(current);
+    const startTime = newTime ?? (current?.drop_off_time ? String(current.drop_off_time).slice(0, 5) : null);
+    if (!startTime) return;
+    const endTime = addMinutesToTime(startTime, durationMin);
+    const rangeErr = validateTimeRange(startTime, endTime);
+    if (rangeErr) return toast.error(rangeErr);
+    try {
+      const conflicts = await findBookingConflicts({
+        date: dateStr,
+        startTime,
+        endTime,
+        excludeBookingId: bookingId,
+      });
+      if (conflicts.length) return toast.error(formatConflictMessage(conflicts));
+    } catch (e: any) {
+      return toast.error(e?.message ?? "Conflict check failed");
     }
-    const patch: any = { scheduled_date: dateStr };
-    if (newTime) patch.drop_off_time = newTime;
+    const patch: any = {
+      scheduled_date: dateStr,
+      drop_off_time: `${startTime}:00`,
+      scheduled_end_time: `${endTime}:00`,
+    };
     const { error } = await supabase.from("bookings").update(patch).eq("id", bookingId);
     if (error) return toast.error(error.message);
     toast.success(
-      "Booking moved to " + format(newDate, "EEE d MMM") + (newTime ? ` · ${newTime}` : ""),
+      "Booking moved to " + format(newDate, "EEE d MMM") + ` · ${startTime}`,
     );
     qc.invalidateQueries({ queryKey: ["calendar-bookings"] });
   }
+
 
   const totals = useMemo(() => {
     const byDay = new Map<string, number>();
@@ -641,6 +709,13 @@ function CalendarPage() {
             aria-label="Next"
           >
             <ChevronRight className="h-4 w-4" />
+          </button>
+          <button
+            onClick={() => setDayNoteFor(format(new Date(), "yyyy-MM-dd"))}
+            className="inline-flex items-center gap-1.5 px-3 h-10 rounded-xl border border-amber-500/40 bg-amber-500/10 hover:border-amber-500 text-xs font-semibold uppercase tracking-wider text-amber-500"
+            title="Add or edit day notes"
+          >
+            <StickyNote className="h-3.5 w-3.5" /> Day notes
           </button>
         </div>
 
@@ -756,6 +831,23 @@ function CalendarPage() {
                         </span>
                       )}
                     </div>
+                    {(notesByDay.get(dayKey) ?? []).length > 0 && (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setDayNoteFor(dayKey);
+                        }}
+                        className="mt-1 inline-flex items-center gap-1 rounded-md bg-amber-500/15 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-amber-500 hover:bg-amber-500/25 self-start"
+                        title={(notesByDay.get(dayKey) ?? []).map((n: any) => n.title).join(" · ")}
+                      >
+                        <StickyNote className="h-2.5 w-2.5" />
+                        {(notesByDay.get(dayKey) ?? [])[0].title}
+                        {(notesByDay.get(dayKey) ?? []).length > 1
+                          ? ` +${(notesByDay.get(dayKey) ?? []).length - 1}`
+                          : ""}
+                      </button>
+                    )}
 
                     {loadHours > 0 && (
                       <div className="mt-1.5 h-1 rounded-full bg-muted overflow-hidden">
@@ -845,6 +937,7 @@ function CalendarPage() {
               return;
             }
             resetQuickForm();
+            setQEndTime(addMinutesToTime(time, 60));
             setQuickSlot({ date: day, time });
           };
 
@@ -895,10 +988,37 @@ function CalendarPage() {
                           >
                             {format(day, "d")}
                           </div>
+                          {(() => {
+                            const notes = notesByDay.get(dayKey) ?? [];
+                            return (
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setDayNoteFor(dayKey);
+                                }}
+                                className={`mt-1 inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider transition-colors ${
+                                  notes.length
+                                    ? "bg-amber-500/15 text-amber-500 hover:bg-amber-500/25"
+                                    : "text-muted-foreground/50 hover:text-amber-500"
+                                }`}
+                                title={
+                                  notes.length
+                                    ? notes.map((n: any) => n.title).join(" · ")
+                                    : "Add day note"
+                                }
+                              >
+                                <StickyNote className="h-2.5 w-2.5" />
+                                {notes.length ? notes[0].title : "Note"}
+                                {notes.length > 1 ? ` +${notes.length - 1}` : ""}
+                              </button>
+                            );
+                          })()}
                         </div>
                       );
                     })}
                   </div>
+
 
                   {/* Time grid body */}
                   <div
@@ -1015,22 +1135,17 @@ function CalendarPage() {
                             </div>
                           )}
 
-                          {/* Bookings positioned by drop_off_time + estimated_hours */}
+                          {/* Bookings positioned by drop_off_time + scheduled_end_time */}
                           {dayBookings.map((b: any) => {
                             const { h, m } = parseTime(b.drop_off_time);
                             const top = (h + m / 60 - START_HOUR) * SLOT_H;
-                            const hoursDur = Math.max(0.5, Number(b.estimated_hours || 1));
+                            const hoursDur = Math.max(0.5, bookingDurationMin(b) / 60);
                             const height = Math.max(24, hoursDur * SLOT_H - 2);
                             // clamp to grid
                             if (top + height < 0 || top > GRID_H) return null;
                             const c = serviceColor(b.service_type);
-                            const bike = b.motorcycles
-                              ? `${b.motorcycles.year ?? ""} ${b.motorcycles.make} ${b.motorcycles.model}`.trim()
-                              : "—";
-                            const customer = b.customers
-                              ? `${b.customers.first_name ?? ""} ${b.customers.last_name ?? ""}`.trim() ||
-                                "—"
-                              : "—";
+                            const bike = displayBike(b.motorcycles);
+                            const customer = displayCustomerName(b.customers);
                             return (
                               <div
                                 key={b.id}
@@ -1136,12 +1251,14 @@ function CalendarPage() {
               {(() => {
                 const b = selectedBooking;
                 const c = serviceColor(b.service_type);
-                const bike = b.motorcycles
-                  ? `${b.motorcycles.year ?? ""} ${b.motorcycles.make} ${b.motorcycles.model}`.trim()
-                  : "—";
-                const customer = b.customers
-                  ? `${b.customers.first_name ?? ""} ${b.customers.last_name ?? ""}`.trim() || "—"
-                  : "—";
+                const bike = displayBike(b.motorcycles);
+                const customer = displayCustomerName(b.customers);
+                const currentStart = b.drop_off_time ? String(b.drop_off_time).slice(0, 5) : "";
+                const currentEnd = b.scheduled_end_time
+                  ? String(b.scheduled_end_time).slice(0, 5)
+                  : currentStart
+                    ? addMinutesToTime(currentStart, bookingDurationMin(b))
+                    : "";
                 return (
                   <>
                     <div className="flex items-center gap-2 pr-8">
@@ -1149,7 +1266,7 @@ function CalendarPage() {
                         className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 ring-1 text-[11px] font-bold uppercase tracking-wider ${c.bg} ${c.ring} ${c.text}`}
                       >
                         <span className="h-1.5 w-1.5 rounded-full bg-current" />
-                        {b.service_type}
+                        {displayServiceType(b.service_type, b.service_type_other)}
                       </span>
                       {b.confirmed && (
                         <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-green-500">
@@ -1177,18 +1294,20 @@ function CalendarPage() {
                           onBlur={async (e) => {
                             const v = e.target.value;
                             if (!v || v === b.scheduled_date) return;
-                            const [th, tm] = String(b.drop_off_time || "00:00").split(":");
-                            const clash = findOverlap(
-                              v,
-                              (Number(th) || 0) * 60 + (Number(tm) || 0),
-                              Number(b.estimated_hours) || 1,
-                              b.id,
-                            );
-
-                            if (clash)
-                              return toast.error(
-                                `Slot taken (${clash.service_type} at ${String(clash.drop_off_time).slice(0, 5)})`,
-                              );
+                            const start = currentStart || "09:00";
+                            const end = currentEnd || addMinutesToTime(start, 60);
+                            try {
+                              const conflicts = await findBookingConflicts({
+                                date: v,
+                                startTime: start,
+                                endTime: end,
+                                excludeBookingId: b.id,
+                              });
+                              if (conflicts.length)
+                                return toast.error(formatConflictMessage(conflicts));
+                            } catch (err: any) {
+                              return toast.error(err?.message ?? "Conflict check failed");
+                            }
                             const { error } = await supabase
                               .from("bookings")
                               .update({ scheduled_date: v })
@@ -1202,40 +1321,82 @@ function CalendarPage() {
                         />
                         <input
                           type="time"
-                          defaultValue={b.drop_off_time ? String(b.drop_off_time).slice(0, 5) : ""}
+                          key={`start-${b.id}-${currentStart}`}
+                          defaultValue={currentStart}
                           onBlur={async (e) => {
                             const v = e.target.value;
-                            if (
-                              !v ||
-                              v === (b.drop_off_time ? String(b.drop_off_time).slice(0, 5) : "")
-                            )
-                              return;
-                            const [hh, mm] = v.split(":");
-                            const totalMin = Number(hh) * 60 + Number(mm);
-                            const clash = findOverlap(
-                              b.scheduled_date,
-                              totalMin,
-                              Number(b.estimated_hours) || 1,
-                              b.id,
-                            );
-                            if (clash)
-                              return toast.error(
-                                `Slot taken (${clash.service_type} at ${String(clash.drop_off_time).slice(0, 5)})`,
-                              );
+                            if (!v || v === currentStart) return;
+                            const durationMin = bookingDurationMin(b);
+                            const newEnd = addMinutesToTime(v, durationMin);
+                            const rangeErr = validateTimeRange(v, newEnd);
+                            if (rangeErr) return toast.error(rangeErr);
+                            try {
+                              const conflicts = await findBookingConflicts({
+                                date: b.scheduled_date,
+                                startTime: v,
+                                endTime: newEnd,
+                                excludeBookingId: b.id,
+                              });
+                              if (conflicts.length)
+                                return toast.error(formatConflictMessage(conflicts));
+                            } catch (err: any) {
+                              return toast.error(err?.message ?? "Conflict check failed");
+                            }
                             const { error } = await supabase
                               .from("bookings")
-                              .update({ drop_off_time: v + ":00" })
+                              .update({
+                                drop_off_time: `${v}:00`,
+                                scheduled_end_time: `${newEnd}:00`,
+                              })
                               .eq("id", b.id);
                             if (error) return toast.error(error.message);
-                            setSelectedBooking({ ...b, drop_off_time: v + ":00" });
+                            setSelectedBooking({
+                              ...b,
+                              drop_off_time: `${v}:00`,
+                              scheduled_end_time: `${newEnd}:00`,
+                            });
                             qc.invalidateQueries({ queryKey: ["calendar-bookings"] });
-                            toast.success("Time updated");
+                            toast.success("Start time updated");
+                          }}
+                          className="rounded-md border border-border bg-background px-2 py-1 text-sm tabular-nums focus:border-primary/60 outline-none"
+                        />
+                        <span className="text-xs text-muted-foreground">→</span>
+                        <input
+                          type="time"
+                          key={`end-${b.id}-${currentEnd}`}
+                          defaultValue={currentEnd}
+                          onBlur={async (e) => {
+                            const v = e.target.value;
+                            if (!v || v === currentEnd) return;
+                            const start = currentStart || "09:00";
+                            const rangeErr = validateTimeRange(start, v);
+                            if (rangeErr) return toast.error(rangeErr);
+                            try {
+                              const conflicts = await findBookingConflicts({
+                                date: b.scheduled_date,
+                                startTime: start,
+                                endTime: v,
+                                excludeBookingId: b.id,
+                              });
+                              if (conflicts.length)
+                                return toast.error(formatConflictMessage(conflicts));
+                            } catch (err: any) {
+                              return toast.error(err?.message ?? "Conflict check failed");
+                            }
+                            const { error } = await supabase
+                              .from("bookings")
+                              .update({ scheduled_end_time: `${v}:00` })
+                              .eq("id", b.id);
+                            if (error) return toast.error(error.message);
+                            setSelectedBooking({ ...b, scheduled_end_time: `${v}:00` });
+                            qc.invalidateQueries({ queryKey: ["calendar-bookings"] });
+                            toast.success("End time updated");
                           }}
                           className="rounded-md border border-border bg-background px-2 py-1 text-sm tabular-nums focus:border-primary/60 outline-none"
                         />
                       </div>
                       <div className="text-xs text-muted-foreground mt-2 flex items-center gap-2">
-                        <span>Estimated:</span>
+                        <span>Est. hours (info):</span>
                         <input
                           type="number"
                           min="0.25"
@@ -1261,12 +1422,13 @@ function CalendarPage() {
                         <span>h</span>
                       </div>
 
+
                       <div className="mt-3">
                         <div className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground mb-1.5">
                           Service type
                         </div>
                         <div className="flex flex-wrap gap-1.5">
-                          {SERVICE_TYPES.map((s) => {
+                          {Array.from(new Set([...serviceTypesList, b.service_type].filter(Boolean) as string[])).map((s: string) => {
                             const sc = serviceColor(s);
                             const active = (b.service_type ?? "").toLowerCase() === s.toLowerCase();
                             return (
@@ -1902,9 +2064,20 @@ function CalendarPage() {
                     </button>
                   </div>
                 </div>
-                <div className="col-span-2">
+                <div className="col-span-1">
                   <label className="text-[10px] uppercase tracking-wider text-muted-foreground">
-                    Est. hours
+                    End time
+                  </label>
+                  <input
+                    type="time"
+                    value={qEndTime}
+                    onChange={(e) => setQEndTime(e.target.value)}
+                    className="w-full mt-1 rounded-lg border border-border bg-background/60 px-3 py-2 text-sm focus:border-primary/60 focus:outline-none"
+                  />
+                </div>
+                <div className="col-span-1">
+                  <label className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                    Est. hours (info)
                   </label>
                   <input
                     value={qEstHours}
@@ -1920,7 +2093,7 @@ function CalendarPage() {
                   Service
                 </label>
                 <div className="mt-1.5 flex flex-wrap gap-1.5">
-                  {SERVICE_TYPES.map((s) => {
+                  {serviceTypesList.map((s: string) => {
                     const c = serviceColor(s);
                     const active = qService === s;
                     return (
@@ -2082,10 +2255,9 @@ function CalendarPage() {
                 <>
                   Are you sure you want to delete the booking for{" "}
                   <span className="font-semibold text-foreground">
-                    {deleteBooking.customers
-                      ? `${deleteBooking.customers.first_name ?? ""} ${deleteBooking.customers.last_name ?? ""}`.trim() ||
-                        "this customer"
-                      : "this customer"}
+                    {displayCustomerName(deleteBooking.customers) === "—"
+                      ? "this customer"
+                      : displayCustomerName(deleteBooking.customers)}
                   </span>{" "}
                   on{" "}
                   <span className="font-semibold text-foreground">
@@ -2107,6 +2279,14 @@ function CalendarPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {dayNoteFor && (
+        <DailyNoteDialog
+          date={dayNoteFor}
+          open={!!dayNoteFor}
+          onOpenChange={(o) => !o && setDayNoteFor(null)}
+        />
+      )}
     </div>
   );
 }
