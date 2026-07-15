@@ -709,9 +709,11 @@ function NewBooking() {
             </div>
           </section>
 
-          <section className="card-surface p-4 grid grid-cols-2 gap-3">
+          <section className="card-surface p-4 space-y-4">
             <div>
-              <Label className="text-xs uppercase tracking-wider text-muted-foreground">Date</Label>
+              <Label className="text-xs uppercase tracking-wider text-muted-foreground">
+                Date
+              </Label>
               <Input
                 type="date"
                 value={scheduledDate}
@@ -720,53 +722,66 @@ function NewBooking() {
               />
             </div>
             <div>
-              <Label className="text-xs uppercase tracking-wider text-muted-foreground">
-                Drop-off
+              <Label className="text-xs uppercase tracking-wider text-muted-foreground mb-2 block">
+                Calendar slot
               </Label>
-              <Input
-                type="time"
-                value={dropTime}
-                onChange={(e) => setDropTime(e.target.value)}
-                className="mt-1.5"
+              <TimeSlotFields
+                startTime={dropTime}
+                endTime={endTime}
+                onStartChange={(v) => {
+                  setDropTime(v);
+                  setConflictError(null);
+                }}
+                onEndChange={(v) => {
+                  setEndTime(v);
+                  setConflictError(null);
+                }}
+                externalError={conflictError}
               />
             </div>
-            <div>
-              <Label className="text-xs uppercase tracking-wider text-muted-foreground">
-                Est. hours
-              </Label>
-              <Input
-                type="number"
-                min="0.25"
-                step="0.25"
-                value={estHours}
-                onChange={(e) => setEstHours(e.target.value)}
-                className="mt-1.5"
-              />
-            </div>
-            <div>
-              <Label className="text-xs uppercase tracking-wider text-muted-foreground">
-                Mileage (km)
-              </Label>
-              <Input
-                type="number"
-                inputMode="numeric"
-                value={mileage}
-                onChange={(e) => setMileage(e.target.value)}
-                className="mt-1.5"
-              />
-            </div>
-            <div className="col-span-2">
-              <Label className="text-xs uppercase tracking-wider text-muted-foreground">
-                WOF expiry
-              </Label>
-              <Input
-                type="date"
-                value={wof}
-                onChange={(e) => setWof(e.target.value)}
-                className="mt-1.5"
-              />
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label className="text-xs uppercase tracking-wider text-muted-foreground">
+                  Estimated job hours
+                </Label>
+                <Input
+                  type="number"
+                  min="0.25"
+                  step="0.25"
+                  value={estHours}
+                  onChange={(e) => setEstHours(e.target.value)}
+                  className="mt-1.5"
+                />
+                <div className="text-[11px] text-muted-foreground mt-1">
+                  Informational — does not change the calendar slot.
+                </div>
+              </div>
+              <div>
+                <Label className="text-xs uppercase tracking-wider text-muted-foreground">
+                  Mileage (km)
+                </Label>
+                <Input
+                  type="number"
+                  inputMode="numeric"
+                  value={mileage}
+                  onChange={(e) => setMileage(e.target.value)}
+                  className="mt-1.5"
+                />
+              </div>
+              <div className="col-span-2">
+                <Label className="text-xs uppercase tracking-wider text-muted-foreground">
+                  WOF expiry
+                </Label>
+                <Input
+                  type="date"
+                  value={wof}
+                  onChange={(e) => setWof(e.target.value)}
+                  className="mt-1.5"
+                />
+              </div>
             </div>
           </section>
+
 
           <section className="card-surface p-4 space-y-3">
             <Label className="text-xs uppercase tracking-wider text-muted-foreground">
