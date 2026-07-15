@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      booking_types: {
+        Row: {
+          color: string | null
+          created_at: string
+          id: string
+          is_active: boolean
+          name: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          color?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       bookings: {
         Row: {
           arrival_photos: Json
@@ -43,7 +73,9 @@ export type Database = {
           notes: string | null
           priority: string
           rego: string | null
+          reminder_sent_at: string | null
           scheduled_date: string
+          scheduled_end_time: string | null
           service_template_id: string | null
           service_type: string
           service_type_other: string | null
@@ -80,7 +112,9 @@ export type Database = {
           notes?: string | null
           priority?: string
           rego?: string | null
+          reminder_sent_at?: string | null
           scheduled_date: string
+          scheduled_end_time?: string | null
           service_template_id?: string | null
           service_type: string
           service_type_other?: string | null
@@ -117,7 +151,9 @@ export type Database = {
           notes?: string | null
           priority?: string
           rego?: string | null
+          reminder_sent_at?: string | null
           scheduled_date?: string
+          scheduled_end_time?: string | null
           service_template_id?: string | null
           service_type?: string
           service_type_other?: string | null
@@ -234,6 +270,36 @@ export type Database = {
           last_name?: string | null
           notes?: string | null
           phone?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      daily_notes: {
+        Row: {
+          body: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          note_date: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          body?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          note_date: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          body?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          note_date?: string
+          title?: string
           updated_at?: string
         }
         Relationships: []
@@ -1283,7 +1349,24 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      find_booking_conflicts: {
+        Args: {
+          p_date: string
+          p_end: string
+          p_exclude_booking_id?: string
+          p_start: string
+          p_technician_id: string
+        }
+        Returns: {
+          assigned_tech_id: string
+          drop_off_time: string
+          id: string
+          scheduled_date: string
+          scheduled_end_time: string
+          service_type: string
+          status: string
+        }[]
+      }
     }
     Enums: {
       app_role: "admin" | "technician"
