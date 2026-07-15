@@ -643,7 +643,7 @@ function NewBooking() {
               Service type
             </Label>
             <div className="flex flex-wrap gap-2">
-              {SERVICE_TYPES.map((s) => (
+              {serviceTypeOptions.map((s: string) => (
                 <button
                   key={s}
                   onClick={() => setServiceType(s)}
