@@ -2055,12 +2055,14 @@ function CalendarPage() {
                     </label>
                     <Select value={qEditTime} onValueChange={setQEditTime}>
                       <SelectTrigger className="w-full mt-1 rounded-lg border border-border bg-background/60 px-3 py-2 text-sm font-semibold tabular-nums h-auto">
-                        <SelectValue placeholder="Pick a time" />
+                        <SelectValue placeholder="Pick a time">
+                          {qEditTime ? fmt12h(qEditTime) : undefined}
+                        </SelectValue>
                       </SelectTrigger>
                       <SelectContent className="max-h-72">
                         {TIME_SLOTS.map((t) => (
-                          <SelectItem key={t} value={t} className="font-mono tabular-nums">
-                            {t}
+                          <SelectItem key={t} value={t} className="tabular-nums">
+                            {fmt12h(t)}
                           </SelectItem>
                         ))}
                       </SelectContent>
