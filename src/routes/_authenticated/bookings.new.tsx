@@ -14,6 +14,14 @@ import { ArrowLeft, Plus, Search, Bike as BikeIcon, Camera, X } from "lucide-rea
 import { toast } from "sonner";
 import { fullBike, initials } from "@/lib/format";
 import { uploadPhoto } from "@/lib/photos";
+import { useBookingTypes } from "@/hooks/useBookingTypes";
+import { TimeSlotFields } from "@/components/booking/TimeSlotFields";
+import {
+  addMinutesToTime,
+  findBookingConflicts,
+  formatConflictMessage,
+  validateTimeRange,
+} from "@/lib/booking-conflicts";
 
 const searchSchema = z.object({ date: z.string().optional(), time: z.string().optional() });
 
