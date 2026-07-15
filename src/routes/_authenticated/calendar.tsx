@@ -2320,6 +2320,100 @@ function CalendarPage() {
           onOpenChange={(o) => !o && setDayNoteFor(null)}
         />
       )}
+
+      {/* Slot chooser: Booking or Note */}
+      <AnimatePresence>
+        {slotChoice && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+            onClick={() => setSlotChoice(null)}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 10 }}
+              className="card-surface w-full max-w-sm p-5"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="mb-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                {format(slotChoice.date, "EEEE, d MMM yyyy")}
+                {slotChoice.time ? ` · ${slotChoice.time}` : ""}
+              </div>
+              <div className="mb-4 font-display text-lg font-bold">What do you want to add?</div>
+              <div className="grid grid-cols-1 gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    const time = slotChoice.time ?? "09:00";
+                    resetQuickForm();
+                    setQEndTime(addMinutesToTime(time, 60));
+                    setQuickSlot({ date: slotChoice.date, time });
+                    setSlotChoice(null);
+                  }}
+                  className="flex items-center gap-3 rounded-lg border border-border/60 bg-primary/5 p-3 text-left hover:bg-primary/10 hover:ring-1 hover:ring-primary transition"
+                >
+                  <Wrench className="h-5 w-5 text-primary" />
+                  <div>
+                    <div className="font-semibold">New booking</div>
+                    <div className="text-[11px] text-muted-foreground">
+                      Schedule a job at this time
+                    </div>
+                  </div>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const key = slotChoice.dayKey;
+                    setSlotChoice(null);
+                    setDayNoteFor(key);
+                  }}
+                  className="flex items-center gap-3 rounded-lg border border-border/60 bg-amber-500/5 p-3 text-left hover:bg-amber-500/10 hover:ring-1 hover:ring-amber-500 transition"
+                >
+                  <StickyNote className="h-5 w-5 text-amber-500" />
+                  <div>
+                    <div className="font-semibold">Add day note</div>
+                    <div className="text-[11px] text-muted-foreground">
+                      Reminder for the whole day (mechanic off, order parts…)
+                    </div>
+                  </div>
+                </button>
+                {slotChoice.time === null && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const d = slotChoice.date;
+                      setSlotChoice(null);
+                      setWeekStart(startOfWeek(d, { weekStartsOn: 1 }));
+                      setViewMode("week");
+                    }}
+                    className="flex items-center gap-3 rounded-lg border border-border/60 p-3 text-left hover:bg-primary/5 transition"
+                  >
+                    <Clock className="h-5 w-5 text-muted-foreground" />
+                    <div>
+                      <div className="font-semibold">Open in week view</div>
+                      <div className="text-[11px] text-muted-foreground">
+                        See the day hour by hour
+                      </div>
+                    </div>
+                  </button>
+                )}
+              </div>
+              <div className="mt-4 flex justify-end">
+                <button
+                  type="button"
+                  onClick={() => setSlotChoice(null)}
+                  className="text-[11px] font-semibold text-muted-foreground hover:text-foreground"
+                >
+                  Cancel
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
