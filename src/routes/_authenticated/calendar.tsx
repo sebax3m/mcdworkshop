@@ -2237,6 +2237,14 @@ function CalendarPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {dayNoteFor && (
+        <DailyNoteDialog
+          date={dayNoteFor}
+          open={!!dayNoteFor}
+          onOpenChange={(o) => !o && setDayNoteFor(null)}
+        />
+      )}
     </div>
   );
 }
