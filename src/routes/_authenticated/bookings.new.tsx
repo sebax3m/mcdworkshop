@@ -46,7 +46,15 @@ function NewBooking() {
   const [priority, setPriority] = useState<string>("normal");
   const [scheduledDate, setScheduledDate] = useState<string>(search.date || today);
   const [dropTime, setDropTime] = useState<string>(search.time || "09:00");
+  const [endTime, setEndTime] = useState<string>(
+    addMinutesToTime(search.time || "09:00", 60),
+  );
   const [estHours, setEstHours] = useState<string>("2");
+  const [conflictError, setConflictError] = useState<string | null>(null);
+  const bookingTypesQuery = useBookingTypes(true);
+  const activeServiceTypes = (bookingTypesQuery.data ?? []).map((t) => t.name);
+  const serviceTypeOptions =
+    activeServiceTypes.length > 0 ? activeServiceTypes : FALLBACK_SERVICE_TYPES;
   const [mileage, setMileage] = useState<string>("");
   const [wof, setWof] = useState<string>("");
   const [instructions, setInstructions] = useState<string>("");
