@@ -1238,7 +1238,8 @@ function CalendarPage() {
                                 )}
                               </div>
                             );
-                          })}
+                            });
+                          })()}
                         </div>
                       );
                     })}
