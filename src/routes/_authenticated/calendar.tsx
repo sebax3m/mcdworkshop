@@ -210,6 +210,11 @@ function CalendarPage() {
   const [lookingUpRego, setLookingUpRego] = useState(false);
   const [qEndTime, setQEndTime] = useState<string>("");
   const [dayNoteFor, setDayNoteFor] = useState<string | null>(null);
+  const [slotChoice, setSlotChoice] = useState<{
+    date: Date;
+    time: string | null;
+    dayKey: string;
+  } | null>(null);
 
   const bookingTypesQ = useBookingTypes(true);
   const serviceTypesList = useMemo(() => {
@@ -796,8 +801,7 @@ function CalendarPage() {
                       setDraggingId(null);
                     }}
                     onClick={() => {
-                      setWeekStart(startOfWeek(day, { weekStartsOn: 1 }));
-                      setViewMode("week");
+                      setSlotChoice({ date: day, time: null, dayKey });
                     }}
                     className={`card-surface p-2 min-h-[160px] flex flex-col cursor-pointer transition-colors hover:ring-1 hover:ring-primary/30 ${
                       today ? "ring-2 ring-primary/40" : ""
@@ -929,9 +933,7 @@ function CalendarPage() {
               setSelectedBooking(clash);
               return;
             }
-            resetQuickForm();
-            setQEndTime(addMinutesToTime(time, 60));
-            setQuickSlot({ date: day, time });
+            setSlotChoice({ date: day, time, dayKey });
           };
 
           return (
@@ -1128,51 +1130,86 @@ function CalendarPage() {
                           )}
 
                           {/* Bookings positioned by drop_off_time + scheduled_end_time */}
-                          {dayBookings.map((b: any) => {
-                            const { h, m } = parseTime(b.drop_off_time);
-                            const top = (h + m / 60 - START_HOUR) * SLOT_H;
-                            const hoursDur = Math.max(0.5, bookingDurationMin(b) / 60);
-                            const height = Math.max(24, hoursDur * SLOT_H - 2);
-                            // clamp to grid
-                            if (top + height < 0 || top > GRID_H) return null;
-                            const c = serviceColor(b.service_type);
-                            const bike = displayBike(b.motorcycles);
-                            const customer = displayCustomerName(b.customers);
-                            return (
-                              <div
-                                key={b.id}
-                                role="button"
-                                tabIndex={0}
-                                draggable
-                                onMouseEnter={() => setHoverSlot(null)}
-                                onMouseMove={(e) => e.stopPropagation()}
-                                onDragStart={(e) => {
-                                  const rect = e.currentTarget.getBoundingClientRect();
-                                  const grabY = e.clientY - rect.top;
-                                  e.dataTransfer.effectAllowed = "move";
-                                  e.dataTransfer.setData("text/booking-id", b.id);
-                                  e.dataTransfer.setData("text/grab-offset", String(grabY));
-                                  setDraggingId(b.id);
-                                }}
-                                onDragEnd={() => setDraggingId(null)}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setSelectedBooking(b);
-                                }}
-                                className={`group absolute left-1 right-1 z-10 rounded-md p-2 text-left ring-1 overflow-hidden select-none transition-all hover:z-30 hover:brightness-110 hover:ring-2 hover:ring-primary hover:shadow-[0_8px_24px_rgba(0,0,0,0.35)] cursor-grab active:cursor-grabbing ${
-                                  b.color ? "text-foreground" : `${c.bg} ${c.ring} ${c.text}`
-                                } ${draggingId === b.id ? "opacity-40" : ""} ${b.loan_bike ? "!ring-2 !ring-amber-400" : ""}`}
-                                style={{
-                                  top: `${top}px`,
-                                  height: `${height}px`,
-                                  ...(b.color
-                                    ? {
-                                        backgroundColor: `${b.color}B3`,
-                                        boxShadow: `inset 0 0 0 1px ${b.color}`,
-                                      }
-                                    : {}),
-                                }}
-                              >
+                          {(() => {
+                            // Compute lanes so overlapping cards do not stack on top of each other
+                            const items = dayBookings
+                              .map((b: any) => {
+                                const { h, m } = parseTime(b.drop_off_time);
+                                const start = h * 60 + m;
+                                const end = start + Math.max(30, bookingDurationMin(b));
+                                return { b, start, end };
+                              })
+                              .sort((a, b) => a.start - b.start || b.end - a.end);
+                            const laneMap = new Map<string, { lane: number; count: number }>();
+                            let cluster: { b: any; start: number; end: number; lane: number }[] = [];
+                            let clusterEnd = -Infinity;
+                            const flush = () => {
+                              if (!cluster.length) return;
+                              const count = Math.max(...cluster.map((x) => x.lane)) + 1;
+                              cluster.forEach((x) => laneMap.set(x.b.id, { lane: x.lane, count }));
+                              cluster = [];
+                            };
+                            for (const it of items) {
+                              if (it.start >= clusterEnd) flush();
+                              const used = new Set(
+                                cluster.filter((x) => x.end > it.start).map((x) => x.lane),
+                              );
+                              let lane = 0;
+                              while (used.has(lane)) lane++;
+                              cluster.push({ ...it, lane });
+                              clusterEnd = Math.max(clusterEnd, it.end);
+                            }
+                            flush();
+                            return dayBookings.map((b: any) => {
+                              const { h, m } = parseTime(b.drop_off_time);
+                              const top = (h + m / 60 - START_HOUR) * SLOT_H;
+                              const hoursDur = Math.max(0.5, bookingDurationMin(b) / 60);
+                              const height = Math.max(24, hoursDur * SLOT_H - 2);
+                              if (top + height < 0 || top > GRID_H) return null;
+                              const c = serviceColor(b.service_type);
+                              const bike = displayBike(b.motorcycles);
+                              const customer = displayCustomerName(b.customers);
+                              const laneInfo = laneMap.get(b.id) ?? { lane: 0, count: 1 };
+                              const widthPct = 100 / laneInfo.count;
+                              const leftPct = laneInfo.lane * widthPct;
+                              return (
+                                <div
+                                  key={b.id}
+                                  role="button"
+                                  tabIndex={0}
+                                  draggable
+                                  onMouseEnter={() => setHoverSlot(null)}
+                                  onMouseMove={(e) => e.stopPropagation()}
+                                  onDragStart={(e) => {
+                                    const rect = e.currentTarget.getBoundingClientRect();
+                                    const grabY = e.clientY - rect.top;
+                                    e.dataTransfer.effectAllowed = "move";
+                                    e.dataTransfer.setData("text/booking-id", b.id);
+                                    e.dataTransfer.setData("text/grab-offset", String(grabY));
+                                    setDraggingId(b.id);
+                                  }}
+                                  onDragEnd={() => setDraggingId(null)}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setSelectedBooking(b);
+                                  }}
+                                  className={`group absolute z-10 rounded-md p-2 text-left ring-1 overflow-hidden select-none transition-all hover:z-30 hover:brightness-110 hover:ring-2 hover:ring-primary hover:shadow-[0_8px_24px_rgba(0,0,0,0.35)] cursor-grab active:cursor-grabbing ${
+                                    b.color ? "text-foreground" : `${c.bg} ${c.ring} ${c.text}`
+                                  } ${draggingId === b.id ? "opacity-40" : ""} ${b.loan_bike ? "!ring-2 !ring-amber-400" : ""}`}
+                                  style={{
+                                    top: `${top}px`,
+                                    height: `${height}px`,
+                                    left: `calc(${leftPct}% + 2px)`,
+                                    width: `calc(${widthPct}% - 4px)`,
+                                    ...(b.color
+                                      ? {
+                                          backgroundColor: `${b.color}B3`,
+                                          boxShadow: `inset 0 0 0 1px ${b.color}`,
+                                        }
+                                      : {}),
+                                  }}
+                                >
+
                                 {/* Drag grip indicator — visible on hover */}
                                 <div className="absolute top-0.5 right-0.5 opacity-0 group-hover:opacity-70 transition-opacity pointer-events-none text-current text-[9px] leading-none font-black">
                                   ⋮⋮
@@ -1201,7 +1238,8 @@ function CalendarPage() {
                                 )}
                               </div>
                             );
-                          })}
+                            });
+                          })()}
                         </div>
                       );
                     })}
@@ -2282,6 +2320,100 @@ function CalendarPage() {
           onOpenChange={(o) => !o && setDayNoteFor(null)}
         />
       )}
+
+      {/* Slot chooser: Booking or Note */}
+      <AnimatePresence>
+        {slotChoice && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+            onClick={() => setSlotChoice(null)}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 10 }}
+              className="card-surface w-full max-w-sm p-5"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="mb-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                {format(slotChoice.date, "EEEE, d MMM yyyy")}
+                {slotChoice.time ? ` · ${slotChoice.time}` : ""}
+              </div>
+              <div className="mb-4 font-display text-lg font-bold">What do you want to add?</div>
+              <div className="grid grid-cols-1 gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    const time = slotChoice.time ?? "09:00";
+                    resetQuickForm();
+                    setQEndTime(addMinutesToTime(time, 60));
+                    setQuickSlot({ date: slotChoice.date, time });
+                    setSlotChoice(null);
+                  }}
+                  className="flex items-center gap-3 rounded-lg border border-border/60 bg-primary/5 p-3 text-left hover:bg-primary/10 hover:ring-1 hover:ring-primary transition"
+                >
+                  <Wrench className="h-5 w-5 text-primary" />
+                  <div>
+                    <div className="font-semibold">New booking</div>
+                    <div className="text-[11px] text-muted-foreground">
+                      Schedule a job at this time
+                    </div>
+                  </div>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const key = slotChoice.dayKey;
+                    setSlotChoice(null);
+                    setDayNoteFor(key);
+                  }}
+                  className="flex items-center gap-3 rounded-lg border border-border/60 bg-amber-500/5 p-3 text-left hover:bg-amber-500/10 hover:ring-1 hover:ring-amber-500 transition"
+                >
+                  <StickyNote className="h-5 w-5 text-amber-500" />
+                  <div>
+                    <div className="font-semibold">Add day note</div>
+                    <div className="text-[11px] text-muted-foreground">
+                      Reminder for the whole day (mechanic off, order parts…)
+                    </div>
+                  </div>
+                </button>
+                {slotChoice.time === null && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const d = slotChoice.date;
+                      setSlotChoice(null);
+                      setWeekStart(startOfWeek(d, { weekStartsOn: 1 }));
+                      setViewMode("week");
+                    }}
+                    className="flex items-center gap-3 rounded-lg border border-border/60 p-3 text-left hover:bg-primary/5 transition"
+                  >
+                    <Clock className="h-5 w-5 text-muted-foreground" />
+                    <div>
+                      <div className="font-semibold">Open in week view</div>
+                      <div className="text-[11px] text-muted-foreground">
+                        See the day hour by hour
+                      </div>
+                    </div>
+                  </button>
+                )}
+              </div>
+              <div className="mt-4 flex justify-end">
+                <button
+                  type="button"
+                  onClick={() => setSlotChoice(null)}
+                  className="text-[11px] font-semibold text-muted-foreground hover:text-foreground"
+                >
+                  Cancel
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
