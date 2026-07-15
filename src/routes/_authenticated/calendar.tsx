@@ -833,6 +833,23 @@ function CalendarPage() {
                         </span>
                       )}
                     </div>
+                    {(notesByDay.get(dayKey) ?? []).length > 0 && (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setDayNoteFor(dayKey);
+                        }}
+                        className="mt-1 inline-flex items-center gap-1 rounded-md bg-amber-500/15 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-amber-500 hover:bg-amber-500/25 self-start"
+                        title={(notesByDay.get(dayKey) ?? []).map((n: any) => n.title).join(" · ")}
+                      >
+                        <StickyNote className="h-2.5 w-2.5" />
+                        {(notesByDay.get(dayKey) ?? [])[0].title}
+                        {(notesByDay.get(dayKey) ?? []).length > 1
+                          ? ` +${(notesByDay.get(dayKey) ?? []).length - 1}`
+                          : ""}
+                      </button>
+                    )}
 
                     {loadHours > 0 && (
                       <div className="mt-1.5 h-1 rounded-full bg-muted overflow-hidden">
