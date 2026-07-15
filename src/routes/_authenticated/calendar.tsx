@@ -2006,29 +2006,56 @@ function CalendarPage() {
                 </div>
                 <div className="mt-1 grid grid-cols-2 gap-2">
                   <div>
-                    <label className="text-[10px] uppercase tracking-wider text-muted-foreground">
-                      Date
+                    <label className="text-[10px] uppercase tracking-wider text-muted-foreground flex items-center gap-1">
+                      <CalendarIcon className="h-3 w-3" /> Date
                     </label>
-                    <input
-                      type="date"
-                      value={qEditDate}
-                      onChange={(e) => setQEditDate(e.target.value)}
-                      className="w-full mt-1 rounded-lg border border-border bg-background/60 px-3 py-2 text-sm font-semibold focus:border-primary/60 focus:outline-none"
-                    />
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <button
+                          type="button"
+                          className={cn(
+                            "w-full mt-1 rounded-lg border border-border bg-background/60 px-3 py-2 text-sm font-semibold text-left focus:border-primary/60 focus:outline-none hover:bg-primary/5",
+                            !qEditDate && "text-muted-foreground",
+                          )}
+                        >
+                          {qEditDate
+                            ? format(new Date(qEditDate + "T00:00:00"), "EEE, MMM d, yyyy")
+                            : "Pick a date"}
+                        </button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <CalendarPicker
+                          mode="single"
+                          selected={qEditDate ? new Date(qEditDate + "T00:00:00") : undefined}
+                          onSelect={(d) => {
+                            if (d) setQEditDate(format(d, "yyyy-MM-dd"));
+                          }}
+                          initialFocus
+                          className={cn("p-3 pointer-events-auto")}
+                        />
+                      </PopoverContent>
+                    </Popover>
                   </div>
                   <div>
                     <label className="text-[10px] uppercase tracking-wider text-muted-foreground flex items-center gap-1">
                       <Clock className="h-3 w-3" /> Time
                     </label>
-                    <input
-                      type="time"
-                      value={qEditTime}
-                      onChange={(e) => setQEditTime(e.target.value)}
-                      className="w-full mt-1 rounded-lg border border-border bg-background/60 px-3 py-2 text-sm font-semibold tabular-nums focus:border-primary/60 focus:outline-none"
-                    />
+                    <Select value={qEditTime} onValueChange={setQEditTime}>
+                      <SelectTrigger className="w-full mt-1 rounded-lg border border-border bg-background/60 px-3 py-2 text-sm font-semibold tabular-nums h-auto">
+                        <SelectValue placeholder="Pick a time" />
+                      </SelectTrigger>
+                      <SelectContent className="max-h-72">
+                        {TIME_SLOTS.map((t) => (
+                          <SelectItem key={t} value={t} className="font-mono tabular-nums">
+                            {t}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
               </div>
+
 
 
               {/* Customer search */}
