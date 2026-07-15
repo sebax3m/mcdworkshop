@@ -2338,8 +2338,8 @@ function CalendarPage() {
                   </datalist>
                 </div>
                 <div className="col-span-1">
-                  <label className="text-[10px] uppercase tracking-wider text-muted-foreground">
-                    Model *
+                  <label className="text-[10px] uppercase tracking-wider text-muted-foreground flex items-center gap-1">
+                    <BikeIcon className="h-3 w-3" /> Model *
                   </label>
                   <input
                     list="bike-models-list"
