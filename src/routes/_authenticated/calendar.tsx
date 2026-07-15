@@ -915,6 +915,7 @@ function CalendarPage() {
               return;
             }
             resetQuickForm();
+            setQEndTime(addMinutesToTime(time, 60));
             setQuickSlot({ date: day, time });
           };
 
