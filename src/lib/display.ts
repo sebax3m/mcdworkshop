@@ -13,10 +13,15 @@ export function dash(value: unknown, fallback = "—"): string {
   return s;
 }
 
-export function displayCustomerName(c: {
-  first_name?: string | null;
-  last_name?: string | null;
-} | null | undefined): string {
+export function displayCustomerName(
+  c:
+    | {
+        first_name?: string | null;
+        last_name?: string | null;
+      }
+    | null
+    | undefined,
+): string {
   if (!c) return "—";
   const first = (c.first_name ?? "").trim();
   const last = (c.last_name ?? "").trim();
@@ -24,11 +29,16 @@ export function displayCustomerName(c: {
   return full || "—";
 }
 
-export function displayBike(m: {
-  year?: number | string | null;
-  make?: string | null;
-  model?: string | null;
-} | null | undefined): string {
+export function displayBike(
+  m:
+    | {
+        year?: number | string | null;
+        make?: string | null;
+        model?: string | null;
+      }
+    | null
+    | undefined,
+): string {
   if (!m) return "—";
   const parts = [m.year, m.make, m.model]
     .map((p) => (p === null || p === undefined ? "" : String(p).trim()))

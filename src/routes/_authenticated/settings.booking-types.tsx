@@ -25,13 +25,11 @@ function BookingTypesAdmin() {
     mutationFn: async () => {
       const name = newName.trim();
       if (!name) throw new Error("Name is required");
-      const { error } = await supabase
-        .from("booking_types" as never)
-        .insert({
-          name,
-          sort_order: Number(newOrder) || 100,
-          is_active: true,
-        } as never);
+      const { error } = await supabase.from("booking_types" as never).insert({
+        name,
+        sort_order: Number(newOrder) || 100,
+        is_active: true,
+      } as never);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -96,16 +94,14 @@ function BookingTypesAdmin() {
           <ArrowLeft className="h-4 w-4" />
         </Link>
         <div>
-          <div className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground">
-            Admin
-          </div>
+          <div className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground">Admin</div>
           <h1 className="font-display text-2xl font-bold">Booking Types</h1>
         </div>
       </header>
 
       <p className="text-sm text-muted-foreground">
-        Only active types appear in new booking forms. Deactivating a type keeps existing
-        bookings intact — historical service types are preserved on the booking record.
+        Only active types appear in new booking forms. Deactivating a type keeps existing bookings
+        intact — historical service types are preserved on the booking record.
       </p>
 
       <section className="card-surface p-4 space-y-3">
@@ -136,15 +132,25 @@ function BookingTypesAdmin() {
         {isLoading ? (
           <div className="p-6 text-center text-sm text-muted-foreground">Loading…</div>
         ) : types.length === 0 ? (
-          <div className="p-6 text-center text-sm text-muted-foreground">
-            No booking types yet.
-          </div>
+          <div className="p-6 text-center text-sm text-muted-foreground">No booking types yet.</div>
         ) : (
-          types.map((t) => <BookingTypeRow key={t.id} type={t} onToggle={() => toggleMut.mutate(t)} onSave={(name, sort_order) => renameMut.mutate({ id: t.id, name, sort_order })} onDelete={() => {
-            if (window.confirm(`Delete "${t.name}"? This may fail if the type is used by existing bookings — deactivate it instead in that case.`)) {
-              deleteMut.mutate(t.id);
-            }
-          }} />)
+          types.map((t) => (
+            <BookingTypeRow
+              key={t.id}
+              type={t}
+              onToggle={() => toggleMut.mutate(t)}
+              onSave={(name, sort_order) => renameMut.mutate({ id: t.id, name, sort_order })}
+              onDelete={() => {
+                if (
+                  window.confirm(
+                    `Delete "${t.name}"? This may fail if the type is used by existing bookings — deactivate it instead in that case.`,
+                  )
+                ) {
+                  deleteMut.mutate(t.id);
+                }
+              }}
+            />
+          ))
         )}
       </section>
     </div>
@@ -169,11 +175,7 @@ function BookingTypeRow({
   return (
     <div className="p-3 grid grid-cols-[minmax(0,1fr)_90px_auto_auto_auto] gap-2 items-center">
       <Input value={name} onChange={(e) => setName(e.target.value)} />
-      <Input
-        type="number"
-        value={order}
-        onChange={(e) => setOrder(e.target.value)}
-      />
+      <Input type="number" value={order} onChange={(e) => setOrder(e.target.value)} />
       <Button
         variant="outline"
         size="sm"

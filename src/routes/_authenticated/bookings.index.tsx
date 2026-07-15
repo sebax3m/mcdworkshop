@@ -159,7 +159,6 @@ function BookingsList() {
         </div>
       </div>
 
-
       <div className="flex flex-wrap items-center gap-2">
         <span className="text-xs uppercase tracking-wider text-muted-foreground">Sort by</span>
         <div className="flex rounded-lg border border-border overflow-hidden">

@@ -46,9 +46,7 @@ function NewBooking() {
   const [priority, setPriority] = useState<string>("normal");
   const [scheduledDate, setScheduledDate] = useState<string>(search.date || today);
   const [dropTime, setDropTime] = useState<string>(search.time || "09:00");
-  const [endTime, setEndTime] = useState<string>(
-    addMinutesToTime(search.time || "09:00", 60),
-  );
+  const [endTime, setEndTime] = useState<string>(addMinutesToTime(search.time || "09:00", 60));
   const [estHours, setEstHours] = useState<string>("2");
   const [conflictError, setConflictError] = useState<string | null>(null);
   const bookingTypesQuery = useBookingTypes(true);
@@ -731,9 +729,7 @@ function NewBooking() {
 
           <section className="card-surface p-4 space-y-4">
             <div>
-              <Label className="text-xs uppercase tracking-wider text-muted-foreground">
-                Date
-              </Label>
+              <Label className="text-xs uppercase tracking-wider text-muted-foreground">Date</Label>
               <Input
                 type="date"
                 value={scheduledDate}
@@ -801,7 +797,6 @@ function NewBooking() {
               </div>
             </div>
           </section>
-
 
           <section className="card-surface p-4 space-y-3">
             <Label className="text-xs uppercase tracking-wider text-muted-foreground">
