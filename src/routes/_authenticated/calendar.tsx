@@ -71,6 +71,19 @@ import {
 import { CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
+// Format HH:mm (24h) → h:mm AM/PM
+function fmt12h(t?: string | null): string {
+  if (!t) return "—";
+  const s = String(t);
+  const [hStr, mStr] = s.split(":");
+  const h = Number(hStr);
+  const m = Number(mStr ?? "0");
+  if (!Number.isFinite(h)) return s;
+  const period = h >= 12 ? "PM" : "AM";
+  const h12 = h % 12 === 0 ? 12 : h % 12;
+  return `${h12}:${String(m).padStart(2, "0")} ${period}`;
+}
+
 // Time slots (07:00 – 20:00 in 30-min increments)
 const TIME_SLOTS: string[] = (() => {
   const out: string[] = [];
