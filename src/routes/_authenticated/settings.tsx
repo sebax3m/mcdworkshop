@@ -1,5 +1,14 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { FileStack, Users, Package, Bike, ChevronRight, ShieldCheck, UserCog } from "lucide-react";
+import {
+  FileStack,
+  Users,
+  Package,
+  Bike,
+  ChevronRight,
+  ShieldCheck,
+  UserCog,
+  Tag,
+} from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/settings")({
   component: SettingsPage,
