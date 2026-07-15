@@ -213,6 +213,13 @@ function CalendarPage() {
   const [creatingQuick, setCreatingQuick] = useState(false);
   const [lookingUpRego, setLookingUpRego] = useState(false);
   const [qEndTime, setQEndTime] = useState<string>("");
+  // Editable date/time on top of the quick booking modal
+  const [qEditDate, setQEditDate] = useState<string>("");
+  const [qEditTime, setQEditTime] = useState<string>("");
+  // After creation we swap the modal into a "just created" view with quick actions
+  const [justCreated, setJustCreated] = useState<any | null>(null);
+  const [justCreatedNotes, setJustCreatedNotes] = useState<string>("");
+  const [savingJustCreatedNotes, setSavingJustCreatedNotes] = useState(false);
   const [dayNoteFor, setDayNoteFor] = useState<string | null>(null);
   const [slotChoice, setSlotChoice] = useState<{
     date: Date;
@@ -252,6 +259,14 @@ function CalendarPage() {
     const t = setInterval(() => setNow(new Date()), 60_000);
     return () => clearInterval(t);
   }, []);
+
+  // Keep editable date/time in sync when the quick booking modal opens on a fresh slot
+  useEffect(() => {
+    if (quickSlot) {
+      setQEditDate(format(quickSlot.date, "yyyy-MM-dd"));
+      setQEditTime(quickSlot.time);
+    }
+  }, [quickSlot]);
 
   useEffect(() => {
     const el = bodyRef.current;
@@ -433,11 +448,11 @@ function CalendarPage() {
     if (!quickSlot) return;
     if (!qFirst.trim()) return toast.error("First name required");
     if (!qBikeMake.trim() || !qBikeModel.trim()) return toast.error("Bike make and model required");
-    const startTime = quickSlot.time;
-    const endTime = qEndTime && qEndTime.trim() ? qEndTime : addMinutesToTime(startTime, 60);
+    const startTime = (qEditTime || quickSlot.time).slice(0, 5);
+    const endTime = addMinutesToTime(startTime, Math.max(15, Math.round((Number(qEstHours) || 1) * 60)));
     const rangeErr = validateTimeRange(startTime, endTime);
     if (rangeErr) return toast.error(rangeErr);
-    const dateStr = format(quickSlot.date, "yyyy-MM-dd");
+    const dateStr = qEditDate || format(quickSlot.date, "yyyy-MM-dd");
     try {
       const conflicts = await findBookingConflicts({
         date: dateStr,
@@ -482,36 +497,51 @@ function CalendarPage() {
         bikeId = bike.id;
       }
 
-      const { error: bkErr } = await supabase.from("bookings").insert({
-        customer_id: customerId!,
-        motorcycle_id: bikeId!,
-        service_type: qService,
-        service_type_other: qService === "Other" ? qServiceOther.trim() || null : null,
-        scheduled_date: dateStr,
-        drop_off_time: `${startTime}:00`,
-        scheduled_end_time: `${endTime}:00`,
-        estimated_hours: Number(qEstHours) || 1,
-        rego: qBikeRego.trim().toUpperCase() || null,
-        loan_bike: qLoanBike,
-        loan_bike_id: qLoanBike ? qLoanBikeId : null,
-        loan_bike_expected_return: qLoanBike && qLoanBikeReturn ? qLoanBikeReturn : null,
-        status: "booked",
-        wof_expiry: qWofNeeded && qWofExpiry ? qWofExpiry : null,
-        notes: qWofNeeded ? "WOF required" : null,
-      });
+      const { data: created, error: bkErr } = await supabase
+        .from("bookings")
+        .insert({
+          customer_id: customerId!,
+          motorcycle_id: bikeId!,
+          service_type: qService,
+          service_type_other: qService === "Other" ? qServiceOther.trim() || null : null,
+          scheduled_date: dateStr,
+          drop_off_time: `${startTime}:00`,
+          scheduled_end_time: `${endTime}:00`,
+          estimated_hours: Number(qEstHours) || 1,
+          rego: qBikeRego.trim().toUpperCase() || null,
+          loan_bike: qLoanBike,
+          loan_bike_id: qLoanBike ? qLoanBikeId : null,
+          loan_bike_expected_return: qLoanBike && qLoanBikeReturn ? qLoanBikeReturn : null,
+          status: "booked",
+          wof_expiry: qWofNeeded && qWofExpiry ? qWofExpiry : null,
+          notes: qWofNeeded ? "WOF required" : null,
+        })
+        .select(
+          "id, service_type, service_type_other, scheduled_date, drop_off_time, scheduled_end_time, estimated_hours, status, notes, customer_id, motorcycle_id, job_id, customers(first_name,last_name,phone,email), motorcycles(year,make,model,rego)",
+        )
+        .single();
       if (bkErr) throw bkErr;
 
       toast.success("Booking created");
-      setQuickSlot(null);
-      resetQuickForm();
       qc.invalidateQueries({ queryKey: ["calendar-bookings"] });
       qc.invalidateQueries({ queryKey: ["quick-customers"] });
+      // Swap the modal into the "just created" view with quick follow-up actions
+      setJustCreated(created);
+      setJustCreatedNotes(created?.notes ?? "");
     } catch (err: any) {
       toast.error(err.message ?? "Failed to create booking");
     } finally {
       setCreatingQuick(false);
     }
   }
+
+  function closeQuickBooking() {
+    setQuickSlot(null);
+    setJustCreated(null);
+    setJustCreatedNotes("");
+    resetQuickForm();
+  }
+
 
   async function confirmDeleteBooking() {
     if (!deleteBooking) return;
@@ -1831,7 +1861,7 @@ function CalendarPage() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-md p-4"
-            onClick={() => !creatingQuick && setQuickSlot(null)}
+            onClick={() => !creatingQuick && closeQuickBooking()}
           >
             <motion.div
               initial={{ opacity: 0, scale: 0.96, y: 8 }}
@@ -1842,25 +1872,142 @@ function CalendarPage() {
               className="w-full max-w-md max-h-[90vh] overflow-y-auto rounded-2xl border border-border/60 bg-background/70 backdrop-blur-xl shadow-2xl p-5 space-y-4 relative"
             >
               <button
-                onClick={() => !creatingQuick && setQuickSlot(null)}
+                onClick={() => !creatingQuick && closeQuickBooking()}
                 className="absolute top-3 right-3 grid h-8 w-8 place-items-center rounded-lg border border-border text-muted-foreground hover:text-foreground hover:border-foreground/30 transition-colors"
                 aria-label="Close"
               >
                 <X className="h-4 w-4" />
               </button>
 
+              {justCreated ? (
+                <div className="space-y-4">
+                  <div>
+                    <div className="text-[10px] uppercase tracking-[0.25em] text-emerald-500">
+                      Booking created
+                    </div>
+                    <div className="font-display text-lg font-bold">
+                      {displayCustomerName(justCreated.customers)}
+                    </div>
+                    <div className="text-sm text-muted-foreground">
+                      {justCreated.scheduled_date} ·{" "}
+                      {String(justCreated.drop_off_time ?? "").slice(0, 5)}
+                      {justCreated.motorcycles && (
+                        <>
+                          {" "}
+                          ·{" "}
+                          {`${justCreated.motorcycles.year ?? ""} ${justCreated.motorcycles.make ?? ""} ${justCreated.motorcycles.model ?? ""}`.trim()}
+                        </>
+                      )}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-[10px] uppercase tracking-wider text-muted-foreground flex items-center gap-1">
+                      <StickyNote className="h-3 w-3" /> Notes
+                    </label>
+                    <textarea
+                      value={justCreatedNotes}
+                      onChange={(e) => setJustCreatedNotes(e.target.value)}
+                      placeholder="Add notes for this booking..."
+                      className="mt-1 w-full min-h-[100px] rounded-lg border border-border bg-background/60 px-3 py-2 text-sm focus:border-primary/60 focus:outline-none resize-y"
+                    />
+                    <div className="mt-2 flex justify-end">
+                      <button
+                        type="button"
+                        disabled={
+                          savingJustCreatedNotes ||
+                          justCreatedNotes === (justCreated.notes ?? "")
+                        }
+                        onClick={async () => {
+                          setSavingJustCreatedNotes(true);
+                          const { error } = await supabase
+                            .from("bookings")
+                            .update({ notes: justCreatedNotes.trim() || null })
+                            .eq("id", justCreated.id);
+                          setSavingJustCreatedNotes(false);
+                          if (error) return toast.error(error.message);
+                          setJustCreated({ ...justCreated, notes: justCreatedNotes });
+                          qc.invalidateQueries({ queryKey: ["calendar-bookings"] });
+                          toast.success("Notes saved");
+                        }}
+                        className="rounded-lg border border-border px-3 py-1.5 text-xs font-semibold hover:border-primary/50 hover:bg-primary/5 disabled:opacity-50"
+                      >
+                        {savingJustCreatedNotes ? "Saving…" : "Save notes"}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2 pt-2 border-t border-border/60">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const id = justCreated.id;
+                        closeQuickBooking();
+                        nav({ to: "/bookings/$bookingId", params: { bookingId: id } });
+                      }}
+                      className="rounded-lg border border-border px-3 py-2 text-sm font-semibold hover:border-primary/50 hover:bg-primary/5 transition-colors"
+                    >
+                      <Wrench className="inline h-3.5 w-3.5 mr-1.5" />
+                      Edit booking
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const jobId = justCreated.job_id;
+                        const bookingId = justCreated.id;
+                        closeQuickBooking();
+                        if (jobId) {
+                          nav({ to: "/jobs/$jobId", params: { jobId } });
+                        } else {
+                          nav({ to: "/jobs/new", search: { bookingId } as any });
+                        }
+                      }}
+                      className="rounded-lg red-surface px-3 py-2 text-sm font-semibold hover:scale-[1.02] transition-transform"
+                    >
+                      <FileText className="inline h-3.5 w-3.5 mr-1.5" />
+                      Go to Job Card
+                    </button>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={closeQuickBooking}
+                    className="w-full rounded-lg border border-border px-3 py-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground"
+                  >
+                    Close
+                  </button>
+                </div>
+              ) : (
+                <>
               <div>
                 <div className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground">
                   Quick booking
                 </div>
-                <div className="font-display text-lg font-bold">
-                  {format(quickSlot.date, "EEE d MMM")}
-                  <span className="ml-2 text-sm text-muted-foreground tabular-nums">
-                    <Clock className="inline h-3.5 w-3.5 mr-1" />
-                    {quickSlot.time}
-                  </span>
+                <div className="mt-1 grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                      Date
+                    </label>
+                    <input
+                      type="date"
+                      value={qEditDate}
+                      onChange={(e) => setQEditDate(e.target.value)}
+                      className="w-full mt-1 rounded-lg border border-border bg-background/60 px-3 py-2 text-sm font-semibold focus:border-primary/60 focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] uppercase tracking-wider text-muted-foreground flex items-center gap-1">
+                      <Clock className="h-3 w-3" /> Time
+                    </label>
+                    <input
+                      type="time"
+                      value={qEditTime}
+                      onChange={(e) => setQEditTime(e.target.value)}
+                      className="w-full mt-1 rounded-lg border border-border bg-background/60 px-3 py-2 text-sm font-semibold tabular-nums focus:border-primary/60 focus:outline-none"
+                    />
+                  </div>
                 </div>
               </div>
+
 
               {/* Customer search */}
               <div className="relative">
@@ -2145,18 +2292,7 @@ function CalendarPage() {
                 </div>
                 <div className="col-span-1">
                   <label className="text-[10px] uppercase tracking-wider text-muted-foreground">
-                    End time
-                  </label>
-                  <input
-                    type="time"
-                    value={qEndTime}
-                    onChange={(e) => setQEndTime(e.target.value)}
-                    className="w-full mt-1 rounded-lg border border-border bg-background/60 px-3 py-2 text-sm focus:border-primary/60 focus:outline-none"
-                  />
-                </div>
-                <div className="col-span-1">
-                  <label className="text-[10px] uppercase tracking-wider text-muted-foreground">
-                    Est. hours (info)
+                    Est. hours
                   </label>
                   <input
                     value={qEstHours}
@@ -2169,25 +2305,20 @@ function CalendarPage() {
 
               <div>
                 <label className="text-[10px] uppercase tracking-wider text-muted-foreground">
-                  Service
+                  Service *
                 </label>
-                <div className="mt-1.5 flex flex-wrap gap-1.5">
-                  {serviceTypesList.map((s: string) => {
-                    const c = serviceColor(s);
-                    const active = qService === s;
-                    return (
-                      <button
-                        key={s}
-                        type="button"
-                        onClick={() => setQService(s)}
-                        className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-wider ring-1 transition-all ${c.bg} ${c.ring} ${c.text} ${active ? "ring-2 scale-[1.03]" : "opacity-75 hover:opacity-100"}`}
-                      >
-                        <span className="h-1.5 w-1.5 rounded-full bg-current" />
-                        {s}
-                      </button>
-                    );
-                  })}
-                </div>
+                <select
+                  value={qService}
+                  onChange={(e) => setQService(e.target.value)}
+                  className="w-full mt-1 rounded-lg border border-border bg-background/60 px-3 py-2 text-sm focus:border-primary/60 focus:outline-none"
+                >
+                  {serviceTypesList.map((s: string) => (
+                    <option key={s} value={s}>
+                      {s}
+                    </option>
+                  ))}
+                  {!serviceTypesList.includes("Other") && <option value="Other">Other</option>}
+                </select>
                 {qService === "Other" && (
                   <div className="mt-2">
                     <label className="text-[10px] uppercase tracking-wider text-muted-foreground">
@@ -2202,6 +2333,7 @@ function CalendarPage() {
                   </div>
                 )}
               </div>
+
 
               <div>
                 <label className="flex items-center gap-2 cursor-pointer">
@@ -2307,7 +2439,7 @@ function CalendarPage() {
 
               <div className="flex gap-2 pt-2 border-t border-border/60">
                 <button
-                  onClick={() => !creatingQuick && setQuickSlot(null)}
+                  onClick={() => !creatingQuick && closeQuickBooking()}
                   className="flex-1 rounded-lg border border-border px-3 py-2 text-sm font-semibold hover:border-primary/50 hover:bg-primary/5 transition-colors"
                 >
                   Cancel
@@ -2320,6 +2452,8 @@ function CalendarPage() {
                   {creatingQuick ? "Creating…" : "Create booking"}
                 </button>
               </div>
+                </>
+              )}
             </motion.div>
           </motion.div>
         )}
