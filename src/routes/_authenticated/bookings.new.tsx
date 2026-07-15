@@ -14,6 +14,14 @@ import { ArrowLeft, Plus, Search, Bike as BikeIcon, Camera, X } from "lucide-rea
 import { toast } from "sonner";
 import { fullBike, initials } from "@/lib/format";
 import { uploadPhoto } from "@/lib/photos";
+import { useBookingTypes } from "@/hooks/useBookingTypes";
+import { TimeSlotFields } from "@/components/booking/TimeSlotFields";
+import {
+  addMinutesToTime,
+  findBookingConflicts,
+  formatConflictMessage,
+  validateTimeRange,
+} from "@/lib/booking-conflicts";
 
 const searchSchema = z.object({ date: z.string().optional(), time: z.string().optional() });
 
@@ -22,21 +30,9 @@ export const Route = createFileRoute("/_authenticated/bookings/new")({
   component: NewBooking,
 });
 
-const SERVICE_TYPES = [
-  "Basic Service",
-  "Standard Service",
-  "Annual Service",
-  "Full Service",
-  "Tuning",
-  "Collision Repair (Insurance)",
-  "Diagnostic",
-  "Tyre Change",
-  "Brake Service",
-  "Chain & Sprocket",
-  "Suspension",
-  "Helmet Fitting",
-  "Other",
-];
+// Fallback if the booking_types table is temporarily unreachable; the
+// active list is fetched from the DB by useBookingTypes().
+const FALLBACK_SERVICE_TYPES = ["Standard Service", "Other"];
 
 function NewBooking() {
   const search = Route.useSearch();
@@ -50,7 +46,15 @@ function NewBooking() {
   const [priority, setPriority] = useState<string>("normal");
   const [scheduledDate, setScheduledDate] = useState<string>(search.date || today);
   const [dropTime, setDropTime] = useState<string>(search.time || "09:00");
+  const [endTime, setEndTime] = useState<string>(
+    addMinutesToTime(search.time || "09:00", 60),
+  );
   const [estHours, setEstHours] = useState<string>("2");
+  const [conflictError, setConflictError] = useState<string | null>(null);
+  const bookingTypesQuery = useBookingTypes(true);
+  const activeServiceTypes = (bookingTypesQuery.data ?? []).map((t) => t.name);
+  const serviceTypeOptions =
+    activeServiceTypes.length > 0 ? activeServiceTypes : FALLBACK_SERVICE_TYPES;
   const [mileage, setMileage] = useState<string>("");
   const [wof, setWof] = useState<string>("");
   const [instructions, setInstructions] = useState<string>("");
@@ -243,8 +247,27 @@ function NewBooking() {
     if (!customer) return toast.error("Pick a customer");
     if (!bike) return toast.error("Pick a motorcycle");
     if (!scheduledDate) return toast.error("Pick a date");
+    const timeErr = validateTimeRange(dropTime, endTime);
+    if (timeErr) {
+      setConflictError(timeErr);
+      return toast.error(timeErr);
+    }
     setSaving(true);
+    setConflictError(null);
     try {
+      // Server-side global-capacity conflict check
+      const conflicts = await findBookingConflicts({
+        date: scheduledDate,
+        startTime: dropTime,
+        endTime: endTime,
+      });
+      if (conflicts.length > 0) {
+        const msg = formatConflictMessage(conflicts);
+        setConflictError(msg);
+        toast.error(msg);
+        setSaving(false);
+        return;
+      }
       const { data, error } = await supabase
         .from("bookings")
         .insert({
@@ -256,6 +279,7 @@ function NewBooking() {
           priority,
           scheduled_date: scheduledDate,
           drop_off_time: dropTime || null,
+          scheduled_end_time: endTime || null,
           estimated_hours: Number(estHours) || 1,
           mileage: mileage ? parseInt(mileage) : null,
           wof_expiry: wof || null,
@@ -268,7 +292,7 @@ function NewBooking() {
           loan_bike_expected_return: loanBike && loanBikeReturn ? loanBikeReturn : null,
           loan_bike_start_km: loanBike && loanBikeStartKm ? parseInt(loanBikeStartKm) : null,
           status: openJobCard ? "checked_in" : "booked",
-        })
+        } as any)
         .select("id")
         .single();
       if (error) throw error;
@@ -639,7 +663,7 @@ function NewBooking() {
               Service type
             </Label>
             <div className="flex flex-wrap gap-2">
-              {SERVICE_TYPES.map((s) => (
+              {serviceTypeOptions.map((s: string) => (
                 <button
                   key={s}
                   onClick={() => setServiceType(s)}
@@ -705,9 +729,11 @@ function NewBooking() {
             </div>
           </section>
 
-          <section className="card-surface p-4 grid grid-cols-2 gap-3">
+          <section className="card-surface p-4 space-y-4">
             <div>
-              <Label className="text-xs uppercase tracking-wider text-muted-foreground">Date</Label>
+              <Label className="text-xs uppercase tracking-wider text-muted-foreground">
+                Date
+              </Label>
               <Input
                 type="date"
                 value={scheduledDate}
@@ -716,53 +742,66 @@ function NewBooking() {
               />
             </div>
             <div>
-              <Label className="text-xs uppercase tracking-wider text-muted-foreground">
-                Drop-off
+              <Label className="text-xs uppercase tracking-wider text-muted-foreground mb-2 block">
+                Calendar slot
               </Label>
-              <Input
-                type="time"
-                value={dropTime}
-                onChange={(e) => setDropTime(e.target.value)}
-                className="mt-1.5"
+              <TimeSlotFields
+                startTime={dropTime}
+                endTime={endTime}
+                onStartChange={(v) => {
+                  setDropTime(v);
+                  setConflictError(null);
+                }}
+                onEndChange={(v) => {
+                  setEndTime(v);
+                  setConflictError(null);
+                }}
+                externalError={conflictError}
               />
             </div>
-            <div>
-              <Label className="text-xs uppercase tracking-wider text-muted-foreground">
-                Est. hours
-              </Label>
-              <Input
-                type="number"
-                min="0.25"
-                step="0.25"
-                value={estHours}
-                onChange={(e) => setEstHours(e.target.value)}
-                className="mt-1.5"
-              />
-            </div>
-            <div>
-              <Label className="text-xs uppercase tracking-wider text-muted-foreground">
-                Mileage (km)
-              </Label>
-              <Input
-                type="number"
-                inputMode="numeric"
-                value={mileage}
-                onChange={(e) => setMileage(e.target.value)}
-                className="mt-1.5"
-              />
-            </div>
-            <div className="col-span-2">
-              <Label className="text-xs uppercase tracking-wider text-muted-foreground">
-                WOF expiry
-              </Label>
-              <Input
-                type="date"
-                value={wof}
-                onChange={(e) => setWof(e.target.value)}
-                className="mt-1.5"
-              />
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label className="text-xs uppercase tracking-wider text-muted-foreground">
+                  Estimated job hours
+                </Label>
+                <Input
+                  type="number"
+                  min="0.25"
+                  step="0.25"
+                  value={estHours}
+                  onChange={(e) => setEstHours(e.target.value)}
+                  className="mt-1.5"
+                />
+                <div className="text-[11px] text-muted-foreground mt-1">
+                  Informational — does not change the calendar slot.
+                </div>
+              </div>
+              <div>
+                <Label className="text-xs uppercase tracking-wider text-muted-foreground">
+                  Mileage (km)
+                </Label>
+                <Input
+                  type="number"
+                  inputMode="numeric"
+                  value={mileage}
+                  onChange={(e) => setMileage(e.target.value)}
+                  className="mt-1.5"
+                />
+              </div>
+              <div className="col-span-2">
+                <Label className="text-xs uppercase tracking-wider text-muted-foreground">
+                  WOF expiry
+                </Label>
+                <Input
+                  type="date"
+                  value={wof}
+                  onChange={(e) => setWof(e.target.value)}
+                  className="mt-1.5"
+                />
+              </div>
             </div>
           </section>
+
 
           <section className="card-surface p-4 space-y-3">
             <Label className="text-xs uppercase tracking-wider text-muted-foreground">

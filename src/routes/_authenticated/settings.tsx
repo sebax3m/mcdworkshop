@@ -1,5 +1,14 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { FileStack, Users, Package, Bike, ChevronRight, ShieldCheck, UserCog } from "lucide-react";
+import {
+  FileStack,
+  Users,
+  Package,
+  Bike,
+  ChevronRight,
+  ShieldCheck,
+  UserCog,
+  Tag,
+} from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/settings")({
   component: SettingsPage,
@@ -11,6 +20,12 @@ const sections = [
     icon: FileStack,
     title: "Service Templates",
     desc: "Edit Basic, Annual, Standard, Full and custom service checklists & hours.",
+  },
+  {
+    to: "/settings/booking-types",
+    icon: Tag,
+    title: "Booking Types",
+    desc: "Enable or disable which booking types appear in new booking forms.",
   },
   {
     to: "/customers",

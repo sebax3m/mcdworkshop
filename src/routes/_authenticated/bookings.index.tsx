@@ -25,22 +25,40 @@ const PRIORITY_ORDER: Record<string, number> = { high: 0, normal: 1, low: 2 };
 type SortField = "date" | "priority";
 type SortDir = "asc" | "desc";
 
+function todayISO() {
+  return format(new Date(), "yyyy-MM-dd");
+}
+function tomorrowISO() {
+  const d = new Date();
+  d.setDate(d.getDate() + 1);
+  return format(d, "yyyy-MM-dd");
+}
+function shiftISO(iso: string, days: number) {
+  const [y, m, d] = iso.split("-").map(Number);
+  const dt = new Date(y, (m ?? 1) - 1, d ?? 1);
+  dt.setDate(dt.getDate() + days);
+  return format(dt, "yyyy-MM-dd");
+}
+
 function BookingsList() {
   const qc = useQueryClient();
   const navigate = useNavigate();
   const [sortField, setSortField] = useState<SortField>("date");
-  const [sortDir, setSortDir] = useState<SortDir>("desc");
+  const [sortDir, setSortDir] = useState<SortDir>("asc");
+  const [focusDate, setFocusDate] = useState<string>(tomorrowISO());
 
   const { data: rawBookings = [], isLoading } = useQuery({
-    queryKey: ["bookings-list"],
+    queryKey: ["bookings-list", focusDate],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("bookings")
         .select(
           "id, service_type, scheduled_date, drop_off_time, estimated_hours, status, priority, confirmed, confirmed_at, job_id, customers(first_name,last_name,phone), motorcycles(year,make,model,rego), jobs(id,job_number,title,status)",
         )
-        .order("scheduled_date", { ascending: false })
-        .limit(200);
+        .eq("scheduled_date", focusDate)
+        .not("status", "in", "(deleted,cancelled)")
+        .order("drop_off_time", { ascending: true })
+        .limit(500);
       if (error) throw error;
       return data ?? [];
     },
@@ -58,21 +76,26 @@ function BookingsList() {
     const arr = [...rawBookings];
     arr.sort((a: any, b: any) => {
       if (sortField === "date") {
-        const da = new Date(a.scheduled_date).getTime();
-        const db = new Date(b.scheduled_date).getTime();
-        return sortDir === "asc" ? da - db : db - da;
+        const ta = a.drop_off_time ?? "99:99";
+        const tb = b.drop_off_time ?? "99:99";
+        if (ta === tb) return 0;
+        return sortDir === "asc" ? (ta < tb ? -1 : 1) : ta < tb ? 1 : -1;
       }
-      // priority
       const pa = PRIORITY_ORDER[a.priority ?? "normal"] ?? 1;
       const pb = PRIORITY_ORDER[b.priority ?? "normal"] ?? 1;
       if (pa !== pb) return sortDir === "asc" ? pb - pa : pa - pb;
-      // tie-break by date desc
-      const da = new Date(a.scheduled_date).getTime();
-      const db = new Date(b.scheduled_date).getTime();
-      return db - da;
+      const ta = a.drop_off_time ?? "99:99";
+      const tb = b.drop_off_time ?? "99:99";
+      return ta < tb ? -1 : 1;
     });
     return arr;
   }, [rawBookings, sortField, sortDir]);
+
+  const focusLabel = (() => {
+    if (focusDate === todayISO()) return "Today";
+    if (focusDate === tomorrowISO()) return "Tomorrow";
+    return format(new Date(focusDate + "T00:00:00"), "EEE d MMM");
+  })();
 
   return (
     <div className="space-y-5">
@@ -96,6 +119,46 @@ function BookingsList() {
           </Link>
         </div>
       </header>
+
+      <div className="card-surface p-3 flex flex-wrap items-center gap-2">
+        <button
+          onClick={() => setFocusDate((d) => shiftISO(d, -1))}
+          className="rounded-lg border border-border bg-card px-2.5 py-1.5 text-xs font-semibold hover:bg-muted"
+          title="Previous day"
+        >
+          ← Prev
+        </button>
+        <button
+          onClick={() => setFocusDate(todayISO())}
+          className={`rounded-lg border px-2.5 py-1.5 text-xs font-semibold ${focusDate === todayISO() ? "border-primary bg-primary/10 text-primary" : "border-border bg-card hover:bg-muted"}`}
+        >
+          Today
+        </button>
+        <button
+          onClick={() => setFocusDate(tomorrowISO())}
+          className={`rounded-lg border px-2.5 py-1.5 text-xs font-semibold ${focusDate === tomorrowISO() ? "border-primary bg-primary/10 text-primary" : "border-border bg-card hover:bg-muted"}`}
+        >
+          Tomorrow
+        </button>
+        <button
+          onClick={() => setFocusDate((d) => shiftISO(d, 1))}
+          className="rounded-lg border border-border bg-card px-2.5 py-1.5 text-xs font-semibold hover:bg-muted"
+          title="Next day"
+        >
+          Next →
+        </button>
+        <input
+          type="date"
+          value={focusDate}
+          onChange={(e) => setFocusDate(e.target.value || tomorrowISO())}
+          className="rounded-lg border border-border bg-card px-2 py-1.5 text-xs"
+        />
+        <div className="ml-auto text-xs uppercase tracking-wider text-muted-foreground">
+          Showing <span className="text-foreground font-semibold">{focusLabel}</span> ·{" "}
+          {bookings.length} booking{bookings.length === 1 ? "" : "s"}
+        </div>
+      </div>
+
 
       <div className="flex flex-wrap items-center gap-2">
         <span className="text-xs uppercase tracking-wider text-muted-foreground">Sort by</span>
