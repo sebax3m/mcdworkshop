@@ -247,8 +247,27 @@ function NewBooking() {
     if (!customer) return toast.error("Pick a customer");
     if (!bike) return toast.error("Pick a motorcycle");
     if (!scheduledDate) return toast.error("Pick a date");
+    const timeErr = validateTimeRange(dropTime, endTime);
+    if (timeErr) {
+      setConflictError(timeErr);
+      return toast.error(timeErr);
+    }
     setSaving(true);
+    setConflictError(null);
     try {
+      // Server-side global-capacity conflict check
+      const conflicts = await findBookingConflicts({
+        date: scheduledDate,
+        startTime: dropTime,
+        endTime: endTime,
+      });
+      if (conflicts.length > 0) {
+        const msg = formatConflictMessage(conflicts);
+        setConflictError(msg);
+        toast.error(msg);
+        setSaving(false);
+        return;
+      }
       const { data, error } = await supabase
         .from("bookings")
         .insert({
@@ -260,6 +279,7 @@ function NewBooking() {
           priority,
           scheduled_date: scheduledDate,
           drop_off_time: dropTime || null,
+          scheduled_end_time: endTime || null,
           estimated_hours: Number(estHours) || 1,
           mileage: mileage ? parseInt(mileage) : null,
           wof_expiry: wof || null,
@@ -272,7 +292,7 @@ function NewBooking() {
           loan_bike_expected_return: loanBike && loanBikeReturn ? loanBikeReturn : null,
           loan_bike_start_km: loanBike && loanBikeStartKm ? parseInt(loanBikeStartKm) : null,
           status: openJobCard ? "checked_in" : "booked",
-        })
+        } as any)
         .select("id")
         .single();
       if (error) throw error;
