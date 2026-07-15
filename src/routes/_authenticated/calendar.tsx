@@ -1924,8 +1924,7 @@ function CalendarPage() {
                       {displayCustomerName(justCreated.customers)}
                     </div>
                     <div className="text-sm text-muted-foreground">
-                      {justCreated.scheduled_date} ·{" "}
-                      {String(justCreated.drop_off_time ?? "").slice(0, 5)}
+                      {justCreated.scheduled_date} · {fmt12h(String(justCreated.drop_off_time ?? "").slice(0, 5))}
                       {justCreated.motorcycles && (
                         <>
                           {" "}
