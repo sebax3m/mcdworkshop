@@ -210,6 +210,11 @@ function CalendarPage() {
   const [lookingUpRego, setLookingUpRego] = useState(false);
   const [qEndTime, setQEndTime] = useState<string>("");
   const [dayNoteFor, setDayNoteFor] = useState<string | null>(null);
+  const [slotChoice, setSlotChoice] = useState<{
+    date: Date;
+    time: string | null;
+    dayKey: string;
+  } | null>(null);
 
   const bookingTypesQ = useBookingTypes(true);
   const serviceTypesList = useMemo(() => {
