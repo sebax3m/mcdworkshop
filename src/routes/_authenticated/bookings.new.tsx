@@ -30,21 +30,9 @@ export const Route = createFileRoute("/_authenticated/bookings/new")({
   component: NewBooking,
 });
 
-const SERVICE_TYPES = [
-  "Basic Service",
-  "Standard Service",
-  "Annual Service",
-  "Full Service",
-  "Tuning",
-  "Collision Repair (Insurance)",
-  "Diagnostic",
-  "Tyre Change",
-  "Brake Service",
-  "Chain & Sprocket",
-  "Suspension",
-  "Helmet Fitting",
-  "Other",
-];
+// Fallback if the booking_types table is temporarily unreachable; the
+// active list is fetched from the DB by useBookingTypes().
+const FALLBACK_SERVICE_TYPES = ["Standard Service", "Other"];
 
 function NewBooking() {
   const search = Route.useSearch();
