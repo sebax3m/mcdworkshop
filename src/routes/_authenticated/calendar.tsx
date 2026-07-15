@@ -1945,7 +1945,7 @@ function CalendarPage() {
                   Service
                 </label>
                 <div className="mt-1.5 flex flex-wrap gap-1.5">
-                  {SERVICE_TYPES.map((s) => {
+                  {serviceTypesList.map((s: string) => {
                     const c = serviceColor(s);
                     const active = qService === s;
                     return (
