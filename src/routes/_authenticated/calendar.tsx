@@ -933,9 +933,7 @@ function CalendarPage() {
               setSelectedBooking(clash);
               return;
             }
-            resetQuickForm();
-            setQEndTime(addMinutesToTime(time, 60));
-            setQuickSlot({ date: day, time });
+            setSlotChoice({ date: day, time, dayKey });
           };
 
           return (
