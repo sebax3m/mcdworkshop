@@ -59,6 +59,28 @@ import {
   validateTimeRange,
 } from "@/lib/booking-conflicts";
 import { displayBike, displayCustomerName, displayServiceType } from "@/lib/display";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar as CalendarPicker } from "@/components/ui/calendar";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { CalendarIcon } from "lucide-react";
+import { cn } from "@/lib/utils";
+
+// Time slots (07:00 – 20:00 in 30-min increments)
+const TIME_SLOTS: string[] = (() => {
+  const out: string[] = [];
+  for (let h = 7; h <= 20; h++) {
+    for (const m of [0, 30]) {
+      out.push(`${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`);
+    }
+  }
+  return out;
+})();
 
 export const Route = createFileRoute("/_authenticated/calendar")({
   component: CalendarPage,
