@@ -1086,22 +1086,17 @@ function CalendarPage() {
                             </div>
                           )}
 
-                          {/* Bookings positioned by drop_off_time + estimated_hours */}
+                          {/* Bookings positioned by drop_off_time + scheduled_end_time */}
                           {dayBookings.map((b: any) => {
                             const { h, m } = parseTime(b.drop_off_time);
                             const top = (h + m / 60 - START_HOUR) * SLOT_H;
-                            const hoursDur = Math.max(0.5, Number(b.estimated_hours || 1));
+                            const hoursDur = Math.max(0.5, bookingDurationMin(b) / 60);
                             const height = Math.max(24, hoursDur * SLOT_H - 2);
                             // clamp to grid
                             if (top + height < 0 || top > GRID_H) return null;
                             const c = serviceColor(b.service_type);
-                            const bike = b.motorcycles
-                              ? `${b.motorcycles.year ?? ""} ${b.motorcycles.make} ${b.motorcycles.model}`.trim()
-                              : "—";
-                            const customer = b.customers
-                              ? `${b.customers.first_name ?? ""} ${b.customers.last_name ?? ""}`.trim() ||
-                                "—"
-                              : "—";
+                            const bike = displayBike(b.motorcycles);
+                            const customer = displayCustomerName(b.customers);
                             return (
                               <div
                                 key={b.id}
