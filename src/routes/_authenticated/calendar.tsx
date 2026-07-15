@@ -1347,7 +1347,7 @@ function CalendarPage() {
                               .update({ scheduled_date: v })
                               .eq("id", b.id);
                             if (error) return toast.error(error.message);
-                            setSelectedBooking({ ...b, scheduled_date: v });
+                            patchSelected({ scheduled_date: v });
                             qc.invalidateQueries({ queryKey: ["calendar-bookings"] });
                             toast.success("Date updated");
                           }}
@@ -1384,9 +1384,7 @@ function CalendarPage() {
                               })
                               .eq("id", b.id);
                             if (error) return toast.error(error.message);
-                            setSelectedBooking({
-                              ...b,
-                              drop_off_time: `${v}:00`,
+                            patchSelected({ drop_off_time: `${v}:00`,
                               scheduled_end_time: `${newEnd}:00`,
                             });
                             qc.invalidateQueries({ queryKey: ["calendar-bookings"] });
@@ -1422,7 +1420,7 @@ function CalendarPage() {
                               .update({ scheduled_end_time: `${v}:00` })
                               .eq("id", b.id);
                             if (error) return toast.error(error.message);
-                            setSelectedBooking({ ...b, scheduled_end_time: `${v}:00` });
+                            patchSelected({ scheduled_end_time: `${v}:00` });
                             qc.invalidateQueries({ queryKey: ["calendar-bookings"] });
                             toast.success("End time updated");
                           }}
@@ -1444,7 +1442,7 @@ function CalendarPage() {
                               .update({ estimated_hours: v })
                               .eq("id", b.id);
                             if (error) return toast.error(error.message);
-                            setSelectedBooking({ ...b, estimated_hours: v });
+                            patchSelected({ estimated_hours: v });
                             qc.invalidateQueries({ queryKey: ["calendar-bookings"] });
                             toast.success("Estimated hours updated");
                           }}
@@ -1478,7 +1476,7 @@ function CalendarPage() {
                                     .update({ service_type: s, color: sc.hex })
                                     .eq("id", b.id);
                                   if (error) return toast.error(error.message);
-                                  setSelectedBooking({ ...b, service_type: s, color: sc.hex });
+                                  patchSelected({ service_type: s, color: sc.hex });
                                   qc.invalidateQueries({ queryKey: ["calendar-bookings"] });
                                   toast.success(`Set to ${s}`);
                                 }}
@@ -1507,7 +1505,7 @@ function CalendarPage() {
                                   .update({ service_type_other: v || null })
                                   .eq("id", b.id);
                                 if (error) return toast.error(error.message);
-                                setSelectedBooking({ ...b, service_type_other: v || null });
+                                patchSelected({ service_type_other: v || null });
                                 qc.invalidateQueries({ queryKey: ["calendar-bookings"] });
                                 toast.success("Service details updated");
                               }}
@@ -1541,9 +1539,7 @@ function CalendarPage() {
                                 .update({ phone: v || null })
                                 .eq("id", b.customer_id);
                               if (error) return toast.error(error.message);
-                              setSelectedBooking({
-                                ...b,
-                                customers: { ...(b.customers ?? {}), phone: v || null },
+                              patchSelected({ customers: { ...(b.customers ?? {}), phone: v || null },
                               });
                               qc.invalidateQueries({ queryKey: ["calendar-bookings"] });
                               qc.invalidateQueries({ queryKey: ["quick-customers"] });
@@ -1569,9 +1565,7 @@ function CalendarPage() {
                               const pick = (quickCustomers.data ?? []).find(
                                 (x: any) => x.id === newCustomerId,
                               );
-                              setSelectedBooking({
-                                ...b,
-                                customer_id: newCustomerId,
+                              patchSelected({ customer_id: newCustomerId,
                                 motorcycle_id: null,
                                 customers: pick
                                   ? {
@@ -1625,9 +1619,7 @@ function CalendarPage() {
                                 .update({ rego: v || null })
                                 .eq("id", b.motorcycle_id);
                               if (error) return toast.error(error.message);
-                              setSelectedBooking({
-                                ...b,
-                                motorcycles: { ...(b.motorcycles ?? {}), rego: v || null },
+                              patchSelected({ motorcycles: { ...(b.motorcycles ?? {}), rego: v || null },
                               });
                               qc.invalidateQueries({ queryKey: ["calendar-bookings"] });
                               qc.invalidateQueries({ queryKey: ["edit-bikes", b.customer_id] });
@@ -1654,9 +1646,7 @@ function CalendarPage() {
                               const pick = (editBikes.data ?? []).find(
                                 (x: any) => x.id === newBikeId,
                               );
-                              setSelectedBooking({
-                                ...b,
-                                motorcycle_id: newBikeId,
+                              patchSelected({ motorcycle_id: newBikeId,
                                 motorcycles: pick
                                   ? {
                                       year: pick.year,
@@ -1719,7 +1709,7 @@ function CalendarPage() {
                               .update({ notes: v || null })
                               .eq("id", b.id);
                             if (error) return toast.error(error.message);
-                            setSelectedBooking({ ...b, notes: v || null });
+                            patchSelected({ notes: v || null });
                             qc.invalidateQueries({ queryKey: ["calendar-bookings"] });
                             toast.success("Notes updated");
                           }}
