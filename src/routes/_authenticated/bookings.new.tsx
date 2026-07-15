@@ -17,7 +17,7 @@ import { uploadPhoto } from "@/lib/photos";
 const searchSchema = z.object({ date: z.string().optional(), time: z.string().optional() });
 
 export const Route = createFileRoute("/_authenticated/bookings/new")({
-  validateSearch: zodValidator(searchSchema),
+  validateSearch: (search) => searchSchema.parse(search),
   component: NewBooking,
 });
 
