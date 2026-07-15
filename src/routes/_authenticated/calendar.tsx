@@ -1423,6 +1423,145 @@ function CalendarPage() {
                   : currentStart
                     ? addMinutesToTime(currentStart, bookingDurationMin(b))
                     : "";
+                if (bookingView === "summary") {
+                  return (
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-2 pr-8 flex-wrap">
+                        <span
+                          className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 ring-1 text-[11px] font-bold uppercase tracking-wider ${c.bg} ${c.ring} ${c.text}`}
+                        >
+                          <span className="h-1.5 w-1.5 rounded-full bg-current" />
+                          {displayServiceType(b.service_type, b.service_type_other)}
+                        </span>
+                        {b.confirmed && (
+                          <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-green-500">
+                            <span className="h-1.5 w-1.5 rounded-full bg-green-500" /> Confirmed
+                          </span>
+                        )}
+                        {b.loan_bike && (
+                          <span className="inline-flex items-center gap-1 rounded-full bg-amber-400/20 border border-amber-400/60 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-amber-300">
+                            🏍️ Loan{b.loan_bikes?.name ? ` · ${b.loan_bikes.name}` : ""}
+                          </span>
+                        )}
+                      </div>
+
+                      <div>
+                        <div className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground">
+                          Booking
+                        </div>
+                        <div className="font-display text-lg font-bold">{customer}</div>
+                        <div className="text-sm text-muted-foreground">
+                          {b.scheduled_date
+                            ? format(
+                                new Date(b.scheduled_date + "T00:00:00"),
+                                "EEE, MMM d, yyyy",
+                              )
+                            : "—"}{" "}
+                          · {fmt12h(currentStart)}
+                          {currentEnd ? ` – ${fmt12h(currentEnd)}` : ""}
+                        </div>
+                        {bike !== "—" && (
+                          <div className="mt-1 text-sm flex items-center gap-1.5">
+                            <BikeIcon className="h-3.5 w-3.5 text-muted-foreground" />
+                            <span>{bike}</span>
+                            {b.motorcycles?.rego && (
+                              <span className="font-mono text-xs bg-primary/10 border border-primary/30 rounded px-1.5 py-0.5 text-primary">
+                                {b.motorcycles.rego}
+                              </span>
+                            )}
+                          </div>
+                        )}
+                        {b.customers?.phone && (
+                          <div className="mt-1 text-xs text-muted-foreground flex items-center gap-1">
+                            <Phone className="h-3 w-3" /> {b.customers.phone}
+                          </div>
+                        )}
+                      </div>
+
+                      {b.service_type === "Other" && b.service_type_other && (
+                        <div className="rounded-lg border border-border bg-background/40 px-3 py-2 text-sm">
+                          <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-0.5">
+                            Service detail
+                          </div>
+                          {b.service_type_other}
+                        </div>
+                      )}
+
+                      <div>
+                        <label className="text-[10px] uppercase tracking-wider text-muted-foreground flex items-center gap-1">
+                          <StickyNote className="h-3 w-3" /> Notes
+                        </label>
+                        <textarea
+                          value={summaryNotes}
+                          onChange={(e) => setSummaryNotes(e.target.value)}
+                          placeholder="Add notes for this booking..."
+                          className="mt-1 w-full min-h-[90px] rounded-lg border border-border bg-background/60 px-3 py-2 text-sm focus:border-primary/60 focus:outline-none resize-y"
+                        />
+                        <div className="mt-2 flex justify-end">
+                          <button
+                            type="button"
+                            disabled={
+                              savingSummaryNotes || summaryNotes === (b.notes ?? "")
+                            }
+                            onClick={async () => {
+                              setSavingSummaryNotes(true);
+                              const { error } = await supabase
+                                .from("bookings")
+                                .update({ notes: summaryNotes.trim() || null })
+                                .eq("id", b.id);
+                              setSavingSummaryNotes(false);
+                              if (error) return toast.error(error.message);
+                              patchSelected({ notes: summaryNotes.trim() || null });
+                              qc.invalidateQueries({ queryKey: ["calendar-bookings"] });
+                              toast.success("Notes saved");
+                            }}
+                            className="rounded-lg border border-border px-3 py-1.5 text-xs font-semibold hover:border-primary/50 hover:bg-primary/5 disabled:opacity-50"
+                          >
+                            {savingSummaryNotes ? "Saving…" : "Save notes"}
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-2 pt-2 border-t border-border/60">
+                        <button
+                          type="button"
+                          onClick={() => setBookingView("edit")}
+                          className="rounded-lg border border-border px-3 py-2 text-sm font-semibold hover:border-primary/50 hover:bg-primary/5 transition-colors"
+                        >
+                          <FileText className="inline h-3.5 w-3.5 mr-1.5" />
+                          Edit booking
+                        </button>
+                        {b.job_id ? (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const jid = b.job_id;
+                              setSelectedBooking(null);
+                              nav({ to: "/jobs/$jobId", params: { jobId: jid } });
+                            }}
+                            className="rounded-lg red-surface px-3 py-2 text-sm font-semibold hover:scale-[1.02] transition-transform"
+                          >
+                            <Wrench className="inline h-3.5 w-3.5 mr-1.5" />
+                            Open Job Card
+                          </button>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const bookingId = b.id;
+                              setSelectedBooking(null);
+                              nav({ to: "/jobs/new", search: { bookingId } as any });
+                            }}
+                            className="rounded-lg red-surface px-3 py-2 text-sm font-semibold hover:scale-[1.02] transition-transform"
+                          >
+                            <Wrench className="inline h-3.5 w-3.5 mr-1.5" />
+                            Create Job Card
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                }
                 return (
                   <>
                     <div className="flex items-center gap-2 pr-8">
