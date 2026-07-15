@@ -108,7 +108,7 @@ export async function buildClaimPdf(d: ClaimPdfData): Promise<Blob> {
   if (logoData) {
     try {
       pdf.addImage(logoData, "PNG", margin, y, logoW, logoH);
-    } catch {}
+    } catch { /* ignore */ }
   }
   const titleX = margin + logoW + 4;
   pdf.setFont("helvetica", "bold");
@@ -219,7 +219,7 @@ export async function buildClaimPdf(d: ClaimPdfData): Promise<Blob> {
         } else {
           pdf.addImage(sideData, "PNG", margin, y, diagW, diagH);
         }
-      } catch {}
+      } catch { /* ignore */ }
     }
     viewItems.forEach(({ m, n }) => {
       const cx = margin + m.x * diagW;
@@ -381,7 +381,7 @@ export async function buildClaimPdf(d: ClaimPdfData): Promise<Blob> {
       } catch {
         try {
           pdf.addImage(dataUrl, "PNG", dx, dy, drawW, drawH);
-        } catch {}
+        } catch { /* ignore */ }
       }
       pdf.setDrawColor(180);
       pdf.setLineWidth(0.2);
