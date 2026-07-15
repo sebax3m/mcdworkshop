@@ -188,7 +188,7 @@ function CalendarPage() {
   // Functional patch that keeps the modal closed if the user already closed it
   // while an async save was in flight (prevents the modal from reopening after Close).
   const patchSelected = (patch: any) =>
-    setSelectedBooking((prev) => (prev ? { ...prev, ...patch } : prev));
+    setSelectedBooking((prev: any) => (prev ? { ...prev, ...patch } : prev));
   const [deleteBooking, setDeleteBooking] = useState<any | null>(null);
   const [now, setNow] = useState<Date>(() => new Date());
   const [quickSlot, setQuickSlot] = useState<{ date: Date; time: string } | null>(null);
