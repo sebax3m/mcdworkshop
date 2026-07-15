@@ -2305,25 +2305,20 @@ function CalendarPage() {
 
               <div>
                 <label className="text-[10px] uppercase tracking-wider text-muted-foreground">
-                  Service
+                  Service *
                 </label>
-                <div className="mt-1.5 flex flex-wrap gap-1.5">
-                  {serviceTypesList.map((s: string) => {
-                    const c = serviceColor(s);
-                    const active = qService === s;
-                    return (
-                      <button
-                        key={s}
-                        type="button"
-                        onClick={() => setQService(s)}
-                        className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-wider ring-1 transition-all ${c.bg} ${c.ring} ${c.text} ${active ? "ring-2 scale-[1.03]" : "opacity-75 hover:opacity-100"}`}
-                      >
-                        <span className="h-1.5 w-1.5 rounded-full bg-current" />
-                        {s}
-                      </button>
-                    );
-                  })}
-                </div>
+                <select
+                  value={qService}
+                  onChange={(e) => setQService(e.target.value)}
+                  className="w-full mt-1 rounded-lg border border-border bg-background/60 px-3 py-2 text-sm focus:border-primary/60 focus:outline-none"
+                >
+                  {serviceTypesList.map((s: string) => (
+                    <option key={s} value={s}>
+                      {s}
+                    </option>
+                  ))}
+                  {!serviceTypesList.includes("Other") && <option value="Other">Other</option>}
+                </select>
                 {qService === "Other" && (
                   <div className="mt-2">
                     <label className="text-[10px] uppercase tracking-wider text-muted-foreground">
@@ -2338,6 +2333,7 @@ function CalendarPage() {
                   </div>
                 )}
               </div>
+
 
               <div>
                 <label className="flex items-center gap-2 cursor-pointer">
