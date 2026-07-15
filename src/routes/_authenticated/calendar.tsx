@@ -1253,7 +1253,7 @@ function CalendarPage() {
                               if (newBikeId === b.motorcycle_id) return;
                               const { error } = await supabase
                                 .from("bookings")
-                                .update({ motorcycle_id: newBikeId ?? undefined })
+                                .update({ motorcycle_id: newBikeId ?? null })
                                 .eq("id", b.id);
                               if (error) return toast.error(error.message);
                               const pick = (editBikes.data ?? []).find((x: any) => x.id === newBikeId);
