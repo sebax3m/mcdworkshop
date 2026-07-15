@@ -1291,7 +1291,7 @@ function CalendarPage() {
                           Service type
                         </div>
                         <div className="flex flex-wrap gap-1.5">
-                          {SERVICE_TYPES.map((s) => {
+                          {Array.from(new Set([...serviceTypesList, b.service_type].filter(Boolean) as string[])).map((s: string) => {
                             const sc = serviceColor(s);
                             const active = (b.service_type ?? "").toLowerCase() === s.toLowerCase();
                             return (
