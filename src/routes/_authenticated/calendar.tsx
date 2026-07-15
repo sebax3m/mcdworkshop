@@ -1298,7 +1298,7 @@ function CalendarPage() {
                                 </div>
                                 <div className="flex items-center justify-between gap-1">
                                   <span className="text-[9px] font-bold uppercase tracking-wider truncate">
-                                    {b.drop_off_time ? b.drop_off_time.slice(0, 5) : ""} ·{" "}
+                                    {b.drop_off_time ? fmt12h(String(b.drop_off_time).slice(0, 5)) : ""} ·{" "}
                                     {b.service_type}
                                     {b.service_type === "Other" && b.service_type_other
                                       ? ` — ${b.service_type_other}`
