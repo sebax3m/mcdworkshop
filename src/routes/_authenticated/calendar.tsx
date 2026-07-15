@@ -712,6 +712,13 @@ function CalendarPage() {
           >
             <ChevronRight className="h-4 w-4" />
           </button>
+          <button
+            onClick={() => setDayNoteFor(format(new Date(), "yyyy-MM-dd"))}
+            className="inline-flex items-center gap-1.5 px-3 h-10 rounded-xl border border-amber-500/40 bg-amber-500/10 hover:border-amber-500 text-xs font-semibold uppercase tracking-wider text-amber-500"
+            title="Add or edit day notes"
+          >
+            <StickyNote className="h-3.5 w-3.5" /> Day notes
+          </button>
         </div>
 
         <div className="flex items-center gap-3">
