@@ -2439,7 +2439,7 @@ function CalendarPage() {
 
               <div className="flex gap-2 pt-2 border-t border-border/60">
                 <button
-                  onClick={() => !creatingQuick && setQuickSlot(null)}
+                  onClick={() => !creatingQuick && closeQuickBooking()}
                   className="flex-1 rounded-lg border border-border px-3 py-2 text-sm font-semibold hover:border-primary/50 hover:bg-primary/5 transition-colors"
                 >
                   Cancel
@@ -2452,6 +2452,8 @@ function CalendarPage() {
                   {creatingQuick ? "Creating…" : "Create booking"}
                 </button>
               </div>
+                </>
+              )}
             </motion.div>
           </motion.div>
         )}
