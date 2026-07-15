@@ -214,6 +214,14 @@ function CalendarPage() {
   const [qLoanBikeReturn, setQLoanBikeReturn] = useState<string>("");
   const [creatingQuick, setCreatingQuick] = useState(false);
   const [lookingUpRego, setLookingUpRego] = useState(false);
+  const [qEndTime, setQEndTime] = useState<string>("");
+  const [dayNoteFor, setDayNoteFor] = useState<string | null>(null);
+
+  const bookingTypesQ = useBookingTypes(true);
+  const serviceTypesList = useMemo(() => {
+    const active = (bookingTypesQ.data ?? []).map((t) => t.name);
+    return active.length ? active : FALLBACK_SERVICE_TYPES;
+  }, [bookingTypesQ.data]);
 
   async function fetchQuickFromRego() {
     const plate = qBikeRego.trim();
