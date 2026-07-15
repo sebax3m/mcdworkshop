@@ -117,7 +117,7 @@ export const lookupRego = createServerFn({ method: "POST" })
     // Carjam nests fields inconsistently — do a recursive deep search.
     // Also flatten any array of {key,value} / {name,value} / idh entries into a flat map.
     const flat: Record<string, any> = {};
-    const norm = (s: string) => s.toLowerCase().replace(/[\s_\-]/g, "");
+    const norm = (s: string) => s.toLowerCase().replace(/[\s_-]/g, "");
     function walk(node: any) {
       if (node == null) return;
       if (Array.isArray(node)) {
