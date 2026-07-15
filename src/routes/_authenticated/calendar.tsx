@@ -48,6 +48,23 @@ import { toast } from "sonner";
 import { initials } from "@/lib/format";
 import { BIKE_MAKES, BIKE_MAKE_NAMES, BIKE_YEARS } from "@/lib/bike-library";
 import { lookupRego } from "@/lib/rego-lookup.functions";
+import { useBookingTypes } from "@/hooks/useBookingTypes";
+import { useDailyNotesRange } from "@/hooks/useDailyNotes";
+import { DailyNoteDialog } from "@/components/booking/DailyNoteDialog";
+import { StickyNote, Plus as PlusIcon } from "lucide-react";
+import {
+  addMinutesToTime,
+  findBookingConflicts,
+  formatConflictMessage,
+  validateTimeRange,
+} from "@/lib/booking-conflicts";
+import {
+  dash,
+  displayBike,
+  displayCustomerName,
+  displayServiceType,
+  displayTime,
+} from "@/lib/display";
 
 export const Route = createFileRoute("/_authenticated/calendar")({
   component: CalendarPage,
