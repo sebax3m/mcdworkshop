@@ -973,10 +973,37 @@ function CalendarPage() {
                           >
                             {format(day, "d")}
                           </div>
+                          {(() => {
+                            const notes = notesByDay.get(dayKey) ?? [];
+                            return (
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setDayNoteFor(dayKey);
+                                }}
+                                className={`mt-1 inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider transition-colors ${
+                                  notes.length
+                                    ? "bg-amber-500/15 text-amber-500 hover:bg-amber-500/25"
+                                    : "text-muted-foreground/50 hover:text-amber-500"
+                                }`}
+                                title={
+                                  notes.length
+                                    ? notes.map((n: any) => n.title).join(" · ")
+                                    : "Add day note"
+                                }
+                              >
+                                <StickyNote className="h-2.5 w-2.5" />
+                                {notes.length ? notes[0].title : "Note"}
+                                {notes.length > 1 ? ` +${notes.length - 1}` : ""}
+                              </button>
+                            );
+                          })()}
                         </div>
                       );
                     })}
                   </div>
+
 
                   {/* Time grid body */}
                   <div
