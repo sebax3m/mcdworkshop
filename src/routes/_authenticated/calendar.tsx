@@ -51,7 +51,7 @@ import { lookupRego } from "@/lib/rego-lookup.functions";
 import { useBookingTypes } from "@/hooks/useBookingTypes";
 import { useDailyNotesRange } from "@/hooks/useDailyNotes";
 import { DailyNoteDialog } from "@/components/booking/DailyNoteDialog";
-import { StickyNote, Plus as PlusIcon } from "lucide-react";
+import { StickyNote } from "lucide-react";
 import {
   addMinutesToTime,
   findBookingConflicts,
