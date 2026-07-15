@@ -2213,10 +2213,9 @@ function CalendarPage() {
                 <>
                   Are you sure you want to delete the booking for{" "}
                   <span className="font-semibold text-foreground">
-                    {deleteBooking.customers
-                      ? `${deleteBooking.customers.first_name ?? ""} ${deleteBooking.customers.last_name ?? ""}`.trim() ||
-                        "this customer"
-                      : "this customer"}
+                    {displayCustomerName(deleteBooking.customers) === "—"
+                      ? "this customer"
+                      : displayCustomerName(deleteBooking.customers)}
                   </span>{" "}
                   on{" "}
                   <span className="font-semibold text-foreground">
