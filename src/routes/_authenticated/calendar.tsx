@@ -185,6 +185,10 @@ function CalendarPage() {
   );
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [selectedBooking, setSelectedBooking] = useState<any | null>(null);
+  // Functional patch that keeps the modal closed if the user already closed it
+  // while an async save was in flight (prevents the modal from reopening after Close).
+  const patchSelected = (patch: any) =>
+    setSelectedBooking((prev: any) => (prev ? { ...prev, ...patch } : prev));
   const [deleteBooking, setDeleteBooking] = useState<any | null>(null);
   const [now, setNow] = useState<Date>(() => new Date());
   const [quickSlot, setQuickSlot] = useState<{ date: Date; time: string } | null>(null);
@@ -1164,7 +1168,7 @@ function CalendarPage() {
                               const { h, m } = parseTime(b.drop_off_time);
                               const top = (h + m / 60 - START_HOUR) * SLOT_H;
                               const hoursDur = Math.max(0.5, bookingDurationMin(b) / 60);
-                              const height = Math.max(24, hoursDur * SLOT_H - 2);
+                              const height = Math.max(24, hoursDur * SLOT_H - 3);
                               if (top + height < 0 || top > GRID_H) return null;
                               const c = serviceColor(b.service_type);
                               const bike = displayBike(b.motorcycles);
@@ -1197,7 +1201,7 @@ function CalendarPage() {
                                     b.color ? "text-foreground" : `${c.bg} ${c.ring} ${c.text}`
                                   } ${draggingId === b.id ? "opacity-40" : ""} ${b.loan_bike ? "!ring-2 !ring-amber-400" : ""}`}
                                   style={{
-                                    top: `${top}px`,
+                                    top: `${top + 1}px`,
                                     height: `${height}px`,
                                     left: `calc(${leftPct}% + 2px)`,
                                     width: `calc(${widthPct}% - 4px)`,
@@ -1244,7 +1248,59 @@ function CalendarPage() {
                       );
                     })}
                   </div>
+
+                  {/* Notes footer — one strip per day column, mirrors the header grid */}
+                  <div
+                    className="grid border-t border-border/60 bg-muted/10"
+                    style={{ gridTemplateColumns: `56px repeat(7, minmax(0, 1fr))` }}
+                  >
+                    <div className="flex items-center justify-center border-r border-border/60 py-1.5">
+                      <StickyNote className="h-3 w-3 text-amber-500/70" />
+                    </div>
+                    {weekDays.map((day) => {
+                      const dayKey = format(day, "yyyy-MM-dd");
+                      const notes = notesByDay.get(dayKey) ?? [];
+                      return (
+                        <button
+                          type="button"
+                          key={`notes-footer-${dayKey}`}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setDayNoteFor(dayKey);
+                          }}
+                          className="min-h-[36px] border-r border-border/40 last:border-r-0 px-1.5 py-1 text-left text-[10px] leading-tight hover:bg-amber-500/5 transition-colors"
+                          title={
+                            notes.length
+                              ? notes.map((n: any) => n.title).join(" · ")
+                              : "Add day note"
+                          }
+                        >
+                          {notes.length === 0 ? (
+                            <span className="text-muted-foreground/40 italic">+ note</span>
+                          ) : (
+                            <div className="flex flex-col gap-0.5">
+                              {notes.slice(0, 3).map((n: any) => (
+                                <div
+                                  key={n.id}
+                                  className="flex items-start gap-1 rounded-sm bg-amber-500/15 px-1 py-0.5 text-amber-600 dark:text-amber-300"
+                                >
+                                  <StickyNote className="h-2.5 w-2.5 mt-0.5 shrink-0" />
+                                  <span className="truncate">{n.title}</span>
+                                </div>
+                              ))}
+                              {notes.length > 3 && (
+                                <span className="text-muted-foreground text-[9px]">
+                                  +{notes.length - 3} more
+                                </span>
+                              )}
+                            </div>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
+
               </div>
             </div>
           );
@@ -1343,7 +1399,7 @@ function CalendarPage() {
                               .update({ scheduled_date: v })
                               .eq("id", b.id);
                             if (error) return toast.error(error.message);
-                            setSelectedBooking({ ...b, scheduled_date: v });
+                            patchSelected({ scheduled_date: v });
                             qc.invalidateQueries({ queryKey: ["calendar-bookings"] });
                             toast.success("Date updated");
                           }}
@@ -1380,9 +1436,7 @@ function CalendarPage() {
                               })
                               .eq("id", b.id);
                             if (error) return toast.error(error.message);
-                            setSelectedBooking({
-                              ...b,
-                              drop_off_time: `${v}:00`,
+                            patchSelected({ drop_off_time: `${v}:00`,
                               scheduled_end_time: `${newEnd}:00`,
                             });
                             qc.invalidateQueries({ queryKey: ["calendar-bookings"] });
@@ -1418,7 +1472,7 @@ function CalendarPage() {
                               .update({ scheduled_end_time: `${v}:00` })
                               .eq("id", b.id);
                             if (error) return toast.error(error.message);
-                            setSelectedBooking({ ...b, scheduled_end_time: `${v}:00` });
+                            patchSelected({ scheduled_end_time: `${v}:00` });
                             qc.invalidateQueries({ queryKey: ["calendar-bookings"] });
                             toast.success("End time updated");
                           }}
@@ -1440,7 +1494,7 @@ function CalendarPage() {
                               .update({ estimated_hours: v })
                               .eq("id", b.id);
                             if (error) return toast.error(error.message);
-                            setSelectedBooking({ ...b, estimated_hours: v });
+                            patchSelected({ estimated_hours: v });
                             qc.invalidateQueries({ queryKey: ["calendar-bookings"] });
                             toast.success("Estimated hours updated");
                           }}
@@ -1474,7 +1528,7 @@ function CalendarPage() {
                                     .update({ service_type: s, color: sc.hex })
                                     .eq("id", b.id);
                                   if (error) return toast.error(error.message);
-                                  setSelectedBooking({ ...b, service_type: s, color: sc.hex });
+                                  patchSelected({ service_type: s, color: sc.hex });
                                   qc.invalidateQueries({ queryKey: ["calendar-bookings"] });
                                   toast.success(`Set to ${s}`);
                                 }}
@@ -1503,7 +1557,7 @@ function CalendarPage() {
                                   .update({ service_type_other: v || null })
                                   .eq("id", b.id);
                                 if (error) return toast.error(error.message);
-                                setSelectedBooking({ ...b, service_type_other: v || null });
+                                patchSelected({ service_type_other: v || null });
                                 qc.invalidateQueries({ queryKey: ["calendar-bookings"] });
                                 toast.success("Service details updated");
                               }}
@@ -1537,9 +1591,7 @@ function CalendarPage() {
                                 .update({ phone: v || null })
                                 .eq("id", b.customer_id);
                               if (error) return toast.error(error.message);
-                              setSelectedBooking({
-                                ...b,
-                                customers: { ...(b.customers ?? {}), phone: v || null },
+                              patchSelected({ customers: { ...(b.customers ?? {}), phone: v || null },
                               });
                               qc.invalidateQueries({ queryKey: ["calendar-bookings"] });
                               qc.invalidateQueries({ queryKey: ["quick-customers"] });
@@ -1565,9 +1617,7 @@ function CalendarPage() {
                               const pick = (quickCustomers.data ?? []).find(
                                 (x: any) => x.id === newCustomerId,
                               );
-                              setSelectedBooking({
-                                ...b,
-                                customer_id: newCustomerId,
+                              patchSelected({ customer_id: newCustomerId,
                                 motorcycle_id: null,
                                 customers: pick
                                   ? {
@@ -1621,9 +1671,7 @@ function CalendarPage() {
                                 .update({ rego: v || null })
                                 .eq("id", b.motorcycle_id);
                               if (error) return toast.error(error.message);
-                              setSelectedBooking({
-                                ...b,
-                                motorcycles: { ...(b.motorcycles ?? {}), rego: v || null },
+                              patchSelected({ motorcycles: { ...(b.motorcycles ?? {}), rego: v || null },
                               });
                               qc.invalidateQueries({ queryKey: ["calendar-bookings"] });
                               qc.invalidateQueries({ queryKey: ["edit-bikes", b.customer_id] });
@@ -1650,9 +1698,7 @@ function CalendarPage() {
                               const pick = (editBikes.data ?? []).find(
                                 (x: any) => x.id === newBikeId,
                               );
-                              setSelectedBooking({
-                                ...b,
-                                motorcycle_id: newBikeId,
+                              patchSelected({ motorcycle_id: newBikeId,
                                 motorcycles: pick
                                   ? {
                                       year: pick.year,
@@ -1715,7 +1761,7 @@ function CalendarPage() {
                               .update({ notes: v || null })
                               .eq("id", b.id);
                             if (error) return toast.error(error.message);
-                            setSelectedBooking({ ...b, notes: v || null });
+                            patchSelected({ notes: v || null });
                             qc.invalidateQueries({ queryKey: ["calendar-bookings"] });
                             toast.success("Notes updated");
                           }}
