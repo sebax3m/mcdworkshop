@@ -33,9 +33,6 @@ const sections = [
     title: "Customers",
     desc: "View, edit and manage customer contact details.",
   },
-    title: "Customers",
-    desc: "View, edit and manage customer contact details.",
-  },
   {
     to: "/inventory",
     icon: Package,
