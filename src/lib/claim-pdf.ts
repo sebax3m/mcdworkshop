@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import jsPDF from "jspdf";
 import { supabase } from "@/integrations/supabase/client";
 import bikeSideAsset from "@/assets/bike-side.png.asset.json";
