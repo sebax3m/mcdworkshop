@@ -34,16 +34,17 @@ function normaliseTime(t: string): string {
  * The RPC ignores cancelled/deleted/no_show and excludes p_exclude_booking_id.
  * Daily notes are never included (separate table).
  */
-export async function findBookingConflicts(
-  input: ConflictCheckInput,
-): Promise<BookingConflict[]> {
-  const { data, error } = await supabase.rpc("find_booking_conflicts" as never, {
-    p_date: input.date,
-    p_start: normaliseTime(input.startTime),
-    p_end: normaliseTime(input.endTime),
-    p_technician_id: input.technicianId ?? null,
-    p_exclude_booking_id: input.excludeBookingId ?? null,
-  } as never);
+export async function findBookingConflicts(input: ConflictCheckInput): Promise<BookingConflict[]> {
+  const { data, error } = await supabase.rpc(
+    "find_booking_conflicts" as never,
+    {
+      p_date: input.date,
+      p_start: normaliseTime(input.startTime),
+      p_end: normaliseTime(input.endTime),
+      p_technician_id: input.technicianId ?? null,
+      p_exclude_booking_id: input.excludeBookingId ?? null,
+    } as never,
+  );
   if (error) throw error;
   return (data ?? []) as unknown as BookingConflict[];
 }

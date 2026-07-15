@@ -144,11 +144,7 @@ function EditableNote({
   const dirty = t !== note.title || b !== (note.body ?? "");
   return (
     <div className="rounded-lg border border-amber-500/30 bg-amber-500/5 p-3 space-y-2">
-      <Input
-        value={t}
-        onChange={(e) => setT(e.target.value)}
-        className="font-semibold"
-      />
+      <Input value={t} onChange={(e) => setT(e.target.value)} className="font-semibold" />
       <Textarea
         value={b}
         onChange={(e) => setB(e.target.value)}

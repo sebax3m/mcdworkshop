@@ -51,9 +51,7 @@ export function TimeSlotFields({
           />
         </div>
         <div>
-          <Label className="text-xs uppercase tracking-wider text-muted-foreground">
-            Slot end
-          </Label>
+          <Label className="text-xs uppercase tracking-wider text-muted-foreground">Slot end</Label>
           <Input
             type="time"
             value={endTime}

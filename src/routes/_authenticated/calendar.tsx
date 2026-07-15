@@ -58,11 +58,7 @@ import {
   formatConflictMessage,
   validateTimeRange,
 } from "@/lib/booking-conflicts";
-import {
-  displayBike,
-  displayCustomerName,
-  displayServiceType,
-} from "@/lib/display";
+import { displayBike, displayCustomerName, displayServiceType } from "@/lib/display";
 
 export const Route = createFileRoute("/_authenticated/calendar")({
   component: CalendarPage,
@@ -508,7 +504,6 @@ function CalendarPage() {
     }
   }
 
-
   async function confirmDeleteBooking() {
     if (!deleteBooking) return;
     const { error } = await supabase.from("bookings").delete().eq("id", deleteBooking.id);
@@ -613,7 +608,8 @@ function CalendarPage() {
     const dateStr = format(newDate, "yyyy-MM-dd");
     const current = (bookings as any[]).find((b) => b.id === bookingId);
     const durationMin = bookingDurationMin(current);
-    const startTime = newTime ?? (current?.drop_off_time ? String(current.drop_off_time).slice(0, 5) : null);
+    const startTime =
+      newTime ?? (current?.drop_off_time ? String(current.drop_off_time).slice(0, 5) : null);
     if (!startTime) return;
     const endTime = addMinutesToTime(startTime, durationMin);
     const rangeErr = validateTimeRange(startTime, endTime);
@@ -636,12 +632,9 @@ function CalendarPage() {
     };
     const { error } = await supabase.from("bookings").update(patch).eq("id", bookingId);
     if (error) return toast.error(error.message);
-    toast.success(
-      "Booking moved to " + format(newDate, "EEE d MMM") + ` · ${startTime}`,
-    );
+    toast.success("Booking moved to " + format(newDate, "EEE d MMM") + ` · ${startTime}`);
     qc.invalidateQueries({ queryKey: ["calendar-bookings"] });
   }
-
 
   const totals = useMemo(() => {
     const byDay = new Map<string, number>();
@@ -1018,7 +1011,6 @@ function CalendarPage() {
                       );
                     })}
                   </div>
-
 
                   {/* Time grid body */}
                   <div
@@ -1422,13 +1414,16 @@ function CalendarPage() {
                         <span>h</span>
                       </div>
 
-
                       <div className="mt-3">
                         <div className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground mb-1.5">
                           Service type
                         </div>
                         <div className="flex flex-wrap gap-1.5">
-                          {Array.from(new Set([...serviceTypesList, b.service_type].filter(Boolean) as string[])).map((s: string) => {
+                          {Array.from(
+                            new Set(
+                              [...serviceTypesList, b.service_type].filter(Boolean) as string[],
+                            ),
+                          ).map((s: string) => {
                             const sc = serviceColor(s);
                             const active = (b.service_type ?? "").toLowerCase() === s.toLowerCase();
                             return (
