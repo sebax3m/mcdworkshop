@@ -1861,7 +1861,7 @@ function CalendarPage() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-md p-4"
-            onClick={() => !creatingQuick && setQuickSlot(null)}
+            onClick={() => !creatingQuick && closeQuickBooking()}
           >
             <motion.div
               initial={{ opacity: 0, scale: 0.96, y: 8 }}
@@ -1872,25 +1872,142 @@ function CalendarPage() {
               className="w-full max-w-md max-h-[90vh] overflow-y-auto rounded-2xl border border-border/60 bg-background/70 backdrop-blur-xl shadow-2xl p-5 space-y-4 relative"
             >
               <button
-                onClick={() => !creatingQuick && setQuickSlot(null)}
+                onClick={() => !creatingQuick && closeQuickBooking()}
                 className="absolute top-3 right-3 grid h-8 w-8 place-items-center rounded-lg border border-border text-muted-foreground hover:text-foreground hover:border-foreground/30 transition-colors"
                 aria-label="Close"
               >
                 <X className="h-4 w-4" />
               </button>
 
+              {justCreated ? (
+                <div className="space-y-4">
+                  <div>
+                    <div className="text-[10px] uppercase tracking-[0.25em] text-emerald-500">
+                      Booking created
+                    </div>
+                    <div className="font-display text-lg font-bold">
+                      {displayCustomerName(justCreated.customers)}
+                    </div>
+                    <div className="text-sm text-muted-foreground">
+                      {justCreated.scheduled_date} ·{" "}
+                      {String(justCreated.drop_off_time ?? "").slice(0, 5)}
+                      {justCreated.motorcycles && (
+                        <>
+                          {" "}
+                          ·{" "}
+                          {`${justCreated.motorcycles.year ?? ""} ${justCreated.motorcycles.make ?? ""} ${justCreated.motorcycles.model ?? ""}`.trim()}
+                        </>
+                      )}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-[10px] uppercase tracking-wider text-muted-foreground flex items-center gap-1">
+                      <StickyNote className="h-3 w-3" /> Notes
+                    </label>
+                    <textarea
+                      value={justCreatedNotes}
+                      onChange={(e) => setJustCreatedNotes(e.target.value)}
+                      placeholder="Add notes for this booking..."
+                      className="mt-1 w-full min-h-[100px] rounded-lg border border-border bg-background/60 px-3 py-2 text-sm focus:border-primary/60 focus:outline-none resize-y"
+                    />
+                    <div className="mt-2 flex justify-end">
+                      <button
+                        type="button"
+                        disabled={
+                          savingJustCreatedNotes ||
+                          justCreatedNotes === (justCreated.notes ?? "")
+                        }
+                        onClick={async () => {
+                          setSavingJustCreatedNotes(true);
+                          const { error } = await supabase
+                            .from("bookings")
+                            .update({ notes: justCreatedNotes.trim() || null })
+                            .eq("id", justCreated.id);
+                          setSavingJustCreatedNotes(false);
+                          if (error) return toast.error(error.message);
+                          setJustCreated({ ...justCreated, notes: justCreatedNotes });
+                          qc.invalidateQueries({ queryKey: ["calendar-bookings"] });
+                          toast.success("Notes saved");
+                        }}
+                        className="rounded-lg border border-border px-3 py-1.5 text-xs font-semibold hover:border-primary/50 hover:bg-primary/5 disabled:opacity-50"
+                      >
+                        {savingJustCreatedNotes ? "Saving…" : "Save notes"}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2 pt-2 border-t border-border/60">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const id = justCreated.id;
+                        closeQuickBooking();
+                        nav({ to: "/bookings/$bookingId", params: { bookingId: id } });
+                      }}
+                      className="rounded-lg border border-border px-3 py-2 text-sm font-semibold hover:border-primary/50 hover:bg-primary/5 transition-colors"
+                    >
+                      <Wrench className="inline h-3.5 w-3.5 mr-1.5" />
+                      Edit booking
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const jobId = justCreated.job_id;
+                        const bookingId = justCreated.id;
+                        closeQuickBooking();
+                        if (jobId) {
+                          nav({ to: "/jobs/$jobId", params: { jobId } });
+                        } else {
+                          nav({ to: "/jobs/new", search: { bookingId } as any });
+                        }
+                      }}
+                      className="rounded-lg red-surface px-3 py-2 text-sm font-semibold hover:scale-[1.02] transition-transform"
+                    >
+                      <FileText className="inline h-3.5 w-3.5 mr-1.5" />
+                      Go to Job Card
+                    </button>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={closeQuickBooking}
+                    className="w-full rounded-lg border border-border px-3 py-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground"
+                  >
+                    Close
+                  </button>
+                </div>
+              ) : (
+                <>
               <div>
                 <div className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground">
                   Quick booking
                 </div>
-                <div className="font-display text-lg font-bold">
-                  {format(quickSlot.date, "EEE d MMM")}
-                  <span className="ml-2 text-sm text-muted-foreground tabular-nums">
-                    <Clock className="inline h-3.5 w-3.5 mr-1" />
-                    {quickSlot.time}
-                  </span>
+                <div className="mt-1 grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                      Date
+                    </label>
+                    <input
+                      type="date"
+                      value={qEditDate}
+                      onChange={(e) => setQEditDate(e.target.value)}
+                      className="w-full mt-1 rounded-lg border border-border bg-background/60 px-3 py-2 text-sm font-semibold focus:border-primary/60 focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] uppercase tracking-wider text-muted-foreground flex items-center gap-1">
+                      <Clock className="h-3 w-3" /> Time
+                    </label>
+                    <input
+                      type="time"
+                      value={qEditTime}
+                      onChange={(e) => setQEditTime(e.target.value)}
+                      className="w-full mt-1 rounded-lg border border-border bg-background/60 px-3 py-2 text-sm font-semibold tabular-nums focus:border-primary/60 focus:outline-none"
+                    />
+                  </div>
                 </div>
               </div>
+
 
               {/* Customer search */}
               <div className="relative">
