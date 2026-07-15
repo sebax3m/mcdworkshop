@@ -158,7 +158,7 @@ function serviceColor(t: string | null | undefined) {
   return SERVICE_COLORS.default;
 }
 
-const SERVICE_TYPES = [
+const FALLBACK_SERVICE_TYPES = [
   "Basic Service",
   "Standard Service",
   "Full Service",
