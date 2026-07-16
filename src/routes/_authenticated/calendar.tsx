@@ -486,6 +486,7 @@ function CalendarPage() {
     setQService("Standard Service");
     setQServiceOther("");
     setQEstHours("1");
+    setQNotes("");
     setQWofNeeded(false);
     setQWofExpiry("");
     setQLoanBike(false);
