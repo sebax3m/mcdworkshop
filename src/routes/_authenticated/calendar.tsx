@@ -564,7 +564,10 @@ function CalendarPage() {
           loan_bike_expected_return: qLoanBike && qLoanBikeReturn ? qLoanBikeReturn : null,
           status: "booked",
           wof_expiry: qWofNeeded && qWofExpiry ? qWofExpiry : null,
-          notes: qWofNeeded ? "WOF required" : null,
+          notes:
+            [qNotes.trim(), qWofNeeded ? "WOF required" : ""]
+              .filter(Boolean)
+              .join("\n") || null,
         })
         .select(
           "id, service_type, service_type_other, scheduled_date, drop_off_time, scheduled_end_time, estimated_hours, status, notes, customer_id, motorcycle_id, job_id, customers(first_name,last_name,phone,email), motorcycles(year,make,model,rego)",
