@@ -2523,8 +2523,20 @@ function CalendarPage() {
                     className="w-full mt-1 rounded-lg border border-border bg-background/60 px-3 py-2 text-sm focus:border-primary/60 focus:outline-none"
                   />
                 </div>
+                <div className="col-span-2">
+                  <label className="text-[10px] uppercase tracking-wider text-muted-foreground flex items-center gap-1">
+                    <StickyNote className="h-3 w-3" /> Notes
+                  </label>
+                  <textarea
+                    value={qNotes}
+                    onChange={(e) => setQNotes(e.target.value)}
+                    placeholder="Anything the tech should know…"
+                    className="mt-1 w-full min-h-[64px] rounded-lg border border-border bg-background/60 px-3 py-2 text-sm focus:border-primary/60 focus:outline-none resize-y"
+                  />
+                </div>
 
               </div>
+
 
               <div>
                 <label className="text-[10px] uppercase tracking-wider text-muted-foreground">
