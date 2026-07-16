@@ -2227,7 +2227,36 @@ function CalendarPage() {
                 </div>
               </div>
 
-
+              <div>
+                <label className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                  Service *
+                </label>
+                <select
+                  value={qService}
+                  onChange={(e) => setQService(e.target.value)}
+                  className="w-full mt-1 rounded-lg border border-border bg-background/60 px-3 py-2 text-sm focus:border-primary/60 focus:outline-none"
+                >
+                  {serviceTypesList.map((s: string) => (
+                    <option key={s} value={s}>
+                      {s}
+                    </option>
+                  ))}
+                  {!serviceTypesList.includes("Other") && <option value="Other">Other</option>}
+                </select>
+                {qService === "Other" && (
+                  <div className="mt-2">
+                    <label className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                      Other service details
+                    </label>
+                    <textarea
+                      value={qServiceOther}
+                      onChange={(e) => setQServiceOther(e.target.value)}
+                      placeholder="Describe the service..."
+                      className="mt-1 w-full min-h-[64px] rounded-lg border border-border bg-background/60 px-3 py-2 text-sm focus:border-primary/60 focus:outline-none resize-y"
+                    />
+                  </div>
+                )}
+              </div>
 
               {/* Customer search */}
               <div className="relative">
