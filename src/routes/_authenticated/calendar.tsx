@@ -245,6 +245,7 @@ function CalendarPage() {
   const [qService, setQService] = useState<string>("Standard Service");
   const [qServiceOther, setQServiceOther] = useState<string>("");
   const [qEstHours, setQEstHours] = useState<string>("1");
+  const [qNotes, setQNotes] = useState<string>("");
   const [qWofNeeded, setQWofNeeded] = useState(false);
   const [qWofExpiry, setQWofExpiry] = useState<string>("");
   const [qLoanBike, setQLoanBike] = useState(false);
@@ -485,6 +486,7 @@ function CalendarPage() {
     setQService("Standard Service");
     setQServiceOther("");
     setQEstHours("1");
+    setQNotes("");
     setQWofNeeded(false);
     setQWofExpiry("");
     setQLoanBike(false);
@@ -562,7 +564,10 @@ function CalendarPage() {
           loan_bike_expected_return: qLoanBike && qLoanBikeReturn ? qLoanBikeReturn : null,
           status: "booked",
           wof_expiry: qWofNeeded && qWofExpiry ? qWofExpiry : null,
-          notes: qWofNeeded ? "WOF required" : null,
+          notes:
+            [qNotes.trim(), qWofNeeded ? "WOF required" : ""]
+              .filter(Boolean)
+              .join("\n") || null,
         })
         .select(
           "id, service_type, service_type_other, scheduled_date, drop_off_time, scheduled_end_time, estimated_hours, status, notes, customer_id, motorcycle_id, job_id, customers(first_name,last_name,phone,email), motorcycles(year,make,model,rego)",
@@ -1586,118 +1591,191 @@ function CalendarPage() {
                       )}
                     </div>
 
+                    {/* Service — moved to top to mirror the Quick Booking form */}
+                    <div>
+                      <label className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                        Service *
+                      </label>
+                      <select
+                        value={b.service_type ?? ""}
+                        onChange={async (e) => {
+                          const s = e.target.value;
+                          const sc = serviceColor(s);
+                          const { error } = await supabase
+                            .from("bookings")
+                            .update({ service_type: s, color: sc.hex })
+                            .eq("id", b.id);
+                          if (error) return toast.error(error.message);
+                          patchSelected({ service_type: s, color: sc.hex });
+                          qc.invalidateQueries({ queryKey: ["calendar-bookings"] });
+                          toast.success(`Set to ${s}`);
+                        }}
+                        className="w-full mt-1 rounded-lg border border-border bg-background/60 px-3 py-2 text-sm focus:border-primary/60 focus:outline-none"
+                      >
+                        {Array.from(
+                          new Set(
+                            [...serviceTypesList, b.service_type, "Other"].filter(
+                              Boolean,
+                            ) as string[],
+                          ),
+                        ).map((s: string) => (
+                          <option key={s} value={s}>
+                            {s}
+                          </option>
+                        ))}
+                      </select>
+                      {(b.service_type ?? "").toLowerCase() === "other" && (
+                        <div className="mt-2">
+                          <label className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                            Other service details
+                          </label>
+                          <textarea
+                            key={`other-${b.id}`}
+                            defaultValue={b.service_type_other ?? ""}
+                            placeholder="Describe the service..."
+                            onBlur={async (e) => {
+                              const v = e.target.value.trim();
+                              if (v === (b.service_type_other ?? "")) return;
+                              const { error } = await supabase
+                                .from("bookings")
+                                .update({ service_type_other: v || null })
+                                .eq("id", b.id);
+                              if (error) return toast.error(error.message);
+                              patchSelected({ service_type_other: v || null });
+                              qc.invalidateQueries({ queryKey: ["calendar-bookings"] });
+                              toast.success("Service details updated");
+                            }}
+                            className="mt-1 w-full min-h-[64px] rounded-lg border border-border bg-background/60 px-3 py-2 text-sm focus:border-primary/60 focus:outline-none resize-y"
+                          />
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Scheduled — same Popover / Select components as the create form */}
                     <div>
                       <div className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground mb-1.5">
                         Scheduled
                       </div>
-                      <div className="flex flex-wrap items-center gap-2">
-                        <input
-                          type="date"
-                          defaultValue={b.scheduled_date}
-                          onBlur={async (e) => {
-                            const v = e.target.value;
-                            if (!v || v === b.scheduled_date) return;
-                            const start = currentStart || "09:00";
-                            const end = currentEnd || addMinutesToTime(start, 60);
-                            try {
-                              const conflicts = await findBookingConflicts({
-                                date: v,
-                                startTime: start,
-                                endTime: end,
-                                excludeBookingId: b.id,
-                              });
-                              if (conflicts.length)
-                                return toast.error(formatConflictMessage(conflicts));
-                            } catch (err: any) {
-                              return toast.error(err?.message ?? "Conflict check failed");
-                            }
-                            const { error } = await supabase
-                              .from("bookings")
-                              .update({ scheduled_date: v })
-                              .eq("id", b.id);
-                            if (error) return toast.error(error.message);
-                            patchSelected({ scheduled_date: v });
-                            qc.invalidateQueries({ queryKey: ["calendar-bookings"] });
-                            toast.success("Date updated");
-                          }}
-                          className="rounded-md border border-border bg-background px-2 py-1 text-sm tabular-nums focus:border-primary/60 outline-none"
-                        />
-                        <input
-                          type="time"
-                          key={`start-${b.id}-${currentStart}`}
-                          defaultValue={currentStart}
-                          onBlur={async (e) => {
-                            const v = e.target.value;
-                            if (!v || v === currentStart) return;
-                            const durationMin = bookingDurationMin(b);
-                            const newEnd = addMinutesToTime(v, durationMin);
-                            const rangeErr = validateTimeRange(v, newEnd);
-                            if (rangeErr) return toast.error(rangeErr);
-                            try {
-                              const conflicts = await findBookingConflicts({
-                                date: b.scheduled_date,
-                                startTime: v,
-                                endTime: newEnd,
-                                excludeBookingId: b.id,
-                              });
-                              if (conflicts.length)
-                                return toast.error(formatConflictMessage(conflicts));
-                            } catch (err: any) {
-                              return toast.error(err?.message ?? "Conflict check failed");
-                            }
-                            const { error } = await supabase
-                              .from("bookings")
-                              .update({
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <label className="text-[10px] uppercase tracking-wider text-muted-foreground flex items-center gap-1">
+                            <CalendarIcon className="h-3 w-3" /> Date
+                          </label>
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <button
+                                type="button"
+                                className={cn(
+                                  "w-full mt-1 rounded-lg border border-border bg-background/60 px-3 py-2 text-sm font-semibold text-left focus:border-primary/60 focus:outline-none hover:bg-primary/5",
+                                  !b.scheduled_date && "text-muted-foreground",
+                                )}
+                              >
+                                {b.scheduled_date
+                                  ? format(
+                                      new Date(b.scheduled_date + "T00:00:00"),
+                                      "EEE, MMM d, yyyy",
+                                    )
+                                  : "Pick a date"}
+                              </button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="start">
+                              <CalendarPicker
+                                mode="single"
+                                selected={
+                                  b.scheduled_date
+                                    ? new Date(b.scheduled_date + "T00:00:00")
+                                    : undefined
+                                }
+                                onSelect={async (d) => {
+                                  if (!d) return;
+                                  const v = format(d, "yyyy-MM-dd");
+                                  if (v === b.scheduled_date) return;
+                                  const start = currentStart || "09:00";
+                                  const end = currentEnd || addMinutesToTime(start, 60);
+                                  try {
+                                    const conflicts = await findBookingConflicts({
+                                      date: v,
+                                      startTime: start,
+                                      endTime: end,
+                                      excludeBookingId: b.id,
+                                    });
+                                    if (conflicts.length)
+                                      return toast.error(formatConflictMessage(conflicts));
+                                  } catch (err: any) {
+                                    return toast.error(err?.message ?? "Conflict check failed");
+                                  }
+                                  const { error } = await supabase
+                                    .from("bookings")
+                                    .update({ scheduled_date: v })
+                                    .eq("id", b.id);
+                                  if (error) return toast.error(error.message);
+                                  patchSelected({ scheduled_date: v });
+                                  qc.invalidateQueries({ queryKey: ["calendar-bookings"] });
+                                  toast.success("Date updated");
+                                }}
+                                initialFocus
+                                className={cn("p-3 pointer-events-auto")}
+                              />
+                            </PopoverContent>
+                          </Popover>
+                        </div>
+                        <div>
+                          <label className="text-[10px] uppercase tracking-wider text-muted-foreground flex items-center gap-1">
+                            <Clock className="h-3 w-3" /> Time
+                          </label>
+                          <Select
+                            value={currentStart}
+                            onValueChange={async (v) => {
+                              if (!v || v === currentStart) return;
+                              const durationMin = bookingDurationMin(b);
+                              const newEnd = addMinutesToTime(v, durationMin);
+                              const rangeErr = validateTimeRange(v, newEnd);
+                              if (rangeErr) return toast.error(rangeErr);
+                              try {
+                                const conflicts = await findBookingConflicts({
+                                  date: b.scheduled_date,
+                                  startTime: v,
+                                  endTime: newEnd,
+                                  excludeBookingId: b.id,
+                                });
+                                if (conflicts.length)
+                                  return toast.error(formatConflictMessage(conflicts));
+                              } catch (err: any) {
+                                return toast.error(err?.message ?? "Conflict check failed");
+                              }
+                              const { error } = await supabase
+                                .from("bookings")
+                                .update({
+                                  drop_off_time: `${v}:00`,
+                                  scheduled_end_time: `${newEnd}:00`,
+                                })
+                                .eq("id", b.id);
+                              if (error) return toast.error(error.message);
+                              patchSelected({
                                 drop_off_time: `${v}:00`,
                                 scheduled_end_time: `${newEnd}:00`,
-                              })
-                              .eq("id", b.id);
-                            if (error) return toast.error(error.message);
-                            patchSelected({ drop_off_time: `${v}:00`,
-                              scheduled_end_time: `${newEnd}:00`,
-                            });
-                            qc.invalidateQueries({ queryKey: ["calendar-bookings"] });
-                            toast.success("Start time updated");
-                          }}
-                          className="rounded-md border border-border bg-background px-2 py-1 text-sm tabular-nums focus:border-primary/60 outline-none"
-                        />
-                        <span className="text-xs text-muted-foreground">→</span>
-                        <input
-                          type="time"
-                          key={`end-${b.id}-${currentEnd}`}
-                          defaultValue={currentEnd}
-                          onBlur={async (e) => {
-                            const v = e.target.value;
-                            if (!v || v === currentEnd) return;
-                            const start = currentStart || "09:00";
-                            const rangeErr = validateTimeRange(start, v);
-                            if (rangeErr) return toast.error(rangeErr);
-                            try {
-                              const conflicts = await findBookingConflicts({
-                                date: b.scheduled_date,
-                                startTime: start,
-                                endTime: v,
-                                excludeBookingId: b.id,
                               });
-                              if (conflicts.length)
-                                return toast.error(formatConflictMessage(conflicts));
-                            } catch (err: any) {
-                              return toast.error(err?.message ?? "Conflict check failed");
-                            }
-                            const { error } = await supabase
-                              .from("bookings")
-                              .update({ scheduled_end_time: `${v}:00` })
-                              .eq("id", b.id);
-                            if (error) return toast.error(error.message);
-                            patchSelected({ scheduled_end_time: `${v}:00` });
-                            qc.invalidateQueries({ queryKey: ["calendar-bookings"] });
-                            toast.success("End time updated");
-                          }}
-                          className="rounded-md border border-border bg-background px-2 py-1 text-sm tabular-nums focus:border-primary/60 outline-none"
-                        />
+                              qc.invalidateQueries({ queryKey: ["calendar-bookings"] });
+                              toast.success("Start time updated");
+                            }}
+                          >
+                            <SelectTrigger className="w-full mt-1 rounded-lg border border-border bg-background/60 px-3 py-2 text-sm font-semibold tabular-nums h-auto">
+                              <SelectValue placeholder="Pick a time">
+                                {currentStart ? fmt12h(currentStart) : undefined}
+                              </SelectValue>
+                            </SelectTrigger>
+                            <SelectContent className="max-h-72">
+                              {TIME_SLOTS.map((t) => (
+                                <SelectItem key={t} value={t} className="tabular-nums">
+                                  {fmt12h(t)}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
                       </div>
-                      <div className="text-xs text-muted-foreground mt-2 flex items-center gap-2">
-                        <span>Est. hours (info):</span>
+                      <div className="mt-2 flex items-center gap-2 text-xs text-muted-foreground">
+                        <span>Ends {fmt12h(currentEnd)} · Est. hours:</span>
                         <input
                           type="number"
                           min="0.25"
@@ -1706,12 +1784,20 @@ function CalendarPage() {
                           onBlur={async (e) => {
                             const v = Number(e.target.value);
                             if (!v || v === Number(b.estimated_hours)) return;
+                            const start = currentStart || "09:00";
+                            const newEnd = addMinutesToTime(start, Math.round(v * 60));
                             const { error } = await supabase
                               .from("bookings")
-                              .update({ estimated_hours: v })
+                              .update({
+                                estimated_hours: v,
+                                scheduled_end_time: `${newEnd}:00`,
+                              })
                               .eq("id", b.id);
                             if (error) return toast.error(error.message);
-                            patchSelected({ estimated_hours: v });
+                            patchSelected({
+                              estimated_hours: v,
+                              scheduled_end_time: `${newEnd}:00`,
+                            });
                             qc.invalidateQueries({ queryKey: ["calendar-bookings"] });
                             toast.success("Estimated hours updated");
                           }}
@@ -1722,68 +1808,8 @@ function CalendarPage() {
                         />
                         <span>h</span>
                       </div>
-
-                      <div className="mt-3">
-                        <div className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground mb-1.5">
-                          Service type
-                        </div>
-                        <div className="flex flex-wrap gap-1.5">
-                          {Array.from(
-                            new Set(
-                              [...serviceTypesList, b.service_type].filter(Boolean) as string[],
-                            ),
-                          ).map((s: string) => {
-                            const sc = serviceColor(s);
-                            const active = (b.service_type ?? "").toLowerCase() === s.toLowerCase();
-                            return (
-                              <button
-                                key={s}
-                                type="button"
-                                onClick={async () => {
-                                  const { error } = await supabase
-                                    .from("bookings")
-                                    .update({ service_type: s, color: sc.hex })
-                                    .eq("id", b.id);
-                                  if (error) return toast.error(error.message);
-                                  patchSelected({ service_type: s, color: sc.hex });
-                                  qc.invalidateQueries({ queryKey: ["calendar-bookings"] });
-                                  toast.success(`Set to ${s}`);
-                                }}
-                                className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-wider ring-1 transition-all ${sc.bg} ${sc.ring} ${sc.text} ${active ? "ring-2 scale-[1.03]" : "opacity-75 hover:opacity-100"}`}
-                              >
-                                <span className="h-1.5 w-1.5 rounded-full bg-current" />
-                                {s}
-                              </button>
-                            );
-                          })}
-                        </div>
-                        {(b.service_type ?? "").toLowerCase() === "other" && (
-                          <div className="mt-2">
-                            <label className="text-[10px] uppercase tracking-wider text-muted-foreground">
-                              Other service details
-                            </label>
-                            <textarea
-                              key={`other-${b.id}`}
-                              defaultValue={b.service_type_other ?? ""}
-                              placeholder="Describe the service..."
-                              onBlur={async (e) => {
-                                const v = e.target.value.trim();
-                                if (v === (b.service_type_other ?? "")) return;
-                                const { error } = await supabase
-                                  .from("bookings")
-                                  .update({ service_type_other: v || null })
-                                  .eq("id", b.id);
-                                if (error) return toast.error(error.message);
-                                patchSelected({ service_type_other: v || null });
-                                qc.invalidateQueries({ queryKey: ["calendar-bookings"] });
-                                toast.success("Service details updated");
-                              }}
-                              className="mt-1 w-full min-h-[64px] rounded-lg border border-border bg-background/60 px-3 py-2 text-sm focus:border-primary/60 focus:outline-none resize-y"
-                            />
-                          </div>
-                        )}
-                      </div>
                     </div>
+
 
                     <div className="grid grid-cols-1 gap-3 pt-1 border-t border-border/60">
                       <div className="rounded-lg border border-border/60 bg-muted/20 p-3 space-y-2">
@@ -2222,7 +2248,36 @@ function CalendarPage() {
                 </div>
               </div>
 
-
+              <div>
+                <label className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                  Service *
+                </label>
+                <select
+                  value={qService}
+                  onChange={(e) => setQService(e.target.value)}
+                  className="w-full mt-1 rounded-lg border border-border bg-background/60 px-3 py-2 text-sm focus:border-primary/60 focus:outline-none"
+                >
+                  {serviceTypesList.map((s: string) => (
+                    <option key={s} value={s}>
+                      {s}
+                    </option>
+                  ))}
+                  {!serviceTypesList.includes("Other") && <option value="Other">Other</option>}
+                </select>
+                {qService === "Other" && (
+                  <div className="mt-2">
+                    <label className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                      Other service details
+                    </label>
+                    <textarea
+                      value={qServiceOther}
+                      onChange={(e) => setQServiceOther(e.target.value)}
+                      placeholder="Describe the service..."
+                      className="mt-1 w-full min-h-[64px] rounded-lg border border-border bg-background/60 px-3 py-2 text-sm focus:border-primary/60 focus:outline-none resize-y"
+                    />
+                  </div>
+                )}
+              </div>
 
               {/* Customer search */}
               <div className="relative">
@@ -2518,39 +2573,22 @@ function CalendarPage() {
                     className="w-full mt-1 rounded-lg border border-border bg-background/60 px-3 py-2 text-sm focus:border-primary/60 focus:outline-none"
                   />
                 </div>
+                <div className="col-span-2">
+                  <label className="text-[10px] uppercase tracking-wider text-muted-foreground flex items-center gap-1">
+                    <StickyNote className="h-3 w-3" /> Notes
+                  </label>
+                  <textarea
+                    value={qNotes}
+                    onChange={(e) => setQNotes(e.target.value)}
+                    placeholder="Anything the tech should know…"
+                    className="mt-1 w-full min-h-[64px] rounded-lg border border-border bg-background/60 px-3 py-2 text-sm focus:border-primary/60 focus:outline-none resize-y"
+                  />
+                </div>
 
               </div>
 
-              <div>
-                <label className="text-[10px] uppercase tracking-wider text-muted-foreground">
-                  Service *
-                </label>
-                <select
-                  value={qService}
-                  onChange={(e) => setQService(e.target.value)}
-                  className="w-full mt-1 rounded-lg border border-border bg-background/60 px-3 py-2 text-sm focus:border-primary/60 focus:outline-none"
-                >
-                  {serviceTypesList.map((s: string) => (
-                    <option key={s} value={s}>
-                      {s}
-                    </option>
-                  ))}
-                  {!serviceTypesList.includes("Other") && <option value="Other">Other</option>}
-                </select>
-                {qService === "Other" && (
-                  <div className="mt-2">
-                    <label className="text-[10px] uppercase tracking-wider text-muted-foreground">
-                      Other service details
-                    </label>
-                    <textarea
-                      value={qServiceOther}
-                      onChange={(e) => setQServiceOther(e.target.value)}
-                      placeholder="Describe the service..."
-                      className="mt-1 w-full min-h-[64px] rounded-lg border border-border bg-background/60 px-3 py-2 text-sm focus:border-primary/60 focus:outline-none resize-y"
-                    />
-                  </div>
-                )}
-              </div>
+
+
 
 
               <div>
