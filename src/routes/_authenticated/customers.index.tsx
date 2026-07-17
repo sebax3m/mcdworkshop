@@ -197,7 +197,7 @@ function Customers() {
       )}
 
       <div className="space-y-2">
-        {isAdmin && filtered.length > 0 && (
+        {isAdmin && selectMode && filtered.length > 0 && (
           <div className="flex items-center gap-2 px-1">
             <Checkbox
               id="select-all-customers"
