@@ -124,42 +124,11 @@ function UsersPage() {
             Seed workshop staff
           </button>
           <button
-            onClick={async () => {
-              try {
-                await createTechFn({
-                  data: { email: "fabian@mcd.co.nz", full_name: "Fabian", password: "Moto26" },
-                });
-                toast.success("Fabian created — password Moto26");
-                refetch();
-              } catch (e: any) {
-                toast.error(e.message ?? "Failed to create Fabian");
-              }
-            }}
+            onClick={() => setAddOpen(true)}
             className="inline-flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-sm font-semibold hover:border-foreground/30"
           >
             <UserPlus className="h-4 w-4" />
-            Add Fabian
-          </button>
-          <button
-            onClick={async () => {
-              if (!confirm("Reset ALL staff passwords?\n\nAdmins → MCDR26\nTechnicians → Moto26"))
-                return;
-              try {
-                const r = await resetPwdsFn({ data: undefined });
-                const ok = r.results.filter((x) => x.status === "ok").length;
-                const errs = r.results.filter((x) => x.status === "error");
-                toast.success(
-                  `Passwords reset — ${ok} updated${errs.length ? `, ${errs.length} errors` : ""}`,
-                );
-                if (errs.length) console.error(errs);
-              } catch (e: any) {
-                toast.error(e.message ?? "Failed to reset passwords");
-              }
-            }}
-            className="inline-flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-sm font-semibold hover:border-foreground/30"
-          >
-            <KeyRound className="h-4 w-4" />
-            Reset all passwords
+            Add user
           </button>
           <button
             onClick={() => refetch()}
