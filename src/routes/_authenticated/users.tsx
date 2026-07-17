@@ -51,6 +51,36 @@ function fullDate(iso: string | null) {
   return new Date(iso).toLocaleString();
 }
 
+function SortHeader({
+  label,
+  field,
+  sortBy,
+  sortDirection,
+  onClick,
+}: {
+  label: string;
+  field: "name" | "role" | "last_sign_in";
+  sortBy: "name" | "role" | "last_sign_in";
+  sortDirection: "asc" | "desc";
+  onClick: (field: "name" | "role" | "last_sign_in") => void;
+}) {
+  const active = sortBy === field;
+  return (
+    <button
+      onClick={() => onClick(field)}
+      className="inline-flex items-center gap-1 hover:text-foreground transition-colors"
+    >
+      {label}
+      {active &&
+        (sortDirection === "asc" ? (
+          <ChevronUp className="h-3 w-3" />
+        ) : (
+          <ChevronDown className="h-3 w-3" />
+        ))}
+    </button>
+  );
+}
+
 function UsersPage() {
   const fetchUsers = useServerFn(listUsersWithLogins);
   const createTechFn = useServerFn(createTechnician);
