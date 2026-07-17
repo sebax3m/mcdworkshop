@@ -17,8 +17,8 @@ import {
 } from "lucide-react";
 import { listUsersWithLogins, updateUserDetails, type UserLoginRow } from "@/lib/users.functions";
 import { seedStaff } from "@/lib/seed-staff.functions";
-import { resetStaffPasswords } from "@/lib/reset-passwords.functions";
 import { createTechnician } from "@/lib/create-technician.functions";
+import { resetUserPassword } from "@/lib/reset-user-password.functions";
 
 import { initials } from "@/lib/format";
 import { useActiveTechnicianId, setActiveTechnicianId } from "@/hooks/use-active-technician";
@@ -49,11 +49,12 @@ function fullDate(iso: string | null) {
 
 function UsersPage() {
   const fetchUsers = useServerFn(listUsersWithLogins);
-  const resetPwdsFn = useServerFn(resetStaffPasswords);
   const createTechFn = useServerFn(createTechnician);
+  const resetPwdFn = useServerFn(resetUserPassword);
 
   const activeId = useActiveTechnicianId();
   const [editing, setEditing] = useState<UserLoginRow | null>(null);
+  const [addOpen, setAddOpen] = useState(false);
 
   const { data, isLoading, error, refetch, isFetching } = useQuery({
     queryKey: ["users-login-logs"],
@@ -123,42 +124,11 @@ function UsersPage() {
             Seed workshop staff
           </button>
           <button
-            onClick={async () => {
-              try {
-                await createTechFn({
-                  data: { email: "fabian@mcd.co.nz", full_name: "Fabian", password: "Moto26" },
-                });
-                toast.success("Fabian created — password Moto26");
-                refetch();
-              } catch (e: any) {
-                toast.error(e.message ?? "Failed to create Fabian");
-              }
-            }}
+            onClick={() => setAddOpen(true)}
             className="inline-flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-sm font-semibold hover:border-foreground/30"
           >
             <UserPlus className="h-4 w-4" />
-            Add Fabian
-          </button>
-          <button
-            onClick={async () => {
-              if (!confirm("Reset ALL staff passwords?\n\nAdmins → MCDR26\nTechnicians → Moto26"))
-                return;
-              try {
-                const r = await resetPwdsFn({ data: undefined });
-                const ok = r.results.filter((x) => x.status === "ok").length;
-                const errs = r.results.filter((x) => x.status === "error");
-                toast.success(
-                  `Passwords reset — ${ok} updated${errs.length ? `, ${errs.length} errors` : ""}`,
-                );
-                if (errs.length) console.error(errs);
-              } catch (e: any) {
-                toast.error(e.message ?? "Failed to reset passwords");
-              }
-            }}
-            className="inline-flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-sm font-semibold hover:border-foreground/30"
-          >
-            <KeyRound className="h-4 w-4" />
-            Reset all passwords
+            Add user
           </button>
           <button
             onClick={() => refetch()}
@@ -240,12 +210,31 @@ function UsersPage() {
                     <Clock className="h-3.5 w-3.5 text-muted-foreground" />
                     <span title={fullDate(u.last_sign_in_at)}>{formatWhen(u.last_sign_in_at)}</span>
                   </div>
-                  <div className="flex md:justify-end items-center gap-2">
+                  <div className="flex md:justify-end items-center gap-2 flex-wrap">
                     <button
                       onClick={() => setEditing(u)}
                       className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-xs font-medium hover:border-foreground/30"
                     >
                       <Pencil className="h-3.5 w-3.5" /> Edit
+                    </button>
+                    <button
+                      onClick={async () => {
+                        const pwd = prompt(`Set a new password for ${u.full_name}:`);
+                        if (!pwd) return;
+                        if (pwd.length < 6) {
+                          toast.error("Password must be at least 6 characters");
+                          return;
+                        }
+                        try {
+                          await resetPwdFn({ data: { userId: u.id, password: pwd } });
+                          toast.success(`Password reset for ${u.full_name}`);
+                        } catch (e: any) {
+                          toast.error(e.message ?? "Failed to reset password");
+                        }
+                      }}
+                      className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-xs font-medium hover:border-foreground/30"
+                    >
+                      <KeyRound className="h-3.5 w-3.5" /> Reset password
                     </button>
                     <button
                       onClick={() => setActiveTechnicianId(u.id)}
@@ -278,6 +267,101 @@ function UsersPage() {
       </p>
 
       {editing && <EditUserDialog user={editing} onClose={() => setEditing(null)} />}
+      {addOpen && (
+        <AddUserDialog
+          onClose={() => setAddOpen(false)}
+          onCreated={() => {
+            setAddOpen(false);
+            refetch();
+          }}
+          createTechFn={createTechFn}
+        />
+      )}
+    </div>
+  );
+}
+
+function AddUserDialog({
+  onClose,
+  onCreated,
+  createTechFn,
+}: {
+  onClose: () => void;
+  onCreated: () => void;
+  createTechFn: (args: { data: { email: string; full_name: string; password: string } }) => Promise<unknown>;
+}) {
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+
+  async function handleSave() {
+    setErr(null);
+    if (!fullName.trim()) return setErr("Full name is required");
+    if (!email.trim()) return setErr("Email is required");
+    if (password.length < 6) return setErr("Password must be at least 6 characters");
+    setSaving(true);
+    try {
+      await createTechFn({ data: { email: email.trim(), full_name: fullName.trim(), password } });
+      toast.success(`${fullName} created`);
+      onCreated();
+    } catch (e) {
+      setErr((e as Error).message);
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 grid place-items-center bg-black/60 p-4" onClick={onClose}>
+      <div className="card-surface w-full max-w-md p-5 space-y-4" onClick={(e) => e.stopPropagation()}>
+        <h2 className="font-display text-xl font-semibold">Add user</h2>
+        <div className="space-y-3">
+          <label className="block text-xs">
+            <span className="text-muted-foreground uppercase tracking-wider">Full name</span>
+            <input
+              value={fullName}
+              onChange={(e) => setFullName(e.target.value)}
+              className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
+            />
+          </label>
+          <label className="block text-xs">
+            <span className="text-muted-foreground uppercase tracking-wider">Email</span>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
+            />
+          </label>
+          <label className="block text-xs">
+            <span className="text-muted-foreground uppercase tracking-wider">Password</span>
+            <input
+              type="text"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
+            />
+          </label>
+        </div>
+        {err && <div className="text-sm text-destructive">{err}</div>}
+        <div className="flex justify-end gap-2 pt-2">
+          <button
+            onClick={onClose}
+            className="rounded-lg border border-border px-3 py-2 text-sm hover:border-foreground/30"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleSave}
+            disabled={saving}
+            className="rounded-lg bg-primary text-primary-foreground px-3 py-2 text-sm font-medium disabled:opacity-50"
+          >
+            {saving ? "Creating…" : "Create user"}
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
