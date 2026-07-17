@@ -1381,6 +1381,35 @@ function CalendarPage() {
                 <X className="h-4 w-4" />
               </button>
 
+              {selectedBooking && bookingView === "edit" && (
+                <button
+                  type="button"
+                  disabled={savingEdit}
+                  onClick={async () => {
+                    const b = selectedBooking;
+                    const trimmed = editNotes.trim();
+                    setSavingEdit(true);
+                    if (trimmed !== (b.notes ?? "")) {
+                      const { error } = await supabase
+                        .from("bookings")
+                        .update({ notes: trimmed || null })
+                        .eq("id", b.id);
+                      setSavingEdit(false);
+                      if (error) return toast.error(error.message);
+                      patchSelected({ notes: trimmed || null });
+                      qc.invalidateQueries({ queryKey: ["calendar-bookings"] });
+                      toast.success("Saved");
+                    } else {
+                      setSavingEdit(false);
+                    }
+                    setSelectedBooking(null);
+                  }}
+                  className="absolute top-3 right-12 z-10 rounded-lg bg-yellow-400 hover:bg-yellow-300 text-black px-3 py-1.5 text-xs font-bold shadow-sm disabled:opacity-50 transition-colors"
+                >
+                  {savingEdit ? "Saving…" : "SAVE"}
+                </button>
+              )}
+
               {(() => {
                 const b = selectedBooking;
                 const c = serviceColor(b.service_type);
