@@ -368,35 +368,72 @@ function Bikes() {
       )}
 
       <div className="space-y-2">
-        {filtered.map((b: any) => (
-          <Link
-            key={b.id}
-            to="/motorcycles/$bikeId"
-            params={{ bikeId: b.id }}
-            className="card-surface p-3 flex items-center gap-3 transition hover:border-primary/40 hover:bg-card/80 active:scale-[0.99]"
-          >
-            {Array.isArray(b.photos) && b.photos[0] ? (
-              <img
-                src={b.photos[0]}
-                alt={fullBike(b)}
-                loading="lazy"
-                className="h-14 w-20 rounded-lg object-cover border border-border"
-              />
-            ) : (
-              <span className="grid h-14 w-20 place-items-center rounded-lg bg-muted">
-                <BikeIcon className="h-5 w-5 text-primary" />
-              </span>
-            )}
-            <div className="min-w-0 flex-1">
-              <div className="font-semibold truncate">{fullBike(b)}</div>
-              <div className="text-xs text-muted-foreground truncate">
-                {b.customers ? `${b.customers.first_name} ${b.customers.last_name}` : "—"}
-                {b.rego ? ` · ${b.rego}` : ""}
-                {b.mileage ? ` · ${Number(b.mileage).toLocaleString()} km` : ""}
+        {isAdmin && filtered.length > 0 && (
+          <div className="flex items-center gap-2 px-1">
+            <Checkbox
+              id="select-all-bikes"
+              checked={selected.size === filtered.length}
+              onCheckedChange={(checked) =>
+                setSelected(checked ? new Set(filtered.map((b: any) => b.id)) : new Set())
+              }
+            />
+            <label htmlFor="select-all-bikes" className="text-xs text-muted-foreground cursor-pointer">
+              Select all
+            </label>
+          </div>
+        )}
+        {filtered.map((b: any) => {
+          const checked = selected.has(b.id);
+          return (
+            <Link
+              key={b.id}
+              to="/motorcycles/$bikeId"
+              params={{ bikeId: b.id }}
+              className="card-surface p-3 flex items-center gap-3 transition hover:border-primary/40 hover:bg-card/80 active:scale-[0.99]"
+            >
+              {isAdmin && (
+                <div
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                  }}
+                >
+                  <Checkbox
+                    checked={checked}
+                    onCheckedChange={(v) =>
+                      setSelected((prev) => {
+                        const next = new Set(prev);
+                        if (v) next.add(b.id);
+                        else next.delete(b.id);
+                        return next;
+                      })
+                    }
+                  />
+                </div>
+              )}
+              {Array.isArray(b.photos) && b.photos[0] ? (
+                <img
+                  src={b.photos[0]}
+                  alt={fullBike(b)}
+                  loading="lazy"
+                  className="h-14 w-20 rounded-lg object-cover border border-border"
+                />
+              ) : (
+                <span className="grid h-14 w-20 place-items-center rounded-lg bg-muted">
+                  <BikeIcon className="h-5 w-5 text-primary" />
+                </span>
+              )}
+              <div className="min-w-0 flex-1">
+                <div className="font-semibold truncate">{fullBike(b)}</div>
+                <div className="text-xs text-muted-foreground truncate">
+                  {b.customers ? `${b.customers.first_name} ${b.customers.last_name}` : "—"}
+                  {b.rego ? ` · ${b.rego}` : ""}
+                  {b.mileage ? ` · ${Number(b.mileage).toLocaleString()} km` : ""}
+                </div>
               </div>
-            </div>
-          </Link>
-        ))}
+            </Link>
+          );
+        })}
         {filtered.length === 0 && (
           <div className="card-surface p-8 text-center text-sm text-muted-foreground">
             No bikes yet.
