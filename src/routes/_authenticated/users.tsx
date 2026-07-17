@@ -14,13 +14,14 @@ import {
   Star,
   UserPlus,
   Trash2,
+  ChevronUp,
+  ChevronDown,
 } from "lucide-react";
 import { listUsersWithLogins, updateUserDetails, type UserLoginRow } from "@/lib/users.functions";
 import { seedStaff } from "@/lib/seed-staff.functions";
 import { createTechnician } from "@/lib/create-technician.functions";
 import { resetUserPassword } from "@/lib/reset-user-password.functions";
 import { deleteUser } from "@/lib/delete-user.functions";
-
 
 import { initials } from "@/lib/format";
 import { useActiveTechnicianId, setActiveTechnicianId } from "@/hooks/use-active-technician";
@@ -49,17 +50,55 @@ function fullDate(iso: string | null) {
   return new Date(iso).toLocaleString();
 }
 
+function SortHeader({
+  label,
+  field,
+  sortBy,
+  sortDirection,
+  onClick,
+}: {
+  label: string;
+  field: "name" | "role" | "last_sign_in";
+  sortBy: "name" | "role" | "last_sign_in";
+  sortDirection: "asc" | "desc";
+  onClick: (field: "name" | "role" | "last_sign_in") => void;
+}) {
+  const active = sortBy === field;
+  return (
+    <button
+      onClick={() => onClick(field)}
+      className="inline-flex items-center gap-1 hover:text-foreground transition-colors"
+    >
+      {label}
+      {active &&
+        (sortDirection === "asc" ? (
+          <ChevronUp className="h-3 w-3" />
+        ) : (
+          <ChevronDown className="h-3 w-3" />
+        ))}
+    </button>
+  );
+}
+
 function UsersPage() {
   const fetchUsers = useServerFn(listUsersWithLogins);
   const createTechFn = useServerFn(createTechnician);
 
-
   const activeId = useActiveTechnicianId();
   const [editing, setEditing] = useState<UserLoginRow | null>(null);
   const [addOpen, setAddOpen] = useState(false);
-  const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState<"all" | "admin" | "technician">("all");
-  const [sortBy, setSortBy] = useState<"name" | "role" | "recent" | "oldest">("name");
+  const [sortBy, setSortBy] = useState<"name" | "role" | "last_sign_in">("name");
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
+
+  const handleHeaderClick = (field: "name" | "role" | "last_sign_in") => {
+    if (sortBy === field) {
+      setSortDirection((d) => (d === "asc" ? "desc" : "asc"));
+    } else {
+      setSortBy(field);
+      setSortDirection("asc");
+    }
+  };
 
   const { data, isLoading, error, refetch, isFetching } = useQuery({
     queryKey: ["users-login-logs"],
@@ -67,21 +106,22 @@ function UsersPage() {
   });
 
   const raw = data ?? [];
-  const q = search.trim().toLowerCase();
   const filtered = raw.filter((u) => {
     if (roleFilter !== "all" && u.role !== roleFilter) return false;
-    if (!q) return true;
-    return (
-      (u.full_name ?? "").toLowerCase().includes(q) ||
-      (u.email ?? "").toLowerCase().includes(q)
-    );
+    return true;
   });
   const sorted = [...filtered].sort((a, b) => {
-    if (sortBy === "name") return (a.full_name ?? "").localeCompare(b.full_name ?? "");
-    if (sortBy === "role") return (a.role ?? "").localeCompare(b.role ?? "");
-    const at = a.last_sign_in_at ? new Date(a.last_sign_in_at).getTime() : 0;
-    const bt = b.last_sign_in_at ? new Date(b.last_sign_in_at).getTime() : 0;
-    return sortBy === "recent" ? bt - at : at - bt;
+    let cmp = 0;
+    if (sortBy === "name") {
+      cmp = (a.full_name ?? "").localeCompare(b.full_name ?? "");
+    } else if (sortBy === "role") {
+      cmp = (a.role ?? "").localeCompare(b.role ?? "");
+    } else if (sortBy === "last_sign_in") {
+      const at = a.last_sign_in_at ? new Date(a.last_sign_in_at).getTime() : 0;
+      const bt = b.last_sign_in_at ? new Date(b.last_sign_in_at).getTime() : 0;
+      cmp = at - bt;
+    }
+    return sortDirection === "asc" ? cmp : -cmp;
   });
   // Active user pinned to top
   const users = sorted.sort((a, b) => {
@@ -89,7 +129,6 @@ function UsersPage() {
     if (b.id === activeId && a.id !== activeId) return 1;
     return 0;
   });
-
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto">
@@ -168,12 +207,6 @@ function UsersPage() {
 
       {!isLoading && raw.length > 0 && (
         <div className="card-surface p-3 flex flex-wrap items-center gap-2">
-          <input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search by name or email…"
-            className="flex-1 min-w-[200px] rounded-md border border-border bg-background px-3 py-2 text-sm"
-          />
           <select
             value={roleFilter}
             onChange={(e) => setRoleFilter(e.target.value as "all" | "admin" | "technician")}
@@ -183,22 +216,10 @@ function UsersPage() {
             <option value="admin">Admin</option>
             <option value="technician">Technician</option>
           </select>
-          <select
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
-            className="rounded-md border border-border bg-background px-3 py-2 text-sm"
-          >
-            <option value="name">Sort: Name (A–Z)</option>
-            <option value="role">Sort: Role</option>
-            <option value="recent">Sort: Most recent sign in</option>
-            <option value="oldest">Sort: Oldest sign in</option>
-          </select>
-          {(search || roleFilter !== "all" || sortBy !== "name") && (
+          {roleFilter !== "all" && (
             <button
               onClick={() => {
-                setSearch("");
                 setRoleFilter("all");
-                setSortBy("name");
               }}
               className="rounded-md border border-border px-3 py-2 text-xs hover:border-foreground/30"
             >
@@ -216,17 +237,34 @@ function UsersPage() {
           Loading users…
         </div>
       ) : users.length === 0 ? (
-
         <div className="card-surface p-8 text-center text-muted-foreground text-sm">
           No users found.
         </div>
       ) : (
         <div className="card-surface overflow-hidden">
           <div className="hidden md:grid grid-cols-[1fr_1fr_110px_160px_200px] gap-3 px-4 py-3 border-b border-border text-[10px] uppercase tracking-wider text-muted-foreground">
-            <div>User</div>
+            <SortHeader
+              label="User"
+              field="name"
+              sortBy={sortBy}
+              sortDirection={sortDirection}
+              onClick={handleHeaderClick}
+            />
             <div>Email</div>
-            <div>Role</div>
-            <div>Last sign in</div>
+            <SortHeader
+              label="Role"
+              field="role"
+              sortBy={sortBy}
+              sortDirection={sortDirection}
+              onClick={handleHeaderClick}
+            />
+            <SortHeader
+              label="Last sign in"
+              field="last_sign_in"
+              sortBy={sortBy}
+              sortDirection={sortDirection}
+              onClick={handleHeaderClick}
+            />
             <div className="text-right">Actions</div>
           </div>
           <ul className="divide-y divide-border">
@@ -286,7 +324,6 @@ function UsersPage() {
                       <Pencil className="h-3.5 w-3.5" /> Edit
                     </button>
 
-
                     <button
                       onClick={() => setActiveTechnicianId(u.id)}
                       disabled={isActive}
@@ -339,7 +376,9 @@ function AddUserDialog({
 }: {
   onClose: () => void;
   onCreated: () => void;
-  createTechFn: (args: { data: { email: string; full_name: string; password: string } }) => Promise<unknown>;
+  createTechFn: (args: {
+    data: { email: string; full_name: string; password: string };
+  }) => Promise<unknown>;
 }) {
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
@@ -366,7 +405,10 @@ function AddUserDialog({
 
   return (
     <div className="fixed inset-0 z-50 grid place-items-center bg-black/60 p-4" onClick={onClose}>
-      <div className="card-surface w-full max-w-md p-5 space-y-4" onClick={(e) => e.stopPropagation()}>
+      <div
+        className="card-surface w-full max-w-md p-5 space-y-4"
+        onClick={(e) => e.stopPropagation()}
+      >
         <h2 className="font-display text-xl font-semibold">Add user</h2>
         <div className="space-y-3">
           <label className="block text-xs">
@@ -579,5 +621,4 @@ function EditUserDialog({ user, onClose }: { user: UserLoginRow; onClose: () => 
       </div>
     </div>
   );
-
 }
