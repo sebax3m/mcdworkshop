@@ -1280,20 +1280,12 @@ function CalendarPage() {
                                     e.stopPropagation();
                                     setSelectedBooking(b);
                                   }}
-                                  className={`group absolute z-10 rounded-md p-2 text-left ring-1 overflow-hidden select-none transition-all hover:z-30 hover:brightness-110 hover:ring-2 hover:ring-primary hover:shadow-[0_8px_24px_rgba(0,0,0,0.35)] cursor-grab active:cursor-grabbing ${
-                                    b.color ? "text-foreground" : `${c.bg} ${c.ring} ${c.text}`
-                                  } ${draggingId === b.id ? "opacity-40" : ""} ${b.loan_bike ? "!ring-2 !ring-amber-400" : ""}`}
+                                  className={`group absolute z-10 rounded-md p-2 text-left ring-1 overflow-hidden select-none transition-all hover:z-30 hover:brightness-110 hover:ring-2 hover:ring-primary hover:shadow-[0_8px_24px_rgba(0,0,0,0.35)] cursor-grab active:cursor-grabbing ${c.bg} ${c.ring} ${c.text} ${draggingId === b.id ? "opacity-40" : ""} ${b.loan_bike ? "!ring-2 !ring-amber-400" : ""} ${b.bike_arrived ? "!ring-2 !ring-emerald-400 shadow-[0_0_0_2px_rgba(16,185,129,0.35)]" : ""}`}
                                   style={{
                                     top: `${top + 1}px`,
                                     height: `${height}px`,
                                     left: `calc(${leftPct}% + 2px)`,
                                     width: `calc(${widthPct}% - 4px)`,
-                                    ...(b.color
-                                      ? {
-                                          backgroundColor: `${b.color}B3`,
-                                          boxShadow: `inset 0 0 0 1px ${b.color}`,
-                                        }
-                                      : {}),
                                   }}
                                 >
 
@@ -1309,9 +1301,17 @@ function CalendarPage() {
                                       ? ` — ${b.service_type_other}`
                                       : ""}
                                   </span>
-                                  {b.confirmed && (
-                                    <span className="h-1.5 w-1.5 rounded-full bg-green-500 shrink-0" />
-                                  )}
+                                  <span className="flex items-center gap-1 shrink-0">
+                                    {b.bike_arrived && (
+                                      <span
+                                        title="Bike in workshop"
+                                        className="h-1.5 w-1.5 rounded-full bg-emerald-400 ring-1 ring-emerald-200 animate-pulse"
+                                      />
+                                    )}
+                                    {b.confirmed && (
+                                      <span className="h-1.5 w-1.5 rounded-full bg-green-500" />
+                                    )}
+                                  </span>
                                 </div>
                                 {height > 32 && (
                                   <div className="text-[10px] font-semibold text-current/90 truncate">
