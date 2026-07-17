@@ -57,6 +57,9 @@ function UsersPage() {
   const activeId = useActiveTechnicianId();
   const [editing, setEditing] = useState<UserLoginRow | null>(null);
   const [addOpen, setAddOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const [roleFilter, setRoleFilter] = useState<"all" | "admin" | "technician">("all");
+  const [sortBy, setSortBy] = useState<"name" | "role" | "recent" | "oldest">("name");
 
   const { data, isLoading, error, refetch, isFetching } = useQuery({
     queryKey: ["users-login-logs"],
@@ -64,12 +67,29 @@ function UsersPage() {
   });
 
   const raw = data ?? [];
+  const q = search.trim().toLowerCase();
+  const filtered = raw.filter((u) => {
+    if (roleFilter !== "all" && u.role !== roleFilter) return false;
+    if (!q) return true;
+    return (
+      (u.full_name ?? "").toLowerCase().includes(q) ||
+      (u.email ?? "").toLowerCase().includes(q)
+    );
+  });
+  const sorted = [...filtered].sort((a, b) => {
+    if (sortBy === "name") return (a.full_name ?? "").localeCompare(b.full_name ?? "");
+    if (sortBy === "role") return (a.role ?? "").localeCompare(b.role ?? "");
+    const at = a.last_sign_in_at ? new Date(a.last_sign_in_at).getTime() : 0;
+    const bt = b.last_sign_in_at ? new Date(b.last_sign_in_at).getTime() : 0;
+    return sortBy === "recent" ? bt - at : at - bt;
+  });
   // Active user pinned to top
-  const users = [...raw].sort((a, b) => {
+  const users = sorted.sort((a, b) => {
     if (a.id === activeId && b.id !== activeId) return -1;
     if (b.id === activeId && a.id !== activeId) return 1;
     return 0;
   });
+
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto">
@@ -146,11 +166,57 @@ function UsersPage() {
         <div className="card-surface p-4 text-sm text-destructive">{(error as Error).message}</div>
       )}
 
+      {!isLoading && raw.length > 0 && (
+        <div className="card-surface p-3 flex flex-wrap items-center gap-2">
+          <input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search by name or email…"
+            className="flex-1 min-w-[200px] rounded-md border border-border bg-background px-3 py-2 text-sm"
+          />
+          <select
+            value={roleFilter}
+            onChange={(e) => setRoleFilter(e.target.value as "all" | "admin" | "technician")}
+            className="rounded-md border border-border bg-background px-3 py-2 text-sm"
+          >
+            <option value="all">All roles</option>
+            <option value="admin">Admin</option>
+            <option value="technician">Technician</option>
+          </select>
+          <select
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
+            className="rounded-md border border-border bg-background px-3 py-2 text-sm"
+          >
+            <option value="name">Sort: Name (A–Z)</option>
+            <option value="role">Sort: Role</option>
+            <option value="recent">Sort: Most recent sign in</option>
+            <option value="oldest">Sort: Oldest sign in</option>
+          </select>
+          {(search || roleFilter !== "all" || sortBy !== "name") && (
+            <button
+              onClick={() => {
+                setSearch("");
+                setRoleFilter("all");
+                setSortBy("name");
+              }}
+              className="rounded-md border border-border px-3 py-2 text-xs hover:border-foreground/30"
+            >
+              Clear
+            </button>
+          )}
+          <div className="text-xs text-muted-foreground ml-auto">
+            {users.length} of {raw.length}
+          </div>
+        </div>
+      )}
+
       {isLoading ? (
         <div className="card-surface p-8 text-center text-muted-foreground text-sm">
           Loading users…
         </div>
       ) : users.length === 0 ? (
+
         <div className="card-surface p-8 text-center text-muted-foreground text-sm">
           No users found.
         </div>
