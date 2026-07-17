@@ -1465,7 +1465,7 @@ function CalendarPage() {
                           title="Toggle bike-in-workshop highlight"
                         >
                           <span
-                            className={`h-2.5 w-2.5 rounded-full ${
+                            className={`h-3 w-3 rounded-full ${
                               b.bike_arrived ? "bg-orange-500 animate-pulse" : "bg-muted-foreground/60"
                             }`}
                           />
