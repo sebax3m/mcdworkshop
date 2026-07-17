@@ -225,6 +225,9 @@ function CalendarPage() {
   // Notes edit buffer for the summary view (independent from the edit view's textarea)
   const [summaryNotes, setSummaryNotes] = useState<string>("");
   const [savingSummaryNotes, setSavingSummaryNotes] = useState(false);
+  // Controlled notes buffer for the edit view save button
+  const [editNotes, setEditNotes] = useState<string>("");
+  const [savingEdit, setSavingEdit] = useState(false);
   // Functional patch that keeps the modal closed if the user already closed it
   // while an async save was in flight (prevents the modal from reopening after Close).
   const patchSelected = (patch: any) =>
