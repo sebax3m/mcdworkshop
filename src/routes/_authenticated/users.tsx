@@ -247,10 +247,10 @@ function UsersPage() {
       ) : (
         <div className="card-surface overflow-hidden">
           <div className="hidden md:grid grid-cols-[1fr_1fr_110px_160px_200px] gap-3 px-4 py-3 border-b border-border text-[10px] uppercase tracking-wider text-muted-foreground">
-            <div>User</div>
+            <SortHeader label="User" field="name" sortBy={sortBy} sortDirection={sortDirection} onClick={handleHeaderClick} />
             <div>Email</div>
-            <div>Role</div>
-            <div>Last sign in</div>
+            <SortHeader label="Role" field="role" sortBy={sortBy} sortDirection={sortDirection} onClick={handleHeaderClick} />
+            <SortHeader label="Last sign in" field="last_sign_in" sortBy={sortBy} sortDirection={sortDirection} onClick={handleHeaderClick} />
             <div className="text-right">Actions</div>
           </div>
           <ul className="divide-y divide-border">
