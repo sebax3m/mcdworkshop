@@ -1243,8 +1243,8 @@ function CalendarPage() {
                             return dayBookings.map((b: any) => {
                               const { h, m } = parseTime(b.drop_off_time);
                               const top = (h + m / 60 - START_HOUR) * SLOT_H;
-                              const hoursDur = Math.max(0.5, bookingDurationMin(b) / 60);
-                              const height = Math.max(24, hoursDur * SLOT_H - 3);
+                              // Fixed slot height per booking (does not scale with estimated hours)
+                              const height = SLOT_H - 3;
                               if (top + height < 0 || top > GRID_H) return null;
                               const c = serviceColor(b.service_type);
                               const bike = displayBike(b.motorcycles);
