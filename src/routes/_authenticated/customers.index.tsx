@@ -105,11 +105,12 @@ function Customers() {
 
   return (
     <div className="space-y-5">
+      <div className="sticky top-0 z-30 -mx-4 px-4 pt-2 pb-3 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 border-b border-border/50 space-y-3">
       <header className="grid grid-cols-[minmax(0,1fr)_auto] gap-3 items-center">
         <div className="min-w-0">
           <div className="text-xs uppercase tracking-[0.25em] text-muted-foreground">Customers</div>
           <h1 className="font-display text-2xl sm:text-3xl font-bold">
-            {customers.data?.length ?? 0} riders
+            {filtered.length}{filtered.length !== (customers.data?.length ?? 0) ? ` / ${customers.data?.length ?? 0}` : ""} riders
           </h1>
         </div>
         <div className="flex items-center gap-2">
@@ -165,6 +166,25 @@ function Customers() {
           className="w-full rounded-xl bg-card border border-border pl-10 pr-3 py-3 text-sm"
         />
       </div>
+
+      <div className="flex items-center gap-2 flex-wrap">
+        <button
+          type="button"
+          onClick={() => setSortAlpha((v) => !v)}
+          className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${sortAlpha ? "bg-primary/10 border-primary/60 text-foreground" : "bg-card border-border text-muted-foreground hover:text-foreground"}`}
+        >
+          A–Z
+        </button>
+        <button
+          type="button"
+          onClick={() => setOnlyWithBikes((v) => !v)}
+          className={`text-xs px-3 py-1.5 rounded-full border transition-colors inline-flex items-center gap-1 ${onlyWithBikes ? "bg-primary/10 border-primary/60 text-foreground" : "bg-card border-border text-muted-foreground hover:text-foreground"}`}
+        >
+          <Bike className="h-3 w-3" /> With bikes
+        </button>
+      </div>
+      </div>
+
 
       {open && (
         <div className="card-surface p-4 space-y-3">
