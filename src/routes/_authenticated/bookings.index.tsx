@@ -45,7 +45,7 @@ function BookingsList() {
   const navigate = useNavigate();
   const [sortField, setSortField] = useState<SortField>("date");
   const [sortDir, setSortDir] = useState<SortDir>("asc");
-  const [focusDate, setFocusDate] = useState<string>(tomorrowISO());
+  const [focusDate, setFocusDate] = useState<string>(todayISO());
 
   const { data: rawBookings = [], isLoading } = useQuery({
     queryKey: ["bookings-list", focusDate],
