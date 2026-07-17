@@ -425,7 +425,7 @@ function Bikes() {
           const inner = (
             <>
               {isAdmin && selectMode && (
-                <Checkbox checked={checked} onCheckedChange={toggle} />
+                <Checkbox checked={checked} className="pointer-events-none" tabIndex={-1} />
               )}
               {Array.isArray(b.photos) && b.photos[0] ? (
                 <img
@@ -451,7 +451,19 @@ function Bikes() {
           );
           if (selectMode) {
             return (
-              <div key={b.id} className={rowClass} onClick={toggle}>
+              <div
+                key={b.id}
+                className={rowClass}
+                role="button"
+                tabIndex={0}
+                onClick={toggle}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    toggle();
+                  }
+                }}
+              >
                 {inner}
               </div>
             );
