@@ -1457,19 +1457,19 @@ function CalendarPage() {
                             qc.invalidateQueries({ queryKey: ["calendar-bookings"] });
                             toast.success(next ? "Marked as in workshop" : "Marked as not arrived");
                           }}
-                          className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider border transition-colors ${
+                          className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider border transition-colors ${
                             b.bike_arrived
-                              ? "bg-emerald-500/20 border-emerald-500/60 text-emerald-300"
-                              : "bg-background/40 border-border text-muted-foreground hover:border-emerald-500/40 hover:text-emerald-400"
+                              ? "bg-orange-500/20 border-orange-500/60 text-orange-300"
+                              : "bg-background/40 border-border text-muted-foreground hover:border-orange-500/40 hover:text-orange-400"
                           }`}
                           title="Toggle bike-in-workshop highlight"
                         >
                           <span
-                            className={`h-1.5 w-1.5 rounded-full ${
-                              b.bike_arrived ? "bg-emerald-400 animate-pulse" : "bg-muted-foreground/60"
+                            className={`h-2.5 w-2.5 rounded-full ${
+                              b.bike_arrived ? "bg-orange-500 animate-pulse" : "bg-muted-foreground/60"
                             }`}
                           />
-                          {b.bike_arrived ? "In workshop" : "Mark arrived"}
+                          {b.bike_arrived ? "Bike in workshop" : "Mark arrived"}
                         </button>
                       </div>
 
