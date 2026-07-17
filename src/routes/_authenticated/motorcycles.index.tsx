@@ -412,32 +412,20 @@ function Bikes() {
         )}
         {filtered.map((b: any) => {
           const checked = selected.has(b.id);
-          return (
-            <Link
-              key={b.id}
-              to="/motorcycles/$bikeId"
-              params={{ bikeId: b.id }}
-              className="card-surface p-3 flex items-center gap-3 transition hover:border-primary/40 hover:bg-card/80 active:scale-[0.99]"
-            >
+          const toggle = () =>
+            setSelected((prev) => {
+              const next = new Set(prev);
+              if (next.has(b.id)) next.delete(b.id);
+              else next.add(b.id);
+              return next;
+            });
+          const rowClass = `card-surface p-3 flex items-center gap-3 transition hover:border-primary/40 hover:bg-card/80 ${
+            selectMode && checked ? "border-primary/60 bg-primary/5" : ""
+          } ${selectMode ? "cursor-pointer" : "active:scale-[0.99]"}`;
+          const inner = (
+            <>
               {isAdmin && selectMode && (
-                <div
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                  }}
-                >
-                  <Checkbox
-                    checked={checked}
-                    onCheckedChange={(v) =>
-                      setSelected((prev) => {
-                        const next = new Set(prev);
-                        if (v) next.add(b.id);
-                        else next.delete(b.id);
-                        return next;
-                      })
-                    }
-                  />
-                </div>
+                <Checkbox checked={checked} onCheckedChange={toggle} />
               )}
               {Array.isArray(b.photos) && b.photos[0] ? (
                 <img
@@ -459,6 +447,23 @@ function Bikes() {
                   {b.mileage ? ` · ${Number(b.mileage).toLocaleString()} km` : ""}
                 </div>
               </div>
+            </>
+          );
+          if (selectMode) {
+            return (
+              <div key={b.id} className={rowClass} onClick={toggle}>
+                {inner}
+              </div>
+            );
+          }
+          return (
+            <Link
+              key={b.id}
+              to="/motorcycles/$bikeId"
+              params={{ bikeId: b.id }}
+              className={rowClass}
+            >
+              {inner}
             </Link>
           );
         })}

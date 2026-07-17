@@ -214,38 +214,20 @@ function Customers() {
         {filtered.map((c: any) => {
           const cBikes = bikesByCustomer.get(c.id) ?? [];
           const checked = selected.has(c.id);
-          return (
-            <Link
-              key={c.id}
-              to="/customers/$customerId"
-              params={{ customerId: c.id }}
-              className="card-surface p-3 flex items-center gap-3 hover:border-primary/50 transition-colors"
-            >
+          const toggle = () =>
+            setSelected((prev) => {
+              const next = new Set(prev);
+              if (next.has(c.id)) next.delete(c.id);
+              else next.add(c.id);
+              return next;
+            });
+          const rowClass = `card-surface p-3 flex items-center gap-3 hover:border-primary/50 transition-colors ${
+            selectMode && checked ? "border-primary/60 bg-primary/5" : ""
+          } ${selectMode ? "cursor-pointer" : ""}`;
+          const inner = (
+            <>
               {isAdmin && selectMode && (
-                <div
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    setSelected((prev) => {
-                      const next = new Set(prev);
-                      if (next.has(c.id)) next.delete(c.id);
-                      else next.add(c.id);
-                      return next;
-                    });
-                  }}
-                >
-                  <Checkbox
-                    checked={checked}
-                    onCheckedChange={(v) =>
-                      setSelected((prev) => {
-                        const next = new Set(prev);
-                        if (v) next.add(c.id);
-                        else next.delete(c.id);
-                        return next;
-                      })
-                    }
-                  />
-                </div>
+                <Checkbox checked={checked} onCheckedChange={toggle} />
               )}
               <span className="grid h-11 w-11 place-items-center rounded-full bg-muted font-semibold">
                 {initials(`${c.first_name} ${c.last_name ?? ""}`)}
@@ -285,7 +267,24 @@ function Customers() {
                   </div>
                 )}
               </div>
-              <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
+              {!selectMode && <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />}
+            </>
+          );
+          if (selectMode) {
+            return (
+              <div key={c.id} className={rowClass} onClick={toggle}>
+                {inner}
+              </div>
+            );
+          }
+          return (
+            <Link
+              key={c.id}
+              to="/customers/$customerId"
+              params={{ customerId: c.id }}
+              className={rowClass}
+            >
+              {inner}
             </Link>
           );
         })}
