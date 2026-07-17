@@ -21,6 +21,7 @@ export const Route = createFileRoute("/_authenticated/motorcycles/")({
 
 function Bikes() {
   const qc = useQueryClient();
+  const { isAdmin } = useCurrentUser();
   const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
