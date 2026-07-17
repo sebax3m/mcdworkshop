@@ -1514,6 +1514,13 @@ function CalendarPage() {
                           </div>
                         </div>
 
+                        <div>
+                          <div className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground">
+                            Name
+                          </div>
+                          <div className="text-base font-semibold text-foreground">{customer}</div>
+                        </div>
+
                         {b.customers?.phone && (
                           <div>
                             <div className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground">
@@ -1525,13 +1532,6 @@ function CalendarPage() {
                             </div>
                           </div>
                         )}
-
-                        <div>
-                          <div className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground">
-                            Name
-                          </div>
-                          <div className="text-base font-semibold text-foreground">{customer}</div>
-                        </div>
 
                         {bike !== "—" && (
                           <div>
