@@ -150,7 +150,7 @@ function BookingsList() {
         <input
           type="date"
           value={focusDate}
-          onChange={(e) => setFocusDate(e.target.value || tomorrowISO())}
+          onChange={(e) => setFocusDate(e.target.value || todayISO())}
           className="rounded-lg border border-border bg-card px-2 py-1.5 text-xs"
         />
         <div className="ml-auto text-xs uppercase tracking-wider text-muted-foreground">
