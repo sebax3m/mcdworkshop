@@ -24,6 +24,7 @@ function Bikes() {
   const { isAdmin } = useCurrentUser();
   const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
+  const [selectMode, setSelectMode] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [f, setF] = useState({
     customer_id: "",
