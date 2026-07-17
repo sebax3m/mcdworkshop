@@ -6,7 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, Search, Phone, Mail, ChevronRight, Bike, Trash2 } from "lucide-react";
+import { Plus, Search, Phone, Mail, ChevronRight, Bike, Trash2, X } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { initials } from "@/lib/format";
@@ -21,6 +21,7 @@ function Customers() {
   const { isAdmin } = useCurrentUser();
   const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
+  const [selectMode, setSelectMode] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [f, setF] = useState({
     first_name: "",
