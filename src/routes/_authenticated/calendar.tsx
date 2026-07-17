@@ -1498,32 +1498,55 @@ function CalendarPage() {
                         </button>
                       </div>
 
-                      <div>
-                        <div className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground">
-                          Booking
+                      <div className="space-y-2">
+                        <div>
+                          <div className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground">
+                            Date
+                          </div>
+                          <div className="text-sm font-semibold text-foreground">
+                            {b.scheduled_date
+                              ? format(new Date(b.scheduled_date + "T00:00:00"), "EEEE, MMMM d, yyyy")
+                              : "—"}
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            {fmt12h(currentStart)}
+                            {currentEnd ? ` – ${fmt12h(currentEnd)}` : ""}
+                          </div>
                         </div>
-                        <div className="font-display text-lg font-bold">{customer}</div>
-                        <div className="text-sm text-muted-foreground">
-                          {b.scheduled_date
-                            ? format(new Date(b.scheduled_date + "T00:00:00"), "EEE, MMM d, yyyy")
-                            : "—"}{" "}
-                          · {fmt12h(currentStart)}
-                          {currentEnd ? ` – ${fmt12h(currentEnd)}` : ""}
-                        </div>
-                        {bike !== "—" && (
-                          <div className="mt-1 text-sm flex items-center gap-1.5">
-                            <BikeIcon className="h-3.5 w-3.5 text-muted-foreground" />
-                            <span>{bike}</span>
-                            {b.motorcycles?.rego && (
-                              <span className="font-mono text-xs bg-primary/10 border border-primary/30 rounded px-1.5 py-0.5 text-primary">
-                                {b.motorcycles.rego}
-                              </span>
-                            )}
+
+                        {b.customers?.phone && (
+                          <div>
+                            <div className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground">
+                              Phone
+                            </div>
+                            <div className="flex items-center gap-2 text-2xl font-bold tracking-tight text-foreground">
+                              <Phone className="h-5 w-5 text-primary shrink-0" />
+                              {b.customers.phone}
+                            </div>
                           </div>
                         )}
-                        {b.customers?.phone && (
-                          <div className="mt-1 text-xs text-muted-foreground flex items-center gap-1">
-                            <Phone className="h-3 w-3" /> {b.customers.phone}
+
+                        <div>
+                          <div className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground">
+                            Name
+                          </div>
+                          <div className="text-base font-semibold text-foreground">{customer}</div>
+                        </div>
+
+                        {bike !== "—" && (
+                          <div>
+                            <div className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground">
+                              Bike
+                            </div>
+                            <div className="text-sm flex items-center gap-1.5">
+                              <BikeIcon className="h-4 w-4 text-muted-foreground" />
+                              <span className="font-medium">{bike}</span>
+                              {b.motorcycles?.rego && (
+                                <span className="font-mono text-xs bg-primary/10 border border-primary/30 rounded px-1.5 py-0.5 text-primary">
+                                  {b.motorcycles.rego}
+                                </span>
+                              )}
+                            </div>
                           </div>
                         )}
                       </div>
