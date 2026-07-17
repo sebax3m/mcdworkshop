@@ -210,12 +210,31 @@ function UsersPage() {
                     <Clock className="h-3.5 w-3.5 text-muted-foreground" />
                     <span title={fullDate(u.last_sign_in_at)}>{formatWhen(u.last_sign_in_at)}</span>
                   </div>
-                  <div className="flex md:justify-end items-center gap-2">
+                  <div className="flex md:justify-end items-center gap-2 flex-wrap">
                     <button
                       onClick={() => setEditing(u)}
                       className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-xs font-medium hover:border-foreground/30"
                     >
                       <Pencil className="h-3.5 w-3.5" /> Edit
+                    </button>
+                    <button
+                      onClick={async () => {
+                        const pwd = prompt(`Set a new password for ${u.full_name}:`);
+                        if (!pwd) return;
+                        if (pwd.length < 6) {
+                          toast.error("Password must be at least 6 characters");
+                          return;
+                        }
+                        try {
+                          await resetPwdFn({ data: { userId: u.id, password: pwd } });
+                          toast.success(`Password reset for ${u.full_name}`);
+                        } catch (e: any) {
+                          toast.error(e.message ?? "Failed to reset password");
+                        }
+                      }}
+                      className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-xs font-medium hover:border-foreground/30"
+                    >
+                      <KeyRound className="h-3.5 w-3.5" /> Reset password
                     </button>
                     <button
                       onClick={() => setActiveTechnicianId(u.id)}
