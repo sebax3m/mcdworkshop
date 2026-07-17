@@ -317,6 +317,7 @@ function CalendarPage() {
     if (selectedBooking) {
       setBookingView("summary");
       setSummaryNotes(selectedBooking.notes ?? "");
+      setEditNotes(selectedBooking.notes ?? "");
     }
   }, [selectedBooking?.id]);
 
