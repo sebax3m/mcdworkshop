@@ -419,7 +419,7 @@ function Bikes() {
               params={{ bikeId: b.id }}
               className="card-surface p-3 flex items-center gap-3 transition hover:border-primary/40 hover:bg-card/80 active:scale-[0.99]"
             >
-              {isAdmin && (
+              {isAdmin && selectMode && (
                 <div
                   onClick={(e) => {
                     e.preventDefault();
