@@ -2062,21 +2062,10 @@ function CalendarPage() {
                         </div>
                         <textarea
                           key={`notes-${b.id}`}
-                          defaultValue={b.notes ?? ""}
+                          value={editNotes}
                           rows={3}
                           placeholder="Add instructions…"
-                          onBlur={async (e) => {
-                            const v = e.target.value;
-                            if ((v ?? "") === (b.notes ?? "")) return;
-                            const { error } = await supabase
-                              .from("bookings")
-                              .update({ notes: v || null })
-                              .eq("id", b.id);
-                            if (error) return toast.error(error.message);
-                            patchSelected({ notes: v || null });
-                            qc.invalidateQueries({ queryKey: ["calendar-bookings"] });
-                            toast.success("Instructions updated");
-                          }}
+                          onChange={(e) => setEditNotes(e.target.value)}
                           className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-sm focus:border-primary/60 outline-none resize-y"
                         />
                       </div>
