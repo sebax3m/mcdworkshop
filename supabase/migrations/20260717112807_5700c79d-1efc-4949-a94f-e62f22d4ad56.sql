@@ -1,0 +1,2 @@
+DROP POLICY IF EXISTS "auth read notifications" ON public.notifications;
+CREATE POLICY "staff read notifications" ON public.notifications FOR SELECT TO authenticated USING (private.is_staff(auth.uid()));
