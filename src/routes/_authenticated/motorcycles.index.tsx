@@ -94,6 +94,18 @@ function Bikes() {
     qc.invalidateQueries({ queryKey: ["bikes-list"] });
   }
 
+  async function deleteSelected() {
+    if (!isAdmin) return toast.error("Admin only");
+    const ids = Array.from(selected);
+    if (ids.length === 0) return;
+    if (!confirm(`Delete ${ids.length} bike${ids.length > 1 ? "s" : ""}? This also removes linked bookings.`)) return;
+    const { error } = await supabase.from("motorcycles").delete().in("id", ids);
+    if (error) return toast.error(error.message);
+    setSelected(new Set());
+    toast.success(`${ids.length} deleted`);
+    qc.invalidateQueries({ queryKey: ["bikes-list", "customers-bikes"] });
+  }
+
   async function handleBikePhotos(files: FileList | null) {
     if (!files?.length) return;
     setUploading(true);
