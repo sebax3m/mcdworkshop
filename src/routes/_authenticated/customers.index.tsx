@@ -23,6 +23,8 @@ function Customers() {
   const [open, setOpen] = useState(false);
   const [selectMode, setSelectMode] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [sortAlpha, setSortAlpha] = useState(false);
+  const [onlyWithBikes, setOnlyWithBikes] = useState(false);
   const [f, setF] = useState({
     first_name: "",
     last_name: "",
@@ -85,19 +87,30 @@ function Customers() {
     qc.invalidateQueries({ queryKey: ["customers-list", "customers-bikes", "bikes-list"] });
   }
 
-  const filtered = (customers.data ?? []).filter((c: any) =>
+  let filtered = (customers.data ?? []).filter((c: any) =>
     `${c.first_name} ${c.last_name} ${c.phone ?? ""} ${c.email ?? ""}`
       .toLowerCase()
       .includes(search.toLowerCase()),
   );
+  if (onlyWithBikes) {
+    filtered = filtered.filter((c: any) => (bikesByCustomer.get(c.id) ?? []).length > 0);
+  }
+  if (sortAlpha) {
+    filtered = [...filtered].sort((a: any, b: any) =>
+      `${a.first_name ?? ""} ${a.last_name ?? ""}`.trim().toLowerCase()
+        .localeCompare(`${b.first_name ?? ""} ${b.last_name ?? ""}`.trim().toLowerCase()),
+    );
+  }
+
 
   return (
     <div className="space-y-5">
+      <div className="sticky top-0 z-30 -mx-4 px-4 pt-2 pb-3 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 border-b border-border/50 space-y-3">
       <header className="grid grid-cols-[minmax(0,1fr)_auto] gap-3 items-center">
         <div className="min-w-0">
           <div className="text-xs uppercase tracking-[0.25em] text-muted-foreground">Customers</div>
           <h1 className="font-display text-2xl sm:text-3xl font-bold">
-            {customers.data?.length ?? 0} riders
+            {filtered.length}{filtered.length !== (customers.data?.length ?? 0) ? ` / ${customers.data?.length ?? 0}` : ""} riders
           </h1>
         </div>
         <div className="flex items-center gap-2">
@@ -153,6 +166,25 @@ function Customers() {
           className="w-full rounded-xl bg-card border border-border pl-10 pr-3 py-3 text-sm"
         />
       </div>
+
+      <div className="flex items-center gap-2 flex-wrap">
+        <button
+          type="button"
+          onClick={() => setSortAlpha((v) => !v)}
+          className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${sortAlpha ? "bg-primary/10 border-primary/60 text-foreground" : "bg-card border-border text-muted-foreground hover:text-foreground"}`}
+        >
+          A–Z
+        </button>
+        <button
+          type="button"
+          onClick={() => setOnlyWithBikes((v) => !v)}
+          className={`text-xs px-3 py-1.5 rounded-full border transition-colors inline-flex items-center gap-1 ${onlyWithBikes ? "bg-primary/10 border-primary/60 text-foreground" : "bg-card border-border text-muted-foreground hover:text-foreground"}`}
+        >
+          <Bike className="h-3 w-3" /> With bikes
+        </button>
+      </div>
+      </div>
+
 
       {open && (
         <div className="card-surface p-4 space-y-3">
