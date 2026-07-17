@@ -1209,49 +1209,23 @@ function CalendarPage() {
                             </div>
                           )}
 
-                          {/* Bookings positioned by drop_off_time + scheduled_end_time */}
+                          {/* Bookings stacked vertically per day (no time-based overlap) */}
                           {(() => {
-                            // Compute lanes so overlapping cards do not stack on top of each other
-                            const items = dayBookings
-                              .map((b: any) => {
-                                const { h, m } = parseTime(b.drop_off_time);
-                                const start = h * 60 + m;
-                                const end = start + Math.max(30, bookingDurationMin(b));
-                                return { b, start, end };
-                              })
-                              .sort((a, b) => a.start - b.start || b.end - a.end);
-                            const laneMap = new Map<string, { lane: number; count: number }>();
-                            let cluster: { b: any; start: number; end: number; lane: number }[] = [];
-                            let clusterEnd = -Infinity;
-                            const flush = () => {
-                              if (!cluster.length) return;
-                              const count = Math.max(...cluster.map((x) => x.lane)) + 1;
-                              cluster.forEach((x) => laneMap.set(x.b.id, { lane: x.lane, count }));
-                              cluster = [];
-                            };
-                            for (const it of items) {
-                              if (it.start >= clusterEnd) flush();
-                              const used = new Set(
-                                cluster.filter((x) => x.end > it.start).map((x) => x.lane),
-                              );
-                              let lane = 0;
-                              while (used.has(lane)) lane++;
-                              cluster.push({ ...it, lane });
-                              clusterEnd = Math.max(clusterEnd, it.end);
-                            }
-                            flush();
+                            const sorted = [...dayBookings].sort((a: any, b: any) => {
+                              const ta = a.drop_off_time ? String(a.drop_off_time) : "99:99";
+                              const tb = b.drop_off_time ? String(b.drop_off_time) : "99:99";
+                              return ta.localeCompare(tb);
+                            });
+                            const orderMap = new Map<string, number>();
+                            sorted.forEach((b: any, i: number) => orderMap.set(b.id, i));
                             return dayBookings.map((b: any) => {
-                              const { h, m } = parseTime(b.drop_off_time);
-                              const top = (h + m / 60 - START_HOUR) * SLOT_H;
-                              // Fixed slot height per booking (does not scale with estimated hours)
+                              const idx = orderMap.get(b.id) ?? 0;
                               const height = SLOT_H - 3;
-                              if (top + height < 0 || top > GRID_H) return null;
+                              const top = idx * SLOT_H;
+                              if (top > GRID_H) return null;
                               const c = serviceColor(b.service_type);
                               const bike = displayBike(b.motorcycles);
                               const customer = displayCustomerName(b.customers);
-                              const laneInfo = laneMap.get(b.id) ?? { lane: 0, count: 1 };
-                              const widthPct = 100 / laneInfo.count;
-                              const leftPct = laneInfo.lane * widthPct;
                               return (
                                 <div
                                   key={b.id}
@@ -1277,10 +1251,11 @@ function CalendarPage() {
                                   style={{
                                     top: `${top + 1}px`,
                                     height: `${height}px`,
-                                    left: `calc(${leftPct}% + 2px)`,
-                                    width: `calc(${widthPct}% - 4px)`,
+                                    left: `2px`,
+                                    width: `calc(100% - 4px)`,
                                   }}
                                 >
+
 
                                 {/* Drag grip indicator — visible on hover */}
                                 <div className="absolute top-0.5 right-0.5 opacity-0 group-hover:opacity-70 transition-opacity pointer-events-none text-current text-[9px] leading-none font-black">
