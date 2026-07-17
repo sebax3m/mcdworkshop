@@ -166,11 +166,57 @@ function UsersPage() {
         <div className="card-surface p-4 text-sm text-destructive">{(error as Error).message}</div>
       )}
 
+      {!isLoading && raw.length > 0 && (
+        <div className="card-surface p-3 flex flex-wrap items-center gap-2">
+          <input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search by name or email…"
+            className="flex-1 min-w-[200px] rounded-md border border-border bg-background px-3 py-2 text-sm"
+          />
+          <select
+            value={roleFilter}
+            onChange={(e) => setRoleFilter(e.target.value as "all" | "admin" | "technician")}
+            className="rounded-md border border-border bg-background px-3 py-2 text-sm"
+          >
+            <option value="all">All roles</option>
+            <option value="admin">Admin</option>
+            <option value="technician">Technician</option>
+          </select>
+          <select
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
+            className="rounded-md border border-border bg-background px-3 py-2 text-sm"
+          >
+            <option value="name">Sort: Name (A–Z)</option>
+            <option value="role">Sort: Role</option>
+            <option value="recent">Sort: Most recent sign in</option>
+            <option value="oldest">Sort: Oldest sign in</option>
+          </select>
+          {(search || roleFilter !== "all" || sortBy !== "name") && (
+            <button
+              onClick={() => {
+                setSearch("");
+                setRoleFilter("all");
+                setSortBy("name");
+              }}
+              className="rounded-md border border-border px-3 py-2 text-xs hover:border-foreground/30"
+            >
+              Clear
+            </button>
+          )}
+          <div className="text-xs text-muted-foreground ml-auto">
+            {users.length} of {raw.length}
+          </div>
+        </div>
+      )}
+
       {isLoading ? (
         <div className="card-surface p-8 text-center text-muted-foreground text-sm">
           Loading users…
         </div>
       ) : users.length === 0 ? (
+
         <div className="card-surface p-8 text-center text-muted-foreground text-sm">
           No users found.
         </div>
