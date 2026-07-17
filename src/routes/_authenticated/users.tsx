@@ -57,6 +57,9 @@ function UsersPage() {
   const activeId = useActiveTechnicianId();
   const [editing, setEditing] = useState<UserLoginRow | null>(null);
   const [addOpen, setAddOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const [roleFilter, setRoleFilter] = useState<"all" | "admin" | "technician">("all");
+  const [sortBy, setSortBy] = useState<"name" | "role" | "recent" | "oldest">("name");
 
   const { data, isLoading, error, refetch, isFetching } = useQuery({
     queryKey: ["users-login-logs"],
@@ -64,12 +67,29 @@ function UsersPage() {
   });
 
   const raw = data ?? [];
+  const q = search.trim().toLowerCase();
+  const filtered = raw.filter((u) => {
+    if (roleFilter !== "all" && u.role !== roleFilter) return false;
+    if (!q) return true;
+    return (
+      (u.full_name ?? "").toLowerCase().includes(q) ||
+      (u.email ?? "").toLowerCase().includes(q)
+    );
+  });
+  const sorted = [...filtered].sort((a, b) => {
+    if (sortBy === "name") return (a.full_name ?? "").localeCompare(b.full_name ?? "");
+    if (sortBy === "role") return (a.role ?? "").localeCompare(b.role ?? "");
+    const at = a.last_sign_in_at ? new Date(a.last_sign_in_at).getTime() : 0;
+    const bt = b.last_sign_in_at ? new Date(b.last_sign_in_at).getTime() : 0;
+    return sortBy === "recent" ? bt - at : at - bt;
+  });
   // Active user pinned to top
-  const users = [...raw].sort((a, b) => {
+  const users = sorted.sort((a, b) => {
     if (a.id === activeId && b.id !== activeId) return -1;
     if (b.id === activeId && a.id !== activeId) return 1;
     return 0;
   });
+
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto">
