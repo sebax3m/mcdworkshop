@@ -221,7 +221,7 @@ function Customers() {
               params={{ customerId: c.id }}
               className="card-surface p-3 flex items-center gap-3 hover:border-primary/50 transition-colors"
             >
-              {isAdmin && (
+              {isAdmin && selectMode && (
                 <div
                   onClick={(e) => {
                     e.preventDefault();
