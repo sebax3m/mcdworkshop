@@ -181,9 +181,21 @@ function Bikes() {
             {bikes.data?.length ?? 0} bikes
           </h1>
         </div>
-        <Button onClick={() => setOpen((o) => !o)} className="gold-surface gap-1.5 shrink-0">
-          <Plus className="h-4 w-4" /> Add
-        </Button>
+        <div className="flex items-center gap-2">
+          {isAdmin && selected.size > 0 && (
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={deleteSelected}
+              className="gap-1.5 shrink-0"
+            >
+              <Trash2 className="h-4 w-4" /> {selected.size}
+            </Button>
+          )}
+          <Button onClick={() => setOpen((o) => !o)} className="gold-surface gap-1.5 shrink-0">
+            <Plus className="h-4 w-4" /> Add
+          </Button>
+        </div>
       </header>
 
       <div className="relative">
