@@ -220,7 +220,7 @@ function UsersPage() {
                       <Pencil className="h-3.5 w-3.5" /> Edit
                     </button>
 
-                    </button>
+
                     <button
                       onClick={() => setActiveTechnicianId(u.id)}
                       disabled={isActive}
