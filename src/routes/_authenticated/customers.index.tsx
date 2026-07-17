@@ -23,6 +23,8 @@ function Customers() {
   const [open, setOpen] = useState(false);
   const [selectMode, setSelectMode] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [sortAlpha, setSortAlpha] = useState(false);
+  const [onlyWithBikes, setOnlyWithBikes] = useState(false);
   const [f, setF] = useState({
     first_name: "",
     last_name: "",
