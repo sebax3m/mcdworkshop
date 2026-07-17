@@ -267,6 +267,101 @@ function UsersPage() {
       </p>
 
       {editing && <EditUserDialog user={editing} onClose={() => setEditing(null)} />}
+      {addOpen && (
+        <AddUserDialog
+          onClose={() => setAddOpen(false)}
+          onCreated={() => {
+            setAddOpen(false);
+            refetch();
+          }}
+          createTechFn={createTechFn}
+        />
+      )}
+    </div>
+  );
+}
+
+function AddUserDialog({
+  onClose,
+  onCreated,
+  createTechFn,
+}: {
+  onClose: () => void;
+  onCreated: () => void;
+  createTechFn: (args: { data: { email: string; full_name: string; password: string } }) => Promise<unknown>;
+}) {
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+
+  async function handleSave() {
+    setErr(null);
+    if (!fullName.trim()) return setErr("Full name is required");
+    if (!email.trim()) return setErr("Email is required");
+    if (password.length < 6) return setErr("Password must be at least 6 characters");
+    setSaving(true);
+    try {
+      await createTechFn({ data: { email: email.trim(), full_name: fullName.trim(), password } });
+      toast.success(`${fullName} created`);
+      onCreated();
+    } catch (e) {
+      setErr((e as Error).message);
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 grid place-items-center bg-black/60 p-4" onClick={onClose}>
+      <div className="card-surface w-full max-w-md p-5 space-y-4" onClick={(e) => e.stopPropagation()}>
+        <h2 className="font-display text-xl font-semibold">Add user</h2>
+        <div className="space-y-3">
+          <label className="block text-xs">
+            <span className="text-muted-foreground uppercase tracking-wider">Full name</span>
+            <input
+              value={fullName}
+              onChange={(e) => setFullName(e.target.value)}
+              className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
+            />
+          </label>
+          <label className="block text-xs">
+            <span className="text-muted-foreground uppercase tracking-wider">Email</span>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
+            />
+          </label>
+          <label className="block text-xs">
+            <span className="text-muted-foreground uppercase tracking-wider">Password</span>
+            <input
+              type="text"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
+            />
+          </label>
+        </div>
+        {err && <div className="text-sm text-destructive">{err}</div>}
+        <div className="flex justify-end gap-2 pt-2">
+          <button
+            onClick={onClose}
+            className="rounded-lg border border-border px-3 py-2 text-sm hover:border-foreground/30"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleSave}
+            disabled={saving}
+            className="rounded-lg bg-primary text-primary-foreground px-3 py-2 text-sm font-medium disabled:opacity-50"
+          >
+            {saving ? "Creating…" : "Create user"}
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
