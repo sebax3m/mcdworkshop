@@ -1294,11 +1294,11 @@ function CalendarPage() {
                                       ? ` — ${b.service_type_other}`
                                       : ""}
                                   </span>
-                                  <span className="flex items-center gap-1 shrink-0">
+                                  <span className="flex items-center gap-1.5 shrink-0">
                                     {b.bike_arrived && (
                                       <span
                                         title="Bike in workshop"
-                                        className="h-1.5 w-1.5 rounded-full bg-emerald-400 ring-1 ring-emerald-200 animate-pulse"
+                                        className="relative h-2.5 w-2.5 rounded-full bg-orange-500 ring-2 ring-orange-200 animate-pulse"
                                       />
                                     )}
                                     {b.confirmed && (
