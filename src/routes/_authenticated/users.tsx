@@ -23,7 +23,6 @@ import { createTechnician } from "@/lib/create-technician.functions";
 import { resetUserPassword } from "@/lib/reset-user-password.functions";
 import { deleteUser } from "@/lib/delete-user.functions";
 
-
 import { initials } from "@/lib/format";
 import { useActiveTechnicianId, setActiveTechnicianId } from "@/hooks/use-active-technician";
 import { cn } from "@/lib/utils";
@@ -85,7 +84,6 @@ function UsersPage() {
   const fetchUsers = useServerFn(listUsersWithLogins);
   const createTechFn = useServerFn(createTechnician);
 
-
   const activeId = useActiveTechnicianId();
   const [editing, setEditing] = useState<UserLoginRow | null>(null);
   const [addOpen, setAddOpen] = useState(false);
@@ -131,7 +129,6 @@ function UsersPage() {
     if (b.id === activeId && a.id !== activeId) return 1;
     return 0;
   });
-
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto">
@@ -240,17 +237,34 @@ function UsersPage() {
           Loading users…
         </div>
       ) : users.length === 0 ? (
-
         <div className="card-surface p-8 text-center text-muted-foreground text-sm">
           No users found.
         </div>
       ) : (
         <div className="card-surface overflow-hidden">
           <div className="hidden md:grid grid-cols-[1fr_1fr_110px_160px_200px] gap-3 px-4 py-3 border-b border-border text-[10px] uppercase tracking-wider text-muted-foreground">
-            <SortHeader label="User" field="name" sortBy={sortBy} sortDirection={sortDirection} onClick={handleHeaderClick} />
+            <SortHeader
+              label="User"
+              field="name"
+              sortBy={sortBy}
+              sortDirection={sortDirection}
+              onClick={handleHeaderClick}
+            />
             <div>Email</div>
-            <SortHeader label="Role" field="role" sortBy={sortBy} sortDirection={sortDirection} onClick={handleHeaderClick} />
-            <SortHeader label="Last sign in" field="last_sign_in" sortBy={sortBy} sortDirection={sortDirection} onClick={handleHeaderClick} />
+            <SortHeader
+              label="Role"
+              field="role"
+              sortBy={sortBy}
+              sortDirection={sortDirection}
+              onClick={handleHeaderClick}
+            />
+            <SortHeader
+              label="Last sign in"
+              field="last_sign_in"
+              sortBy={sortBy}
+              sortDirection={sortDirection}
+              onClick={handleHeaderClick}
+            />
             <div className="text-right">Actions</div>
           </div>
           <ul className="divide-y divide-border">
@@ -310,7 +324,6 @@ function UsersPage() {
                       <Pencil className="h-3.5 w-3.5" /> Edit
                     </button>
 
-
                     <button
                       onClick={() => setActiveTechnicianId(u.id)}
                       disabled={isActive}
@@ -363,7 +376,9 @@ function AddUserDialog({
 }: {
   onClose: () => void;
   onCreated: () => void;
-  createTechFn: (args: { data: { email: string; full_name: string; password: string } }) => Promise<unknown>;
+  createTechFn: (args: {
+    data: { email: string; full_name: string; password: string };
+  }) => Promise<unknown>;
 }) {
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
@@ -390,7 +405,10 @@ function AddUserDialog({
 
   return (
     <div className="fixed inset-0 z-50 grid place-items-center bg-black/60 p-4" onClick={onClose}>
-      <div className="card-surface w-full max-w-md p-5 space-y-4" onClick={(e) => e.stopPropagation()}>
+      <div
+        className="card-surface w-full max-w-md p-5 space-y-4"
+        onClick={(e) => e.stopPropagation()}
+      >
         <h2 className="font-display text-xl font-semibold">Add user</h2>
         <div className="space-y-3">
           <label className="block text-xs">
@@ -603,5 +621,4 @@ function EditUserDialog({ user, onClose }: { user: UserLoginRow; onClose: () => 
       </div>
     </div>
   );
-
 }
