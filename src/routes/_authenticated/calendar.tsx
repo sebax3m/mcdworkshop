@@ -578,9 +578,9 @@ function CalendarPage() {
       toast.success("Booking created");
       qc.invalidateQueries({ queryKey: ["calendar-bookings"] });
       qc.invalidateQueries({ queryKey: ["quick-customers"] });
-      // Swap the modal into the "just created" view with quick follow-up actions
-      setJustCreated(created);
-      setJustCreatedNotes(created?.notes ?? "");
+      // Close modal immediately after saving
+      closeQuickBooking();
+
     } catch (err: any) {
       toast.error(err.message ?? "Failed to create booking");
     } finally {
