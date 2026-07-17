@@ -227,7 +227,19 @@ function Customers() {
           const inner = (
             <>
               {isAdmin && selectMode && (
-                <Checkbox checked={checked} onCheckedChange={toggle} />
+                <Checkbox
+                  checked={checked}
+                  onClick={(event) => event.stopPropagation()}
+                  onCheckedChange={(value) => {
+                    const nextChecked = value === true;
+                    setSelected((prev) => {
+                      const next = new Set(prev);
+                      if (nextChecked) next.add(c.id);
+                      else next.delete(c.id);
+                      return next;
+                    });
+                  }}
+                />
               )}
               <span className="grid h-11 w-11 place-items-center rounded-full bg-muted font-semibold">
                 {initials(`${c.first_name} ${c.last_name ?? ""}`)}

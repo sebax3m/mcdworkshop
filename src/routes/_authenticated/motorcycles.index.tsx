@@ -425,7 +425,19 @@ function Bikes() {
           const inner = (
             <>
               {isAdmin && selectMode && (
-                <Checkbox checked={checked} onCheckedChange={toggle} />
+                <Checkbox
+                  checked={checked}
+                  onClick={(event) => event.stopPropagation()}
+                  onCheckedChange={(value) => {
+                    const nextChecked = value === true;
+                    setSelected((prev) => {
+                      const next = new Set(prev);
+                      if (nextChecked) next.add(b.id);
+                      else next.delete(b.id);
+                      return next;
+                    });
+                  }}
+                />
               )}
               {Array.isArray(b.photos) && b.photos[0] ? (
                 <img
