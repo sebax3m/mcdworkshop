@@ -2012,13 +2012,13 @@ function CalendarPage() {
 
                       <div>
                         <div className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground mb-1">
-                          Notes
+                          Instructions
                         </div>
                         <textarea
                           key={`notes-${b.id}`}
                           defaultValue={b.notes ?? ""}
                           rows={3}
-                          placeholder="Add notes…"
+                          placeholder="Add instructions…"
                           onBlur={async (e) => {
                             const v = e.target.value;
                             if ((v ?? "") === (b.notes ?? "")) return;
@@ -2029,7 +2029,7 @@ function CalendarPage() {
                             if (error) return toast.error(error.message);
                             patchSelected({ notes: v || null });
                             qc.invalidateQueries({ queryKey: ["calendar-bookings"] });
-                            toast.success("Notes updated");
+                            toast.success("Instructions updated");
                           }}
                           className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-sm focus:border-primary/60 outline-none resize-y"
                         />
