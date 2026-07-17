@@ -1314,7 +1314,7 @@ function CalendarPage() {
                             e.stopPropagation();
                             setDayNoteFor(dayKey);
                           }}
-                          className="min-h-[120px] max-h-[220px] overflow-y-auto border-r border-border/40 last:border-r-0 px-1.5 py-1.5 text-left text-[10px] leading-tight hover:bg-amber-500/5 transition-colors align-top"
+                          className="min-h-[200px] max-h-[400px] overflow-y-auto border-r border-border/40 last:border-r-0 px-2 py-2 text-left text-[11px] leading-snug hover:bg-amber-500/5 transition-colors align-top"
                           title={
                             notes.length
                               ? notes.map((n: any) => n.title).join(" · ")
