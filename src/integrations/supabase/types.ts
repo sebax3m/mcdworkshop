@@ -48,6 +48,8 @@ export type Database = {
         Row: {
           arrival_photos: Json
           assigned_tech_id: string | null
+          bike_arrived: boolean
+          bike_arrived_at: string | null
           color: string | null
           complaints: string | null
           confirmed: boolean
@@ -87,6 +89,8 @@ export type Database = {
         Insert: {
           arrival_photos?: Json
           assigned_tech_id?: string | null
+          bike_arrived?: boolean
+          bike_arrived_at?: string | null
           color?: string | null
           complaints?: string | null
           confirmed?: boolean
@@ -126,6 +130,8 @@ export type Database = {
         Update: {
           arrival_photos?: Json
           assigned_tech_id?: string | null
+          bike_arrived?: boolean
+          bike_arrived_at?: string | null
           color?: string | null
           complaints?: string | null
           confirmed?: boolean

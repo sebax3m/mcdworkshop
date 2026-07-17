@@ -624,7 +624,7 @@ function CalendarPage() {
       const { data, error } = await supabase
         .from("bookings")
         .select(
-          "id, service_type, service_type_other, scheduled_date, drop_off_time, scheduled_end_time, estimated_hours, status, color, complaints, notes, assigned_tech_id, customer_id, motorcycle_id, confirmed, loan_bike, loan_bike_id, loan_bike_expected_return, job_id, customers(first_name,last_name,phone,email), motorcycles(year,make,model,rego), loan_bikes(id,name)",
+          "id, service_type, service_type_other, scheduled_date, drop_off_time, scheduled_end_time, estimated_hours, status, color, complaints, notes, assigned_tech_id, customer_id, motorcycle_id, confirmed, loan_bike, loan_bike_id, loan_bike_expected_return, bike_arrived, bike_arrived_at, job_id, customers(first_name,last_name,phone,email), motorcycles(year,make,model,rego), loan_bikes(id,name)",
         )
         .gte("scheduled_date", format(visibleRange.start, "yyyy-MM-dd"))
         .lte("scheduled_date", format(visibleRange.end, "yyyy-MM-dd"))
@@ -951,14 +951,7 @@ function CalendarPage() {
                             className="relative"
                             title={`${b.service_type} — ${b.motorcycles?.make ?? ""} ${b.motorcycles?.model ?? ""}${b.confirmed ? " · Confirmed" : ""}`}
                           >
-                            <div
-                              className={`h-2 w-2 rounded-full ${b.color ? "" : `${c.bg} ring-1 ${c.ring}`}`}
-                              style={
-                                b.color
-                                  ? { backgroundColor: b.color, boxShadow: `0 0 0 1px ${b.color}` }
-                                  : undefined
-                              }
-                            />
+                            <div className={`h-2 w-2 rounded-full ${c.bg} ring-1 ${c.ring}`} />
                             {b.confirmed && (
                               <span className="absolute -top-0.5 -right-0.5 h-1.5 w-1.5 rounded-full bg-green-500 ring-1 ring-background" />
                             )}
@@ -1280,20 +1273,12 @@ function CalendarPage() {
                                     e.stopPropagation();
                                     setSelectedBooking(b);
                                   }}
-                                  className={`group absolute z-10 rounded-md p-2 text-left ring-1 overflow-hidden select-none transition-all hover:z-30 hover:brightness-110 hover:ring-2 hover:ring-primary hover:shadow-[0_8px_24px_rgba(0,0,0,0.35)] cursor-grab active:cursor-grabbing ${
-                                    b.color ? "text-foreground" : `${c.bg} ${c.ring} ${c.text}`
-                                  } ${draggingId === b.id ? "opacity-40" : ""} ${b.loan_bike ? "!ring-2 !ring-amber-400" : ""}`}
+                                  className={`group absolute z-10 rounded-md p-2 text-left ring-1 overflow-hidden select-none transition-all hover:z-30 hover:brightness-110 hover:ring-2 hover:ring-primary hover:shadow-[0_8px_24px_rgba(0,0,0,0.35)] cursor-grab active:cursor-grabbing ${c.bg} ${c.ring} ${c.text} ${draggingId === b.id ? "opacity-40" : ""} ${b.loan_bike ? "!ring-2 !ring-amber-400" : ""} ${b.bike_arrived ? "!ring-2 !ring-emerald-400 shadow-[0_0_0_2px_rgba(16,185,129,0.35)]" : ""}`}
                                   style={{
                                     top: `${top + 1}px`,
                                     height: `${height}px`,
                                     left: `calc(${leftPct}% + 2px)`,
                                     width: `calc(${widthPct}% - 4px)`,
-                                    ...(b.color
-                                      ? {
-                                          backgroundColor: `${b.color}B3`,
-                                          boxShadow: `inset 0 0 0 1px ${b.color}`,
-                                        }
-                                      : {}),
                                   }}
                                 >
 
@@ -1309,9 +1294,17 @@ function CalendarPage() {
                                       ? ` — ${b.service_type_other}`
                                       : ""}
                                   </span>
-                                  {b.confirmed && (
-                                    <span className="h-1.5 w-1.5 rounded-full bg-green-500 shrink-0" />
-                                  )}
+                                  <span className="flex items-center gap-1 shrink-0">
+                                    {b.bike_arrived && (
+                                      <span
+                                        title="Bike in workshop"
+                                        className="h-1.5 w-1.5 rounded-full bg-emerald-400 ring-1 ring-emerald-200 animate-pulse"
+                                      />
+                                    )}
+                                    {b.confirmed && (
+                                      <span className="h-1.5 w-1.5 rounded-full bg-green-500" />
+                                    )}
+                                  </span>
                                 </div>
                                 {height > 32 && (
                                   <div className="text-[10px] font-semibold text-current/90 truncate">
@@ -1351,7 +1344,7 @@ function CalendarPage() {
                             e.stopPropagation();
                             setDayNoteFor(dayKey);
                           }}
-                          className="min-h-[36px] border-r border-border/40 last:border-r-0 px-1.5 py-1 text-left text-[10px] leading-tight hover:bg-amber-500/5 transition-colors"
+                          className="min-h-[120px] max-h-[220px] overflow-y-auto border-r border-border/40 last:border-r-0 px-1.5 py-1.5 text-left text-[10px] leading-tight hover:bg-amber-500/5 transition-colors align-top"
                           title={
                             notes.length
                               ? notes.map((n: any) => n.title).join(" · ")
@@ -1361,21 +1354,18 @@ function CalendarPage() {
                           {notes.length === 0 ? (
                             <span className="text-muted-foreground/40 italic">+ note</span>
                           ) : (
-                            <div className="flex flex-col gap-0.5">
-                              {notes.slice(0, 3).map((n: any) => (
+                            <div className="flex flex-col gap-1">
+                              {notes.map((n: any) => (
                                 <div
                                   key={n.id}
                                   className="flex items-start gap-1 rounded-sm bg-amber-500/15 px-1 py-0.5 text-amber-600 dark:text-amber-300"
                                 >
                                   <StickyNote className="h-2.5 w-2.5 mt-0.5 shrink-0" />
-                                  <span className="truncate">{n.title}</span>
+                                  <span className="whitespace-normal break-words leading-tight">
+                                    {n.title}
+                                  </span>
                                 </div>
                               ))}
-                              {notes.length > 3 && (
-                                <span className="text-muted-foreground text-[9px]">
-                                  +{notes.length - 3} more
-                                </span>
-                              )}
                             </div>
                           )}
                         </button>
@@ -1448,6 +1438,39 @@ function CalendarPage() {
                             🏍️ Loan{b.loan_bikes?.name ? ` · ${b.loan_bikes.name}` : ""}
                           </span>
                         )}
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            const next = !b.bike_arrived;
+                            const { error } = await supabase
+                              .from("bookings")
+                              .update({
+                                bike_arrived: next,
+                                bike_arrived_at: next ? new Date().toISOString() : null,
+                              })
+                              .eq("id", b.id);
+                            if (error) return toast.error(error.message);
+                            patchSelected({
+                              bike_arrived: next,
+                              bike_arrived_at: next ? new Date().toISOString() : null,
+                            });
+                            qc.invalidateQueries({ queryKey: ["calendar-bookings"] });
+                            toast.success(next ? "Marked as in workshop" : "Marked as not arrived");
+                          }}
+                          className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider border transition-colors ${
+                            b.bike_arrived
+                              ? "bg-emerald-500/20 border-emerald-500/60 text-emerald-300"
+                              : "bg-background/40 border-border text-muted-foreground hover:border-emerald-500/40 hover:text-emerald-400"
+                          }`}
+                          title="Toggle bike-in-workshop highlight"
+                        >
+                          <span
+                            className={`h-1.5 w-1.5 rounded-full ${
+                              b.bike_arrived ? "bg-emerald-400 animate-pulse" : "bg-muted-foreground/60"
+                            }`}
+                          />
+                          {b.bike_arrived ? "In workshop" : "Mark arrived"}
+                        </button>
                       </div>
 
                       <div>
