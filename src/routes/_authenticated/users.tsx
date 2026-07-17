@@ -219,24 +219,7 @@ function UsersPage() {
                     >
                       <Pencil className="h-3.5 w-3.5" /> Edit
                     </button>
-                    <button
-                      onClick={async () => {
-                        const pwd = prompt(`Set a new password for ${u.full_name}:`);
-                        if (!pwd) return;
-                        if (pwd.length < 6) {
-                          toast.error("Password must be at least 6 characters");
-                          return;
-                        }
-                        try {
-                          await resetPwdFn({ data: { userId: u.id, password: pwd } });
-                          toast.success(`Password reset for ${u.full_name}`);
-                        } catch (e: any) {
-                          toast.error(e.message ?? "Failed to reset password");
-                        }
-                      }}
-                      className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-xs font-medium hover:border-foreground/30"
-                    >
-                      <KeyRound className="h-3.5 w-3.5" /> Reset password
+
                     </button>
                     <button
                       onClick={() => setActiveTechnicianId(u.id)}
