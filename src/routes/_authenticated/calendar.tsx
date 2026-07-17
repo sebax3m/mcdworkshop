@@ -503,7 +503,10 @@ function CalendarPage() {
     if (!qFirst.trim()) return toast.error("First name required");
     if (!qBikeMake.trim() || !qBikeModel.trim()) return toast.error("Bike make and model required");
     const startTime = (qEditTime || quickSlot.time).slice(0, 5);
-    const endTime = addMinutesToTime(startTime, Math.max(15, Math.round((Number(qEstHours) || 1) * 60)));
+    const endTime = addMinutesToTime(
+      startTime,
+      Math.max(15, Math.round((Number(qEstHours) || 1) * 60)),
+    );
     const rangeErr = validateTimeRange(startTime, endTime);
     if (rangeErr) return toast.error(rangeErr);
     const dateStr = qEditDate || format(quickSlot.date, "yyyy-MM-dd");
@@ -569,9 +572,7 @@ function CalendarPage() {
           status: "booked",
           wof_expiry: qWofNeeded && qWofExpiry ? qWofExpiry : null,
           notes:
-            [qNotes.trim(), qWofNeeded ? "WOF required" : ""]
-              .filter(Boolean)
-              .join("\n") || null,
+            [qNotes.trim(), qWofNeeded ? "WOF required" : ""].filter(Boolean).join("\n") || null,
         })
         .select(
           "id, service_type, service_type_other, scheduled_date, drop_off_time, scheduled_end_time, estimated_hours, status, notes, customer_id, motorcycle_id, job_id, customers(first_name,last_name,phone,email), motorcycles(year,make,model,rego)",
@@ -584,7 +585,6 @@ function CalendarPage() {
       qc.invalidateQueries({ queryKey: ["quick-customers"] });
       // Close modal immediately after saving
       closeQuickBooking();
-
     } catch (err: any) {
       toast.error(err.message ?? "Failed to create booking");
     } finally {
@@ -598,7 +598,6 @@ function CalendarPage() {
     setJustCreatedNotes("");
     resetQuickForm();
   }
-
 
   async function confirmDeleteBooking() {
     if (!deleteBooking) return;
@@ -955,7 +954,9 @@ function CalendarPage() {
                             className="relative"
                             title={`${b.service_type} — ${b.motorcycles?.make ?? ""} ${b.motorcycles?.model ?? ""}${b.bike_arrived ? " · In workshop" : ""}${b.confirmed ? " · Confirmed" : ""}`}
                           >
-                            <div className={`rounded-full ${c.bg} ring-1 ${c.ring} ${b.bike_arrived ? "h-3 w-3 !ring-2 !ring-orange-500" : "h-2 w-2"}`} />
+                            <div
+                              className={`rounded-full ${c.bg} ring-1 ${c.ring} ${b.bike_arrived ? "h-3 w-3 !ring-2 !ring-orange-500" : "h-2 w-2"}`}
+                            />
                             {b.confirmed && (
                               <span className="absolute -top-0.5 -right-0.5 h-1.5 w-1.5 rounded-full bg-green-500 ring-1 ring-background" />
                             )}
@@ -1251,7 +1252,7 @@ function CalendarPage() {
                                     e.stopPropagation();
                                     setSelectedBooking(b);
                                   }}
-                                   className={`group absolute z-10 rounded-md p-2 text-left ring-1 overflow-hidden select-none transition-all hover:z-30 hover:brightness-110 hover:ring-2 hover:ring-primary hover:shadow-[0_8px_24px_rgba(0,0,0,0.35)] cursor-grab active:cursor-grabbing ${c.bg} ${c.ring} ${c.text} ${draggingId === b.id ? "opacity-40" : ""} ${b.loan_bike ? "!ring-2 !ring-amber-400" : ""} ${b.bike_arrived ? "!ring-[3px] !ring-orange-500 shadow-[0_0_0_3px_rgba(249,115,22,0.35)]" : ""}`}
+                                  className={`group absolute z-10 rounded-md p-2 text-left ring-1 overflow-hidden select-none transition-all hover:z-30 hover:brightness-110 hover:ring-2 hover:ring-primary hover:shadow-[0_8px_24px_rgba(0,0,0,0.35)] cursor-grab active:cursor-grabbing ${c.bg} ${c.ring} ${c.text} ${draggingId === b.id ? "opacity-40" : ""} ${b.loan_bike ? "!ring-2 !ring-amber-400" : ""} ${b.bike_arrived ? "!ring-[3px] !ring-orange-500 shadow-[0_0_0_3px_rgba(249,115,22,0.35)]" : ""}`}
                                   style={{
                                     top: `${top + 1}px`,
                                     height: `${height}px`,
@@ -1259,39 +1260,38 @@ function CalendarPage() {
                                     width: `calc(100% - 4px)`,
                                   }}
                                 >
-
-
-                                {/* Drag grip indicator — visible on hover */}
-                                <div className="absolute top-0.5 right-0.5 opacity-0 group-hover:opacity-70 transition-opacity pointer-events-none text-current text-[9px] leading-none font-black">
-                                  ⋮⋮
-                                </div>
-                                <div className="flex items-center justify-between gap-1">
-                                  <span className="text-[9px] font-bold uppercase tracking-wider truncate">
-                                    {b.drop_off_time ? fmt12h(String(b.drop_off_time).slice(0, 5)) : ""} ·{" "}
-                                    {b.service_type}
-                                    {b.service_type === "Other" && b.service_type_other
-                                      ? ` — ${b.service_type_other}`
-                                      : ""}
-                                  </span>
-                                  <span className="flex items-center gap-1.5 shrink-0">
-                                    {b.confirmed && (
-                                      <span className="h-1.5 w-1.5 rounded-full bg-green-500" />
-                                    )}
-                                  </span>
-
-                                </div>
-                                {height > 32 && (
-                                  <div className="text-[10px] font-semibold text-current/90 truncate">
-                                    {bike}
+                                  {/* Drag grip indicator — visible on hover */}
+                                  <div className="absolute top-0.5 right-0.5 opacity-0 group-hover:opacity-70 transition-opacity pointer-events-none text-current text-[9px] leading-none font-black">
+                                    ⋮⋮
                                   </div>
-                                )}
-                                {height > 48 && (
-                                  <div className="text-[9px] text-current/80 truncate">
-                                    {customer}
+                                  <div className="flex items-center justify-between gap-1">
+                                    <span className="text-[9px] font-bold uppercase tracking-wider truncate">
+                                      {b.drop_off_time
+                                        ? fmt12h(String(b.drop_off_time).slice(0, 5))
+                                        : ""}{" "}
+                                      · {b.service_type}
+                                      {b.service_type === "Other" && b.service_type_other
+                                        ? ` — ${b.service_type_other}`
+                                        : ""}
+                                    </span>
+                                    <span className="flex items-center gap-1.5 shrink-0">
+                                      {b.confirmed && (
+                                        <span className="h-1.5 w-1.5 rounded-full bg-green-500" />
+                                      )}
+                                    </span>
                                   </div>
-                                )}
-                              </div>
-                            );
+                                  {height > 32 && (
+                                    <div className="text-[10px] font-semibold text-current/90 truncate">
+                                      {bike}
+                                    </div>
+                                  )}
+                                  {height > 48 && (
+                                    <div className="text-[9px] text-current/80 truncate">
+                                      {customer}
+                                    </div>
+                                  )}
+                                </div>
+                              );
                             });
                           })()}
                         </div>
@@ -1347,7 +1347,6 @@ function CalendarPage() {
                     })}
                   </div>
                 </div>
-
               </div>
             </div>
           );
@@ -1506,10 +1505,7 @@ function CalendarPage() {
                         <div className="font-display text-lg font-bold">{customer}</div>
                         <div className="text-sm text-muted-foreground">
                           {b.scheduled_date
-                            ? format(
-                                new Date(b.scheduled_date + "T00:00:00"),
-                                "EEE, MMM d, yyyy",
-                              )
+                            ? format(new Date(b.scheduled_date + "T00:00:00"), "EEE, MMM d, yyyy")
                             : "—"}{" "}
                           · {fmt12h(currentStart)}
                           {currentEnd ? ` – ${fmt12h(currentEnd)}` : ""}
@@ -1554,9 +1550,7 @@ function CalendarPage() {
                         <div className="mt-2 flex justify-end">
                           <button
                             type="button"
-                            disabled={
-                              savingSummaryNotes || summaryNotes === (b.notes ?? "")
-                            }
+                            disabled={savingSummaryNotes || summaryNotes === (b.notes ?? "")}
                             onClick={async () => {
                               setSavingSummaryNotes(true);
                               const { error } = await supabase
@@ -1879,7 +1873,6 @@ function CalendarPage() {
                       </div>
                     </div>
 
-
                     <div className="grid grid-cols-1 gap-3 pt-1 border-t border-border/60">
                       <div className="rounded-lg border border-border/60 bg-muted/20 p-3 space-y-2">
                         <div className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground flex items-center gap-1.5">
@@ -1903,7 +1896,8 @@ function CalendarPage() {
                                 .update({ phone: v || null })
                                 .eq("id", b.customer_id);
                               if (error) return toast.error(error.message);
-                              patchSelected({ customers: { ...(b.customers ?? {}), phone: v || null },
+                              patchSelected({
+                                customers: { ...(b.customers ?? {}), phone: v || null },
                               });
                               qc.invalidateQueries({ queryKey: ["calendar-bookings"] });
                               qc.invalidateQueries({ queryKey: ["quick-customers"] });
@@ -1929,7 +1923,8 @@ function CalendarPage() {
                               const pick = (quickCustomers.data ?? []).find(
                                 (x: any) => x.id === newCustomerId,
                               );
-                              patchSelected({ customer_id: newCustomerId,
+                              patchSelected({
+                                customer_id: newCustomerId,
                                 motorcycle_id: null,
                                 customers: pick
                                   ? {
@@ -1983,7 +1978,8 @@ function CalendarPage() {
                                 .update({ rego: v || null })
                                 .eq("id", b.motorcycle_id);
                               if (error) return toast.error(error.message);
-                              patchSelected({ motorcycles: { ...(b.motorcycles ?? {}), rego: v || null },
+                              patchSelected({
+                                motorcycles: { ...(b.motorcycles ?? {}), rego: v || null },
                               });
                               qc.invalidateQueries({ queryKey: ["calendar-bookings"] });
                               qc.invalidateQueries({ queryKey: ["edit-bikes", b.customer_id] });
@@ -2010,7 +2006,8 @@ function CalendarPage() {
                               const pick = (editBikes.data ?? []).find(
                                 (x: any) => x.id === newBikeId,
                               );
-                              patchSelected({ motorcycle_id: newBikeId,
+                              patchSelected({
+                                motorcycle_id: newBikeId,
                                 motorcycles: pick
                                   ? {
                                       year: pick.year,
@@ -2160,7 +2157,8 @@ function CalendarPage() {
                       {displayCustomerName(justCreated.customers)}
                     </div>
                     <div className="text-sm text-muted-foreground">
-                      {justCreated.scheduled_date} · {fmt12h(String(justCreated.drop_off_time ?? "").slice(0, 5))}
+                      {justCreated.scheduled_date} ·{" "}
+                      {fmt12h(String(justCreated.drop_off_time ?? "").slice(0, 5))}
                       {justCreated.motorcycles && (
                         <>
                           {" "}
@@ -2185,8 +2183,7 @@ function CalendarPage() {
                       <button
                         type="button"
                         disabled={
-                          savingJustCreatedNotes ||
-                          justCreatedNotes === (justCreated.notes ?? "")
+                          savingJustCreatedNotes || justCreatedNotes === (justCreated.notes ?? "")
                         }
                         onClick={async () => {
                           setSavingJustCreatedNotes(true);
@@ -2248,534 +2245,529 @@ function CalendarPage() {
                 </div>
               ) : (
                 <>
-              <div>
-                <div className="flex items-center justify-between gap-2">
-                  <div className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground">
-                    Quick booking
-                  </div>
-                  <button
-                    type="button"
-                    disabled={creatingQuick}
-                    onClick={createQuickBooking}
-                    className="rounded-lg bg-yellow-400 hover:bg-yellow-300 text-black px-3 py-1.5 text-xs font-bold shadow-sm disabled:opacity-50 transition-colors"
-                  >
-                    {creatingQuick ? "Saving…" : "SAVE"}
-                  </button>
-                </div>
-                <div className="mt-1 grid grid-cols-2 gap-2">
                   <div>
-                    <label className="text-[10px] uppercase tracking-wider text-muted-foreground flex items-center gap-1">
-                      <CalendarIcon className="h-3 w-3" /> Date
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground">
+                        Quick booking
+                      </div>
+                      <button
+                        type="button"
+                        disabled={creatingQuick}
+                        onClick={createQuickBooking}
+                        className="rounded-lg bg-yellow-400 hover:bg-yellow-300 text-black px-3 py-1.5 text-xs font-bold shadow-sm disabled:opacity-50 transition-colors"
+                      >
+                        {creatingQuick ? "Saving…" : "SAVE"}
+                      </button>
+                    </div>
+                    <div className="mt-1 grid grid-cols-2 gap-2">
+                      <div>
+                        <label className="text-[10px] uppercase tracking-wider text-muted-foreground flex items-center gap-1">
+                          <CalendarIcon className="h-3 w-3" /> Date
+                        </label>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <button
+                              type="button"
+                              className={cn(
+                                "w-full mt-1 rounded-lg border border-border bg-background/60 px-3 py-2 text-sm font-semibold text-left focus:border-primary/60 focus:outline-none hover:bg-primary/5",
+                                !qEditDate && "text-muted-foreground",
+                              )}
+                            >
+                              {qEditDate
+                                ? format(new Date(qEditDate + "T00:00:00"), "EEE, MMM d, yyyy")
+                                : "Pick a date"}
+                            </button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0" align="start">
+                            <CalendarPicker
+                              mode="single"
+                              selected={qEditDate ? new Date(qEditDate + "T00:00:00") : undefined}
+                              onSelect={(d) => {
+                                if (d) setQEditDate(format(d, "yyyy-MM-dd"));
+                              }}
+                              initialFocus
+                              className={cn("p-3 pointer-events-auto")}
+                            />
+                          </PopoverContent>
+                        </Popover>
+                      </div>
+                      <div>
+                        <label className="text-[10px] uppercase tracking-wider text-muted-foreground flex items-center gap-1">
+                          <Clock className="h-3 w-3" /> Time
+                        </label>
+                        <Select value={qEditTime} onValueChange={setQEditTime}>
+                          <SelectTrigger className="w-full mt-1 rounded-lg border border-border bg-background/60 px-3 py-2 text-sm font-semibold tabular-nums h-auto">
+                            <SelectValue placeholder="Pick a time">
+                              {qEditTime ? fmt12h(qEditTime) : undefined}
+                            </SelectValue>
+                          </SelectTrigger>
+                          <SelectContent className="max-h-72">
+                            {TIME_SLOTS.map((t) => (
+                              <SelectItem key={t} value={t} className="tabular-nums">
+                                {fmt12h(t)}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                      Service *
                     </label>
-                    <Popover>
-                      <PopoverTrigger asChild>
+                    <select
+                      value={qService}
+                      onChange={(e) => setQService(e.target.value)}
+                      className="w-full mt-1 rounded-lg border border-border bg-background/60 px-3 py-2 text-sm focus:border-primary/60 focus:outline-none"
+                    >
+                      {serviceTypesList.map((s: string) => (
+                        <option key={s} value={s}>
+                          {s}
+                        </option>
+                      ))}
+                      {!serviceTypesList.includes("Other") && <option value="Other">Other</option>}
+                    </select>
+                    {qService === "Other" && (
+                      <div className="mt-2">
+                        <label className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                          Other service details
+                        </label>
+                        <textarea
+                          value={qServiceOther}
+                          onChange={(e) => setQServiceOther(e.target.value)}
+                          placeholder="Describe the service..."
+                          className="mt-1 w-full min-h-[64px] rounded-lg border border-border bg-background/60 px-3 py-2 text-sm focus:border-primary/60 focus:outline-none resize-y"
+                        />
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Customer search */}
+                  <div className="relative">
+                    <label className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                      Search by name, phone or rego
+                    </label>
+                    <div className="mt-1 flex gap-2">
+                      <input
+                        value={qSearch}
+                        onChange={(e) => {
+                          setQSearch(e.target.value);
+                          if (qCustomerId) setQCustomerId(null);
+                        }}
+                        placeholder="e.g. John, 021…, ABC123"
+                        className="flex-1 rounded-lg border border-border bg-background/60 px-3 py-2 text-sm focus:border-primary/60 focus:outline-none"
+                      />
+                      {qCustomerId && (
                         <button
                           type="button"
-                          className={cn(
-                            "w-full mt-1 rounded-lg border border-border bg-background/60 px-3 py-2 text-sm font-semibold text-left focus:border-primary/60 focus:outline-none hover:bg-primary/5",
-                            !qEditDate && "text-muted-foreground",
-                          )}
+                          onClick={clearCustomerSelection}
+                          className="rounded-lg border border-border px-2 text-xs font-semibold hover:border-primary/50 hover:bg-primary/5"
                         >
-                          {qEditDate
-                            ? format(new Date(qEditDate + "T00:00:00"), "EEE, MMM d, yyyy")
-                            : "Pick a date"}
+                          Clear
                         </button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                        <CalendarPicker
-                          mode="single"
-                          selected={qEditDate ? new Date(qEditDate + "T00:00:00") : undefined}
-                          onSelect={(d) => {
-                            if (d) setQEditDate(format(d, "yyyy-MM-dd"));
-                          }}
-                          initialFocus
-                          className={cn("p-3 pointer-events-auto")}
-                        />
-                      </PopoverContent>
-                    </Popover>
-                  </div>
-                  <div>
-                    <label className="text-[10px] uppercase tracking-wider text-muted-foreground flex items-center gap-1">
-                      <Clock className="h-3 w-3" /> Time
-                    </label>
-                    <Select value={qEditTime} onValueChange={setQEditTime}>
-                      <SelectTrigger className="w-full mt-1 rounded-lg border border-border bg-background/60 px-3 py-2 text-sm font-semibold tabular-nums h-auto">
-                        <SelectValue placeholder="Pick a time">
-                          {qEditTime ? fmt12h(qEditTime) : undefined}
-                        </SelectValue>
-                      </SelectTrigger>
-                      <SelectContent className="max-h-72">
-                        {TIME_SLOTS.map((t) => (
-                          <SelectItem key={t} value={t} className="tabular-nums">
-                            {fmt12h(t)}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-              </div>
-
-              <div>
-                <label className="text-[10px] uppercase tracking-wider text-muted-foreground">
-                  Service *
-                </label>
-                <select
-                  value={qService}
-                  onChange={(e) => setQService(e.target.value)}
-                  className="w-full mt-1 rounded-lg border border-border bg-background/60 px-3 py-2 text-sm focus:border-primary/60 focus:outline-none"
-                >
-                  {serviceTypesList.map((s: string) => (
-                    <option key={s} value={s}>
-                      {s}
-                    </option>
-                  ))}
-                  {!serviceTypesList.includes("Other") && <option value="Other">Other</option>}
-                </select>
-                {qService === "Other" && (
-                  <div className="mt-2">
-                    <label className="text-[10px] uppercase tracking-wider text-muted-foreground">
-                      Other service details
-                    </label>
-                    <textarea
-                      value={qServiceOther}
-                      onChange={(e) => setQServiceOther(e.target.value)}
-                      placeholder="Describe the service..."
-                      className="mt-1 w-full min-h-[64px] rounded-lg border border-border bg-background/60 px-3 py-2 text-sm focus:border-primary/60 focus:outline-none resize-y"
-                    />
-                  </div>
-                )}
-              </div>
-
-              {/* Customer search */}
-              <div className="relative">
-                <label className="text-[10px] uppercase tracking-wider text-muted-foreground">
-                  Search by name, phone or rego
-                </label>
-                <div className="mt-1 flex gap-2">
-                  <input
-                    value={qSearch}
-                    onChange={(e) => {
-                      setQSearch(e.target.value);
-                      if (qCustomerId) setQCustomerId(null);
-                    }}
-                    placeholder="e.g. John, 021…, ABC123"
-                    className="flex-1 rounded-lg border border-border bg-background/60 px-3 py-2 text-sm focus:border-primary/60 focus:outline-none"
-                  />
-                  {qCustomerId && (
-                    <button
-                      type="button"
-                      onClick={clearCustomerSelection}
-                      className="rounded-lg border border-border px-2 text-xs font-semibold hover:border-primary/50 hover:bg-primary/5"
-                    >
-                      Clear
-                    </button>
-                  )}
-                </div>
-                {(customerMatches.length > 0 || regoMatches.length > 0) && (
-                  <div className="absolute z-10 left-0 right-0 mt-1 rounded-lg border border-border bg-popover shadow-xl max-h-72 overflow-y-auto">
-                    {regoMatches.length > 0 && (
-                      <>
-                        <div className="px-3 py-1 text-[9px] font-bold uppercase tracking-wider text-muted-foreground bg-muted/40 border-b border-border/40">
-                          Matching rego
-                        </div>
-                        {regoMatches.map((m: any) => (
-                          <button
-                            key={`rego-${m.id}`}
-                            type="button"
-                            onClick={() => pickRegoMatch(m)}
-                            className="w-full text-left px-3 py-2 text-sm hover:bg-primary/10 border-b border-border/40 last:border-b-0"
-                          >
-                            <div className="flex items-center gap-2">
-                              <span className="inline-flex items-center gap-1 rounded-md bg-primary/10 border border-primary/30 px-1.5 py-0.5 text-[11px] font-mono font-bold text-primary">
-                                <BikeIcon className="h-3 w-3" /> {m.rego}
-                              </span>
-                              <span className="text-[11px] text-muted-foreground">
-                                {`${m.year ?? ""} ${m.make ?? ""} ${m.model ?? ""}`.trim()}
-                              </span>
-                            </div>
-                            {m.customers && (
-                              <div className="mt-0.5 text-[11px] text-muted-foreground">
-                                {`${m.customers.first_name ?? ""} ${m.customers.last_name ?? ""}`.trim() ||
-                                  "—"}
-                                {m.customers.phone ? ` · ${m.customers.phone}` : ""}
-                              </div>
-                            )}
-                          </button>
-                        ))}
-                      </>
-                    )}
-                    {customerMatches.length > 0 && (
-                      <>
-                        <div className="px-3 py-1 text-[9px] font-bold uppercase tracking-wider text-muted-foreground bg-muted/40 border-b border-border/40">
-                          Matching customer
-                        </div>
-                        {customerMatches.map((c: any) => (
-                          <button
-                            key={c.id}
-                            type="button"
-                            onClick={() => pickCustomer(c)}
-                            className="w-full text-left px-3 py-2 text-sm hover:bg-primary/10 border-b border-border/40 last:border-b-0"
-                          >
-                            <div className="font-semibold">
-                              {`${c.first_name ?? ""} ${c.last_name ?? ""}`.trim() || "—"}
-                            </div>
-                            {c.phone && (
-                              <div className="text-[11px] text-muted-foreground flex items-center gap-1">
-                                <Phone className="h-3 w-3" /> {c.phone}
-                              </div>
-                            )}
-                          </button>
-                        ))}
-                      </>
-                    )}
-                  </div>
-                )}
-                {qSearch.trim().length >= 2 &&
-                  !qCustomerId &&
-                  customerMatches.length === 0 &&
-                  regoMatches.length === 0 &&
-                  !regoMatchesQ.isFetching && (
-                    <div className="mt-2 rounded-lg border border-dashed border-primary/40 bg-primary/5 px-3 py-2 text-[11px] text-muted-foreground">
-                      No match. Fill in the fields below to create a new customer + bike inline.
-                    </div>
-                  )}
-                {qCustomerId && (quickBikes.data ?? []).length > 0 && (
-                  <div className="mt-2">
-                    <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">
-                      Customer bikes
-                    </div>
-                    <div className="flex flex-wrap gap-1.5">
-                      {((quickBikes.data ?? []) as any[]).map((bk) => {
-                        const active = qBikeId === bk.id;
-                        const label =
-                          `${bk.year ?? ""} ${bk.make ?? ""} ${bk.model ?? ""}`.trim() || "—";
-                        return (
-                          <button
-                            key={bk.id}
-                            type="button"
-                            onClick={() =>
-                              active
-                                ? (setQBikeId(null),
-                                  setQBikeMake(""),
-                                  setQBikeModel(""),
-                                  setQBikeYear(""),
-                                  setQBikeRego(""))
-                                : pickBike(bk)
-                            }
-                            className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-semibold transition-colors ${
-                              active
-                                ? "border-primary bg-primary/15 text-primary"
-                                : "border-border hover:border-primary/50"
-                            }`}
-                          >
-                            <BikeIcon className="h-3 w-3" />
-                            {label}
-                            {bk.rego && <span className="opacity-60">· {bk.rego}</span>}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              <div className="grid grid-cols-2 gap-2">
-                <div className="col-span-1">
-                  <label className="text-[10px] uppercase tracking-wider text-muted-foreground">
-                    First name *
-                  </label>
-                  <input
-                    value={qFirst}
-                    onChange={(e) => setQFirst(e.target.value)}
-                    className="w-full mt-1 rounded-lg border border-border bg-background/60 px-3 py-2 text-sm focus:border-primary/60 focus:outline-none"
-                  />
-                </div>
-                <div className="col-span-1">
-                  <label className="text-[10px] uppercase tracking-wider text-muted-foreground">
-                    Last name
-                  </label>
-                  <input
-                    value={qLast}
-                    onChange={(e) => setQLast(e.target.value)}
-                    className="w-full mt-1 rounded-lg border border-border bg-background/60 px-3 py-2 text-sm focus:border-primary/60 focus:outline-none"
-                  />
-                </div>
-                <div className="col-span-2 relative">
-                  <label className="text-[10px] uppercase tracking-wider text-muted-foreground flex items-center gap-1">
-                    <Phone className="h-3 w-3" /> Phone
-                  </label>
-                  <input
-                    value={qPhone}
-                    onChange={(e) => {
-                      const v = e.target.value;
-                      setQPhone(v);
-                      if (qCustomerId) setQCustomerId(null);
-                      // sync into main search so dropdown reflects phone typing
-                      if (v.trim().length >= 3) setQSearch(v);
-                    }}
-                    placeholder="e.g. 021 123 4567"
-                    className="w-full mt-1 rounded-lg border border-border bg-background/60 px-3 py-2 text-sm focus:border-primary/60 focus:outline-none"
-                  />
-                  {!qCustomerId &&
-                    qPhone.trim().length >= 3 &&
-                    (() => {
-                      const term = qPhone.replace(/\s+/g, "").toLowerCase();
-                      const matches = ((quickCustomers.data ?? []) as any[])
-                        .filter((c) =>
-                          (c.phone ?? "").replace(/\s+/g, "").toLowerCase().includes(term),
-                        )
-                        .slice(0, 6);
-                      if (matches.length === 0) return null;
-                      return (
-                        <div className="absolute z-20 left-0 right-0 mt-1 rounded-lg border border-border bg-popover shadow-xl max-h-56 overflow-y-auto">
-                          <div className="px-3 py-1 text-[9px] font-bold uppercase tracking-wider text-muted-foreground bg-muted/40 border-b border-border/40">
-                            Matching phone
-                          </div>
-                          {matches.map((c: any) => (
-                            <button
-                              key={`ph-${c.id}`}
-                              type="button"
-                              onClick={() => pickCustomer(c)}
-                              className="w-full text-left px-3 py-2 text-sm hover:bg-primary/10 border-b border-border/40 last:border-b-0"
-                            >
-                              <div className="font-semibold">
-                                {`${c.first_name ?? ""} ${c.last_name ?? ""}`.trim() || "—"}
-                              </div>
-                              <div className="text-[11px] text-muted-foreground flex items-center gap-1">
-                                <Phone className="h-3 w-3" /> {c.phone}
-                              </div>
-                            </button>
-                          ))}
-                        </div>
-                      );
-                    })()}
-                </div>
-                <div className="col-span-1">
-                  <label className="text-[10px] uppercase tracking-wider text-muted-foreground">
-                    Year
-                  </label>
-                  <input
-                    list="bike-years-list"
-                    value={qBikeYear}
-                    onChange={(e) => setQBikeYear(e.target.value)}
-                    inputMode="numeric"
-                    placeholder="e.g. 2022"
-                    className="w-full mt-1 rounded-lg border border-border bg-background/60 px-3 py-2 text-sm focus:border-primary/60 focus:outline-none"
-                  />
-                  <datalist id="bike-years-list">
-                    {BIKE_YEARS.map((y) => (
-                      <option key={y} value={String(y)} />
-                    ))}
-                  </datalist>
-                </div>
-                <div className="col-span-1">
-                  <label className="text-[10px] uppercase tracking-wider text-muted-foreground">
-                    Rego
-                  </label>
-                  <div className="flex gap-1 mt-1">
-                    <input
-                      value={qBikeRego}
-                      onChange={(e) => setQBikeRego(e.target.value.toUpperCase())}
-                      placeholder="ABC123"
-                      className="flex-1 min-w-0 rounded-lg border border-border bg-background/60 px-3 py-2 text-sm uppercase tracking-wider focus:border-primary/60 focus:outline-none"
-                    />
-                    <button
-                      type="button"
-                      onClick={fetchQuickFromRego}
-                      disabled={lookingUpRego || !qBikeRego.trim()}
-                      title="Fetch from Carjam"
-                      className="shrink-0 rounded-lg border border-border bg-background/60 px-2 text-xs hover:bg-primary/10 disabled:opacity-50"
-                    >
-                      <Sparkles className="h-3.5 w-3.5" />
-                    </button>
-                  </div>
-                </div>
-                <div className="col-span-1">
-                  <label className="text-[10px] uppercase tracking-wider text-muted-foreground flex items-center gap-1">
-                    <BikeIcon className="h-3 w-3" /> Make *
-                  </label>
-                  <input
-                    list="bike-makes-list"
-                    value={qBikeMake}
-                    onChange={(e) => {
-                      setQBikeMake(e.target.value);
-                      setQBikeModel("");
-                    }}
-                    placeholder="e.g. Yamaha"
-                    className="w-full mt-1 rounded-lg border border-border bg-background/60 px-3 py-2 text-sm focus:border-primary/60 focus:outline-none"
-                  />
-                  <datalist id="bike-makes-list">
-                    {BIKE_MAKE_NAMES.map((m) => (
-                      <option key={m} value={m} />
-                    ))}
-                  </datalist>
-                </div>
-                <div className="col-span-1">
-                  <label className="text-[10px] uppercase tracking-wider text-muted-foreground flex items-center gap-1">
-                    <BikeIcon className="h-3 w-3" /> Model *
-                  </label>
-                  <input
-                    list="bike-models-list"
-                    value={qBikeModel}
-                    onChange={(e) => setQBikeModel(e.target.value)}
-                    placeholder="e.g. MT-07"
-                    className="w-full mt-1 rounded-lg border border-border bg-background/60 px-3 py-2 text-sm focus:border-primary/60 focus:outline-none"
-                    disabled={!qBikeMake}
-                  />
-                  <datalist id="bike-models-list">
-                    {(BIKE_MAKES[qBikeMake] ?? []).map((m) => (
-                      <option key={m} value={m} />
-                    ))}
-                  </datalist>
-                </div>
-                <div className="col-span-2">
-                  <label className="text-[10px] uppercase tracking-wider text-muted-foreground">
-                    Est. hours
-                  </label>
-                  <input
-                    value={qEstHours}
-                    onChange={(e) => setQEstHours(e.target.value)}
-                    inputMode="decimal"
-                    placeholder="1"
-                    className="w-full mt-1 rounded-lg border border-border bg-background/60 px-3 py-2 text-sm focus:border-primary/60 focus:outline-none"
-                  />
-                </div>
-                <div className="col-span-2">
-                  <label className="text-[10px] uppercase tracking-wider text-muted-foreground flex items-center gap-1">
-                    <StickyNote className="h-3 w-3" /> Instructions
-                  </label>
-                  <textarea
-                    value={qNotes}
-                    onChange={(e) => setQNotes(e.target.value)}
-                    placeholder="Add instructions"
-                    className="mt-1 w-full min-h-[64px] rounded-lg border border-border bg-background/60 px-3 py-2 text-sm focus:border-primary/60 focus:outline-none resize-y"
-                  />
-                </div>
-
-              </div>
-
-
-
-
-
-              <div>
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    className="h-4 w-4 accent-primary"
-                    checked={qWofNeeded}
-                    onChange={(e) => setQWofNeeded(e.target.checked)}
-                  />
-                  <ShieldCheck size={16} className="text-primary" />
-                  <span className="text-sm font-semibold">Needs WOF</span>
-                </label>
-                {qWofNeeded && (
-                  <div className="mt-2 rounded-xl border border-primary/40 bg-primary/5 p-3">
-                    <label className="text-[10px] uppercase tracking-wider text-muted-foreground">
-                      Current WOF expiry (optional)
-                    </label>
-                    <input
-                      type="date"
-                      value={qWofExpiry}
-                      onChange={(e) => setQWofExpiry(e.target.value)}
-                      className="w-full mt-1 rounded-lg border border-border bg-background/60 px-3 py-2 text-sm"
-                    />
-                  </div>
-                )}
-              </div>
-
-              <div>
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    className="h-4 w-4 accent-amber-500"
-                    checked={qLoanBike}
-                    onChange={(e) => setQLoanBike(e.target.checked)}
-                  />
-                  <span className="text-sm font-semibold">🏍️ Customer needs a loan bike</span>
-                </label>
-                {qLoanBike && (
-                  <div className="mt-2 space-y-2 rounded-xl border border-amber-400/40 bg-amber-400/5 p-3">
-                    <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
-                      Assign loan bike
-                    </div>
-                    <div className="grid gap-1.5">
-                      {(qLoanBikesQ.data ?? []).map((lb: any) => {
-                        const outWith = (qActiveLoansQ.data ?? []).find(
-                          (a: any) => a.loan_bike_id === lb.id,
-                        );
-                        const busy = !!outWith;
-                        const active = qLoanBikeId === lb.id;
-                        return (
-                          <button
-                            key={lb.id}
-                            type="button"
-                            onClick={() => setQLoanBikeId(active ? null : lb.id)}
-                            className={`rounded-lg border p-2 text-left flex items-center gap-2 ${
-                              active
-                                ? "border-amber-400 bg-amber-400/10"
-                                : busy
-                                  ? "border-destructive/40 opacity-70"
-                                  : "border-border"
-                            }`}
-                          >
-                            <span className="flex-1">
-                              <span className="block text-sm font-semibold">{lb.name}</span>
-                              <span className="block text-[11px] text-muted-foreground">
-                                {lb.current_km?.toLocaleString?.() ?? 0} km
-                                {busy &&
-                                  outWith?.customers &&
-                                  ` · Out with ${outWith.customers.first_name} ${outWith.customers.last_name}`}
-                                {busy &&
-                                  outWith?.loan_bike_expected_return &&
-                                  ` · back ${outWith.loan_bike_expected_return}`}
-                              </span>
-                            </span>
-                            {busy && (
-                              <span className="rounded-full bg-destructive/15 text-destructive px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider">
-                                Out
-                              </span>
-                            )}
-                          </button>
-                        );
-                      })}
-                      {(qLoanBikesQ.data ?? []).length === 0 && (
-                        <div className="text-xs text-muted-foreground">
-                          No loan bikes registered.
-                        </div>
                       )}
                     </div>
-                    <div>
+                    {(customerMatches.length > 0 || regoMatches.length > 0) && (
+                      <div className="absolute z-10 left-0 right-0 mt-1 rounded-lg border border-border bg-popover shadow-xl max-h-72 overflow-y-auto">
+                        {regoMatches.length > 0 && (
+                          <>
+                            <div className="px-3 py-1 text-[9px] font-bold uppercase tracking-wider text-muted-foreground bg-muted/40 border-b border-border/40">
+                              Matching rego
+                            </div>
+                            {regoMatches.map((m: any) => (
+                              <button
+                                key={`rego-${m.id}`}
+                                type="button"
+                                onClick={() => pickRegoMatch(m)}
+                                className="w-full text-left px-3 py-2 text-sm hover:bg-primary/10 border-b border-border/40 last:border-b-0"
+                              >
+                                <div className="flex items-center gap-2">
+                                  <span className="inline-flex items-center gap-1 rounded-md bg-primary/10 border border-primary/30 px-1.5 py-0.5 text-[11px] font-mono font-bold text-primary">
+                                    <BikeIcon className="h-3 w-3" /> {m.rego}
+                                  </span>
+                                  <span className="text-[11px] text-muted-foreground">
+                                    {`${m.year ?? ""} ${m.make ?? ""} ${m.model ?? ""}`.trim()}
+                                  </span>
+                                </div>
+                                {m.customers && (
+                                  <div className="mt-0.5 text-[11px] text-muted-foreground">
+                                    {`${m.customers.first_name ?? ""} ${m.customers.last_name ?? ""}`.trim() ||
+                                      "—"}
+                                    {m.customers.phone ? ` · ${m.customers.phone}` : ""}
+                                  </div>
+                                )}
+                              </button>
+                            ))}
+                          </>
+                        )}
+                        {customerMatches.length > 0 && (
+                          <>
+                            <div className="px-3 py-1 text-[9px] font-bold uppercase tracking-wider text-muted-foreground bg-muted/40 border-b border-border/40">
+                              Matching customer
+                            </div>
+                            {customerMatches.map((c: any) => (
+                              <button
+                                key={c.id}
+                                type="button"
+                                onClick={() => pickCustomer(c)}
+                                className="w-full text-left px-3 py-2 text-sm hover:bg-primary/10 border-b border-border/40 last:border-b-0"
+                              >
+                                <div className="font-semibold">
+                                  {`${c.first_name ?? ""} ${c.last_name ?? ""}`.trim() || "—"}
+                                </div>
+                                {c.phone && (
+                                  <div className="text-[11px] text-muted-foreground flex items-center gap-1">
+                                    <Phone className="h-3 w-3" /> {c.phone}
+                                  </div>
+                                )}
+                              </button>
+                            ))}
+                          </>
+                        )}
+                      </div>
+                    )}
+                    {qSearch.trim().length >= 2 &&
+                      !qCustomerId &&
+                      customerMatches.length === 0 &&
+                      regoMatches.length === 0 &&
+                      !regoMatchesQ.isFetching && (
+                        <div className="mt-2 rounded-lg border border-dashed border-primary/40 bg-primary/5 px-3 py-2 text-[11px] text-muted-foreground">
+                          No match. Fill in the fields below to create a new customer + bike inline.
+                        </div>
+                      )}
+                    {qCustomerId && (quickBikes.data ?? []).length > 0 && (
+                      <div className="mt-2">
+                        <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">
+                          Customer bikes
+                        </div>
+                        <div className="flex flex-wrap gap-1.5">
+                          {((quickBikes.data ?? []) as any[]).map((bk) => {
+                            const active = qBikeId === bk.id;
+                            const label =
+                              `${bk.year ?? ""} ${bk.make ?? ""} ${bk.model ?? ""}`.trim() || "—";
+                            return (
+                              <button
+                                key={bk.id}
+                                type="button"
+                                onClick={() =>
+                                  active
+                                    ? (setQBikeId(null),
+                                      setQBikeMake(""),
+                                      setQBikeModel(""),
+                                      setQBikeYear(""),
+                                      setQBikeRego(""))
+                                    : pickBike(bk)
+                                }
+                                className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-semibold transition-colors ${
+                                  active
+                                    ? "border-primary bg-primary/15 text-primary"
+                                    : "border-border hover:border-primary/50"
+                                }`}
+                              >
+                                <BikeIcon className="h-3 w-3" />
+                                {label}
+                                {bk.rego && <span className="opacity-60">· {bk.rego}</span>}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="col-span-1">
                       <label className="text-[10px] uppercase tracking-wider text-muted-foreground">
-                        Expected return
+                        First name *
                       </label>
                       <input
-                        type="date"
-                        value={qLoanBikeReturn}
-                        onChange={(e) => setQLoanBikeReturn(e.target.value)}
-                        className="w-full mt-1 rounded-lg border border-border bg-background/60 px-3 py-2 text-sm"
+                        value={qFirst}
+                        onChange={(e) => setQFirst(e.target.value)}
+                        className="w-full mt-1 rounded-lg border border-border bg-background/60 px-3 py-2 text-sm focus:border-primary/60 focus:outline-none"
+                      />
+                    </div>
+                    <div className="col-span-1">
+                      <label className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                        Last name
+                      </label>
+                      <input
+                        value={qLast}
+                        onChange={(e) => setQLast(e.target.value)}
+                        className="w-full mt-1 rounded-lg border border-border bg-background/60 px-3 py-2 text-sm focus:border-primary/60 focus:outline-none"
+                      />
+                    </div>
+                    <div className="col-span-2 relative">
+                      <label className="text-[10px] uppercase tracking-wider text-muted-foreground flex items-center gap-1">
+                        <Phone className="h-3 w-3" /> Phone
+                      </label>
+                      <input
+                        value={qPhone}
+                        onChange={(e) => {
+                          const v = e.target.value;
+                          setQPhone(v);
+                          if (qCustomerId) setQCustomerId(null);
+                          // sync into main search so dropdown reflects phone typing
+                          if (v.trim().length >= 3) setQSearch(v);
+                        }}
+                        placeholder="e.g. 021 123 4567"
+                        className="w-full mt-1 rounded-lg border border-border bg-background/60 px-3 py-2 text-sm focus:border-primary/60 focus:outline-none"
+                      />
+                      {!qCustomerId &&
+                        qPhone.trim().length >= 3 &&
+                        (() => {
+                          const term = qPhone.replace(/\s+/g, "").toLowerCase();
+                          const matches = ((quickCustomers.data ?? []) as any[])
+                            .filter((c) =>
+                              (c.phone ?? "").replace(/\s+/g, "").toLowerCase().includes(term),
+                            )
+                            .slice(0, 6);
+                          if (matches.length === 0) return null;
+                          return (
+                            <div className="absolute z-20 left-0 right-0 mt-1 rounded-lg border border-border bg-popover shadow-xl max-h-56 overflow-y-auto">
+                              <div className="px-3 py-1 text-[9px] font-bold uppercase tracking-wider text-muted-foreground bg-muted/40 border-b border-border/40">
+                                Matching phone
+                              </div>
+                              {matches.map((c: any) => (
+                                <button
+                                  key={`ph-${c.id}`}
+                                  type="button"
+                                  onClick={() => pickCustomer(c)}
+                                  className="w-full text-left px-3 py-2 text-sm hover:bg-primary/10 border-b border-border/40 last:border-b-0"
+                                >
+                                  <div className="font-semibold">
+                                    {`${c.first_name ?? ""} ${c.last_name ?? ""}`.trim() || "—"}
+                                  </div>
+                                  <div className="text-[11px] text-muted-foreground flex items-center gap-1">
+                                    <Phone className="h-3 w-3" /> {c.phone}
+                                  </div>
+                                </button>
+                              ))}
+                            </div>
+                          );
+                        })()}
+                    </div>
+                    <div className="col-span-1">
+                      <label className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                        Year
+                      </label>
+                      <input
+                        list="bike-years-list"
+                        value={qBikeYear}
+                        onChange={(e) => setQBikeYear(e.target.value)}
+                        inputMode="numeric"
+                        placeholder="e.g. 2022"
+                        className="w-full mt-1 rounded-lg border border-border bg-background/60 px-3 py-2 text-sm focus:border-primary/60 focus:outline-none"
+                      />
+                      <datalist id="bike-years-list">
+                        {BIKE_YEARS.map((y) => (
+                          <option key={y} value={String(y)} />
+                        ))}
+                      </datalist>
+                    </div>
+                    <div className="col-span-1">
+                      <label className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                        Rego
+                      </label>
+                      <div className="flex gap-1 mt-1">
+                        <input
+                          value={qBikeRego}
+                          onChange={(e) => setQBikeRego(e.target.value.toUpperCase())}
+                          placeholder="ABC123"
+                          className="flex-1 min-w-0 rounded-lg border border-border bg-background/60 px-3 py-2 text-sm uppercase tracking-wider focus:border-primary/60 focus:outline-none"
+                        />
+                        <button
+                          type="button"
+                          onClick={fetchQuickFromRego}
+                          disabled={lookingUpRego || !qBikeRego.trim()}
+                          title="Fetch from Carjam"
+                          className="shrink-0 rounded-lg border border-border bg-background/60 px-2 text-xs hover:bg-primary/10 disabled:opacity-50"
+                        >
+                          <Sparkles className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                    <div className="col-span-1">
+                      <label className="text-[10px] uppercase tracking-wider text-muted-foreground flex items-center gap-1">
+                        <BikeIcon className="h-3 w-3" /> Make *
+                      </label>
+                      <input
+                        list="bike-makes-list"
+                        value={qBikeMake}
+                        onChange={(e) => {
+                          setQBikeMake(e.target.value);
+                          setQBikeModel("");
+                        }}
+                        placeholder="e.g. Yamaha"
+                        className="w-full mt-1 rounded-lg border border-border bg-background/60 px-3 py-2 text-sm focus:border-primary/60 focus:outline-none"
+                      />
+                      <datalist id="bike-makes-list">
+                        {BIKE_MAKE_NAMES.map((m) => (
+                          <option key={m} value={m} />
+                        ))}
+                      </datalist>
+                    </div>
+                    <div className="col-span-1">
+                      <label className="text-[10px] uppercase tracking-wider text-muted-foreground flex items-center gap-1">
+                        <BikeIcon className="h-3 w-3" /> Model *
+                      </label>
+                      <input
+                        list="bike-models-list"
+                        value={qBikeModel}
+                        onChange={(e) => setQBikeModel(e.target.value)}
+                        placeholder="e.g. MT-07"
+                        className="w-full mt-1 rounded-lg border border-border bg-background/60 px-3 py-2 text-sm focus:border-primary/60 focus:outline-none"
+                        disabled={!qBikeMake}
+                      />
+                      <datalist id="bike-models-list">
+                        {(BIKE_MAKES[qBikeMake] ?? []).map((m) => (
+                          <option key={m} value={m} />
+                        ))}
+                      </datalist>
+                    </div>
+                    <div className="col-span-2">
+                      <label className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                        Est. hours
+                      </label>
+                      <input
+                        value={qEstHours}
+                        onChange={(e) => setQEstHours(e.target.value)}
+                        inputMode="decimal"
+                        placeholder="1"
+                        className="w-full mt-1 rounded-lg border border-border bg-background/60 px-3 py-2 text-sm focus:border-primary/60 focus:outline-none"
+                      />
+                    </div>
+                    <div className="col-span-2">
+                      <label className="text-[10px] uppercase tracking-wider text-muted-foreground flex items-center gap-1">
+                        <StickyNote className="h-3 w-3" /> Instructions
+                      </label>
+                      <textarea
+                        value={qNotes}
+                        onChange={(e) => setQNotes(e.target.value)}
+                        placeholder="Add instructions"
+                        className="mt-1 w-full min-h-[64px] rounded-lg border border-border bg-background/60 px-3 py-2 text-sm focus:border-primary/60 focus:outline-none resize-y"
                       />
                     </div>
                   </div>
-                )}
-              </div>
 
-              <div className="flex gap-2 pt-2 border-t border-border/60">
-                <button
-                  onClick={() => !creatingQuick && closeQuickBooking()}
-                  className="flex-1 rounded-lg border border-border px-3 py-2 text-sm font-semibold hover:border-primary/50 hover:bg-primary/5 transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  disabled={creatingQuick}
-                  onClick={createQuickBooking}
-                  className="flex-1 rounded-lg red-surface px-3 py-2 text-sm font-semibold hover:scale-[1.02] transition-transform disabled:opacity-50 disabled:hover:scale-100"
-                >
-                  {creatingQuick ? "Creating…" : "Create booking"}
-                </button>
-              </div>
+                  <div>
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        className="h-4 w-4 accent-primary"
+                        checked={qWofNeeded}
+                        onChange={(e) => setQWofNeeded(e.target.checked)}
+                      />
+                      <ShieldCheck size={16} className="text-primary" />
+                      <span className="text-sm font-semibold">Needs WOF</span>
+                    </label>
+                    {qWofNeeded && (
+                      <div className="mt-2 rounded-xl border border-primary/40 bg-primary/5 p-3">
+                        <label className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                          Current WOF expiry (optional)
+                        </label>
+                        <input
+                          type="date"
+                          value={qWofExpiry}
+                          onChange={(e) => setQWofExpiry(e.target.value)}
+                          className="w-full mt-1 rounded-lg border border-border bg-background/60 px-3 py-2 text-sm"
+                        />
+                      </div>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        className="h-4 w-4 accent-amber-500"
+                        checked={qLoanBike}
+                        onChange={(e) => setQLoanBike(e.target.checked)}
+                      />
+                      <span className="text-sm font-semibold">🏍️ Customer needs a loan bike</span>
+                    </label>
+                    {qLoanBike && (
+                      <div className="mt-2 space-y-2 rounded-xl border border-amber-400/40 bg-amber-400/5 p-3">
+                        <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                          Assign loan bike
+                        </div>
+                        <div className="grid gap-1.5">
+                          {(qLoanBikesQ.data ?? []).map((lb: any) => {
+                            const outWith = (qActiveLoansQ.data ?? []).find(
+                              (a: any) => a.loan_bike_id === lb.id,
+                            );
+                            const busy = !!outWith;
+                            const active = qLoanBikeId === lb.id;
+                            return (
+                              <button
+                                key={lb.id}
+                                type="button"
+                                onClick={() => setQLoanBikeId(active ? null : lb.id)}
+                                className={`rounded-lg border p-2 text-left flex items-center gap-2 ${
+                                  active
+                                    ? "border-amber-400 bg-amber-400/10"
+                                    : busy
+                                      ? "border-destructive/40 opacity-70"
+                                      : "border-border"
+                                }`}
+                              >
+                                <span className="flex-1">
+                                  <span className="block text-sm font-semibold">{lb.name}</span>
+                                  <span className="block text-[11px] text-muted-foreground">
+                                    {lb.current_km?.toLocaleString?.() ?? 0} km
+                                    {busy &&
+                                      outWith?.customers &&
+                                      ` · Out with ${outWith.customers.first_name} ${outWith.customers.last_name}`}
+                                    {busy &&
+                                      outWith?.loan_bike_expected_return &&
+                                      ` · back ${outWith.loan_bike_expected_return}`}
+                                  </span>
+                                </span>
+                                {busy && (
+                                  <span className="rounded-full bg-destructive/15 text-destructive px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider">
+                                    Out
+                                  </span>
+                                )}
+                              </button>
+                            );
+                          })}
+                          {(qLoanBikesQ.data ?? []).length === 0 && (
+                            <div className="text-xs text-muted-foreground">
+                              No loan bikes registered.
+                            </div>
+                          )}
+                        </div>
+                        <div>
+                          <label className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                            Expected return
+                          </label>
+                          <input
+                            type="date"
+                            value={qLoanBikeReturn}
+                            onChange={(e) => setQLoanBikeReturn(e.target.value)}
+                            className="w-full mt-1 rounded-lg border border-border bg-background/60 px-3 py-2 text-sm"
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex gap-2 pt-2 border-t border-border/60">
+                    <button
+                      onClick={() => !creatingQuick && closeQuickBooking()}
+                      className="flex-1 rounded-lg border border-border px-3 py-2 text-sm font-semibold hover:border-primary/50 hover:bg-primary/5 transition-colors"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      disabled={creatingQuick}
+                      onClick={createQuickBooking}
+                      className="flex-1 rounded-lg red-surface px-3 py-2 text-sm font-semibold hover:scale-[1.02] transition-transform disabled:opacity-50 disabled:hover:scale-100"
+                    >
+                      {creatingQuick ? "Creating…" : "Create booking"}
+                    </button>
+                  </div>
                 </>
               )}
             </motion.div>
