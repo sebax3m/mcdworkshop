@@ -13,6 +13,7 @@ import { fullBike } from "@/lib/format";
 import { uploadPhoto } from "@/lib/photos";
 import { generateBikeImage } from "@/lib/bike-image.functions";
 import { BikeMakeModelYear } from "@/components/BikeMakeModelYear";
+import { useCurrentUser } from "@/hooks/use-current-user";
 
 export const Route = createFileRoute("/_authenticated/motorcycles/")({
   component: Bikes,
