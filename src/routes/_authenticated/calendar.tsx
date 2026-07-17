@@ -1298,7 +1298,7 @@ function CalendarPage() {
                                     {b.bike_arrived && (
                                       <span
                                         title="Bike in workshop"
-                                        className="relative h-3 w-3 rounded-full bg-orange-500 ring-2 ring-orange-200 animate-pulse"
+                                        className="relative h-3 w-3 rounded-full bg-orange-500 ring-2 ring-orange-200"
                                       />
                                     )}
                                     {b.confirmed && (
@@ -1466,7 +1466,7 @@ function CalendarPage() {
                         >
                           <span
                             className={`h-3 w-3 rounded-full ${
-                              b.bike_arrived ? "bg-orange-500 animate-pulse" : "bg-muted-foreground/60"
+                              b.bike_arrived ? "bg-orange-500" : "bg-muted-foreground/60"
                             }`}
                           />
                           {b.bike_arrived ? "Bike in workshop" : "Mark arrived"}
