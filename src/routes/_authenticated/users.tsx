@@ -13,12 +13,14 @@ import {
   Pencil,
   Star,
   UserPlus,
-  KeyRound,
+  Trash2,
 } from "lucide-react";
 import { listUsersWithLogins, updateUserDetails, type UserLoginRow } from "@/lib/users.functions";
 import { seedStaff } from "@/lib/seed-staff.functions";
 import { createTechnician } from "@/lib/create-technician.functions";
 import { resetUserPassword } from "@/lib/reset-user-password.functions";
+import { deleteUser } from "@/lib/delete-user.functions";
+
 
 import { initials } from "@/lib/format";
 import { useActiveTechnicianId, setActiveTechnicianId } from "@/hooks/use-active-technician";
