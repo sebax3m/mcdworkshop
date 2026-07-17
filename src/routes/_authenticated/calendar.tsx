@@ -1273,7 +1273,7 @@ function CalendarPage() {
                                     e.stopPropagation();
                                     setSelectedBooking(b);
                                   }}
-                                  className={`group absolute z-10 rounded-md p-2 text-left ring-1 overflow-hidden select-none transition-all hover:z-30 hover:brightness-110 hover:ring-2 hover:ring-primary hover:shadow-[0_8px_24px_rgba(0,0,0,0.35)] cursor-grab active:cursor-grabbing ${c.bg} ${c.ring} ${c.text} ${draggingId === b.id ? "opacity-40" : ""} ${b.loan_bike ? "!ring-2 !ring-amber-400" : ""} ${b.bike_arrived ? "!ring-2 !ring-emerald-400 shadow-[0_0_0_2px_rgba(16,185,129,0.35)]" : ""}`}
+                                   className={`group absolute z-10 rounded-md p-2 text-left ring-1 overflow-hidden select-none transition-all hover:z-30 hover:brightness-110 hover:ring-2 hover:ring-primary hover:shadow-[0_8px_24px_rgba(0,0,0,0.35)] cursor-grab active:cursor-grabbing ${c.bg} ${c.ring} ${c.text} ${draggingId === b.id ? "opacity-40" : ""} ${b.loan_bike ? "!ring-2 !ring-amber-400" : ""} ${b.bike_arrived ? "!ring-[3px] !ring-orange-500 shadow-[0_0_0_3px_rgba(249,115,22,0.35)]" : ""}`}
                                   style={{
                                     top: `${top + 1}px`,
                                     height: `${height}px`,
