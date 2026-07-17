@@ -1398,11 +1398,34 @@ function CalendarPage() {
                           <span className="h-1.5 w-1.5 rounded-full bg-current" />
                           {displayServiceType(b.service_type, b.service_type_other)}
                         </span>
-                        {b.confirmed && (
-                          <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-green-500">
-                            <span className="h-1.5 w-1.5 rounded-full bg-green-500" /> Confirmed
-                          </span>
-                        )}
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            const next = !b.confirmed;
+                            const { error } = await supabase
+                              .from("bookings")
+                              .update({ confirmed: next })
+                              .eq("id", b.id);
+                            if (error) return toast.error(error.message);
+                            patchSelected({ confirmed: next });
+                            qc.invalidateQueries({ queryKey: ["calendar-bookings"] });
+                            toast.success(next ? "Marked confirmed" : "Marked unconfirmed");
+                          }}
+                          className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider border transition-colors ${
+                            b.confirmed
+                              ? "bg-green-500/20 border-green-500/60 text-green-400"
+                              : "bg-background/40 border-border text-muted-foreground hover:border-green-500/40 hover:text-green-400"
+                          }`}
+                          title="Toggle confirmed"
+                        >
+                          <span
+                            className={`h-2 w-2 rounded-full ${
+                              b.confirmed ? "bg-green-500" : "bg-muted-foreground/60"
+                            }`}
+                          />
+                          {b.confirmed ? "Confirmed" : "Confirm"}
+                        </button>
+
                         {b.loan_bike && (
                           <span className="inline-flex items-center gap-1 rounded-full bg-amber-400/20 border border-amber-400/60 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-amber-300">
                             🏍️ Loan{b.loan_bikes?.name ? ` · ${b.loan_bikes.name}` : ""}
