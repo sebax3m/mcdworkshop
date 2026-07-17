@@ -49,11 +49,12 @@ function fullDate(iso: string | null) {
 
 function UsersPage() {
   const fetchUsers = useServerFn(listUsersWithLogins);
-  const resetPwdsFn = useServerFn(resetStaffPasswords);
   const createTechFn = useServerFn(createTechnician);
+  const resetPwdFn = useServerFn(resetUserPassword);
 
   const activeId = useActiveTechnicianId();
   const [editing, setEditing] = useState<UserLoginRow | null>(null);
+  const [addOpen, setAddOpen] = useState(false);
 
   const { data, isLoading, error, refetch, isFetching } = useQuery({
     queryKey: ["users-login-logs"],
