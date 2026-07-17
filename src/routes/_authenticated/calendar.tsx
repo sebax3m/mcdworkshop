@@ -1243,8 +1243,8 @@ function CalendarPage() {
                             return dayBookings.map((b: any) => {
                               const { h, m } = parseTime(b.drop_off_time);
                               const top = (h + m / 60 - START_HOUR) * SLOT_H;
-                              const hoursDur = Math.max(0.5, bookingDurationMin(b) / 60);
-                              const height = Math.max(24, hoursDur * SLOT_H - 3);
+                              // Fixed slot height per booking (does not scale with estimated hours)
+                              const height = SLOT_H - 3;
                               if (top + height < 0 || top > GRID_H) return null;
                               const c = serviceColor(b.service_type);
                               const bike = displayBike(b.motorcycles);
@@ -1517,12 +1517,12 @@ function CalendarPage() {
 
                       <div>
                         <label className="text-[10px] uppercase tracking-wider text-muted-foreground flex items-center gap-1">
-                          <StickyNote className="h-3 w-3" /> Notes
+                          <StickyNote className="h-3 w-3" /> Instructions
                         </label>
                         <textarea
                           value={summaryNotes}
                           onChange={(e) => setSummaryNotes(e.target.value)}
-                          placeholder="Add notes for this booking..."
+                          placeholder="Add instructions for this booking..."
                           className="mt-1 w-full min-h-[90px] rounded-lg border border-border bg-background/60 px-3 py-2 text-sm focus:border-primary/60 focus:outline-none resize-y"
                         />
                         <div className="mt-2 flex justify-end">
@@ -1541,11 +1541,11 @@ function CalendarPage() {
                               if (error) return toast.error(error.message);
                               patchSelected({ notes: summaryNotes.trim() || null });
                               qc.invalidateQueries({ queryKey: ["calendar-bookings"] });
-                              toast.success("Notes saved");
+                              toast.success("Instructions saved");
                             }}
                             className="rounded-lg border border-border px-3 py-1.5 text-xs font-semibold hover:border-primary/50 hover:bg-primary/5 disabled:opacity-50"
                           >
-                            {savingSummaryNotes ? "Saving…" : "Save notes"}
+                            {savingSummaryNotes ? "Saving…" : "Save instructions"}
                           </button>
                         </div>
                       </div>
@@ -2012,13 +2012,13 @@ function CalendarPage() {
 
                       <div>
                         <div className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground mb-1">
-                          Notes
+                          Instructions
                         </div>
                         <textarea
                           key={`notes-${b.id}`}
                           defaultValue={b.notes ?? ""}
                           rows={3}
-                          placeholder="Add notes…"
+                          placeholder="Add instructions…"
                           onBlur={async (e) => {
                             const v = e.target.value;
                             if ((v ?? "") === (b.notes ?? "")) return;
@@ -2029,7 +2029,7 @@ function CalendarPage() {
                             if (error) return toast.error(error.message);
                             patchSelected({ notes: v || null });
                             qc.invalidateQueries({ queryKey: ["calendar-bookings"] });
-                            toast.success("Notes updated");
+                            toast.success("Instructions updated");
                           }}
                           className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-sm focus:border-primary/60 outline-none resize-y"
                         />
@@ -2138,12 +2138,12 @@ function CalendarPage() {
 
                   <div>
                     <label className="text-[10px] uppercase tracking-wider text-muted-foreground flex items-center gap-1">
-                      <StickyNote className="h-3 w-3" /> Notes
+                      <StickyNote className="h-3 w-3" /> Instructions
                     </label>
                     <textarea
                       value={justCreatedNotes}
                       onChange={(e) => setJustCreatedNotes(e.target.value)}
-                      placeholder="Add notes for this booking..."
+                      placeholder="Add instructions for this booking..."
                       className="mt-1 w-full min-h-[100px] rounded-lg border border-border bg-background/60 px-3 py-2 text-sm focus:border-primary/60 focus:outline-none resize-y"
                     />
                     <div className="mt-2 flex justify-end">
@@ -2163,11 +2163,11 @@ function CalendarPage() {
                           if (error) return toast.error(error.message);
                           setJustCreated({ ...justCreated, notes: justCreatedNotes });
                           qc.invalidateQueries({ queryKey: ["calendar-bookings"] });
-                          toast.success("Notes saved");
+                          toast.success("Instructions saved");
                         }}
                         className="rounded-lg border border-border px-3 py-1.5 text-xs font-semibold hover:border-primary/50 hover:bg-primary/5 disabled:opacity-50"
                       >
-                        {savingJustCreatedNotes ? "Saving…" : "Save notes"}
+                        {savingJustCreatedNotes ? "Saving…" : "Save instructions"}
                       </button>
                     </div>
                   </div>
