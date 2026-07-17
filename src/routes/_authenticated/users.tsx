@@ -14,6 +14,8 @@ import {
   Star,
   UserPlus,
   Trash2,
+  ChevronUp,
+  ChevronDown,
 } from "lucide-react";
 import { listUsersWithLogins, updateUserDetails, type UserLoginRow } from "@/lib/users.functions";
 import { seedStaff } from "@/lib/seed-staff.functions";
