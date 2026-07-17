@@ -52,7 +52,7 @@ function fullDate(iso: string | null) {
 function UsersPage() {
   const fetchUsers = useServerFn(listUsersWithLogins);
   const createTechFn = useServerFn(createTechnician);
-  const resetPwdFn = useServerFn(resetUserPassword);
+
 
   const activeId = useActiveTechnicianId();
   const [editing, setEditing] = useState<UserLoginRow | null>(null);
