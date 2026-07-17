@@ -1270,16 +1270,11 @@ function CalendarPage() {
                                       : ""}
                                   </span>
                                   <span className="flex items-center gap-1.5 shrink-0">
-                                    {b.bike_arrived && (
-                                      <span
-                                        title="Bike in workshop"
-                                        className="relative h-3 w-3 rounded-full bg-orange-500 ring-2 ring-orange-200"
-                                      />
-                                    )}
                                     {b.confirmed && (
                                       <span className="h-1.5 w-1.5 rounded-full bg-green-500" />
                                     )}
                                   </span>
+
                                 </div>
                                 {height > 32 && (
                                   <div className="text-[10px] font-semibold text-current/90 truncate">
