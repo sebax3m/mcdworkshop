@@ -227,19 +227,7 @@ function Customers() {
           const inner = (
             <>
               {isAdmin && selectMode && (
-                <Checkbox
-                  checked={checked}
-                  onClick={(event) => event.stopPropagation()}
-                  onCheckedChange={(value) => {
-                    const nextChecked = value === true;
-                    setSelected((prev) => {
-                      const next = new Set(prev);
-                      if (nextChecked) next.add(c.id);
-                      else next.delete(c.id);
-                      return next;
-                    });
-                  }}
-                />
+                <Checkbox checked={checked} className="pointer-events-none" tabIndex={-1} />
               )}
               <span className="grid h-11 w-11 place-items-center rounded-full bg-muted font-semibold">
                 {initials(`${c.first_name} ${c.last_name ?? ""}`)}
@@ -284,7 +272,19 @@ function Customers() {
           );
           if (selectMode) {
             return (
-              <div key={c.id} className={rowClass} onClick={toggle}>
+              <div
+                key={c.id}
+                className={rowClass}
+                role="button"
+                tabIndex={0}
+                onClick={toggle}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    toggle();
+                  }
+                }}
+              >
                 {inner}
               </div>
             );
