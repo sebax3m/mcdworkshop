@@ -6,7 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, Search, Phone, Mail, ChevronRight, Bike, Trash2 } from "lucide-react";
+import { Plus, Search, Phone, Mail, ChevronRight, Bike, Trash2, X } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { initials } from "@/lib/format";
@@ -21,6 +21,7 @@ function Customers() {
   const { isAdmin } = useCurrentUser();
   const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
+  const [selectMode, setSelectMode] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [f, setF] = useState({
     first_name: "",
@@ -100,19 +101,46 @@ function Customers() {
           </h1>
         </div>
         <div className="flex items-center gap-2">
-          {isAdmin && selected.size > 0 && (
-            <Button
-              variant="destructive"
-              size="sm"
-              onClick={deleteSelected}
-              className="gap-1.5 shrink-0"
-            >
-              <Trash2 className="h-4 w-4" /> {selected.size}
-            </Button>
+          {isAdmin && selectMode ? (
+            <>
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={deleteSelected}
+                disabled={selected.size === 0}
+                className="gap-1.5 shrink-0"
+              >
+                <Trash2 className="h-4 w-4" /> Delete{selected.size > 0 ? ` (${selected.size})` : ""}
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setSelectMode(false);
+                  setSelected(new Set());
+                }}
+                className="gap-1.5 shrink-0"
+              >
+                <X className="h-4 w-4" /> Cancel
+              </Button>
+            </>
+          ) : (
+            <>
+              {isAdmin && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setSelectMode(true)}
+                  className="shrink-0"
+                >
+                  Select
+                </Button>
+              )}
+              <Button onClick={() => setOpen((o) => !o)} className="gold-surface gap-1.5 shrink-0">
+                <Plus className="h-4 w-4" /> Add
+              </Button>
+            </>
           )}
-          <Button onClick={() => setOpen((o) => !o)} className="gold-surface gap-1.5 shrink-0">
-            <Plus className="h-4 w-4" /> Add
-          </Button>
         </div>
       </header>
 
@@ -169,7 +197,7 @@ function Customers() {
       )}
 
       <div className="space-y-2">
-        {isAdmin && filtered.length > 0 && (
+        {isAdmin && selectMode && filtered.length > 0 && (
           <div className="flex items-center gap-2 px-1">
             <Checkbox
               id="select-all-customers"
@@ -193,7 +221,7 @@ function Customers() {
               params={{ customerId: c.id }}
               className="card-surface p-3 flex items-center gap-3 hover:border-primary/50 transition-colors"
             >
-              {isAdmin && (
+              {isAdmin && selectMode && (
                 <div
                   onClick={(e) => {
                     e.preventDefault();
