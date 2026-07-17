@@ -6,7 +6,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, Search, Phone, Mail, ChevronRight, Bike } from "lucide-react";
+import { Plus, Search, Phone, Mail, ChevronRight, Bike, Trash2 } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { initials } from "@/lib/format";
 import { useCurrentUser } from "@/hooks/use-current-user";
@@ -20,6 +21,7 @@ function Customers() {
   const { isAdmin } = useCurrentUser();
   const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
   const [f, setF] = useState({
     first_name: "",
     last_name: "",
@@ -70,6 +72,18 @@ function Customers() {
     qc.invalidateQueries({ queryKey: ["customers-list"] });
   }
 
+  async function deleteSelected() {
+    if (!isAdmin) return toast.error("Admin only");
+    const ids = Array.from(selected);
+    if (ids.length === 0) return;
+    if (!confirm(`Delete ${ids.length} customer${ids.length > 1 ? "s" : ""}? This also removes their bikes and bookings.`)) return;
+    const { error } = await supabase.from("customers").delete().in("id", ids);
+    if (error) return toast.error(error.message);
+    setSelected(new Set());
+    toast.success(`${ids.length} deleted`);
+    qc.invalidateQueries({ queryKey: ["customers-list", "customers-bikes", "bikes-list"] });
+  }
+
   const filtered = (customers.data ?? []).filter((c: any) =>
     `${c.first_name} ${c.last_name} ${c.phone ?? ""} ${c.email ?? ""}`
       .toLowerCase()
@@ -85,9 +99,21 @@ function Customers() {
             {customers.data?.length ?? 0} riders
           </h1>
         </div>
-        <Button onClick={() => setOpen((o) => !o)} className="gold-surface gap-1.5 shrink-0">
-          <Plus className="h-4 w-4" /> Add
-        </Button>
+        <div className="flex items-center gap-2">
+          {isAdmin && selected.size > 0 && (
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={deleteSelected}
+              className="gap-1.5 shrink-0"
+            >
+              <Trash2 className="h-4 w-4" /> {selected.size}
+            </Button>
+          )}
+          <Button onClick={() => setOpen((o) => !o)} className="gold-surface gap-1.5 shrink-0">
+            <Plus className="h-4 w-4" /> Add
+          </Button>
+        </div>
       </header>
 
       <div className="relative">
@@ -143,8 +169,23 @@ function Customers() {
       )}
 
       <div className="space-y-2">
+        {isAdmin && filtered.length > 0 && (
+          <div className="flex items-center gap-2 px-1">
+            <Checkbox
+              id="select-all-customers"
+              checked={selected.size === filtered.length}
+              onCheckedChange={(checked) =>
+                setSelected(checked ? new Set(filtered.map((c: any) => c.id)) : new Set())
+              }
+            />
+            <label htmlFor="select-all-customers" className="text-xs text-muted-foreground cursor-pointer">
+              Select all
+            </label>
+          </div>
+        )}
         {filtered.map((c: any) => {
           const cBikes = bikesByCustomer.get(c.id) ?? [];
+          const checked = selected.has(c.id);
           return (
             <Link
               key={c.id}
@@ -152,6 +193,32 @@ function Customers() {
               params={{ customerId: c.id }}
               className="card-surface p-3 flex items-center gap-3 hover:border-primary/50 transition-colors"
             >
+              {isAdmin && (
+                <div
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setSelected((prev) => {
+                      const next = new Set(prev);
+                      if (next.has(c.id)) next.delete(c.id);
+                      else next.add(c.id);
+                      return next;
+                    });
+                  }}
+                >
+                  <Checkbox
+                    checked={checked}
+                    onCheckedChange={(v) =>
+                      setSelected((prev) => {
+                        const next = new Set(prev);
+                        if (v) next.add(c.id);
+                        else next.delete(c.id);
+                        return next;
+                      })
+                    }
+                  />
+                </div>
+              )}
               <span className="grid h-11 w-11 place-items-center rounded-full bg-muted font-semibold">
                 {initials(`${c.first_name} ${c.last_name ?? ""}`)}
               </span>
