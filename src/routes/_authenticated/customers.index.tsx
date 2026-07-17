@@ -21,6 +21,7 @@ function Customers() {
   const { isAdmin } = useCurrentUser();
   const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
   const [f, setF] = useState({
     first_name: "",
     last_name: "",
