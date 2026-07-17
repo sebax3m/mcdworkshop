@@ -1298,7 +1298,7 @@ function CalendarPage() {
                                     {b.bike_arrived && (
                                       <span
                                         title="Bike in workshop"
-                                        className="relative h-2.5 w-2.5 rounded-full bg-orange-500 ring-2 ring-orange-200 animate-pulse"
+                                        className="relative h-3 w-3 rounded-full bg-orange-500 ring-2 ring-orange-200 animate-pulse"
                                       />
                                     )}
                                     {b.confirmed && (
