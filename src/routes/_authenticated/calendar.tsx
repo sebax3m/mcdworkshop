@@ -2214,8 +2214,18 @@ function CalendarPage() {
               ) : (
                 <>
               <div>
-                <div className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground">
-                  Quick booking
+                <div className="flex items-center justify-between gap-2">
+                  <div className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground">
+                    Quick booking
+                  </div>
+                  <button
+                    type="button"
+                    disabled={creatingQuick}
+                    onClick={createQuickBooking}
+                    className="rounded-lg bg-yellow-400 hover:bg-yellow-300 text-black px-3 py-1.5 text-xs font-bold shadow-sm disabled:opacity-50 transition-colors"
+                  >
+                    {creatingQuick ? "Saving…" : "SAVE"}
+                  </button>
                 </div>
                 <div className="mt-1 grid grid-cols-2 gap-2">
                   <div>
@@ -2598,12 +2608,12 @@ function CalendarPage() {
                 </div>
                 <div className="col-span-2">
                   <label className="text-[10px] uppercase tracking-wider text-muted-foreground flex items-center gap-1">
-                    <StickyNote className="h-3 w-3" /> Notes
+                    <StickyNote className="h-3 w-3" /> Instructions
                   </label>
                   <textarea
                     value={qNotes}
                     onChange={(e) => setQNotes(e.target.value)}
-                    placeholder="Anything the tech should know…"
+                    placeholder="Add instructions"
                     className="mt-1 w-full min-h-[64px] rounded-lg border border-border bg-background/60 px-3 py-2 text-sm focus:border-primary/60 focus:outline-none resize-y"
                   />
                 </div>
