@@ -13,12 +13,14 @@ import {
   Pencil,
   Star,
   UserPlus,
-  KeyRound,
+  Trash2,
 } from "lucide-react";
 import { listUsersWithLogins, updateUserDetails, type UserLoginRow } from "@/lib/users.functions";
 import { seedStaff } from "@/lib/seed-staff.functions";
 import { createTechnician } from "@/lib/create-technician.functions";
 import { resetUserPassword } from "@/lib/reset-user-password.functions";
+import { deleteUser } from "@/lib/delete-user.functions";
+
 
 import { initials } from "@/lib/format";
 import { useActiveTechnicianId, setActiveTechnicianId } from "@/hooks/use-active-technician";
@@ -50,7 +52,7 @@ function fullDate(iso: string | null) {
 function UsersPage() {
   const fetchUsers = useServerFn(listUsersWithLogins);
   const createTechFn = useServerFn(createTechnician);
-  const resetPwdFn = useServerFn(resetUserPassword);
+
 
   const activeId = useActiveTechnicianId();
   const [editing, setEditing] = useState<UserLoginRow | null>(null);
@@ -217,25 +219,8 @@ function UsersPage() {
                     >
                       <Pencil className="h-3.5 w-3.5" /> Edit
                     </button>
-                    <button
-                      onClick={async () => {
-                        const pwd = prompt(`Set a new password for ${u.full_name}:`);
-                        if (!pwd) return;
-                        if (pwd.length < 6) {
-                          toast.error("Password must be at least 6 characters");
-                          return;
-                        }
-                        try {
-                          await resetPwdFn({ data: { userId: u.id, password: pwd } });
-                          toast.success(`Password reset for ${u.full_name}`);
-                        } catch (e: any) {
-                          toast.error(e.message ?? "Failed to reset password");
-                        }
-                      }}
-                      className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-xs font-medium hover:border-foreground/30"
-                    >
-                      <KeyRound className="h-3.5 w-3.5" /> Reset password
-                    </button>
+
+
                     <button
                       onClick={() => setActiveTechnicianId(u.id)}
                       disabled={isActive}
@@ -369,12 +354,17 @@ function AddUserDialog({
 function EditUserDialog({ user, onClose }: { user: UserLoginRow; onClose: () => void }) {
   const qc = useQueryClient();
   const updateFn = useServerFn(updateUserDetails);
+  const resetPwdFn = useServerFn(resetUserPassword);
+  const deleteFn = useServerFn(deleteUser);
   const [fullName, setFullName] = useState(user.full_name ?? "");
   const [email, setEmail] = useState(user.email ?? "");
   const [role, setRole] = useState<"admin" | "technician">(
     user.role === "admin" ? "admin" : "technician",
   );
+  const [newPassword, setNewPassword] = useState("");
   const [saving, setSaving] = useState(false);
+  const [resetting, setResetting] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
   async function handleSave() {
@@ -395,6 +385,40 @@ function EditUserDialog({ user, onClose }: { user: UserLoginRow; onClose: () => 
       setErr((e as Error).message);
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function handleResetPassword() {
+    setErr(null);
+    if (newPassword.length < 6) {
+      setErr("Password must be at least 6 characters");
+      return;
+    }
+    setResetting(true);
+    try {
+      await resetPwdFn({ data: { userId: user.id, password: newPassword } });
+      toast.success(`Password reset for ${user.full_name}`);
+      setNewPassword("");
+    } catch (e) {
+      setErr((e as Error).message);
+    } finally {
+      setResetting(false);
+    }
+  }
+
+  async function handleDelete() {
+    if (!confirm(`Delete user ${user.full_name}? This cannot be undone.`)) return;
+    setErr(null);
+    setDeleting(true);
+    try {
+      await deleteFn({ data: { userId: user.id } });
+      toast.success(`${user.full_name} deleted`);
+      await qc.invalidateQueries({ queryKey: ["users-login-logs"] });
+      onClose();
+    } catch (e) {
+      setErr((e as Error).message);
+    } finally {
+      setDeleting(false);
     }
   }
 
@@ -437,24 +461,57 @@ function EditUserDialog({ user, onClose }: { user: UserLoginRow; onClose: () => 
           </label>
         </div>
 
+        <div className="border-t border-border pt-4 space-y-2">
+          <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+            Reset password
+          </div>
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              placeholder="New password (min 6 chars)"
+              className="flex-1 rounded-md border border-border bg-background px-3 py-2 text-sm"
+            />
+            <button
+              onClick={handleResetPassword}
+              disabled={resetting || !newPassword}
+              className="rounded-lg border border-border px-3 py-2 text-xs font-medium hover:border-foreground/30 disabled:opacity-50"
+            >
+              {resetting ? "Resetting…" : "Reset"}
+            </button>
+          </div>
+        </div>
+
         {err && <div className="text-sm text-destructive">{err}</div>}
 
-        <div className="flex justify-end gap-2 pt-2">
+        <div className="flex items-center justify-between gap-2 pt-2 border-t border-border">
           <button
-            onClick={onClose}
-            className="rounded-lg border border-border px-3 py-2 text-sm hover:border-foreground/30"
+            onClick={handleDelete}
+            disabled={deleting}
+            className="inline-flex items-center gap-1.5 rounded-lg border border-destructive/40 text-destructive px-3 py-2 text-sm font-medium hover:bg-destructive/10 disabled:opacity-50"
           >
-            Cancel
+            <Trash2 className="h-3.5 w-3.5" />
+            {deleting ? "Deleting…" : "Delete user"}
           </button>
-          <button
-            onClick={handleSave}
-            disabled={saving}
-            className="rounded-lg bg-primary text-primary-foreground px-3 py-2 text-sm font-medium disabled:opacity-50"
-          >
-            {saving ? "Saving…" : "Save changes"}
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={onClose}
+              className="rounded-lg border border-border px-3 py-2 text-sm hover:border-foreground/30"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleSave}
+              disabled={saving}
+              className="rounded-lg bg-primary text-primary-foreground px-3 py-2 text-sm font-medium disabled:opacity-50"
+            >
+              {saving ? "Saving…" : "Save changes"}
+            </button>
+          </div>
         </div>
       </div>
     </div>
   );
+
 }
