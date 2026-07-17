@@ -87,11 +87,21 @@ function Customers() {
     qc.invalidateQueries({ queryKey: ["customers-list", "customers-bikes", "bikes-list"] });
   }
 
-  const filtered = (customers.data ?? []).filter((c: any) =>
+  let filtered = (customers.data ?? []).filter((c: any) =>
     `${c.first_name} ${c.last_name} ${c.phone ?? ""} ${c.email ?? ""}`
       .toLowerCase()
       .includes(search.toLowerCase()),
   );
+  if (onlyWithBikes) {
+    filtered = filtered.filter((c: any) => (bikesByCustomer.get(c.id) ?? []).length > 0);
+  }
+  if (sortAlpha) {
+    filtered = [...filtered].sort((a: any, b: any) =>
+      `${a.first_name ?? ""} ${a.last_name ?? ""}`.trim().toLowerCase()
+        .localeCompare(`${b.first_name ?? ""} ${b.last_name ?? ""}`.trim().toLowerCase()),
+    );
+  }
+
 
   return (
     <div className="space-y-5">
