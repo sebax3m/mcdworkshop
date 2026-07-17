@@ -949,9 +949,9 @@ function CalendarPage() {
                           <div
                             key={b.id}
                             className="relative"
-                            title={`${b.service_type} — ${b.motorcycles?.make ?? ""} ${b.motorcycles?.model ?? ""}${b.confirmed ? " · Confirmed" : ""}`}
+                            title={`${b.service_type} — ${b.motorcycles?.make ?? ""} ${b.motorcycles?.model ?? ""}${b.bike_arrived ? " · In workshop" : ""}${b.confirmed ? " · Confirmed" : ""}`}
                           >
-                            <div className={`h-2 w-2 rounded-full ${c.bg} ring-1 ${c.ring}`} />
+                            <div className={`rounded-full ${c.bg} ring-1 ${c.ring} ${b.bike_arrived ? "h-3 w-3 !ring-2 !ring-orange-500" : "h-2 w-2"}`} />
                             {b.confirmed && (
                               <span className="absolute -top-0.5 -right-0.5 h-1.5 w-1.5 rounded-full bg-green-500 ring-1 ring-background" />
                             )}
@@ -1273,7 +1273,7 @@ function CalendarPage() {
                                     e.stopPropagation();
                                     setSelectedBooking(b);
                                   }}
-                                  className={`group absolute z-10 rounded-md p-2 text-left ring-1 overflow-hidden select-none transition-all hover:z-30 hover:brightness-110 hover:ring-2 hover:ring-primary hover:shadow-[0_8px_24px_rgba(0,0,0,0.35)] cursor-grab active:cursor-grabbing ${c.bg} ${c.ring} ${c.text} ${draggingId === b.id ? "opacity-40" : ""} ${b.loan_bike ? "!ring-2 !ring-amber-400" : ""} ${b.bike_arrived ? "!ring-2 !ring-emerald-400 shadow-[0_0_0_2px_rgba(16,185,129,0.35)]" : ""}`}
+                                   className={`group absolute z-10 rounded-md p-2 text-left ring-1 overflow-hidden select-none transition-all hover:z-30 hover:brightness-110 hover:ring-2 hover:ring-primary hover:shadow-[0_8px_24px_rgba(0,0,0,0.35)] cursor-grab active:cursor-grabbing ${c.bg} ${c.ring} ${c.text} ${draggingId === b.id ? "opacity-40" : ""} ${b.loan_bike ? "!ring-2 !ring-amber-400" : ""} ${b.bike_arrived ? "!ring-[3px] !ring-orange-500 shadow-[0_0_0_3px_rgba(249,115,22,0.35)]" : ""}`}
                                   style={{
                                     top: `${top + 1}px`,
                                     height: `${height}px`,
@@ -1294,11 +1294,11 @@ function CalendarPage() {
                                       ? ` — ${b.service_type_other}`
                                       : ""}
                                   </span>
-                                  <span className="flex items-center gap-1 shrink-0">
+                                  <span className="flex items-center gap-1.5 shrink-0">
                                     {b.bike_arrived && (
                                       <span
                                         title="Bike in workshop"
-                                        className="h-1.5 w-1.5 rounded-full bg-emerald-400 ring-1 ring-emerald-200 animate-pulse"
+                                        className="relative h-3 w-3 rounded-full bg-orange-500 ring-2 ring-orange-200 animate-pulse"
                                       />
                                     )}
                                     {b.confirmed && (
@@ -1457,19 +1457,19 @@ function CalendarPage() {
                             qc.invalidateQueries({ queryKey: ["calendar-bookings"] });
                             toast.success(next ? "Marked as in workshop" : "Marked as not arrived");
                           }}
-                          className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider border transition-colors ${
+                          className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider border transition-colors ${
                             b.bike_arrived
-                              ? "bg-emerald-500/20 border-emerald-500/60 text-emerald-300"
-                              : "bg-background/40 border-border text-muted-foreground hover:border-emerald-500/40 hover:text-emerald-400"
+                              ? "bg-orange-500/20 border-orange-500/60 text-orange-300"
+                              : "bg-background/40 border-border text-muted-foreground hover:border-orange-500/40 hover:text-orange-400"
                           }`}
                           title="Toggle bike-in-workshop highlight"
                         >
                           <span
-                            className={`h-1.5 w-1.5 rounded-full ${
-                              b.bike_arrived ? "bg-emerald-400 animate-pulse" : "bg-muted-foreground/60"
+                            className={`h-3 w-3 rounded-full ${
+                              b.bike_arrived ? "bg-orange-500 animate-pulse" : "bg-muted-foreground/60"
                             }`}
                           />
-                          {b.bike_arrived ? "In workshop" : "Mark arrived"}
+                          {b.bike_arrived ? "Bike in workshop" : "Mark arrived"}
                         </button>
                       </div>
 
