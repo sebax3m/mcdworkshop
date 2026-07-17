@@ -1438,6 +1438,39 @@ function CalendarPage() {
                             🏍️ Loan{b.loan_bikes?.name ? ` · ${b.loan_bikes.name}` : ""}
                           </span>
                         )}
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            const next = !b.bike_arrived;
+                            const { error } = await supabase
+                              .from("bookings")
+                              .update({
+                                bike_arrived: next,
+                                bike_arrived_at: next ? new Date().toISOString() : null,
+                              })
+                              .eq("id", b.id);
+                            if (error) return toast.error(error.message);
+                            patchSelected({
+                              bike_arrived: next,
+                              bike_arrived_at: next ? new Date().toISOString() : null,
+                            });
+                            qc.invalidateQueries({ queryKey: ["calendar-bookings"] });
+                            toast.success(next ? "Marked as in workshop" : "Marked as not arrived");
+                          }}
+                          className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider border transition-colors ${
+                            b.bike_arrived
+                              ? "bg-emerald-500/20 border-emerald-500/60 text-emerald-300"
+                              : "bg-background/40 border-border text-muted-foreground hover:border-emerald-500/40 hover:text-emerald-400"
+                          }`}
+                          title="Toggle bike-in-workshop highlight"
+                        >
+                          <span
+                            className={`h-1.5 w-1.5 rounded-full ${
+                              b.bike_arrived ? "bg-emerald-400 animate-pulse" : "bg-muted-foreground/60"
+                            }`}
+                          />
+                          {b.bike_arrived ? "In workshop" : "Mark arrived"}
+                        </button>
                       </div>
 
                       <div>
