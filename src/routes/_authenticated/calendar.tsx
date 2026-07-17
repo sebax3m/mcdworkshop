@@ -1802,6 +1802,26 @@ function CalendarPage() {
                             if (!v || v === Number(b.estimated_hours)) return;
                             const start = currentStart || "09:00";
                             const newEnd = addMinutesToTime(start, Math.round(v * 60));
+                            const rangeErr = validateTimeRange(start, newEnd);
+                            if (rangeErr) {
+                              e.target.value = String(b.estimated_hours ?? 1);
+                              return toast.error(rangeErr);
+                            }
+                            try {
+                              const conflicts = await findBookingConflicts({
+                                date: b.scheduled_date,
+                                startTime: start,
+                                endTime: newEnd,
+                                excludeBookingId: b.id,
+                              });
+                              if (conflicts.length) {
+                                e.target.value = String(b.estimated_hours ?? 1);
+                                return toast.error(formatConflictMessage(conflicts));
+                              }
+                            } catch (err: any) {
+                              e.target.value = String(b.estimated_hours ?? 1);
+                              return toast.error(err?.message ?? "Conflict check failed");
+                            }
                             const { error } = await supabase
                               .from("bookings")
                               .update({
