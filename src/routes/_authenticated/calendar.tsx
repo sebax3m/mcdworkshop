@@ -949,9 +949,9 @@ function CalendarPage() {
                           <div
                             key={b.id}
                             className="relative"
-                            title={`${b.service_type} — ${b.motorcycles?.make ?? ""} ${b.motorcycles?.model ?? ""}${b.confirmed ? " · Confirmed" : ""}`}
+                            title={`${b.service_type} — ${b.motorcycles?.make ?? ""} ${b.motorcycles?.model ?? ""}${b.bike_arrived ? " · In workshop" : ""}${b.confirmed ? " · Confirmed" : ""}`}
                           >
-                            <div className={`h-2 w-2 rounded-full ${c.bg} ring-1 ${c.ring}`} />
+                            <div className={`h-2 w-2 rounded-full ${c.bg} ring-1 ${c.ring} ${b.bike_arrived ? "!ring-2 !ring-orange-500" : ""}`} />
                             {b.confirmed && (
                               <span className="absolute -top-0.5 -right-0.5 h-1.5 w-1.5 rounded-full bg-green-500 ring-1 ring-background" />
                             )}
