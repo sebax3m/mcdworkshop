@@ -169,8 +169,23 @@ function Customers() {
       )}
 
       <div className="space-y-2">
+        {isAdmin && filtered.length > 0 && (
+          <div className="flex items-center gap-2 px-1">
+            <Checkbox
+              id="select-all-customers"
+              checked={selected.size === filtered.length}
+              onCheckedChange={(checked) =>
+                setSelected(checked ? new Set(filtered.map((c: any) => c.id)) : new Set())
+              }
+            />
+            <label htmlFor="select-all-customers" className="text-xs text-muted-foreground cursor-pointer">
+              Select all
+            </label>
+          </div>
+        )}
         {filtered.map((c: any) => {
           const cBikes = bikesByCustomer.get(c.id) ?? [];
+          const checked = selected.has(c.id);
           return (
             <Link
               key={c.id}
@@ -178,6 +193,32 @@ function Customers() {
               params={{ customerId: c.id }}
               className="card-surface p-3 flex items-center gap-3 hover:border-primary/50 transition-colors"
             >
+              {isAdmin && (
+                <div
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setSelected((prev) => {
+                      const next = new Set(prev);
+                      if (next.has(c.id)) next.delete(c.id);
+                      else next.add(c.id);
+                      return next;
+                    });
+                  }}
+                >
+                  <Checkbox
+                    checked={checked}
+                    onCheckedChange={(v) =>
+                      setSelected((prev) => {
+                        const next = new Set(prev);
+                        if (v) next.add(c.id);
+                        else next.delete(c.id);
+                        return next;
+                      })
+                    }
+                  />
+                </div>
+              )}
               <span className="grid h-11 w-11 place-items-center rounded-full bg-muted font-semibold">
                 {initials(`${c.first_name} ${c.last_name ?? ""}`)}
               </span>
