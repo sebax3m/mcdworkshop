@@ -101,19 +101,46 @@ function Customers() {
           </h1>
         </div>
         <div className="flex items-center gap-2">
-          {isAdmin && selected.size > 0 && (
-            <Button
-              variant="destructive"
-              size="sm"
-              onClick={deleteSelected}
-              className="gap-1.5 shrink-0"
-            >
-              <Trash2 className="h-4 w-4" /> {selected.size}
-            </Button>
+          {isAdmin && selectMode ? (
+            <>
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={deleteSelected}
+                disabled={selected.size === 0}
+                className="gap-1.5 shrink-0"
+              >
+                <Trash2 className="h-4 w-4" /> Delete{selected.size > 0 ? ` (${selected.size})` : ""}
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setSelectMode(false);
+                  setSelected(new Set());
+                }}
+                className="gap-1.5 shrink-0"
+              >
+                <X className="h-4 w-4" /> Cancel
+              </Button>
+            </>
+          ) : (
+            <>
+              {isAdmin && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setSelectMode(true)}
+                  className="shrink-0"
+                >
+                  Select
+                </Button>
+              )}
+              <Button onClick={() => setOpen((o) => !o)} className="gold-surface gap-1.5 shrink-0">
+                <Plus className="h-4 w-4" /> Add
+              </Button>
+            </>
           )}
-          <Button onClick={() => setOpen((o) => !o)} className="gold-surface gap-1.5 shrink-0">
-            <Plus className="h-4 w-4" /> Add
-          </Button>
         </div>
       </header>
 
