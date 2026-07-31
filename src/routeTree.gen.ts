@@ -32,6 +32,7 @@ import { Route as AuthenticatedInvoicesIndexRouteImport } from './routes/_authen
 import { Route as AuthenticatedInsuranceIndexRouteImport } from './routes/_authenticated/insurance.index'
 import { Route as AuthenticatedCustomersIndexRouteImport } from './routes/_authenticated/customers.index'
 import { Route as AuthenticatedBookingsIndexRouteImport } from './routes/_authenticated/bookings.index'
+import { Route as AuthenticatedSettingsThemesRouteImport } from './routes/_authenticated/settings.themes'
 import { Route as AuthenticatedSettingsBookingTypesRouteImport } from './routes/_authenticated/settings.booking-types'
 import { Route as AuthenticatedMotorcyclesBikeIdRouteImport } from './routes/_authenticated/motorcycles.$bikeId'
 import { Route as AuthenticatedLoanBikesBikeIdRouteImport } from './routes/_authenticated/loan-bikes.$bikeId'
@@ -165,6 +166,12 @@ const AuthenticatedBookingsIndexRoute =
     path: '/bookings/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedSettingsThemesRoute =
+  AuthenticatedSettingsThemesRouteImport.update({
+    id: '/themes',
+    path: '/themes',
+    getParentRoute: () => AuthenticatedSettingsRoute,
+  } as any)
 const AuthenticatedSettingsBookingTypesRoute =
   AuthenticatedSettingsBookingTypesRouteImport.update({
     id: '/booking-types',
@@ -264,6 +271,7 @@ export interface FileRoutesByFullPath {
   '/loan-bikes/$bikeId': typeof AuthenticatedLoanBikesBikeIdRoute
   '/motorcycles/$bikeId': typeof AuthenticatedMotorcyclesBikeIdRoute
   '/settings/booking-types': typeof AuthenticatedSettingsBookingTypesRoute
+  '/settings/themes': typeof AuthenticatedSettingsThemesRoute
   '/bookings/': typeof AuthenticatedBookingsIndexRoute
   '/customers/': typeof AuthenticatedCustomersIndexRoute
   '/insurance/': typeof AuthenticatedInsuranceIndexRoute
@@ -297,6 +305,7 @@ export interface FileRoutesByTo {
   '/loan-bikes/$bikeId': typeof AuthenticatedLoanBikesBikeIdRoute
   '/motorcycles/$bikeId': typeof AuthenticatedMotorcyclesBikeIdRoute
   '/settings/booking-types': typeof AuthenticatedSettingsBookingTypesRoute
+  '/settings/themes': typeof AuthenticatedSettingsThemesRoute
   '/bookings': typeof AuthenticatedBookingsIndexRoute
   '/customers': typeof AuthenticatedCustomersIndexRoute
   '/insurance': typeof AuthenticatedInsuranceIndexRoute
@@ -335,6 +344,7 @@ export interface FileRoutesById {
   '/_authenticated/loan-bikes/$bikeId': typeof AuthenticatedLoanBikesBikeIdRoute
   '/_authenticated/motorcycles/$bikeId': typeof AuthenticatedMotorcyclesBikeIdRoute
   '/_authenticated/settings/booking-types': typeof AuthenticatedSettingsBookingTypesRoute
+  '/_authenticated/settings/themes': typeof AuthenticatedSettingsThemesRoute
   '/_authenticated/bookings/': typeof AuthenticatedBookingsIndexRoute
   '/_authenticated/customers/': typeof AuthenticatedCustomersIndexRoute
   '/_authenticated/insurance/': typeof AuthenticatedInsuranceIndexRoute
@@ -373,6 +383,7 @@ export interface FileRouteTypes {
     | '/loan-bikes/$bikeId'
     | '/motorcycles/$bikeId'
     | '/settings/booking-types'
+    | '/settings/themes'
     | '/bookings/'
     | '/customers/'
     | '/insurance/'
@@ -406,6 +417,7 @@ export interface FileRouteTypes {
     | '/loan-bikes/$bikeId'
     | '/motorcycles/$bikeId'
     | '/settings/booking-types'
+    | '/settings/themes'
     | '/bookings'
     | '/customers'
     | '/insurance'
@@ -443,6 +455,7 @@ export interface FileRouteTypes {
     | '/_authenticated/loan-bikes/$bikeId'
     | '/_authenticated/motorcycles/$bikeId'
     | '/_authenticated/settings/booking-types'
+    | '/_authenticated/settings/themes'
     | '/_authenticated/bookings/'
     | '/_authenticated/customers/'
     | '/_authenticated/insurance/'
@@ -622,6 +635,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedBookingsIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/settings/themes': {
+      id: '/_authenticated/settings/themes'
+      path: '/themes'
+      fullPath: '/settings/themes'
+      preLoaderRoute: typeof AuthenticatedSettingsThemesRouteImport
+      parentRoute: typeof AuthenticatedSettingsRoute
+    }
     '/_authenticated/settings/booking-types': {
       id: '/_authenticated/settings/booking-types'
       path: '/booking-types'
@@ -763,11 +783,13 @@ const AuthenticatedInvoicesRouteWithChildren =
 
 interface AuthenticatedSettingsRouteChildren {
   AuthenticatedSettingsBookingTypesRoute: typeof AuthenticatedSettingsBookingTypesRoute
+  AuthenticatedSettingsThemesRoute: typeof AuthenticatedSettingsThemesRoute
 }
 
 const AuthenticatedSettingsRouteChildren: AuthenticatedSettingsRouteChildren = {
   AuthenticatedSettingsBookingTypesRoute:
     AuthenticatedSettingsBookingTypesRoute,
+  AuthenticatedSettingsThemesRoute: AuthenticatedSettingsThemesRoute,
 }
 
 const AuthenticatedSettingsRouteWithChildren =

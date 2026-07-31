@@ -31,11 +31,13 @@ const sections = [
     desc: "Edit Basic, Annual, Standard, Full and custom service checklists & hours.",
   },
   {
-    to: "/settings/booking-types",
-    icon: Tag,
-    title: "Booking Types",
-    desc: "Enable or disable which booking types appear in new booking forms.",
+    to: "/settings/themes",
+    icon: Palette,
+    title: "Themes",
+    desc: "Choose your theme, accent colour, density and text size.",
+    staff: true,
   },
+
   {
     to: "/customers",
     icon: Users,
