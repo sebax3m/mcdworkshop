@@ -1188,7 +1188,45 @@ function CalendarPage() {
                             </div>
                           )}
 
+                          {/* Day notes in the assigned day space */}
+                          {(() => {
+                            const notes = notesByDay.get(dayKey) ?? [];
+                            return (
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setDayNoteFor(dayKey);
+                                }}
+                                className={cn(
+                                  "absolute z-15 left-0.5 right-0.5 rounded-md px-2 py-1 text-left text-[10px] leading-tight transition-colors hover:brightness-110",
+                                  notes.length
+                                    ? "bg-amber-500/15 text-amber-600 dark:text-amber-300 ring-1 ring-amber-500/30"
+                                    : "text-muted-foreground/40 hover:text-amber-500 hover:bg-amber-500/5",
+                                )}
+                                style={{ top: 0, height: `${SLOT_H}px` }}
+                                title={
+                                  notes.length
+                                    ? notes.map((n: any) => n.title).join(" · ")
+                                    : "Add day note"
+                                }
+                              >
+                                {notes.length ? (
+                                  <div className="flex items-start gap-1">
+                                    <StickyNote className="h-2.5 w-2.5 mt-0.5 shrink-0" />
+                                    <span className="truncate font-medium">
+                                      {notes.map((n: any) => n.title).join(" · ")}
+                                    </span>
+                                  </div>
+                                ) : (
+                                  <span className="italic">+ note</span>
+                                )}
+                              </button>
+                            );
+                          })()}
+
                           {/* Bookings stacked vertically per day (no time-based overlap) */}
+
                           {(() => {
                             const sorted = [...dayBookings].sort((a: any, b: any) => {
                               const ta = a.drop_off_time ? String(a.drop_off_time) : "99:99";
