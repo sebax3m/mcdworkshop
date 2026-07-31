@@ -11,6 +11,7 @@ import {
   BarChart3,
   ShieldCheck,
   KeyRound,
+  Users,
   ArrowLeft,
 } from "lucide-react";
 import { useRef, useState, useCallback } from "react";
