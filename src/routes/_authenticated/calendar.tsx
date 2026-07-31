@@ -1199,7 +1199,7 @@ function CalendarPage() {
                                   setDayNoteFor(dayKey);
                                 }}
                                 className={cn(
-                                  "absolute z-15 left-0.5 right-0.5 rounded-md px-2 py-1 text-left text-[10px] leading-tight transition-colors hover:brightness-110",
+                                  "absolute z-[15] left-0.5 right-0.5 rounded-md px-2 py-1 text-left text-[10px] leading-tight transition-colors hover:brightness-110",
                                   notes.length
                                     ? "bg-amber-500/15 text-amber-600 dark:text-amber-300 ring-1 ring-amber-500/30"
                                     : "text-muted-foreground/40 hover:text-amber-500 hover:bg-amber-500/5",
