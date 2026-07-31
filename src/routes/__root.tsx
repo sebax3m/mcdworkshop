@@ -152,13 +152,22 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthSyncBridge />
+      <AppearanceBridge />
       <Outlet />
       <Toaster richColors position="top-center" />
     </QueryClientProvider>
   );
 }
 
+function AppearanceBridge() {
+  useEffect(() => {
+    applyAppearance(readAppearance());
+  }, []);
+  return null;
+}
+
 function AuthSyncBridge() {
   useAuthSync();
   return null;
 }
+
