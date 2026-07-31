@@ -1372,42 +1372,49 @@ function CalendarPage() {
               onClick={(e) => e.stopPropagation()}
               className="card-surface w-full max-w-md p-5 space-y-4 relative"
             >
-              <button
-                onClick={() => setSelectedBooking(null)}
-                className="absolute top-3 right-3 grid h-8 w-8 place-items-center rounded-lg border border-border text-muted-foreground hover:text-foreground hover:border-foreground/30 transition-colors"
-                aria-label="Close"
-              >
-                <X className="h-4 w-4" />
-              </button>
+              <div className="flex items-center justify-between gap-2">
+                <div className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground">
+                  {bookingView === "edit" ? "Edit booking" : "Booking"}
+                </div>
+                <div className="flex items-center gap-2">
+                  {selectedBooking && bookingView === "edit" && (
+                    <button
+                      type="button"
+                      disabled={savingEdit}
+                      onClick={async () => {
+                        const b = selectedBooking;
+                        const trimmed = editNotes.trim();
+                        setSavingEdit(true);
+                        if (trimmed !== (b.notes ?? "")) {
+                          const { error } = await supabase
+                            .from("bookings")
+                            .update({ notes: trimmed || null })
+                            .eq("id", b.id);
+                          setSavingEdit(false);
+                          if (error) return toast.error(error.message);
+                          patchSelected({ notes: trimmed || null });
+                          qc.invalidateQueries({ queryKey: ["calendar-bookings"] });
+                          toast.success("Saved");
+                        } else {
+                          setSavingEdit(false);
+                        }
+                        setSelectedBooking(null);
+                      }}
+                      className="rounded-lg bg-yellow-400 hover:bg-yellow-300 text-black px-3 py-1.5 text-xs font-bold shadow-sm disabled:opacity-50 transition-colors"
+                    >
+                      {savingEdit ? "Saving…" : "SAVE"}
+                    </button>
+                  )}
+                  <button
+                    onClick={() => setSelectedBooking(null)}
+                    className="grid h-8 w-8 place-items-center rounded-lg border border-border text-muted-foreground hover:text-foreground hover:border-foreground/30 transition-colors"
+                    aria-label="Close"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
 
-              {selectedBooking && bookingView === "edit" && (
-                <button
-                  type="button"
-                  disabled={savingEdit}
-                  onClick={async () => {
-                    const b = selectedBooking;
-                    const trimmed = editNotes.trim();
-                    setSavingEdit(true);
-                    if (trimmed !== (b.notes ?? "")) {
-                      const { error } = await supabase
-                        .from("bookings")
-                        .update({ notes: trimmed || null })
-                        .eq("id", b.id);
-                      setSavingEdit(false);
-                      if (error) return toast.error(error.message);
-                      patchSelected({ notes: trimmed || null });
-                      qc.invalidateQueries({ queryKey: ["calendar-bookings"] });
-                      toast.success("Saved");
-                    } else {
-                      setSavingEdit(false);
-                    }
-                    setSelectedBooking(null);
-                  }}
-                  className="absolute top-3 right-12 z-10 rounded-lg bg-yellow-400 hover:bg-yellow-300 text-black px-3 py-1.5 text-xs font-bold shadow-sm disabled:opacity-50 transition-colors"
-                >
-                  {savingEdit ? "Saving…" : "SAVE"}
-                </button>
-              )}
 
               {(() => {
                 const b = selectedBooking;
@@ -1423,7 +1430,8 @@ function CalendarPage() {
                 if (bookingView === "summary") {
                   return (
                     <div className="space-y-4">
-                      <div className="flex items-center gap-2 pr-8 flex-wrap">
+                      <div className="flex items-center gap-2 flex-wrap">
+
                         <span
                           className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 ring-1 text-[11px] font-bold uppercase tracking-wider ${c.bg} ${c.ring} ${c.text}`}
                         >
@@ -1635,7 +1643,7 @@ function CalendarPage() {
                 }
                 return (
                   <>
-                    <div className="flex items-center gap-2 pr-28">
+                    <div className="flex items-center gap-2 flex-wrap">
                       <span
                         className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 ring-1 text-[11px] font-bold uppercase tracking-wider ${c.bg} ${c.ring} ${c.text}`}
                       >
@@ -2160,15 +2168,8 @@ function CalendarPage() {
               exit={{ opacity: 0, scale: 0.96, y: 8 }}
               transition={{ duration: 0.15 }}
               onClick={(e) => e.stopPropagation()}
-              className="w-full max-w-md max-h-[90vh] overflow-y-auto rounded-2xl border border-border/60 bg-background/70 backdrop-blur-xl shadow-2xl p-5 space-y-4 relative"
+              className="w-full max-w-md max-h-[90vh] overflow-y-auto rounded-2xl border border-border/60 bg-background/70 backdrop-blur-xl shadow-2xl p-5 space-y-4"
             >
-              <button
-                onClick={() => !creatingQuick && closeQuickBooking()}
-                className="absolute top-3 right-3 grid h-8 w-8 place-items-center rounded-lg border border-border text-muted-foreground hover:text-foreground hover:border-foreground/30 transition-colors"
-                aria-label="Close"
-              >
-                <X className="h-4 w-4" />
-              </button>
 
               {justCreated ? (
                 <div className="space-y-4">
@@ -2273,15 +2274,25 @@ function CalendarPage() {
                       <div className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground">
                         Quick booking
                       </div>
-                      <button
-                        type="button"
-                        disabled={creatingQuick}
-                        onClick={createQuickBooking}
-                        className="rounded-lg bg-yellow-400 hover:bg-yellow-300 text-black px-3 py-1.5 text-xs font-bold shadow-sm disabled:opacity-50 transition-colors"
-                      >
-                        {creatingQuick ? "Saving…" : "SAVE"}
-                      </button>
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          disabled={creatingQuick}
+                          onClick={createQuickBooking}
+                          className="rounded-lg bg-yellow-400 hover:bg-yellow-300 text-black px-3 py-1.5 text-xs font-bold shadow-sm disabled:opacity-50 transition-colors"
+                        >
+                          {creatingQuick ? "Saving…" : "SAVE"}
+                        </button>
+                        <button
+                          onClick={() => !creatingQuick && closeQuickBooking()}
+                          className="grid h-8 w-8 place-items-center rounded-lg border border-border text-muted-foreground hover:text-foreground hover:border-foreground/30 transition-colors"
+                          aria-label="Close"
+                        >
+                          <X className="h-4 w-4" />
+                        </button>
+                      </div>
                     </div>
+
                     <div className="mt-1 grid grid-cols-2 gap-2">
                       <div>
                         <label className="text-[10px] uppercase tracking-wider text-muted-foreground flex items-center gap-1">
