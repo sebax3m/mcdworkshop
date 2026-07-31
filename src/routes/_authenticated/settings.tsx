@@ -8,13 +8,22 @@ import {
   ShieldCheck,
   UserCog,
   Tag,
+  KeyRound,
 } from "lucide-react";
+import { useCurrentUser } from "@/hooks/use-current-user";
 
 export const Route = createFileRoute("/_authenticated/settings")({
   component: SettingsPage,
 });
 
 const sections = [
+  {
+    to: "/account",
+    icon: KeyRound,
+    title: "My Account",
+    desc: "Update your own name, phone and password.",
+    staff: true,
+  },
   {
     to: "/templates",
     icon: FileStack,
@@ -32,6 +41,7 @@ const sections = [
     icon: Users,
     title: "Customers",
     desc: "View, edit and manage customer contact details.",
+    staff: true,
   },
   {
     to: "/inventory",
@@ -44,6 +54,7 @@ const sections = [
     icon: Bike,
     title: "Bikes",
     desc: "Edit motorcycle details, owners, mileage and service history.",
+    staff: true,
   },
   {
     to: "/insurance",
@@ -59,7 +70,11 @@ const sections = [
   },
 ] as const;
 
+
 function SettingsPage() {
+  const { isAdmin } = useCurrentUser();
+  const visible = sections.filter((s) => isAdmin || "staff" in s);
+
   return (
     <div className="space-y-6 max-w-4xl mx-auto">
       <header>
@@ -71,7 +86,7 @@ function SettingsPage() {
       </header>
 
       <div className="grid sm:grid-cols-2 gap-4">
-        {sections.map((s) => {
+        {visible.map((s) => {
           const Icon = s.icon;
           return (
             <Link
