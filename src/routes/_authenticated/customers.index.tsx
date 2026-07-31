@@ -84,7 +84,9 @@ function Customers() {
     if (error) return toast.error(error.message);
     setSelected(new Set());
     toast.success(`${ids.length} deleted`);
-    qc.invalidateQueries({ queryKey: ["customers-list", "customers-bikes", "bikes-list"] });
+    qc.invalidateQueries({ queryKey: ["customers-list"] });
+    qc.invalidateQueries({ queryKey: ["customers-bikes"] });
+    qc.invalidateQueries({ queryKey: ["bikes-list"] });
   }
 
   let filtered = (customers.data ?? []).filter((c: any) =>
