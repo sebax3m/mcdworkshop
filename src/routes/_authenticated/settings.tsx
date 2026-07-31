@@ -8,13 +8,22 @@ import {
   ShieldCheck,
   UserCog,
   Tag,
+  KeyRound,
 } from "lucide-react";
+import { useCurrentUser } from "@/hooks/use-current-user";
 
 export const Route = createFileRoute("/_authenticated/settings")({
   component: SettingsPage,
 });
 
 const sections = [
+  {
+    to: "/account",
+    icon: KeyRound,
+    title: "My Account",
+    desc: "Update your own name, phone and password.",
+    staff: true,
+  },
   {
     to: "/templates",
     icon: FileStack,
@@ -32,6 +41,7 @@ const sections = [
     icon: Users,
     title: "Customers",
     desc: "View, edit and manage customer contact details.",
+    staff: true,
   },
   {
     to: "/inventory",
@@ -44,6 +54,7 @@ const sections = [
     icon: Bike,
     title: "Bikes",
     desc: "Edit motorcycle details, owners, mileage and service history.",
+    staff: true,
   },
   {
     to: "/insurance",
@@ -58,6 +69,7 @@ const sections = [
     desc: "View sign-in history per user, emails, roles and switch the active user.",
   },
 ] as const;
+
 
 function SettingsPage() {
   return (
