@@ -1235,11 +1235,14 @@ function CalendarPage() {
                             });
                             const orderMap = new Map<string, number>();
                             sorted.forEach((b: any, i: number) => orderMap.set(b.id, i));
+                            const dayNotes = notesByDay.get(dayKey) ?? [];
+                            const noteOffset = dayNotes.length > 0 ? SLOT_H : 0;
                             return dayBookings.map((b: any) => {
                               const idx = orderMap.get(b.id) ?? 0;
                               const height = SLOT_H - 3;
-                              const top = idx * SLOT_H;
+                              const top = idx * SLOT_H + noteOffset;
                               if (top > GRID_H) return null;
+
                               const c = serviceColor(b.service_type);
                               const bike = displayBike(b.motorcycles);
                               const customer = displayCustomerName(b.customers);
