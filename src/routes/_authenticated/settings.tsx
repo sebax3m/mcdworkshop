@@ -7,7 +7,7 @@ import {
   ChevronRight,
   ShieldCheck,
   UserCog,
-  Tag,
+  Palette,
   KeyRound,
 } from "lucide-react";
 import { useCurrentUser } from "@/hooks/use-current-user";
