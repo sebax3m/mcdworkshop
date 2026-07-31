@@ -13,6 +13,8 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { Toaster } from "@/components/ui/sonner";
 import { useAuthSync } from "@/hooks/use-auth-sync";
+import { applyAppearance, readAppearance } from "@/lib/appearance";
+
 
 function NotFoundComponent() {
   return (
@@ -152,13 +154,22 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthSyncBridge />
+      <AppearanceBridge />
       <Outlet />
       <Toaster richColors position="top-center" />
     </QueryClientProvider>
   );
 }
 
+function AppearanceBridge() {
+  useEffect(() => {
+    applyAppearance(readAppearance());
+  }, []);
+  return null;
+}
+
 function AuthSyncBridge() {
   useAuthSync();
   return null;
 }
+
