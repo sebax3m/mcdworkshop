@@ -72,6 +72,9 @@ const sections = [
 
 
 function SettingsPage() {
+  const { isAdmin } = useCurrentUser();
+  const visible = sections.filter((s) => isAdmin || "staff" in s);
+
   return (
     <div className="space-y-6 max-w-4xl mx-auto">
       <header>
@@ -83,7 +86,7 @@ function SettingsPage() {
       </header>
 
       <div className="grid sm:grid-cols-2 gap-4">
-        {sections.map((s) => {
+        {visible.map((s) => {
           const Icon = s.icon;
           return (
             <Link
