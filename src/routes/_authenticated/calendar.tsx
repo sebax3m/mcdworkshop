@@ -1273,53 +1273,6 @@ function CalendarPage() {
                     })}
                   </div>
 
-                  {/* Notes footer — one strip per day column, mirrors the header grid */}
-                  <div
-                    className="grid border-t border-border/60 bg-muted/10"
-                    style={{ gridTemplateColumns: `56px repeat(7, minmax(0, 1fr))` }}
-                  >
-                    <div className="flex items-center justify-center border-r border-border/60 py-1.5">
-                      <StickyNote className="h-3 w-3 text-amber-500/70" />
-                    </div>
-                    {weekDays.map((day) => {
-                      const dayKey = format(day, "yyyy-MM-dd");
-                      const notes = notesByDay.get(dayKey) ?? [];
-                      return (
-                        <button
-                          type="button"
-                          key={`notes-footer-${dayKey}`}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setDayNoteFor(dayKey);
-                          }}
-                          className="min-h-[200px] max-h-[400px] overflow-y-auto border-r border-border/40 last:border-r-0 px-2 py-2 text-left text-[11px] leading-snug hover:bg-amber-500/5 transition-colors align-top"
-                          title={
-                            notes.length
-                              ? notes.map((n: any) => n.title).join(" · ")
-                              : "Add day note"
-                          }
-                        >
-                          {notes.length === 0 ? (
-                            <span className="text-muted-foreground/40 italic">+ note</span>
-                          ) : (
-                            <div className="flex flex-col gap-1">
-                              {notes.map((n: any) => (
-                                <div
-                                  key={n.id}
-                                  className="flex items-start gap-1 rounded-sm bg-amber-500/15 px-1 py-0.5 text-amber-600 dark:text-amber-300"
-                                >
-                                  <StickyNote className="h-2.5 w-2.5 mt-0.5 shrink-0" />
-                                  <span className="whitespace-normal break-words leading-tight">
-                                    {n.title}
-                                  </span>
-                                </div>
-                              ))}
-                            </div>
-                          )}
-                        </button>
-                      );
-                    })}
-                  </div>
                 </div>
               </div>
             </div>
