@@ -9,7 +9,7 @@ import { toast } from "sonner";
 import { useState } from "react";
 import { useBookingTypes, type BookingType } from "@/hooks/useBookingTypes";
 
-export const Route = createFileRoute("/_authenticated/settings/booking-types")({
+export const Route = createFileRoute("/_authenticated/settings_/booking-types")({
   component: BookingTypesAdmin,
 });
 

@@ -32,7 +32,7 @@ import { Route as AuthenticatedInvoicesIndexRouteImport } from './routes/_authen
 import { Route as AuthenticatedInsuranceIndexRouteImport } from './routes/_authenticated/insurance.index'
 import { Route as AuthenticatedCustomersIndexRouteImport } from './routes/_authenticated/customers.index'
 import { Route as AuthenticatedBookingsIndexRouteImport } from './routes/_authenticated/bookings.index'
-import { Route as AuthenticatedSettingsThemesRouteImport } from './routes/_authenticated/settings.themes'
+import { Route as AuthenticatedSettingsThemesRouteImport } from './routes/_authenticated/settings_.themes'
 import { Route as AuthenticatedSettingsBookingTypesRouteImport } from './routes/_authenticated/settings.booking-types'
 import { Route as AuthenticatedMotorcyclesBikeIdRouteImport } from './routes/_authenticated/motorcycles.$bikeId'
 import { Route as AuthenticatedLoanBikesBikeIdRouteImport } from './routes/_authenticated/loan-bikes.$bikeId'
@@ -168,9 +168,9 @@ const AuthenticatedBookingsIndexRoute =
   } as any)
 const AuthenticatedSettingsThemesRoute =
   AuthenticatedSettingsThemesRouteImport.update({
-    id: '/themes',
-    path: '/themes',
-    getParentRoute: () => AuthenticatedSettingsRoute,
+    id: '/settings_/themes',
+    path: '/settings/themes',
+    getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedSettingsBookingTypesRoute =
   AuthenticatedSettingsBookingTypesRouteImport.update({
@@ -344,7 +344,7 @@ export interface FileRoutesById {
   '/_authenticated/loan-bikes/$bikeId': typeof AuthenticatedLoanBikesBikeIdRoute
   '/_authenticated/motorcycles/$bikeId': typeof AuthenticatedMotorcyclesBikeIdRoute
   '/_authenticated/settings/booking-types': typeof AuthenticatedSettingsBookingTypesRoute
-  '/_authenticated/settings/themes': typeof AuthenticatedSettingsThemesRoute
+  '/_authenticated/settings_/themes': typeof AuthenticatedSettingsThemesRoute
   '/_authenticated/bookings/': typeof AuthenticatedBookingsIndexRoute
   '/_authenticated/customers/': typeof AuthenticatedCustomersIndexRoute
   '/_authenticated/insurance/': typeof AuthenticatedInsuranceIndexRoute
@@ -455,7 +455,7 @@ export interface FileRouteTypes {
     | '/_authenticated/loan-bikes/$bikeId'
     | '/_authenticated/motorcycles/$bikeId'
     | '/_authenticated/settings/booking-types'
-    | '/_authenticated/settings/themes'
+    | '/_authenticated/settings_/themes'
     | '/_authenticated/bookings/'
     | '/_authenticated/customers/'
     | '/_authenticated/insurance/'
@@ -635,12 +635,12 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedBookingsIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/settings/themes': {
-      id: '/_authenticated/settings/themes'
-      path: '/themes'
+    '/_authenticated/settings_/themes': {
+      id: '/_authenticated/settings_/themes'
+      path: '/settings/themes'
       fullPath: '/settings/themes'
       preLoaderRoute: typeof AuthenticatedSettingsThemesRouteImport
-      parentRoute: typeof AuthenticatedSettingsRoute
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/settings/booking-types': {
       id: '/_authenticated/settings/booking-types'
@@ -783,13 +783,11 @@ const AuthenticatedInvoicesRouteWithChildren =
 
 interface AuthenticatedSettingsRouteChildren {
   AuthenticatedSettingsBookingTypesRoute: typeof AuthenticatedSettingsBookingTypesRoute
-  AuthenticatedSettingsThemesRoute: typeof AuthenticatedSettingsThemesRoute
 }
 
 const AuthenticatedSettingsRouteChildren: AuthenticatedSettingsRouteChildren = {
   AuthenticatedSettingsBookingTypesRoute:
     AuthenticatedSettingsBookingTypesRoute,
-  AuthenticatedSettingsThemesRoute: AuthenticatedSettingsThemesRoute,
 }
 
 const AuthenticatedSettingsRouteWithChildren =
@@ -816,6 +814,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedJobsNewRoute: typeof AuthenticatedJobsNewRoute
   AuthenticatedLoanBikesBikeIdRoute: typeof AuthenticatedLoanBikesBikeIdRoute
   AuthenticatedMotorcyclesBikeIdRoute: typeof AuthenticatedMotorcyclesBikeIdRoute
+  AuthenticatedSettingsThemesRoute: typeof AuthenticatedSettingsThemesRoute
   AuthenticatedBookingsIndexRoute: typeof AuthenticatedBookingsIndexRoute
   AuthenticatedJobsIndexRoute: typeof AuthenticatedJobsIndexRoute
   AuthenticatedLoanBikesIndexRoute: typeof AuthenticatedLoanBikesIndexRoute
@@ -841,6 +840,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedJobsNewRoute: AuthenticatedJobsNewRoute,
   AuthenticatedLoanBikesBikeIdRoute: AuthenticatedLoanBikesBikeIdRoute,
   AuthenticatedMotorcyclesBikeIdRoute: AuthenticatedMotorcyclesBikeIdRoute,
+  AuthenticatedSettingsThemesRoute: AuthenticatedSettingsThemesRoute,
   AuthenticatedBookingsIndexRoute: AuthenticatedBookingsIndexRoute,
   AuthenticatedJobsIndexRoute: AuthenticatedJobsIndexRoute,
   AuthenticatedLoanBikesIndexRoute: AuthenticatedLoanBikesIndexRoute,
@@ -859,3 +859,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}

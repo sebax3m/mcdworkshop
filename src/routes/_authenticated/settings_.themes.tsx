@@ -7,7 +7,7 @@ import { Slider } from "@/components/ui/slider";
 import { useAppearance, THEMES, ACCENTS } from "@/lib/appearance";
 import { cn } from "@/lib/utils";
 
-export const Route = createFileRoute("/_authenticated/settings/themes")({
+export const Route = createFileRoute("/_authenticated/settings_/themes")({
   head: () => ({
     meta: [
       { title: "Themes & Appearance — Motorcycle Doctors" },
