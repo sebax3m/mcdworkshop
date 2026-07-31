@@ -104,7 +104,8 @@ function Bikes() {
     if (error) return toast.error(error.message);
     setSelected(new Set());
     toast.success(`${ids.length} deleted`);
-    qc.invalidateQueries({ queryKey: ["bikes-list", "customers-bikes"] });
+    qc.invalidateQueries({ queryKey: ["bikes-list"] });
+    qc.invalidateQueries({ queryKey: ["customers-bikes"] });
   }
 
   async function handleBikePhotos(files: FileList | null) {
