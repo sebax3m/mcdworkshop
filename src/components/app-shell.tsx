@@ -90,7 +90,10 @@ export function AppShell() {
     : [
         { to: "/calendar", label: "Calendar", icon: CalendarDays, color: "#60a5fa" },
         { to: "/jobs", label: "Job Cards", icon: Wrench, color: "#fb923c" },
+        { to: "/motorcycles", label: "Bikes", icon: Bike, color: "#facc15" },
+        { to: "/customers", label: "Customers", icon: Users, color: "#f472b6" },
         { to: "/clock", label: "Clock", icon: Timer, color: "#34d399" },
+        { to: "/settings", label: "Settings", icon: SettingsIcon, color: "#94a3b8" },
       ];
 
   async function signOut() {
