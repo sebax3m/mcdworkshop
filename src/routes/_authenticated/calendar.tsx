@@ -1068,32 +1068,6 @@ function CalendarPage() {
                           >
                             {format(day, "d")}
                           </div>
-                          {(() => {
-                            const notes = notesByDay.get(dayKey) ?? [];
-                            return (
-                              <button
-                                type="button"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setDayNoteFor(dayKey);
-                                }}
-                                className={`mt-1 inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider transition-colors ${
-                                  notes.length
-                                    ? "bg-amber-500/15 text-amber-500 hover:bg-amber-500/25"
-                                    : "text-muted-foreground/50 hover:text-amber-500"
-                                }`}
-                                title={
-                                  notes.length
-                                    ? notes.map((n: any) => n.title).join(" · ")
-                                    : "Add day note"
-                                }
-                              >
-                                <StickyNote className="h-2.5 w-2.5" />
-                                {notes.length ? notes[0].title : "Note"}
-                                {notes.length > 1 ? ` +${notes.length - 1}` : ""}
-                              </button>
-                            );
-                          })()}
                         </div>
                       );
                     })}
@@ -1214,7 +1188,49 @@ function CalendarPage() {
                             </div>
                           )}
 
+                          {/* Day notes in the assigned day space */}
+                          {(() => {
+                            const notes = notesByDay.get(dayKey) ?? [];
+                            if (notes.length === 0) {
+                              return (
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setDayNoteFor(dayKey);
+                                  }}
+                                  className="absolute z-[20] top-1 right-1 inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-muted-foreground/40 hover:text-amber-500 hover:bg-amber-500/5 transition-colors"
+                                  title="Add day note"
+                                >
+                                  <StickyNote className="h-2.5 w-2.5" />
+                                  + note
+                                </button>
+                              );
+                            }
+                            return (
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setDayNoteFor(dayKey);
+                                }}
+                                className="absolute z-[15] left-0.5 right-0.5 rounded-md px-2 py-1 text-left text-[10px] leading-tight bg-amber-500/15 text-amber-600 dark:text-amber-300 ring-1 ring-amber-500/30 hover:brightness-110 transition-colors"
+                                style={{ top: 0, height: `${SLOT_H}px` }}
+                                title={notes.map((n: any) => n.title).join(" · ")}
+                              >
+                                <div className="flex items-start gap-1">
+                                  <StickyNote className="h-2.5 w-2.5 mt-0.5 shrink-0" />
+                                  <span className="truncate font-medium">
+                                    {notes.map((n: any) => n.title).join(" · ")}
+                                  </span>
+                                </div>
+                              </button>
+                            );
+                          })()}
+
                           {/* Bookings stacked vertically per day (no time-based overlap) */}
+
+
                           {(() => {
                             const sorted = [...dayBookings].sort((a: any, b: any) => {
                               const ta = a.drop_off_time ? String(a.drop_off_time) : "99:99";
@@ -1223,11 +1239,14 @@ function CalendarPage() {
                             });
                             const orderMap = new Map<string, number>();
                             sorted.forEach((b: any, i: number) => orderMap.set(b.id, i));
+                            const dayNotes = notesByDay.get(dayKey) ?? [];
+                            const noteOffset = dayNotes.length > 0 ? SLOT_H : 0;
                             return dayBookings.map((b: any) => {
                               const idx = orderMap.get(b.id) ?? 0;
                               const height = SLOT_H - 3;
-                              const top = idx * SLOT_H;
+                              const top = idx * SLOT_H + noteOffset;
                               if (top > GRID_H) return null;
+
                               const c = serviceColor(b.service_type);
                               const bike = displayBike(b.motorcycles);
                               const customer = displayCustomerName(b.customers);
@@ -1299,53 +1318,6 @@ function CalendarPage() {
                     })}
                   </div>
 
-                  {/* Notes footer — one strip per day column, mirrors the header grid */}
-                  <div
-                    className="grid border-t border-border/60 bg-muted/10"
-                    style={{ gridTemplateColumns: `56px repeat(7, minmax(0, 1fr))` }}
-                  >
-                    <div className="flex items-center justify-center border-r border-border/60 py-1.5">
-                      <StickyNote className="h-3 w-3 text-amber-500/70" />
-                    </div>
-                    {weekDays.map((day) => {
-                      const dayKey = format(day, "yyyy-MM-dd");
-                      const notes = notesByDay.get(dayKey) ?? [];
-                      return (
-                        <button
-                          type="button"
-                          key={`notes-footer-${dayKey}`}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setDayNoteFor(dayKey);
-                          }}
-                          className="min-h-[200px] max-h-[400px] overflow-y-auto border-r border-border/40 last:border-r-0 px-2 py-2 text-left text-[11px] leading-snug hover:bg-amber-500/5 transition-colors align-top"
-                          title={
-                            notes.length
-                              ? notes.map((n: any) => n.title).join(" · ")
-                              : "Add day note"
-                          }
-                        >
-                          {notes.length === 0 ? (
-                            <span className="text-muted-foreground/40 italic">+ note</span>
-                          ) : (
-                            <div className="flex flex-col gap-1">
-                              {notes.map((n: any) => (
-                                <div
-                                  key={n.id}
-                                  className="flex items-start gap-1 rounded-sm bg-amber-500/15 px-1 py-0.5 text-amber-600 dark:text-amber-300"
-                                >
-                                  <StickyNote className="h-2.5 w-2.5 mt-0.5 shrink-0" />
-                                  <span className="whitespace-normal break-words leading-tight">
-                                    {n.title}
-                                  </span>
-                                </div>
-                              ))}
-                            </div>
-                          )}
-                        </button>
-                      );
-                    })}
-                  </div>
                 </div>
               </div>
             </div>
