@@ -1643,7 +1643,7 @@ function CalendarPage() {
                 }
                 return (
                   <>
-                    <div className="flex items-center gap-2 pr-28">
+                    <div className="flex items-center gap-2 flex-wrap">
                       <span
                         className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 ring-1 text-[11px] font-bold uppercase tracking-wider ${c.bg} ${c.ring} ${c.text}`}
                       >
