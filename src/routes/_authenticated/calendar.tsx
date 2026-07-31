@@ -2274,15 +2274,25 @@ function CalendarPage() {
                       <div className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground">
                         Quick booking
                       </div>
-                      <button
-                        type="button"
-                        disabled={creatingQuick}
-                        onClick={createQuickBooking}
-                        className="rounded-lg bg-yellow-400 hover:bg-yellow-300 text-black px-3 py-1.5 text-xs font-bold shadow-sm disabled:opacity-50 transition-colors"
-                      >
-                        {creatingQuick ? "Saving…" : "SAVE"}
-                      </button>
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          disabled={creatingQuick}
+                          onClick={createQuickBooking}
+                          className="rounded-lg bg-yellow-400 hover:bg-yellow-300 text-black px-3 py-1.5 text-xs font-bold shadow-sm disabled:opacity-50 transition-colors"
+                        >
+                          {creatingQuick ? "Saving…" : "SAVE"}
+                        </button>
+                        <button
+                          onClick={() => !creatingQuick && closeQuickBooking()}
+                          className="grid h-8 w-8 place-items-center rounded-lg border border-border text-muted-foreground hover:text-foreground hover:border-foreground/30 transition-colors"
+                          aria-label="Close"
+                        >
+                          <X className="h-4 w-4" />
+                        </button>
+                      </div>
                     </div>
+
                     <div className="mt-1 grid grid-cols-2 gap-2">
                       <div>
                         <label className="text-[10px] uppercase tracking-wider text-muted-foreground flex items-center gap-1">
