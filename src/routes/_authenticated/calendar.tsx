@@ -2170,13 +2170,6 @@ function CalendarPage() {
               onClick={(e) => e.stopPropagation()}
               className="w-full max-w-md max-h-[90vh] overflow-y-auto rounded-2xl border border-border/60 bg-background/70 backdrop-blur-xl shadow-2xl p-5 space-y-4 relative"
             >
-              <button
-                onClick={() => !creatingQuick && closeQuickBooking()}
-                className="absolute top-3 right-3 grid h-8 w-8 place-items-center rounded-lg border border-border text-muted-foreground hover:text-foreground hover:border-foreground/30 transition-colors"
-                aria-label="Close"
-              >
-                <X className="h-4 w-4" />
-              </button>
 
               {justCreated ? (
                 <div className="space-y-4">
