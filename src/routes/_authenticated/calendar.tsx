@@ -678,26 +678,6 @@ function CalendarPage() {
     return 60;
   }
 
-  // Client-side pre-check used only for cheap UI hints (empty-slot click).
-  // Authoritative checks use findBookingConflicts RPC.
-  function findOverlap(
-    dayKey: string,
-    startMin: number,
-    _hoursIgnored: number,
-    excludeId?: string,
-  ): any | null {
-    const endMin = startMin + 30; // treat empty-slot click as a 30-min probe
-    for (const bk of bookings as any[]) {
-      if (bk.id === excludeId) continue;
-      if (bk.scheduled_date !== dayKey) continue;
-      if (!bk.drop_off_time) continue;
-      const [hh, mm] = String(bk.drop_off_time).split(":");
-      const bs = (Number(hh) || 0) * 60 + (Number(mm) || 0);
-      const be = bs + bookingDurationMin(bk);
-      if (startMin < be && endMin > bs) return bk;
-    }
-    return null;
-  }
 
   async function moveBooking(bookingId: string, newDate: Date, newTime?: string) {
     const dateStr = format(newDate, "yyyy-MM-dd");
