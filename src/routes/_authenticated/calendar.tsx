@@ -1013,11 +1013,8 @@ function CalendarPage() {
             const m = totalMin % 60;
             const time = `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
             const dayKey = format(day, "yyyy-MM-dd");
-            const clash = findOverlap(dayKey, totalMin, 0.5);
-            if (clash) {
-              setSelectedBooking(clash);
-              return;
-            }
+            // Clicking empty grid space always offers "booking or note".
+            // Clicks on a booking card are handled by the card itself.
             setSlotChoice({ date: day, time, dayKey });
           };
 
