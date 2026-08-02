@@ -678,26 +678,6 @@ function CalendarPage() {
     return 60;
   }
 
-  // Client-side pre-check used only for cheap UI hints (empty-slot click).
-  // Authoritative checks use findBookingConflicts RPC.
-  function findOverlap(
-    dayKey: string,
-    startMin: number,
-    _hoursIgnored: number,
-    excludeId?: string,
-  ): any | null {
-    const endMin = startMin + 30; // treat empty-slot click as a 30-min probe
-    for (const bk of bookings as any[]) {
-      if (bk.id === excludeId) continue;
-      if (bk.scheduled_date !== dayKey) continue;
-      if (!bk.drop_off_time) continue;
-      const [hh, mm] = String(bk.drop_off_time).split(":");
-      const bs = (Number(hh) || 0) * 60 + (Number(mm) || 0);
-      const be = bs + bookingDurationMin(bk);
-      if (startMin < be && endMin > bs) return bk;
-    }
-    return null;
-  }
 
   async function moveBooking(bookingId: string, newDate: Date, newTime?: string) {
     const dateStr = format(newDate, "yyyy-MM-dd");
@@ -1013,11 +993,8 @@ function CalendarPage() {
             const m = totalMin % 60;
             const time = `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
             const dayKey = format(day, "yyyy-MM-dd");
-            const clash = findOverlap(dayKey, totalMin, 0.5);
-            if (clash) {
-              setSelectedBooking(clash);
-              return;
-            }
+            // Clicking empty grid space always offers "booking or note".
+            // Clicks on a booking card are handled by the card itself.
             setSlotChoice({ date: day, time, dayKey });
           };
 
@@ -1188,64 +1165,80 @@ function CalendarPage() {
                             </div>
                           )}
 
-                          {/* Day notes in the assigned day space */}
+                          {/* Day notes banner (top of the day) + always-available add button */}
                           {(() => {
                             const notes = notesByDay.get(dayKey) ?? [];
-                            if (notes.length === 0) {
-                              return (
+                            return (
+                              <>
+                                {notes.length > 0 && (
+                                  <button
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setDayNoteFor(dayKey);
+                                    }}
+                                    className="absolute z-[15] left-0.5 right-0.5 rounded-md px-2 py-0.5 text-left text-[10px] leading-tight bg-amber-500/15 text-amber-600 dark:text-amber-300 ring-1 ring-amber-500/30 hover:brightness-110 transition-colors"
+                                    style={{ top: 0, height: `${SLOT_H / 2}px` }}
+                                    title={notes.map((n: any) => n.title).join(" · ")}
+                                  >
+                                    <div className="flex items-start gap-1">
+                                      <StickyNote className="h-2.5 w-2.5 mt-0.5 shrink-0" />
+                                      <span className="truncate font-medium">
+                                        {notes.map((n: any) => n.title).join(" · ")}
+                                      </span>
+                                    </div>
+                                  </button>
+                                )}
                                 <button
                                   type="button"
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     setDayNoteFor(dayKey);
                                   }}
-                                  className="absolute z-[20] top-1 right-1 inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-muted-foreground/40 hover:text-amber-500 hover:bg-amber-500/5 transition-colors"
+                                  className="absolute z-[20] bottom-1 right-1 inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-muted-foreground/40 hover:text-amber-500 hover:bg-amber-500/10 transition-colors"
                                   title="Add day note"
                                 >
-                                  <StickyNote className="h-2.5 w-2.5" />
-                                  + note
+                                  <StickyNote className="h-2.5 w-2.5" />+ note
                                 </button>
-                              );
-                            }
-                            return (
-                              <button
-                                type="button"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setDayNoteFor(dayKey);
-                                }}
-                                className="absolute z-[15] left-0.5 right-0.5 rounded-md px-2 py-1 text-left text-[10px] leading-tight bg-amber-500/15 text-amber-600 dark:text-amber-300 ring-1 ring-amber-500/30 hover:brightness-110 transition-colors"
-                                style={{ top: 0, height: `${SLOT_H}px` }}
-                                title={notes.map((n: any) => n.title).join(" · ")}
-                              >
-                                <div className="flex items-start gap-1">
-                                  <StickyNote className="h-2.5 w-2.5 mt-0.5 shrink-0" />
-                                  <span className="truncate font-medium">
-                                    {notes.map((n: any) => n.title).join(" · ")}
-                                  </span>
-                                </div>
-                              </button>
+                              </>
                             );
                           })()}
 
-                          {/* Bookings stacked vertically per day (no time-based overlap) */}
 
-
+                          {/* Bookings positioned at their real time (side-by-side when overlapping) */}
                           {(() => {
-                            const sorted = [...dayBookings].sort((a: any, b: any) => {
-                              const ta = a.drop_off_time ? String(a.drop_off_time) : "99:99";
-                              const tb = b.drop_off_time ? String(b.drop_off_time) : "99:99";
-                              return ta.localeCompare(tb);
-                            });
-                            const orderMap = new Map<string, number>();
-                            sorted.forEach((b: any, i: number) => orderMap.set(b.id, i));
-                            const dayNotes = notesByDay.get(dayKey) ?? [];
-                            const noteOffset = dayNotes.length > 0 ? SLOT_H : 0;
-                            return dayBookings.map((b: any) => {
-                              const idx = orderMap.get(b.id) ?? 0;
-                              const height = SLOT_H - 3;
-                              const top = idx * SLOT_H + noteOffset;
-                              if (top > GRID_H) return null;
+                            const startMinOf = (bk: any) => {
+                              const t = bk.drop_off_time ? String(bk.drop_off_time) : "09:00";
+                              const [hh, mm] = t.split(":");
+                              return (Number(hh) || 0) * 60 + (Number(mm) || 0);
+                            };
+                            const sorted = [...dayBookings].sort(
+                              (a: any, b: any) => startMinOf(a) - startMinOf(b),
+                            );
+                            // Simple lane packing so overlapping bookings sit next to each other
+                            const laneEnds: number[] = [];
+                            const laneOf = new Map<string, number>();
+                            for (const bk of sorted) {
+                              const s = startMinOf(bk);
+                              const e = s + bookingDurationMin(bk);
+                              let lane = laneEnds.findIndex((end) => end <= s);
+                              if (lane === -1) {
+                                lane = laneEnds.length;
+                                laneEnds.push(e);
+                              } else {
+                                laneEnds[lane] = e;
+                              }
+                              laneOf.set(bk.id, lane);
+                            }
+                            const laneCount = Math.max(1, laneEnds.length);
+                            return sorted.map((b: any) => {
+                              const s = startMinOf(b);
+                              const dur = bookingDurationMin(b);
+                              const top = ((s - START_HOUR * 60) / 60) * SLOT_H;
+                              const height = Math.max(SLOT_H / 2 - 3, (dur / 60) * SLOT_H - 3);
+                              if (top > GRID_H || top + height < 0) return null;
+                              const lane = laneOf.get(b.id) ?? 0;
+                              const widthPct = 100 / laneCount;
 
                               const c = serviceColor(b.service_type);
                               const bike = displayBike(b.motorcycles);
@@ -1273,12 +1266,13 @@ function CalendarPage() {
                                   }}
                                   className={`group absolute z-10 rounded-md p-2 text-left ring-1 overflow-hidden select-none transition-all hover:z-30 hover:brightness-110 hover:ring-2 hover:ring-primary hover:shadow-[0_8px_24px_rgba(0,0,0,0.35)] cursor-grab active:cursor-grabbing ${c.bg} ${c.ring} ${c.text} ${draggingId === b.id ? "opacity-40" : ""} ${b.loan_bike ? "!ring-2 !ring-amber-400" : ""} ${b.bike_arrived ? "!ring-[3px] !ring-orange-500 shadow-[0_0_0_3px_rgba(249,115,22,0.35)]" : ""}`}
                                   style={{
-                                    top: `${top + 1}px`,
+                                    top: `${Math.max(0, top) + 1}px`,
                                     height: `${height}px`,
-                                    left: `2px`,
-                                    width: `calc(100% - 4px)`,
+                                    left: `calc(${lane * widthPct}% + 2px)`,
+                                    width: `calc(${widthPct}% - 4px)`,
                                   }}
                                 >
+
                                   {/* Drag grip indicator — visible on hover */}
                                   <div className="absolute top-0.5 right-0.5 opacity-0 group-hover:opacity-70 transition-opacity pointer-events-none text-current text-[9px] leading-none font-black">
                                     ⋮⋮
