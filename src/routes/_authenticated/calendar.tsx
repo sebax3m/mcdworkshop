@@ -1185,45 +1185,45 @@ function CalendarPage() {
                             </div>
                           )}
 
-                          {/* Day notes in the assigned day space */}
+                          {/* Day notes banner (top of the day) + always-available add button */}
                           {(() => {
                             const notes = notesByDay.get(dayKey) ?? [];
-                            if (notes.length === 0) {
-                              return (
+                            return (
+                              <>
+                                {notes.length > 0 && (
+                                  <button
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setDayNoteFor(dayKey);
+                                    }}
+                                    className="absolute z-[15] left-0.5 right-0.5 rounded-md px-2 py-0.5 text-left text-[10px] leading-tight bg-amber-500/15 text-amber-600 dark:text-amber-300 ring-1 ring-amber-500/30 hover:brightness-110 transition-colors"
+                                    style={{ top: 0, height: `${SLOT_H / 2}px` }}
+                                    title={notes.map((n: any) => n.title).join(" · ")}
+                                  >
+                                    <div className="flex items-start gap-1">
+                                      <StickyNote className="h-2.5 w-2.5 mt-0.5 shrink-0" />
+                                      <span className="truncate font-medium">
+                                        {notes.map((n: any) => n.title).join(" · ")}
+                                      </span>
+                                    </div>
+                                  </button>
+                                )}
                                 <button
                                   type="button"
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     setDayNoteFor(dayKey);
                                   }}
-                                  className="absolute z-[20] top-1 right-1 inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-muted-foreground/40 hover:text-amber-500 hover:bg-amber-500/5 transition-colors"
+                                  className="absolute z-[20] bottom-1 right-1 inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-muted-foreground/40 hover:text-amber-500 hover:bg-amber-500/10 transition-colors"
                                   title="Add day note"
                                 >
-                                  <StickyNote className="h-2.5 w-2.5" />
-                                  + note
+                                  <StickyNote className="h-2.5 w-2.5" />+ note
                                 </button>
-                              );
-                            }
-                            return (
-                              <button
-                                type="button"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setDayNoteFor(dayKey);
-                                }}
-                                className="absolute z-[15] left-0.5 right-0.5 rounded-md px-2 py-1 text-left text-[10px] leading-tight bg-amber-500/15 text-amber-600 dark:text-amber-300 ring-1 ring-amber-500/30 hover:brightness-110 transition-colors"
-                                style={{ top: 0, height: `${SLOT_H}px` }}
-                                title={notes.map((n: any) => n.title).join(" · ")}
-                              >
-                                <div className="flex items-start gap-1">
-                                  <StickyNote className="h-2.5 w-2.5 mt-0.5 shrink-0" />
-                                  <span className="truncate font-medium">
-                                    {notes.map((n: any) => n.title).join(" · ")}
-                                  </span>
-                                </div>
-                              </button>
+                              </>
                             );
                           })()}
+
 
                           {/* Bookings positioned at their real time (side-by-side when overlapping) */}
                           {(() => {
