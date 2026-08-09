@@ -894,9 +894,11 @@ function CalendarPage() {
               {monthDays.map((day, idx) => {
                 const dayKey = format(day, "yyyy-MM-dd");
                 const dayBookings = (bookings as any[]).filter((b) => b.scheduled_date === dayKey);
-                const loadHours = totals.get(dayKey) ?? 0;
-                const loadPct = Math.min(100, (loadHours / DAILY_CAPACITY_HOURS) * 100);
-                const over = loadHours > DAILY_CAPACITY_HOURS;
+                const cap = capacityFor(day);
+                const loadPct =
+                  cap > 0 ? Math.min(100, (dayBookings.length / cap) * 100) : dayBookings.length ? 100 : 0;
+                const over = cap > 0 && dayBookings.length > cap;
+                const full = cap > 0 && dayBookings.length >= cap;
                 const today = isToday(day);
                 const inMonth = isSameMonth(day, monthStart);
 
@@ -910,17 +912,15 @@ function CalendarPage() {
                     onDrop={(e) => {
                       e.preventDefault();
                       const id = e.dataTransfer.getData("text/booking-id");
-                      if (id) moveBooking(id, day);
+                      if (id) moveBookingToDate(id, day);
                       setDraggingId(null);
                     }}
-                    onClick={() => {
-                      setSlotChoice({ date: day, time: null, dayKey });
-                    }}
+                    onClick={() => nav({ to: "/book-ins/$date", params: { date: dayKey } })}
                     className={`card-surface p-2 min-h-[160px] flex flex-col cursor-pointer transition-colors hover:ring-1 hover:ring-primary/30 ${
                       today ? "ring-2 ring-primary/40" : ""
                     } ${isSunday(day) ? "bg-primary/[0.14]" : ""} ${draggingId ? "border-dashed" : ""} ${!inMonth ? "opacity-40" : ""}`}
                   >
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between gap-1">
                       <div
                         className={`font-display text-lg font-bold leading-none ${
                           today
@@ -932,14 +932,7 @@ function CalendarPage() {
                       >
                         {format(day, "d")}
                       </div>
-                      {over && (
-                        <span
-                          title="Overbooked"
-                          className="text-[0.5625rem] font-bold uppercase tracking-wider text-status-parts"
-                        >
-                          <AlertTriangle className="h-3 w-3 inline" />
-                        </span>
-                      )}
+                      <CapacityBadge booked={dayBookings.length} capacity={cap} compact />
                     </div>
                     {(notesByDay.get(dayKey) ?? []).map((n: any) => (
                       <button
@@ -957,49 +950,52 @@ function CalendarPage() {
                       </button>
                     ))}
 
-                    {loadHours > 0 && (
+                    {dayBookings.length > 0 && (
                       <div className="mt-1.5 h-1 rounded-full bg-muted overflow-hidden">
                         <div
-                          className={`h-full rounded-full ${over ? "bg-status-parts" : "bg-gradient-to-r from-[color:var(--primary)] to-[color:var(--md-blue)]"}`}
+                          className={`h-full rounded-full ${over ? "bg-status-parts" : full ? "bg-amber-500" : "bg-gradient-to-r from-[color:var(--primary)] to-[color:var(--md-blue)]"}`}
                           style={{ width: `${loadPct}%` }}
                         />
                       </div>
                     )}
 
-                    <div className="mt-1.5 flex-1 flex flex-wrap gap-1 content-start">
-                      {dayBookings.slice(0, 6).map((b: any) => {
+                    <div className="mt-1.5 flex-1 flex flex-col gap-0.5 content-start overflow-hidden">
+                      {dayBookings.slice(0, 4).map((b: any) => {
                         const c = serviceColor(b.service_type);
                         return (
                           <div
                             key={b.id}
-                            className="relative"
-                            title={`${b.service_type} — ${b.motorcycles?.make ?? ""} ${b.motorcycles?.model ?? ""}${b.bike_arrived ? " · In workshop" : ""}${b.confirmed ? " · Confirmed" : ""}`}
+                            className="flex items-center gap-1 min-w-0"
+                            title={`${b.service_type} — ${b.motorcycles?.make ?? ""} ${b.motorcycles?.model ?? ""}`}
                           >
-                            <div
-                              className={`rounded-full ${c.bg} ring-1 ${c.ring} ${b.bike_arrived ? "h-3 w-3 !ring-2 !ring-orange-500" : "h-2 w-2"}`}
+                            <span
+                              className={`shrink-0 rounded-full ${c.bg} ring-1 ${c.ring} ${b.bike_arrived ? "h-2 w-2 !ring-2 !ring-orange-500" : "h-1.5 w-1.5"}`}
                             />
-                            {b.confirmed && (
-                              <span className="absolute -top-0.5 -right-0.5 h-1.5 w-1.5 rounded-full bg-green-500 ring-1 ring-background" />
-                            )}
+                            <span className="truncate text-[0.5625rem] font-semibold">
+                              {b.motorcycles
+                                ? `${b.motorcycles.make ?? ""} ${b.motorcycles.model ?? ""}`.trim()
+                                : (b.customers?.first_name ?? "Booking")}
+                            </span>
                           </div>
                         );
                       })}
-                      {dayBookings.length > 6 && (
+                      {dayBookings.length > 4 && (
                         <span className="text-[0.5625rem] text-muted-foreground font-semibold">
-                          +{dayBookings.length - 6}
+                          +{dayBookings.length - 4} more
                         </span>
                       )}
                     </div>
 
                     <div className="mt-auto flex items-center justify-between text-[0.5625rem] text-muted-foreground tabular-nums">
-                      <span>{loadHours.toFixed(1)}h</span>
                       <span>
-                        {dayBookings.length} job{dayBookings.length === 1 ? "" : "s"}
+                        {dayBookings.length} bike{dayBookings.length === 1 ? "" : "s"}
                       </span>
+                      {over && <AlertTriangle className="h-3 w-3 text-status-parts" />}
                     </div>
                   </motion.div>
                 );
               })}
+
             </div>
           </div>
         </div>
