@@ -45,6 +45,7 @@ import { Route as AuthenticatedInsuranceClaimIdRouteImport } from './routes/_aut
 import { Route as AuthenticatedCustomersCustomerIdRouteImport } from './routes/_authenticated/customers.$customerId'
 import { Route as AuthenticatedBookingsNewRouteImport } from './routes/_authenticated/bookings.new'
 import { Route as AuthenticatedBookingsBookingIdRouteImport } from './routes/_authenticated/bookings.$bookingId'
+import { Route as AuthenticatedBookInsDateRouteImport } from './routes/_authenticated/book-ins.$date'
 
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
@@ -242,6 +243,12 @@ const AuthenticatedBookingsBookingIdRoute =
     path: '/bookings/$bookingId',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedBookInsDateRoute =
+  AuthenticatedBookInsDateRouteImport.update({
+    id: '/book-ins/$date',
+    path: '/book-ins/$date',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -259,6 +266,7 @@ export interface FileRoutesByFullPath {
   '/settings': typeof AuthenticatedSettingsRoute
   '/templates': typeof AuthenticatedTemplatesRoute
   '/users': typeof AuthenticatedUsersRoute
+  '/book-ins/$date': typeof AuthenticatedBookInsDateRoute
   '/bookings/$bookingId': typeof AuthenticatedBookingsBookingIdRoute
   '/bookings/new': typeof AuthenticatedBookingsNewRoute
   '/customers/$customerId': typeof AuthenticatedCustomersCustomerIdRoute
@@ -293,6 +301,7 @@ export interface FileRoutesByTo {
   '/settings': typeof AuthenticatedSettingsRoute
   '/templates': typeof AuthenticatedTemplatesRoute
   '/users': typeof AuthenticatedUsersRoute
+  '/book-ins/$date': typeof AuthenticatedBookInsDateRoute
   '/bookings/$bookingId': typeof AuthenticatedBookingsBookingIdRoute
   '/bookings/new': typeof AuthenticatedBookingsNewRoute
   '/customers/$customerId': typeof AuthenticatedCustomersCustomerIdRoute
@@ -332,6 +341,7 @@ export interface FileRoutesById {
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/templates': typeof AuthenticatedTemplatesRoute
   '/_authenticated/users': typeof AuthenticatedUsersRoute
+  '/_authenticated/book-ins/$date': typeof AuthenticatedBookInsDateRoute
   '/_authenticated/bookings/$bookingId': typeof AuthenticatedBookingsBookingIdRoute
   '/_authenticated/bookings/new': typeof AuthenticatedBookingsNewRoute
   '/_authenticated/customers/$customerId': typeof AuthenticatedCustomersCustomerIdRoute
@@ -371,6 +381,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/templates'
     | '/users'
+    | '/book-ins/$date'
     | '/bookings/$bookingId'
     | '/bookings/new'
     | '/customers/$customerId'
@@ -405,6 +416,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/templates'
     | '/users'
+    | '/book-ins/$date'
     | '/bookings/$bookingId'
     | '/bookings/new'
     | '/customers/$customerId'
@@ -443,6 +455,7 @@ export interface FileRouteTypes {
     | '/_authenticated/settings'
     | '/_authenticated/templates'
     | '/_authenticated/users'
+    | '/_authenticated/book-ins/$date'
     | '/_authenticated/bookings/$bookingId'
     | '/_authenticated/bookings/new'
     | '/_authenticated/customers/$customerId'
@@ -726,6 +739,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedBookingsBookingIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/book-ins/$date': {
+      id: '/_authenticated/book-ins/$date'
+      path: '/book-ins/$date'
+      fullPath: '/book-ins/$date'
+      preLoaderRoute: typeof AuthenticatedBookInsDateRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
@@ -794,6 +814,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedTemplatesRoute: typeof AuthenticatedTemplatesRoute
   AuthenticatedUsersRoute: typeof AuthenticatedUsersRoute
+  AuthenticatedBookInsDateRoute: typeof AuthenticatedBookInsDateRoute
   AuthenticatedBookingsBookingIdRoute: typeof AuthenticatedBookingsBookingIdRoute
   AuthenticatedBookingsNewRoute: typeof AuthenticatedBookingsNewRoute
   AuthenticatedJobsJobIdRoute: typeof AuthenticatedJobsJobIdRoute
@@ -821,6 +842,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedTemplatesRoute: AuthenticatedTemplatesRoute,
   AuthenticatedUsersRoute: AuthenticatedUsersRoute,
+  AuthenticatedBookInsDateRoute: AuthenticatedBookInsDateRoute,
   AuthenticatedBookingsBookingIdRoute: AuthenticatedBookingsBookingIdRoute,
   AuthenticatedBookingsNewRoute: AuthenticatedBookingsNewRoute,
   AuthenticatedJobsJobIdRoute: AuthenticatedJobsJobIdRoute,
