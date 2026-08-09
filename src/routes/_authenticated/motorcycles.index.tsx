@@ -25,6 +25,7 @@ import { uploadPhoto } from "@/lib/photos";
 import { generateBikeImage } from "@/lib/bike-image.functions";
 import { BikeMakeModelYear } from "@/components/BikeMakeModelYear";
 import { useCurrentUser } from "@/hooks/use-current-user";
+import { BikeCleanupDialog } from "@/components/BikeCleanupDialog";
 import {
   duplicateGroups,
   duplicateIds,
