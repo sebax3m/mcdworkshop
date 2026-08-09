@@ -49,9 +49,9 @@ export function formatMinutes(min: number) {
   return `${h}h ${m}m`;
 }
 
-export function initials(name: string) {
+export function initials(name?: string | null) {
   return (
-    name
+    (name ?? "")
       .split(/\s+/)
       .filter(Boolean)
       .slice(0, 2)
@@ -60,6 +60,9 @@ export function initials(name: string) {
   );
 }
 
-export function fullBike(b: { year?: number | null; make: string; model: string }) {
-  return [b.year, b.make, b.model].filter(Boolean).join(" ");
+export function fullBike(
+  b?: { year?: number | null; make?: string | null; model?: string | null } | null,
+) {
+  if (!b) return "No bike";
+  return [b.year, b.make, b.model].filter(Boolean).join(" ") || "No bike";
 }
