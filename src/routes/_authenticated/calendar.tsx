@@ -748,6 +748,90 @@ function CalendarPage() {
     qc.invalidateQueries({ queryKey: ["today-bookings"] });
   }
 
+  /** Sort helper: book-ins are ordered by their stored slot time, then creation. */
+  function sortBookIns(list: any[]) {
+    return [...list].sort((a, b) => {
+      const ta = String(a.drop_off_time ?? "99:99");
+      const tb = String(b.drop_off_time ?? "99:99");
+      if (ta !== tb) return ta < tb ? -1 : 1;
+      return String(a.created_at ?? "") < String(b.created_at ?? "") ? -1 : 1;
+    });
+  }
+
+  /**
+   * Free reordering: drop a book-in anywhere in a day's list (or another day).
+   * Order is persisted by re-stamping sequential slot times from 08:00.
+   */
+  async function reorderBooking(bookingId: string, day: Date, targetIndex: number) {
+    const dateStr = format(day, "yyyy-MM-dd");
+    const current = (bookings as any[]).find((b) => b.id === bookingId);
+    if (!current) return;
+    const changingDay = current.scheduled_date !== dateStr;
+
+    const others = sortBookIns(
+      (bookings as any[]).filter((b) => b.scheduled_date === dateStr && b.id !== bookingId),
+    );
+
+    if (changingDay) {
+      const cap = capacityFor(day);
+      if (cap > 0 && others.length >= cap) {
+        if (!isAdmin) {
+          return toast.error(
+            `${format(day, "EEEE d MMM")} is full (${others.length}/${cap}). Ask an admin to override.`,
+          );
+        }
+        const ok = window.confirm(
+          `${format(day, "EEEE d MMM")} is already at capacity (${others.length}/${cap}).\n\nOverride and move this book-in anyway?`,
+        );
+        if (!ok) return;
+      }
+    }
+
+    const idx = Math.max(0, Math.min(targetIndex, others.length));
+    const next = [...others.slice(0, idx), current, ...others.slice(idx)];
+
+    const updates = next
+      .map((b, i) => {
+        const start = addMinutesToTime("08:00", i * 15);
+        const duration = bookingDurationMin(b);
+        return {
+          id: b.id,
+          scheduled_date: dateStr,
+          drop_off_time: `${start}:00`,
+          scheduled_end_time: `${addMinutesToTime(start, duration)}:00`,
+          changed:
+            b.id === bookingId ||
+            String(b.drop_off_time ?? "").slice(0, 5) !== start ||
+            b.scheduled_date !== dateStr,
+        };
+      })
+      .filter((u) => u.changed);
+
+    if (!updates.length) return;
+
+    const results = await Promise.all(
+      updates.map((u) =>
+        supabase
+          .from("bookings")
+          .update({
+            scheduled_date: u.scheduled_date,
+            drop_off_time: u.drop_off_time,
+            scheduled_end_time: u.scheduled_end_time,
+          })
+          .eq("id", u.id),
+      ),
+    );
+    const failed = results.find((r) => r.error);
+    if (failed?.error) return toast.error(failed.error.message);
+
+    toast.success(changingDay ? `Moved to ${format(day, "EEE d MMM")}` : "Order updated");
+    qc.invalidateQueries({ queryKey: ["calendar-bookings"] });
+    qc.invalidateQueries({ queryKey: ["day-bookings"] });
+    qc.invalidateQueries({ queryKey: ["today-bookings"] });
+  }
+
+
+
   const totals = useMemo(() => {
     const byDay = new Map<string, number>();
     for (const b of bookings as any[]) {
