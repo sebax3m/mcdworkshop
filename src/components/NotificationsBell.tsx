@@ -100,7 +100,7 @@ export function NotificationsBell() {
         >
           <Bell className="h-4 w-4" />
           {unreadCount > 0 && (
-            <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-primary text-primary-foreground text-[10px] font-bold grid place-items-center shadow-[0_0_10px_-2px_hsl(var(--primary))]">
+            <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-primary text-primary-foreground text-[0.625rem] font-bold grid place-items-center shadow-[0_0_10px_-2px_hsl(var(--primary))]">
               {unreadCount > 9 ? "9+" : unreadCount}
             </span>
           )}
@@ -116,7 +116,7 @@ export function NotificationsBell() {
             <Inbox className="h-4 w-4 text-primary" />
             <div className="font-semibold text-sm">Notifications</div>
             {unreadCount > 0 && (
-              <span className="rounded-full bg-primary/15 border border-primary/30 px-1.5 py-0.5 text-[10px] font-bold text-primary">
+              <span className="rounded-full bg-primary/15 border border-primary/30 px-1.5 py-0.5 text-[0.625rem] font-bold text-primary">
                 {unreadCount} new
               </span>
             )}
@@ -124,7 +124,7 @@ export function NotificationsBell() {
           {unreadCount > 0 && (
             <button
               onClick={markAllRead}
-              className="inline-flex items-center gap-1 text-[11px] font-semibold text-muted-foreground hover:text-foreground"
+              className="inline-flex items-center gap-1 text-[0.6875rem] font-semibold text-muted-foreground hover:text-foreground"
             >
               <CheckCheck className="h-3.5 w-3.5" /> Mark all read
             </button>
@@ -166,11 +166,11 @@ export function NotificationsBell() {
                       {n.title}
                     </div>
                     {n.body && (
-                      <div className="text-[11px] text-muted-foreground line-clamp-2 mt-0.5">
+                      <div className="text-[0.6875rem] text-muted-foreground line-clamp-2 mt-0.5">
                         {n.body}
                       </div>
                     )}
-                    <div className="text-[10px] uppercase tracking-wider text-muted-foreground/70 mt-1 flex items-center gap-2">
+                    <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground/70 mt-1 flex items-center gap-2">
                       <span>{n.kind.replace(/_/g, " ")}</span>
                       <span>·</span>
                       <span>

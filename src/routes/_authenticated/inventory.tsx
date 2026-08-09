@@ -146,7 +146,7 @@ function Inventory() {
                 <span className="grid h-14 w-14 place-items-center rounded-xl bg-muted text-primary">
                   <Package className="h-7 w-7" />
                 </span>
-                <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">
                   {i.category}
                 </div>
                 <div className="font-semibold text-sm truncate w-full">{i.name}</div>
@@ -162,7 +162,7 @@ function Inventory() {
                   </span>
                 </div>
                 {low && (
-                  <span className="inline-flex items-center gap-1 rounded-full bg-destructive/10 text-destructive px-1.5 py-0.5 text-[10px] font-bold uppercase">
+                  <span className="inline-flex items-center gap-1 rounded-full bg-destructive/10 text-destructive px-1.5 py-0.5 text-[0.625rem] font-bold uppercase">
                     <AlertTriangle className="h-3 w-3" /> Low
                   </span>
                 )}
@@ -187,11 +187,11 @@ function Inventory() {
                   </span>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                      <span className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">
                         {i.category}
                       </span>
                       {low && (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-destructive/10 text-destructive px-1.5 py-0.5 text-[10px] font-bold uppercase">
+                        <span className="inline-flex items-center gap-1 rounded-full bg-destructive/10 text-destructive px-1.5 py-0.5 text-[0.625rem] font-bold uppercase">
                           <AlertTriangle className="h-3 w-3" /> Low
                         </span>
                       )}
@@ -228,7 +228,7 @@ function Inventory() {
               >
                 <Package className="h-4 w-4 text-primary shrink-0" />
                 <span className="font-semibold text-sm truncate flex-1">{i.name}</span>
-                <span className="text-[10px] uppercase tracking-wider text-muted-foreground hidden sm:inline w-24 truncate">
+                <span className="text-[0.625rem] uppercase tracking-wider text-muted-foreground hidden sm:inline w-24 truncate">
                   {i.category}
                 </span>
                 <span className="text-xs text-muted-foreground hidden md:inline w-40 truncate">
@@ -411,7 +411,7 @@ function EditDialog({
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <label className="block space-y-1">
-      <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">
+      <span className="text-[0.625rem] uppercase tracking-wider text-muted-foreground font-semibold">
         {label}
       </span>
       {children}

@@ -405,7 +405,7 @@ function BikeProfile() {
           {editing && form ? (
             <div className="card-surface p-4 grid grid-cols-2 gap-2">
               <div>
-                <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">
+                <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground mb-1">
                   Mileage
                 </div>
                 <div className="relative">
@@ -427,7 +427,7 @@ function BikeProfile() {
                 </div>
               </div>
               <div>
-                <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">
+                <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground mb-1">
                   VIN
                 </div>
                 <Input
@@ -436,7 +436,7 @@ function BikeProfile() {
                 />
               </div>
               <div>
-                <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">
+                <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground mb-1">
                   Rego expiry
                 </div>
                 <Input
@@ -446,7 +446,7 @@ function BikeProfile() {
                 />
               </div>
               <div>
-                <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">
+                <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground mb-1">
                   WOF expiry
                 </div>
                 <Input
@@ -479,7 +479,7 @@ function BikeProfile() {
 
           {editing && form && b.customer_id ? (
             <div className="card-surface p-4 space-y-2">
-              <div className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground flex items-center gap-1">
+              <div className="text-[0.625rem] uppercase tracking-[0.25em] text-muted-foreground flex items-center gap-1">
                 <User className="h-3 w-3" /> Owner
               </div>
               <div className="grid grid-cols-2 gap-2">
@@ -512,7 +512,7 @@ function BikeProfile() {
                 params={{ customerId: b.customers.id }}
                 className="card-surface p-4 space-y-1 block hover:border-primary/40"
               >
-                <div className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground flex items-center gap-1">
+                <div className="text-[0.625rem] uppercase tracking-[0.25em] text-muted-foreground flex items-center gap-1">
                   <User className="h-3 w-3" /> Owner
                 </div>
                 <div className="font-semibold">
@@ -528,7 +528,7 @@ function BikeProfile() {
           {editing && form ? (
             <div className="card-surface p-4 space-y-3">
               <div>
-                <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">
+                <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground mb-1">
                   Modifications
                 </div>
                 <Textarea
@@ -538,7 +538,7 @@ function BikeProfile() {
                 />
               </div>
               <div>
-                <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">
+                <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground mb-1">
                   ECU info
                 </div>
                 <Input
@@ -547,7 +547,7 @@ function BikeProfile() {
                 />
               </div>
               <div>
-                <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">
+                <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground mb-1">
                   Notes
                 </div>
                 <Textarea
@@ -587,7 +587,7 @@ function BikeProfile() {
                     {j.job_number} · {new Date(j.created_at).toLocaleDateString()}
                   </div>
                 </div>
-                <span className="text-[10px] uppercase tracking-wider px-2 py-1 rounded-md bg-muted">
+                <span className="text-[0.625rem] uppercase tracking-wider px-2 py-1 rounded-md bg-muted">
                   {j.status}
                 </span>
               </Link>
@@ -660,7 +660,7 @@ function BikeProfile() {
 function Stat({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
   return (
     <div className="card-surface p-3">
-      <div className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground flex items-center gap-1">
+      <div className="text-[0.625rem] uppercase tracking-[0.25em] text-muted-foreground flex items-center gap-1">
         {icon}
         {label}
       </div>
@@ -672,7 +672,7 @@ function Stat({ icon, label, value }: { icon: React.ReactNode; label: string; va
 function Field({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <div className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground">{label}</div>
+      <div className="text-[0.625rem] uppercase tracking-[0.25em] text-muted-foreground">{label}</div>
       <div className="text-sm whitespace-pre-wrap">{value}</div>
     </div>
   );

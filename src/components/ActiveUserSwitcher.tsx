@@ -99,7 +99,7 @@ export function ActiveUserSwitcher() {
           <span className="hidden md:inline max-w-[140px] truncate">
             {active ? active.full_name : "Select user"}
           </span>
-          <span className="md:hidden grid h-6 w-6 place-items-center rounded-full bg-muted text-[10px] font-semibold">
+          <span className="md:hidden grid h-6 w-6 place-items-center rounded-full bg-muted text-[0.625rem] font-semibold">
             {initials(active?.full_name ?? "?")}
           </span>
           <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
@@ -122,12 +122,12 @@ export function ActiveUserSwitcher() {
                 }}
                 className="flex items-center gap-2"
               >
-                <span className="grid h-7 w-7 place-items-center rounded-full bg-muted text-[10px] font-semibold">
+                <span className="grid h-7 w-7 place-items-center rounded-full bg-muted text-[0.625rem] font-semibold">
                   {initials(t.full_name)}
                 </span>
                 <span className="flex-1 min-w-0">
                   <span className="block truncate text-sm font-medium">{t.full_name}</span>
-                  <span className="block truncate text-[10px] uppercase tracking-wider text-muted-foreground">
+                  <span className="block truncate text-[0.625rem] uppercase tracking-wider text-muted-foreground">
                     {t.role}
                   </span>
                 </span>

@@ -218,7 +218,7 @@ function InfoRow({
         <Icon className="h-4 w-4 text-primary" />
       </span>
       <div className="min-w-0">
-        <div className="text-[10px] uppercase tracking-wider text-muted-foreground">{label}</div>
+        <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">{label}</div>
         <div className="text-sm font-semibold truncate">{value || "—"}</div>
         {sub && <div className="text-xs text-muted-foreground truncate">{sub}</div>}
       </div>

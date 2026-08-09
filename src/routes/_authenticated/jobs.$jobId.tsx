@@ -361,10 +361,10 @@ function JobDetail() {
           </div>
         </div>
         <div className="min-w-0">
-          <div className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground flex flex-wrap items-center gap-2">
+          <div className="text-[0.625rem] uppercase tracking-[0.25em] text-muted-foreground flex flex-wrap items-center gap-2">
             <span>Job #{j.job_number}</span>
             <span
-              className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${kindMeta.cls}`}
+              className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[0.625rem] font-bold uppercase tracking-wider ${kindMeta.cls}`}
             >
               {kindMeta.label}
             </span>
@@ -392,7 +392,7 @@ function JobDetail() {
               className="h-14 w-14 rounded-md object-contain bg-black/10 p-1"
             />
             <div className="min-w-0">
-              <div className="text-[10px] uppercase tracking-[0.25em] text-gray-600">
+              <div className="text-[0.625rem] uppercase tracking-[0.25em] text-gray-600">
                 Motorcycle Doctors · Job Card
               </div>
               <h1 className="font-display text-2xl font-bold leading-tight">{j.title}</h1>
@@ -404,16 +404,16 @@ function JobDetail() {
             </div>
           </div>
           <div className="text-right shrink-0">
-            <div className="text-[9px] uppercase tracking-[0.25em] text-gray-500">Job No.</div>
+            <div className="text-[0.5625rem] uppercase tracking-[0.25em] text-gray-500">Job No.</div>
             <div className="font-display text-4xl font-extrabold leading-none">#{j.job_number}</div>
           </div>
         </div>
 
         <div className="grid grid-cols-2 gap-4 text-xs mb-4">
           <div className="border border-gray-400 rounded p-2">
-            <div className="text-[9px] uppercase tracking-wider text-gray-500 mb-1">Vehicle</div>
+            <div className="text-[0.5625rem] uppercase tracking-wider text-gray-500 mb-1">Vehicle</div>
             <div className="font-bold">{fullBike(j.motorcycles as any)}</div>
-            <div className="grid grid-cols-2 gap-x-2 mt-1 text-[11px]">
+            <div className="grid grid-cols-2 gap-x-2 mt-1 text-[0.6875rem]">
               <div>
                 <span className="text-gray-500">Rego:</span> {(j.motorcycles as any)?.rego ?? "—"}
               </div>
@@ -451,11 +451,11 @@ function JobDetail() {
             </div>
           </div>
           <div className="border border-gray-400 rounded p-2">
-            <div className="text-[9px] uppercase tracking-wider text-gray-500 mb-1">Customer</div>
+            <div className="text-[0.5625rem] uppercase tracking-wider text-gray-500 mb-1">Customer</div>
             <div className="font-bold">
               {j.customers?.first_name ?? ""} {j.customers?.last_name ?? ""}
             </div>
-            <div className="text-[11px] mt-1">
+            <div className="text-[0.6875rem] mt-1">
               <div>
                 <span className="text-gray-500">Phone:</span> {j.customers?.phone ?? "—"}
               </div>
@@ -468,14 +468,14 @@ function JobDetail() {
 
         {j.complaint && (
           <div className="border border-gray-400 rounded p-2 mb-4 text-xs">
-            <div className="text-[9px] uppercase tracking-wider text-gray-500 mb-1">
+            <div className="text-[0.5625rem] uppercase tracking-wider text-gray-500 mb-1">
               Customer Complaint / Instructions
             </div>
             <p className="whitespace-pre-wrap">{j.complaint}</p>
           </div>
         )}
 
-        <div className="text-[9px] uppercase tracking-wider text-gray-500 mb-1">
+        <div className="text-[0.5625rem] uppercase tracking-wider text-gray-500 mb-1">
           Instructions — follow checklist below
         </div>
       </div>
@@ -492,7 +492,7 @@ function JobDetail() {
           <div className="flex items-start gap-3">
             <BikeIcon className="h-5 w-5 mt-0.5 text-muted-foreground shrink-0" />
             <div className="min-w-0">
-              <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+              <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">
                 Motorcycle
               </div>
               <div className="font-semibold truncate">{fullBike(j.motorcycles as any)}</div>
@@ -542,7 +542,7 @@ function JobDetail() {
         <div className="card-surface p-4">
           <div className="flex items-center justify-between gap-3 flex-wrap">
             <div>
-              <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+              <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">
                 Labour logged
               </div>
               <div className="font-display text-3xl font-bold gold-gradient-text">
@@ -623,7 +623,7 @@ function JobDetail() {
               <h2 className="font-display text-base font-bold uppercase tracking-wider border-b border-black pb-1 mb-2">
                 Parts Used
               </h2>
-              <table className="w-full text-[11px] border-collapse">
+              <table className="w-full text-[0.6875rem] border-collapse">
                 <thead>
                   <tr className="border-b border-gray-400 text-left">
                     <th className="py-1 pr-2">Item</th>
@@ -667,7 +667,7 @@ function JobDetail() {
         <section className="card-surface p-4 border-l-4 border-primary/60">
           <div className="flex items-center gap-2 mb-2">
             <h2 className="font-display text-lg font-semibold">Instructions</h2>
-            <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
+            <span className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">
               from book-in
             </span>
           </div>
@@ -676,7 +676,7 @@ function JobDetail() {
           )}
           {booking.data?.notes && (
             <div className="mt-2 pt-2 border-t border-border/40">
-              <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-0.5">
+              <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground mb-0.5">
                 Internal notes
               </div>
               <p className="text-sm whitespace-pre-wrap">{booking.data.notes}</p>
@@ -707,11 +707,11 @@ function JobDetail() {
           {(notes.data ?? []).map((n: any) => (
             <div key={n.id} className="rounded-lg border border-border bg-background/40 p-3">
               <div className="flex items-center gap-2 mb-1">
-                <span className="grid h-6 w-6 place-items-center rounded-full bg-muted text-[10px] font-semibold">
+                <span className="grid h-6 w-6 place-items-center rounded-full bg-muted text-[0.625rem] font-semibold">
                   {initials(n.author_name)}
                 </span>
                 <span className="text-xs font-semibold">{n.author_name}</span>
-                <span className="text-[10px] text-muted-foreground">
+                <span className="text-[0.625rem] text-muted-foreground">
                   {new Date(n.created_at).toLocaleString()}
                 </span>
               </div>
@@ -787,7 +787,7 @@ function InfoRow({
         <Icon className="h-4 w-4" />
       </span>
       <div className="min-w-0">
-        <div className="text-[10px] uppercase tracking-wider text-muted-foreground">{label}</div>
+        <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">{label}</div>
         <div className="font-semibold truncate">{value || "—"}</div>
         {hint && <div className="text-xs text-muted-foreground truncate">{hint}</div>}
       </div>
@@ -952,7 +952,7 @@ function TaskRow({
         />
         <span className="hidden print:inline-block h-3.5 w-3.5 mt-0.5 shrink-0 border border-black rounded-[2px]" />
         <span
-          className={`text-xs leading-snug print:text-[13px] print:text-black ${task.is_done ? "text-muted-foreground line-through print:no-underline print:text-black" : "text-foreground"}`}
+          className={`text-xs leading-snug print:text-[0.8125rem] print:text-black ${task.is_done ? "text-muted-foreground line-through print:no-underline print:text-black" : "text-foreground"}`}
         >
           {task.label}
         </span>
@@ -973,23 +973,23 @@ function TaskRow({
             }}
             placeholder="Quick note…"
             maxLength={140}
-            className="flex-1 bg-transparent border-0 border-b border-border/30 text-[11px] py-0 focus:outline-none focus:border-primary placeholder:text-muted-foreground/40"
+            className="flex-1 bg-transparent border-0 border-b border-border/30 text-[0.6875rem] py-0 focus:outline-none focus:border-primary placeholder:text-muted-foreground/40"
           />
           {dirty && (
-            <span className="text-[9px] uppercase tracking-wider text-muted-foreground/60">
+            <span className="text-[0.5625rem] uppercase tracking-wider text-muted-foreground/60">
               saving…
             </span>
           )}
           {!dirty && savedTick && (
-            <span className="text-[9px] uppercase tracking-wider text-status-ready">✓ saved</span>
+            <span className="text-[0.5625rem] uppercase tracking-wider text-status-ready">✓ saved</span>
           )}
         </div>
       )}
 
       {!canEdit && note && (
-        <p className="mt-0 pl-5 text-[11px] text-muted-foreground italic">{note}</p>
+        <p className="mt-0 pl-5 text-[0.6875rem] text-muted-foreground italic">{note}</p>
       )}
-      {note && <p className="hidden print:block pl-5 text-[11px] text-black italic">↳ {note}</p>}
+      {note && <p className="hidden print:block pl-5 text-[0.6875rem] text-black italic">↳ {note}</p>}
     </div>
   );
 }
@@ -1087,14 +1087,14 @@ function ServiceTemplateSection({
                   : "border-border hover:border-primary/40"
               } disabled:opacity-60`}
             >
-              <div className="text-[10px] uppercase tracking-wider font-bold">
+              <div className="text-[0.625rem] uppercase tracking-wider font-bold">
                 {tmpl.name.replace(" Service", "")}
               </div>
-              <div className="text-[10px] text-muted-foreground mt-0.5">
+              <div className="text-[0.625rem] text-muted-foreground mt-0.5">
                 {tmpl.estimated_hours ?? "—"}h
               </div>
               {switching === tmpl.id && (
-                <div className="text-[10px] text-muted-foreground">Switching…</div>
+                <div className="text-[0.625rem] text-muted-foreground">Switching…</div>
               )}
             </button>
           );
@@ -1276,7 +1276,7 @@ function PartsSection({
                   (u ? (
                     <button
                       onClick={() => clearField(f.key)}
-                      className="text-[10px] text-destructive flex items-center gap-1"
+                      className="text-[0.625rem] text-destructive flex items-center gap-1"
                     >
                       <X className="h-3 w-3" /> Remove
                     </button>
@@ -1285,7 +1285,7 @@ function PartsSection({
                       onClick={() =>
                         setPicker({ key: f.key, category: f.category, label: f.label })
                       }
-                      className="text-[11px] font-semibold text-primary flex items-center gap-1 hover:underline"
+                      className="text-[0.6875rem] font-semibold text-primary flex items-center gap-1 hover:underline"
                     >
                       <Plus className="h-3 w-3" /> Pick from inventory
                     </button>
@@ -1328,7 +1328,7 @@ function PartsSection({
 
       {parts.length > 0 && (
         <div className="mt-4 pt-3 border-t border-border">
-          <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-2 font-semibold">
+          <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground mb-2 font-semibold">
             Stock movements logged
           </div>
           <ul className="text-xs space-y-1">
@@ -1472,7 +1472,7 @@ function InventoryPicker({
                   </div>
                   <div className="text-right shrink-0">
                     <div className="text-xs font-bold">${Number(i.unit_price).toFixed(2)}</div>
-                    <div className="text-[10px] text-muted-foreground">
+                    <div className="text-[0.625rem] text-muted-foreground">
                       {Number(i.stock_qty)} {i.unit}
                     </div>
                   </div>
@@ -1656,31 +1656,31 @@ function ValveClearanceSection({
 
         {/* Manufacturer recommendation */}
         <div className="mb-3 rounded-lg border border-primary/40 bg-primary/5 p-3">
-          <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold mb-1">
+          <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground font-bold mb-1">
             Manufacturer recommendation{" "}
             {spec.generic && <span className="text-status-parts">· generic — verify manual</span>}
           </div>
           <div className="grid grid-cols-2 gap-3 text-sm">
             <div>
-              <div className="text-[10px] text-status-progress font-semibold">INTAKE (cold)</div>
+              <div className="text-[0.625rem] text-status-progress font-semibold">INTAKE (cold)</div>
               <div className="font-mono font-bold">{formatRange(spec.intake)}</div>
             </div>
             <div>
-              <div className="text-[10px] text-destructive font-semibold">EXHAUST (cold)</div>
+              <div className="text-[0.625rem] text-destructive font-semibold">EXHAUST (cold)</div>
               <div className="font-mono font-bold">{formatRange(spec.exhaust)}</div>
             </div>
           </div>
-          <div className="mt-1.5 text-[10px] text-muted-foreground">
+          <div className="mt-1.5 text-[0.625rem] text-muted-foreground">
             Source: {spec.source}
             {bike?.make
               ? ` · ${bike.make} ${bike.model ?? ""}${bike.year ? ` ${bike.year}` : ""}`
               : ""}
           </div>
-          {spec.note && <div className="mt-1 text-[10px] text-status-parts">{spec.note}</div>}
+          {spec.note && <div className="mt-1 text-[0.625rem] text-status-parts">{spec.note}</div>}
         </div>
 
         <div className="rounded-xl border border-border bg-background/40 p-4 overflow-x-auto">
-          <div className="text-[10px] uppercase tracking-wider text-muted-foreground text-center mb-3">
+          <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground text-center mb-3">
             Top-down view · INTAKE (top) / EXHAUST (bottom)
           </div>
           <div className="flex gap-4 min-w-fit justify-center">
@@ -1692,7 +1692,7 @@ function ValveClearanceSection({
                   className="rounded-2xl border-2 border-border bg-card/60 p-3 flex flex-col items-center gap-2"
                   style={{ minWidth: 150 }}
                 >
-                  <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold">
+                  <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground font-bold">
                     Cyl {cyl}
                   </div>
                   {/* Intake row — two big circles */}
@@ -1733,7 +1733,7 @@ function ValveClearanceSection({
             })}
           </div>
         </div>
-        <div className="mt-3 flex items-center gap-3 text-[10px] text-muted-foreground flex-wrap">
+        <div className="mt-3 flex items-center gap-3 text-[0.625rem] text-muted-foreground flex-wrap">
           <span className="inline-flex items-center gap-1">
             <span className="h-3 w-3 rounded-full bg-status-progress/40 border border-status-progress/60" />{" "}
             Intake
@@ -1751,7 +1751,7 @@ function ValveClearanceSection({
           </span>
         </div>
         {canEdit && (
-          <div className="mt-3 flex justify-end items-center gap-3 text-[10px] uppercase tracking-wider text-muted-foreground">
+          <div className="mt-3 flex justify-end items-center gap-3 text-[0.625rem] uppercase tracking-wider text-muted-foreground">
             {saving || dirty ? "saving…" : savedTick ? "✓ saved" : "auto-saves as you type"}
           </div>
         )}
@@ -1785,7 +1785,7 @@ function ValveClearancePrintSheet({
       `}</style>
       <div className="flex items-center justify-between gap-3 border-b-2 border-black pb-1 mb-3">
         <div className="min-w-0">
-          <div className="text-[10px] uppercase tracking-[0.25em] text-gray-600">
+          <div className="text-[0.625rem] uppercase tracking-[0.25em] text-gray-600">
             Valve Clearance Worksheet
           </div>
           <h1 className="font-display text-lg font-bold leading-tight">
@@ -1793,10 +1793,10 @@ function ValveClearancePrintSheet({
             {bike?.rego ?? "—"}
           </h1>
         </div>
-        <div className="text-right shrink-0 text-[11px]">
+        <div className="text-right shrink-0 text-[0.6875rem]">
           <b>Spec (cold)</b> · I <span className="font-mono">{formatRange(spec.intake)}</span> · E{" "}
           <span className="font-mono">{formatRange(spec.exhaust)}</span>
-          <div className="text-[9px] text-gray-500">
+          <div className="text-[0.5625rem] text-gray-500">
             {spec.generic ? "Generic — verify manual · " : ""}
             {spec.source}
           </div>
@@ -1804,12 +1804,12 @@ function ValveClearancePrintSheet({
       </div>
 
       {spec.note && (
-        <div className="text-[10px] text-gray-700 mb-2">
+        <div className="text-[0.625rem] text-gray-700 mb-2">
           <b>Note:</b> {spec.note}
         </div>
       )}
 
-      <div className="text-[10px] uppercase tracking-[0.2em] text-gray-600 text-center mb-2">
+      <div className="text-[0.625rem] uppercase tracking-[0.2em] text-gray-600 text-center mb-2">
         Top-down · INTAKE top / EXHAUST bottom · write measured mm inside each circle
       </div>
       <div className="flex gap-4 justify-center items-stretch mb-3">
@@ -1821,7 +1821,7 @@ function ValveClearancePrintSheet({
               className="border border-gray-400 rounded-2xl p-3 flex flex-col items-center gap-2 flex-1"
               style={{ maxWidth: 220 }}
             >
-              <div className="text-[11px] uppercase tracking-wider text-gray-700 font-bold">
+              <div className="text-[0.6875rem] uppercase tracking-wider text-gray-700 font-bold">
                 Cyl {cyl}
               </div>
               <div className="flex gap-2">
@@ -1856,7 +1856,7 @@ function ValveClearancePrintSheet({
         })}
       </div>
 
-      <div className="flex items-center justify-between gap-3 text-[10px] text-gray-700 mt-3 pt-1 border-t border-gray-300">
+      <div className="flex items-center justify-between gap-3 text-[0.625rem] text-gray-700 mt-3 pt-1 border-t border-gray-300">
         <span>New shim = Current + (Measured − Target). Target = mid-spec.</span>
         <span>Technician: ______________ Date: ___ / ___ / ______</span>
       </div>
@@ -1920,7 +1920,7 @@ function OdometerSection({
     <div className="card-surface p-4 print:hidden">
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <div>
-          <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+          <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">
             Kilometers (odometer)
           </div>
           <div className="text-xs text-muted-foreground mt-0.5">
@@ -1953,7 +1953,7 @@ function OdometerSection({
               km
             </span>
           </div>
-          <span className="text-[10px] uppercase tracking-wider text-muted-foreground min-w-[52px]">
+          <span className="text-[0.625rem] uppercase tracking-wider text-muted-foreground min-w-[52px]">
             {saving || dirty ? "saving…" : savedTick ? "✓ saved" : "\u00A0"}
           </span>
         </div>
@@ -2021,7 +2021,7 @@ function ExpirySection({
     <div className="card-surface p-4 print:hidden">
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <div>
-          <div className="text-[10px] uppercase tracking-wider text-muted-foreground">{label}</div>
+          <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">{label}</div>
           <div className="text-xs text-muted-foreground mt-0.5">
             {hint}
             {currentValue && (
@@ -2049,7 +2049,7 @@ function ExpirySection({
             disabled={!canEdit || saving}
             className="w-48 h-11 font-mono text-base"
           />
-          <span className="text-[10px] uppercase tracking-wider text-muted-foreground min-w-[52px]">
+          <span className="text-[0.625rem] uppercase tracking-wider text-muted-foreground min-w-[52px]">
             {saving || dirty ? "saving…" : savedTick ? "✓ saved" : "\u00A0"}
           </span>
         </div>
@@ -2161,7 +2161,7 @@ function TimeEntriesEditor({
       <button
         type="button"
         onClick={() => setExpanded((v) => !v)}
-        className="w-full flex items-center justify-between text-[10px] uppercase tracking-wider text-muted-foreground hover:text-foreground"
+        className="w-full flex items-center justify-between text-[0.625rem] uppercase tracking-wider text-muted-foreground hover:text-foreground"
       >
         <span>
           Time entries ({sorted.length}){isAdmin ? " · admin can edit any" : ""}
@@ -2190,7 +2190,7 @@ function TimeEntriesEditor({
                   <div className="flex flex-col sm:flex-row sm:items-center gap-2">
                     <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-2">
                       <label className="flex flex-col gap-0.5">
-                        <span className="text-[9px] uppercase tracking-wider text-muted-foreground">
+                        <span className="text-[0.5625rem] uppercase tracking-wider text-muted-foreground">
                           Start
                         </span>
                         <Input
@@ -2201,7 +2201,7 @@ function TimeEntriesEditor({
                         />
                       </label>
                       <label className="flex flex-col gap-0.5">
-                        <span className="text-[9px] uppercase tracking-wider text-muted-foreground">
+                        <span className="text-[0.5625rem] uppercase tracking-wider text-muted-foreground">
                           End (blank = still running)
                         </span>
                         <Input
@@ -2217,7 +2217,7 @@ function TimeEntriesEditor({
                         size="sm"
                         onClick={() => save(e)}
                         disabled={saving}
-                        className="h-8 gold-surface text-[11px]"
+                        className="h-8 gold-surface text-[0.6875rem]"
                       >
                         {saving ? "Saving…" : "Save"}
                       </Button>
@@ -2225,7 +2225,7 @@ function TimeEntriesEditor({
                         size="sm"
                         variant="outline"
                         onClick={cancel}
-                        className="h-8 text-[11px]"
+                        className="h-8 text-[0.6875rem]"
                       >
                         Cancel
                       </Button>
@@ -2235,7 +2235,7 @@ function TimeEntriesEditor({
                   <div className="flex items-center justify-between gap-2 flex-wrap">
                     <div className="min-w-0">
                       <div className="font-semibold truncate">{tech}</div>
-                      <div className="text-[10px] text-muted-foreground">
+                      <div className="text-[0.625rem] text-muted-foreground">
                         {new Date(e.started_at).toLocaleString()} →{" "}
                         {e.ended_at ? (
                           new Date(e.ended_at).toLocaleString()
@@ -2252,7 +2252,7 @@ function TimeEntriesEditor({
                             size="sm"
                             variant="outline"
                             onClick={() => beginEdit(e)}
-                            className="h-7 text-[10px] px-2"
+                            className="h-7 text-[0.625rem] px-2"
                           >
                             Edit
                           </Button>
@@ -2260,7 +2260,7 @@ function TimeEntriesEditor({
                             size="sm"
                             variant="outline"
                             onClick={() => remove(e)}
-                            className="h-7 text-[10px] px-2 text-destructive hover:text-destructive"
+                            className="h-7 text-[0.625rem] px-2 text-destructive hover:text-destructive"
                           >
                             <X className="h-3 w-3" />
                           </Button>

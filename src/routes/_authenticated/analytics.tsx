@@ -489,7 +489,7 @@ function AnalyticsPage() {
                 <div className="flex items-center justify-between mb-1">
                   <div className="flex items-center gap-2">
                     <span
-                      className="inline-flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold text-white"
+                      className="inline-flex h-5 w-5 items-center justify-center rounded-full text-[0.625rem] font-bold text-white"
                       style={{ background: hues[i % hues.length] }}
                     >
                       {i + 1}
@@ -498,7 +498,7 @@ function AnalyticsPage() {
                   </div>
                   <div className="text-right">
                     <div className="font-display font-bold text-sm">{fmt(c.total)}</div>
-                    <div className="text-[10px] text-muted-foreground">
+                    <div className="text-[0.625rem] text-muted-foreground">
                       {c.count} invoice{c.count === 1 ? "" : "s"}
                     </div>
                   </div>

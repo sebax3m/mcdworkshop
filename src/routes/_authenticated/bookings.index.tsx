@@ -264,7 +264,7 @@ function BookingsList() {
                   {b.confirmed && <Check className="h-5 w-5" strokeWidth={3} />}
                 </button>
                 <div className="w-14 shrink-0 text-center rounded-lg bg-muted py-2">
-                  <div className="text-[10px] uppercase text-muted-foreground">
+                  <div className="text-[0.625rem] uppercase text-muted-foreground">
                     {format(new Date(b.scheduled_date), "MMM")}
                   </div>
                   <div className="font-display text-xl font-bold leading-none">
@@ -275,7 +275,7 @@ function BookingsList() {
                   <div className="flex items-center gap-2">
                     <div className="font-semibold truncate">{bike}</div>
                     {b.confirmed && (
-                      <span className="shrink-0 text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-green-500/15 text-green-400 border border-green-500/30">
+                      <span className="shrink-0 text-[0.625rem] uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-green-500/15 text-green-400 border border-green-500/30">
                         Confirmed
                       </span>
                     )}
@@ -292,7 +292,7 @@ function BookingsList() {
                       <span className="truncate text-foreground/80">
                         {b.jobs.title ?? "Job card"}
                       </span>
-                      <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                      <span className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">
                         · {b.jobs.status}
                       </span>
                     </div>
@@ -326,11 +326,11 @@ function BookingsList() {
                   </>
                 )}
                 <span
-                  className={`shrink-0 text-[10px] uppercase tracking-wider px-2 py-1 rounded-full border ${pColor}`}
+                  className={`shrink-0 text-[0.625rem] uppercase tracking-wider px-2 py-1 rounded-full border ${pColor}`}
                 >
                   {b.priority ?? "normal"}
                 </span>
-                <span className="shrink-0 text-[10px] uppercase tracking-wider px-2 py-1 rounded-full border border-border text-muted-foreground">
+                <span className="shrink-0 text-[0.625rem] uppercase tracking-wider px-2 py-1 rounded-full border border-border text-muted-foreground">
                   {b.status}
                 </span>
               </motion.div>

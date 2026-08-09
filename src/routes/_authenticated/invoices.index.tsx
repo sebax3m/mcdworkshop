@@ -75,7 +75,7 @@ function InvoicesList() {
                 <div className="font-display text-lg font-bold gold-gradient-text">
                   ${Number(inv.total).toFixed(2)}
                 </div>
-                <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">
                   {inv.status}
                 </div>
               </div>

@@ -143,7 +143,7 @@ function UsersPage() {
 
       <header className="flex items-end justify-between gap-4 flex-wrap">
         <div>
-          <div className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground">
+          <div className="text-[0.625rem] uppercase tracking-[0.3em] text-muted-foreground">
             Workshop
           </div>
           <h1 className="font-display text-3xl font-bold">Users & Logins</h1>
@@ -242,7 +242,7 @@ function UsersPage() {
         </div>
       ) : (
         <div className="card-surface overflow-hidden">
-          <div className="hidden md:grid grid-cols-[1fr_1fr_110px_160px_200px] gap-3 px-4 py-3 border-b border-border text-[10px] uppercase tracking-wider text-muted-foreground">
+          <div className="hidden md:grid grid-cols-[1fr_1fr_110px_160px_200px] gap-3 px-4 py-3 border-b border-border text-[0.625rem] uppercase tracking-wider text-muted-foreground">
             <SortHeader
               label="User"
               field="name"
@@ -286,12 +286,12 @@ function UsersPage() {
                       <div className="font-medium truncate flex items-center gap-1.5">
                         {u.full_name}
                         {isActive && (
-                          <span className="inline-flex items-center gap-1 rounded-full bg-primary/15 text-primary text-[9px] uppercase tracking-wider px-1.5 py-0.5">
+                          <span className="inline-flex items-center gap-1 rounded-full bg-primary/15 text-primary text-[0.5625rem] uppercase tracking-wider px-1.5 py-0.5">
                             <Star className="h-2.5 w-2.5 fill-current" /> Active
                           </span>
                         )}
                       </div>
-                      <div className="text-[11px] text-muted-foreground md:hidden truncate">
+                      <div className="text-[0.6875rem] text-muted-foreground md:hidden truncate">
                         {u.email}
                       </div>
                     </div>
@@ -303,7 +303,7 @@ function UsersPage() {
                   <div>
                     <span
                       className={cn(
-                        "inline-flex rounded-full border px-2 py-0.5 text-[10px] uppercase tracking-wider",
+                        "inline-flex rounded-full border px-2 py-0.5 text-[0.625rem] uppercase tracking-wider",
                         u.role === "admin"
                           ? "border-primary/40 bg-primary/10 text-primary"
                           : "border-border text-muted-foreground",
@@ -570,7 +570,7 @@ function EditUserDialog({ user, onClose }: { user: UserLoginRow; onClose: () => 
         </div>
 
         <div className="border-t border-border pt-4 space-y-2">
-          <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+          <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">
             Reset password
           </div>
           <div className="flex gap-2">

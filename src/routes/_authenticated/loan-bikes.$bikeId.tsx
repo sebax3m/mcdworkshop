@@ -260,29 +260,29 @@ function LoanBikeDetail() {
           </span>
           {bike.rego && <span className="text-xs text-muted-foreground">Rego: {bike.rego}</span>}
           {active ? (
-            <span className="rounded-full bg-destructive/15 text-destructive px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider">
+            <span className="rounded-full bg-destructive/15 text-destructive px-2 py-0.5 text-[0.625rem] font-bold uppercase tracking-wider">
               Currently out
             </span>
           ) : (
-            <span className="rounded-full bg-emerald-500/15 text-emerald-500 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider">
+            <span className="rounded-full bg-emerald-500/15 text-emerald-500 px-2 py-0.5 text-[0.625rem] font-bold uppercase tracking-wider">
               Available
             </span>
           )}
         </div>
         <div className="grid grid-cols-3 gap-3 text-sm">
           <div>
-            <div className="text-[10px] uppercase tracking-widest text-muted-foreground">
+            <div className="text-[0.625rem] uppercase tracking-widest text-muted-foreground">
               Current km
             </div>
             <div className="font-display text-xl font-bold">{bike.current_km.toLocaleString()}</div>
           </div>
           <div>
-            <div className="text-[10px] uppercase tracking-widest text-muted-foreground">
+            <div className="text-[0.625rem] uppercase tracking-widest text-muted-foreground">
               Next service
             </div>
             <div className="font-display text-xl font-bold">{nextServiceKm.toLocaleString()}</div>
             <div
-              className={`text-[10px] ${kmToService <= 500 ? "text-amber-400" : "text-muted-foreground"}`}
+              className={`text-[0.625rem] ${kmToService <= 500 ? "text-amber-400" : "text-muted-foreground"}`}
             >
               {kmToService > 0
                 ? `${kmToService.toLocaleString()} km to go`
@@ -290,7 +290,7 @@ function LoanBikeDetail() {
             </div>
           </div>
           <div>
-            <div className="text-[10px] uppercase tracking-widest text-muted-foreground">
+            <div className="text-[0.625rem] uppercase tracking-widest text-muted-foreground">
               Last service
             </div>
             <div className="text-sm font-semibold">
@@ -298,14 +298,14 @@ function LoanBikeDetail() {
                 ? format(new Date(bike.last_service_date + "T00:00:00"), "d MMM yyyy")
                 : "—"}
             </div>
-            <div className="text-[10px] text-muted-foreground">
+            <div className="text-[0.625rem] text-muted-foreground">
               {bike.last_service_km != null ? `@ ${bike.last_service_km.toLocaleString()} km` : ""}
             </div>
           </div>
         </div>
         {active && (
           <div className="rounded-lg border border-amber-400/30 bg-amber-400/5 p-3 text-sm">
-            <div className="text-[10px] uppercase tracking-widest text-amber-400 mb-1">
+            <div className="text-[0.625rem] uppercase tracking-widest text-amber-400 mb-1">
               Currently assigned
             </div>
             <div className="flex items-center gap-2 flex-wrap">

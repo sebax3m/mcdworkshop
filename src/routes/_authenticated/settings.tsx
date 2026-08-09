@@ -80,7 +80,7 @@ function SettingsPage() {
   return (
     <div className="space-y-6 max-w-4xl mx-auto">
       <header>
-        <div className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground">Workshop</div>
+        <div className="text-[0.625rem] uppercase tracking-[0.3em] text-muted-foreground">Workshop</div>
         <h1 className="font-display text-3xl font-bold">Settings</h1>
         <p className="text-sm text-muted-foreground mt-1">
           Manage everything that powers your workshop in one place.

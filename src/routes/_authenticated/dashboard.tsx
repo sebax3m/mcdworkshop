@@ -186,7 +186,7 @@ function KpiCard({
   return (
     <div className="card-surface p-4">
       <div className="flex items-center justify-between">
-        <span className="text-[10px] uppercase tracking-wider text-muted-foreground">{label}</span>
+        <span className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">{label}</span>
         <Icon className={`h-4 w-4 ${accentCls}`} />
       </div>
       <div className={`mt-2 font-display text-3xl font-bold tabular-nums ${accentCls}`}>
@@ -211,7 +211,7 @@ function JobCard({ job }: { job: any }) {
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+          <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">
             Job #{job.job_number}
           </div>
           <div className="font-semibold truncate mt-0.5">{job.title}</div>
@@ -219,7 +219,7 @@ function JobCard({ job }: { job: any }) {
           <div className="text-xs text-muted-foreground truncate mt-0.5">{bike}</div>
         </div>
         <span
-          className={`shrink-0 inline-flex items-center gap-1.5 rounded-full border px-2 py-1 text-[10px] font-semibold uppercase tracking-wider ${meta.cls}`}
+          className={`shrink-0 inline-flex items-center gap-1.5 rounded-full border px-2 py-1 text-[0.625rem] font-semibold uppercase tracking-wider ${meta.cls}`}
         >
           <span className={`h-1.5 w-1.5 rounded-full ${meta.dot}`} />
           {meta.label}
@@ -228,7 +228,7 @@ function JobCard({ job }: { job: any }) {
       <div className="mt-3 flex items-center justify-between text-xs">
         {tech ? (
           <div className="flex items-center gap-1.5 text-muted-foreground">
-            <span className="grid h-6 w-6 place-items-center rounded-full bg-muted text-[10px] font-semibold text-foreground">
+            <span className="grid h-6 w-6 place-items-center rounded-full bg-muted text-[0.625rem] font-semibold text-foreground">
               {initials(tech)}
             </span>
             {tech}

@@ -66,7 +66,7 @@ export function TimeSlotFields({
           <span>{err}</span>
         </div>
       ) : (
-        <div className="text-[11px] text-muted-foreground">
+        <div className="text-[0.6875rem] text-muted-foreground">
           The calendar slot is separate from the estimated job time.
         </div>
       )}

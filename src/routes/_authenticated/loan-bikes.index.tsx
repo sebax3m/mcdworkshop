@@ -151,19 +151,19 @@ function LoanBikesIndex() {
                   <span className="flex items-center gap-2 flex-wrap">
                     <span className="font-semibold truncate">{b.name}</span>
                     {b.rego && (
-                      <span className="text-[10px] text-muted-foreground">· {b.rego}</span>
+                      <span className="text-[0.625rem] text-muted-foreground">· {b.rego}</span>
                     )}
                     {isOut ? (
-                      <span className="rounded-full bg-destructive/15 text-destructive px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider">
+                      <span className="rounded-full bg-destructive/15 text-destructive px-2 py-0.5 text-[0.625rem] font-bold uppercase tracking-wider">
                         Out
                       </span>
                     ) : (
-                      <span className="rounded-full bg-emerald-500/15 text-emerald-500 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider">
+                      <span className="rounded-full bg-emerald-500/15 text-emerald-500 px-2 py-0.5 text-[0.625rem] font-bold uppercase tracking-wider">
                         Available
                       </span>
                     )}
                     {serviceSoon && (
-                      <span className="rounded-full bg-amber-400/15 text-amber-400 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider inline-flex items-center gap-1">
+                      <span className="rounded-full bg-amber-400/15 text-amber-400 px-2 py-0.5 text-[0.625rem] font-bold uppercase tracking-wider inline-flex items-center gap-1">
                         <Wrench className="h-3 w-3" /> Service due
                       </span>
                     )}

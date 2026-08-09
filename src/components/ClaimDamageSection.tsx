@@ -153,7 +153,7 @@ export function ClaimDamageSection({
             <AlertTriangle className="h-5 w-5" />
           </div>
           <div>
-            <div className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground font-bold">
+            <div className="text-[0.625rem] uppercase tracking-[0.25em] text-muted-foreground font-bold">
               Collision
             </div>
             <h2 className="font-display text-lg font-semibold">Damage diagram</h2>
@@ -296,7 +296,7 @@ export function ClaimDamageSection({
               className="flex items-center gap-2 rounded-lg border border-border bg-background/40 px-2.5 py-1.5 text-xs"
             >
               <span
-                className="grid h-6 w-6 place-items-center rounded-full text-white font-bold text-[11px] shrink-0"
+                className="grid h-6 w-6 place-items-center rounded-full text-white font-bold text-[0.6875rem] shrink-0"
                 style={{ background: SEVERITY[m.severity].color }}
               >
                 {i + 1}

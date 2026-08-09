@@ -323,7 +323,7 @@ function Customers() {
               }`}
             >
               <div className="text-sm font-semibold">{value}</div>
-              <div className="text-[10px] uppercase tracking-wider text-muted-foreground truncate">
+              <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground truncate">
                 {label}
               </div>
             </button>
@@ -446,7 +446,7 @@ function Customers() {
                       </span>
                     </Link>
                     {idx === 0 ? (
-                      <span className="text-[10px] uppercase tracking-wider text-primary">
+                      <span className="text-[0.625rem] uppercase tracking-wider text-primary">
                         Keep
                       </span>
                     ) : (
@@ -516,22 +516,22 @@ function Customers() {
                     {c.first_name}
                     {c.last_name ? ` ${c.last_name}` : ""}
                     {c.is_archived && (
-                      <span className="text-[10px] uppercase tracking-wider rounded px-1 py-0.5 border border-border text-muted-foreground">
+                      <span className="text-[0.625rem] uppercase tracking-wider rounded px-1 py-0.5 border border-border text-muted-foreground">
                         Archived
                       </span>
                     )}
                     {suspicious && (
-                      <span className="inline-flex items-center gap-0.5 text-[10px] uppercase tracking-wider rounded px-1 py-0.5 border border-amber-500/40 text-amber-500">
+                      <span className="inline-flex items-center gap-0.5 text-[0.625rem] uppercase tracking-wider rounded px-1 py-0.5 border border-amber-500/40 text-amber-500">
                         <AlertTriangle className="h-2.5 w-2.5" /> Suspicious
                       </span>
                     )}
                     {noPhone && (
-                      <span className="text-[10px] uppercase tracking-wider rounded px-1 py-0.5 border border-destructive/40 text-destructive">
+                      <span className="text-[0.625rem] uppercase tracking-wider rounded px-1 py-0.5 border border-destructive/40 text-destructive">
                         No phone
                       </span>
                     )}
                     {dupIds.has(c.id) && (
-                      <span className="text-[10px] uppercase tracking-wider rounded px-1 py-0.5 border border-primary/40 text-primary">
+                      <span className="text-[0.625rem] uppercase tracking-wider rounded px-1 py-0.5 border border-primary/40 text-primary">
                         Dup
                       </span>
                     )}
@@ -555,7 +555,7 @@ function Customers() {
                       {cBikes.map((b) => (
                         <span
                           key={b.id}
-                          className="inline-flex items-center gap-1 rounded-md bg-muted/60 border border-border/60 px-1.5 py-0.5 text-[10px] text-foreground/80"
+                          className="inline-flex items-center gap-1 rounded-md bg-muted/60 border border-border/60 px-1.5 py-0.5 text-[0.625rem] text-foreground/80"
                         >
                           <Bike className="h-3 w-3 text-primary" />
                           {b.make} {b.model}
@@ -670,12 +670,12 @@ function MergeDialog({
           </button>
         </div>
         <div className="rounded-lg border border-primary/40 bg-primary/5 p-3">
-          <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Keeping</div>
+          <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">Keeping</div>
           <div className="font-semibold">{name(keep)}</div>
           <div className="text-xs text-muted-foreground">{keep.phone ?? "—"}</div>
         </div>
         <div className="rounded-lg border border-destructive/40 bg-destructive/5 p-3">
-          <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+          <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">
             Merging &amp; removing
           </div>
           <div className="font-semibold">{name(merge)}</div>
@@ -691,7 +691,7 @@ function MergeDialog({
           ].map(([label, value]) => (
             <div key={String(label)} className="rounded-md border border-border bg-muted/30 px-2 py-1.5">
               <div className="font-semibold">{counts.isLoading ? "…" : (value ?? 0)}</div>
-              <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+              <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">
                 {label}
               </div>
             </div>

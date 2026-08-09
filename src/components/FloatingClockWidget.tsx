@@ -171,7 +171,7 @@ export function FloatingClockWidget() {
             className="block w-full text-left px-4 py-3 pr-10 cursor-pointer hover:bg-foreground/5 transition-colors"
             aria-label={`Open Job Card ${jobNumber ? `#${jobNumber}` : ""}`}
           >
-            <div className="flex items-center gap-2 text-[10px] uppercase tracking-widest text-foreground/80">
+            <div className="flex items-center gap-2 text-[0.625rem] uppercase tracking-widest text-foreground/80">
               {isBreak ? <Coffee className="h-3 w-3" /> : <Clock className="h-3 w-3" />}
               {isBreak ? "On break" : "Clocked in"}
             </div>
@@ -189,7 +189,7 @@ export function FloatingClockWidget() {
             className="block w-full text-left px-4 py-3 pr-10 cursor-pointer hover:bg-foreground/5 transition-colors"
             aria-label="Open clock"
           >
-            <div className="flex items-center gap-2 text-[10px] uppercase tracking-widest text-foreground/80">
+            <div className="flex items-center gap-2 text-[0.625rem] uppercase tracking-widest text-foreground/80">
               {isBreak ? <Coffee className="h-3 w-3" /> : <Clock className="h-3 w-3" />}
               {isBreak ? "On break" : "Clocked in"}
             </div>
