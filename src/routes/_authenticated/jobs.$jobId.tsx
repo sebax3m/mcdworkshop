@@ -2,6 +2,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { PrintPreview } from "@/components/PrintPreview";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -156,6 +157,9 @@ function JobDetail() {
       ),
     [time.data],
   );
+
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const jobRef = useRef<HTMLDivElement>(null);
 
   if (job.isLoading)
     return (
@@ -326,7 +330,7 @@ function JobDetail() {
   }
 
   return (
-    <div className="space-y-5 max-w-3xl mx-auto jobcard-print">
+    <div ref={jobRef} className="space-y-5 max-w-3xl mx-auto jobcard-print">
       <style>{`
         @media print {
           @page { size: A4; margin: 14mm; }
@@ -349,13 +353,13 @@ function JobDetail() {
           </button>
           <div className="flex items-center gap-2">
             <Button
-              onClick={() => window.print()}
+              onClick={() => setPreviewOpen(true)}
               variant="outline"
               size="sm"
               className="gap-1.5 h-8 px-2.5"
             >
               <Printer className="h-4 w-4" />
-              <span className="hidden sm:inline">Print</span>
+              <span className="hidden sm:inline">Preview & print</span>
             </Button>
             <StatusDropdown current={j.status} onChange={setStatus} />
           </div>
@@ -404,14 +408,18 @@ function JobDetail() {
             </div>
           </div>
           <div className="text-right shrink-0">
-            <div className="text-[0.5625rem] uppercase tracking-[0.25em] text-gray-500">Job No.</div>
+            <div className="text-[0.5625rem] uppercase tracking-[0.25em] text-gray-500">
+              Job No.
+            </div>
             <div className="font-display text-4xl font-extrabold leading-none">#{j.job_number}</div>
           </div>
         </div>
 
         <div className="grid grid-cols-2 gap-4 text-xs mb-4">
           <div className="border border-gray-400 rounded p-2">
-            <div className="text-[0.5625rem] uppercase tracking-wider text-gray-500 mb-1">Vehicle</div>
+            <div className="text-[0.5625rem] uppercase tracking-wider text-gray-500 mb-1">
+              Vehicle
+            </div>
             <div className="font-bold">{fullBike(j.motorcycles as any)}</div>
             <div className="grid grid-cols-2 gap-x-2 mt-1 text-[0.6875rem]">
               <div>
@@ -451,7 +459,9 @@ function JobDetail() {
             </div>
           </div>
           <div className="border border-gray-400 rounded p-2">
-            <div className="text-[0.5625rem] uppercase tracking-wider text-gray-500 mb-1">Customer</div>
+            <div className="text-[0.5625rem] uppercase tracking-wider text-gray-500 mb-1">
+              Customer
+            </div>
             <div className="font-bold">
               {j.customers?.first_name ?? ""} {j.customers?.last_name ?? ""}
             </div>
@@ -586,24 +596,26 @@ function JobDetail() {
       </div>
 
       {/* Service Template */}
-      <ServiceTemplateSection
-        jobId={jobId}
-        currentTemplateId={j.template_id}
-        currentTitle={j.title}
-        tasks={tasks.data ?? []}
-        canEdit={canEdit}
-        completion={completion}
-        onToggleTask={(id: string, done: boolean) => toggleTask(id, done)}
-        onNoteSaved={() => qc.invalidateQueries({ queryKey: ["job-tasks", jobId] })}
-        onTemplateChanged={() => {
-          qc.invalidateQueries({ queryKey: ["job", jobId] });
-          qc.invalidateQueries({ queryKey: ["job-tasks", jobId] });
-        }}
-      />
+      <div data-print-section="checklist">
+        <ServiceTemplateSection
+          jobId={jobId}
+          currentTemplateId={j.template_id}
+          currentTitle={j.title}
+          tasks={tasks.data ?? []}
+          canEdit={canEdit}
+          completion={completion}
+          onToggleTask={(id: string, done: boolean) => toggleTask(id, done)}
+          onNoteSaved={() => qc.invalidateQueries({ queryKey: ["job-tasks", jobId] })}
+          onTemplateChanged={() => {
+            qc.invalidateQueries({ queryKey: ["job", jobId] });
+            qc.invalidateQueries({ queryKey: ["job-tasks", jobId] });
+          }}
+        />
+      </div>
 
       {/* Parts used (service-kind aware) */}
       {SERVICE_PARTS[kind].length > 0 && (
-        <>
+        <div data-print-section="parts">
           <div className="print:hidden">
             <PartsSection
               jobId={jobId}
@@ -647,7 +659,7 @@ function JobDetail() {
               </table>
             </div>
           )}
-        </>
+        </div>
       )}
 
       {/* Valve clearance diagram for Full service — also prints as a worksheet page */}
@@ -664,7 +676,10 @@ function JobDetail() {
 
       {/* Notes */}
       {(booking.data?.instructions || booking.data?.notes) && (
-        <section className="card-surface p-4 border-l-4 border-primary/60">
+        <section
+          data-print-section="instructions"
+          className="card-surface p-4 border-l-4 border-primary/60"
+        >
           <div className="flex items-center gap-2 mb-2">
             <h2 className="font-display text-lg font-semibold">Instructions</h2>
             <span className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">
@@ -695,13 +710,15 @@ function JobDetail() {
         />
       )}
 
-      <section className="card-surface p-4">
+      <section data-print-section="notes" className="card-surface p-4">
         <h2 className="font-display text-lg font-semibold mb-3">Notes</h2>
         {canEdit && (
-          <AddNote
-            jobId={jobId}
-            onAdded={() => qc.invalidateQueries({ queryKey: ["job-notes", jobId] })}
-          />
+          <div className="no-print">
+            <AddNote
+              jobId={jobId}
+              onAdded={() => qc.invalidateQueries({ queryKey: ["job-notes", jobId] })}
+            />
+          </div>
         )}
         <div className="space-y-2 mt-3">
           {(notes.data ?? []).map((n: any) => (
@@ -757,9 +774,35 @@ function JobDetail() {
         </section>
       )}
 
+      <PrintPreview
+        open={previewOpen}
+        onOpenChange={setPreviewOpen}
+        title={`Job card #${j.job_number} — preview`}
+        getPages={() => {
+          const root = jobRef.current;
+          if (!root) return [];
+          const clone = root.cloneNode(true) as HTMLElement;
+          const valve = clone.querySelector(".valve-print-page") as HTMLElement | null;
+          valve?.remove();
+          const pages: { html: string; orientation?: "portrait" | "landscape"; fill?: boolean }[] =
+            [{ html: clone.outerHTML }];
+          if (valve) {
+            valve.classList.remove("hidden");
+            pages.push({ html: valve.outerHTML, orientation: "landscape", fill: true });
+          }
+          return pages;
+        }}
+        sections={[
+          { id: "instructions", label: "Book-in instructions" },
+          { id: "notes", label: "Job notes" },
+          { id: "parts", label: "Parts used" },
+          { id: "checklist", label: "Service checklist" },
+        ]}
+      />
+
       <div className="flex justify-center pt-6 pb-2 no-print">
         <button
-          onClick={() => window.print()}
+          onClick={() => setPreviewOpen(true)}
           className="print-cta gold-surface inline-flex items-center gap-3 rounded-full px-8 py-4 font-display text-base font-bold uppercase tracking-wider shadow-lg"
         >
           <Printer className="h-5 w-5" />
@@ -787,7 +830,9 @@ function InfoRow({
         <Icon className="h-4 w-4" />
       </span>
       <div className="min-w-0">
-        <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">{label}</div>
+        <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">
+          {label}
+        </div>
         <div className="font-semibold truncate">{value || "—"}</div>
         {hint && <div className="text-xs text-muted-foreground truncate">{hint}</div>}
       </div>
@@ -981,7 +1026,9 @@ function TaskRow({
             </span>
           )}
           {!dirty && savedTick && (
-            <span className="text-[0.5625rem] uppercase tracking-wider text-status-ready">✓ saved</span>
+            <span className="text-[0.5625rem] uppercase tracking-wider text-status-ready">
+              ✓ saved
+            </span>
           )}
         </div>
       )}
@@ -989,7 +1036,9 @@ function TaskRow({
       {!canEdit && note && (
         <p className="mt-0 pl-5 text-[0.6875rem] text-muted-foreground italic">{note}</p>
       )}
-      {note && <p className="hidden print:block pl-5 text-[0.6875rem] text-black italic">↳ {note}</p>}
+      {note && (
+        <p className="hidden print:block pl-5 text-[0.6875rem] text-black italic">↳ {note}</p>
+      )}
     </div>
   );
 }
@@ -1662,7 +1711,9 @@ function ValveClearanceSection({
           </div>
           <div className="grid grid-cols-2 gap-3 text-sm">
             <div>
-              <div className="text-[0.625rem] text-status-progress font-semibold">INTAKE (cold)</div>
+              <div className="text-[0.625rem] text-status-progress font-semibold">
+                INTAKE (cold)
+              </div>
               <div className="font-mono font-bold">{formatRange(spec.intake)}</div>
             </div>
             <div>
@@ -2021,7 +2072,9 @@ function ExpirySection({
     <div className="card-surface p-4 print:hidden">
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <div>
-          <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">{label}</div>
+          <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">
+            {label}
+          </div>
           <div className="text-xs text-muted-foreground mt-0.5">
             {hint}
             {currentValue && (
