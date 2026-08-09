@@ -59,6 +59,7 @@ function Bikes() {
   const [selectMode, setSelectMode] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [filter, setFilter] = useState<BikeFilter>("all");
+  const [cleanupOpen, setCleanupOpen] = useState(false);
   const [f, setF] = useState({
     customer_id: "",
     make: "",
