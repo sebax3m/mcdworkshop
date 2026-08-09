@@ -32,16 +32,14 @@ export function useSaveWorkshopCapacity() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (rows: CapacityRow[]) => {
-      const { error } = await (supabase as any)
-        .from("workshop_capacity")
-        .upsert(
-          rows.map((r) => ({
-            weekday: r.weekday,
-            max_bookins: r.max_bookins,
-            updated_at: new Date().toISOString(),
-          })),
-          { onConflict: "weekday" },
-        );
+      const { error } = await (supabase as any).from("workshop_capacity").upsert(
+        rows.map((r) => ({
+          weekday: r.weekday,
+          max_bookins: r.max_bookins,
+          updated_at: new Date().toISOString(),
+        })),
+        { onConflict: "weekday" },
+      );
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["workshop-capacity"] }),

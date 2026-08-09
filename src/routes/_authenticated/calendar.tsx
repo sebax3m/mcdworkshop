@@ -514,8 +514,7 @@ function CalendarPage() {
   async function createQuickBooking() {
     if (!quickSlot) return;
     if (!qFirst.trim()) return toast.error("First name required");
-    if (!qCustomerId && !hasPhone(qPhone))
-      return toast.error("A valid phone number is required");
+    if (!qCustomerId && !hasPhone(qPhone)) return toast.error("A valid phone number is required");
     if (!qBikeMake.trim() || !qBikeModel.trim()) return toast.error("Bike make and model required");
     const startTime = (qEditTime || quickSlot.time).slice(0, 5);
     const endTime = addMinutesToTime(
@@ -693,7 +692,6 @@ function CalendarPage() {
     return 60;
   }
 
-
   async function moveBooking(bookingId: string, newDate: Date, newTime?: string) {
     const dateStr = format(newDate, "yyyy-MM-dd");
     const current = (bookings as any[]).find((b) => b.id === bookingId);
@@ -768,7 +766,6 @@ function CalendarPage() {
     }
     return byDay;
   }, [bookings]);
-
 
   const goPrev = () => {
     if (viewMode === "week") setWeekStart((d) => addWeeks(d, -1));
@@ -896,7 +893,11 @@ function CalendarPage() {
                 const dayBookings = (bookings as any[]).filter((b) => b.scheduled_date === dayKey);
                 const cap = capacityFor(day);
                 const loadPct =
-                  cap > 0 ? Math.min(100, (dayBookings.length / cap) * 100) : dayBookings.length ? 100 : 0;
+                  cap > 0
+                    ? Math.min(100, (dayBookings.length / cap) * 100)
+                    : dayBookings.length
+                      ? 100
+                      : 0;
                 const over = cap > 0 && dayBookings.length > cap;
                 const full = cap > 0 && dayBookings.length >= cap;
                 const today = isToday(day);
@@ -995,7 +996,6 @@ function CalendarPage() {
                   </motion.div>
                 );
               })}
-
             </div>
           </div>
         </div>
@@ -1128,7 +1128,6 @@ function CalendarPage() {
         </div>
       )}
 
-
       {/* LEGEND moved to sidebar (only visible on /calendar) */}
 
       {/* BOOKING QUICK-VIEW POPUP */}
@@ -1192,7 +1191,6 @@ function CalendarPage() {
                 </div>
               </div>
 
-
               {(() => {
                 const b = selectedBooking;
                 const c = serviceColor(b.service_type);
@@ -1208,7 +1206,6 @@ function CalendarPage() {
                   return (
                     <div className="space-y-4">
                       <div className="flex items-center gap-2 flex-wrap">
-
                         <span
                           className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 ring-1 text-[0.6875rem] font-bold uppercase tracking-wider ${c.bg} ${c.ring} ${c.text}`}
                         >
@@ -1290,7 +1287,10 @@ function CalendarPage() {
                           </div>
                           <div className="text-sm font-semibold text-foreground">
                             {b.scheduled_date
-                              ? format(new Date(b.scheduled_date + "T00:00:00"), "EEEE, MMMM d, yyyy")
+                              ? format(
+                                  new Date(b.scheduled_date + "T00:00:00"),
+                                  "EEEE, MMMM d, yyyy",
+                                )
                               : "—"}
                           </div>
                           <div className="text-xs text-muted-foreground">
@@ -1947,7 +1947,6 @@ function CalendarPage() {
               onClick={(e) => e.stopPropagation()}
               className="w-full max-w-md max-h-[90vh] overflow-y-auto rounded-2xl border border-border/60 bg-background/70 backdrop-blur-xl shadow-2xl p-5 space-y-4"
             >
-
               {justCreated ? (
                 <div className="space-y-4">
                   <div>
