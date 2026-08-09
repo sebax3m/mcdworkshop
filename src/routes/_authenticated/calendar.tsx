@@ -217,6 +217,8 @@ function chunk<T>(arr: T[], size: number): T[][] {
 function CalendarPage() {
   const qc = useQueryClient();
   const nav = useNavigate();
+  const { capacityFor } = useWorkshopCapacity();
+  const { isAdmin } = useCurrentUser();
   const [viewMode, setViewMode] = useState<ViewMode>("week");
   const [monthStart, setMonthStart] = useState<Date>(() => startOfMonth(new Date()));
   const [weekStart, setWeekStart] = useState<Date>(() =>
