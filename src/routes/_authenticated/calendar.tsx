@@ -57,7 +57,6 @@ import { useWorkshopCapacity } from "@/hooks/useWorkshopCapacity";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { StickyNote } from "lucide-react";
 
-
 import {
   addMinutesToTime,
   findBookingConflicts,
@@ -122,7 +121,6 @@ const DAILY_CAPACITY_HOURS = 16;
 type ViewMode = "month" | "week";
 
 import { serviceColor, SERVICE_LEGEND, SERVICE_COLORS } from "@/lib/service-colors";
-
 
 const FALLBACK_SERVICE_TYPES = [
   "Basic Service",
@@ -199,7 +197,7 @@ function CalendarPage() {
   const [qEndTime, setQEndTime] = useState<string>("");
   // Editable date/time on top of the quick booking modal
   const [qEditDate, setQEditDate] = useState<string>("");
-  
+
   // After creation we swap the modal into a "just created" view with quick actions
   const [justCreated, setJustCreated] = useState<any | null>(null);
   const [justCreatedNotes, setJustCreatedNotes] = useState<string>("");
@@ -250,7 +248,6 @@ function CalendarPage() {
   useEffect(() => {
     if (quickSlot) {
       setQEditDate(format(quickSlot.date, "yyyy-MM-dd"));
-      
     }
   }, [quickSlot]);
 
@@ -764,8 +761,6 @@ function CalendarPage() {
     qc.invalidateQueries({ queryKey: ["today-bookings"] });
   }
 
-
-
   const totals = useMemo(() => {
     const byDay = new Map<string, number>();
     for (const b of bookings as any[]) {
@@ -1013,9 +1008,7 @@ function CalendarPage() {
       <div className="flex flex-wrap items-center gap-x-3 gap-y-1 px-1 pb-2">
         {SERVICE_LEGEND.map((l) => (
           <span key={l.key} className="inline-flex items-center gap-1.5 text-[0.6875rem]">
-            <span
-              className={`h-2.5 w-2.5 rounded-sm ${SERVICE_COLORS[l.key]?.bg ?? "bg-muted"}`}
-            />
+            <span className={`h-2.5 w-2.5 rounded-sm ${SERVICE_COLORS[l.key]?.bg ?? "bg-muted"}`} />
             <span className="text-muted-foreground">{l.label}</span>
           </span>
         ))}
@@ -1024,7 +1017,6 @@ function CalendarPage() {
       {/* WEEK VIEW — motorcycles booked in per day (no hourly slots) */}
       {viewMode === "week" && (
         <div className="overflow-x-auto min-w-full">
-
           <div className="grid gap-2 min-w-[980px] grid-cols-7 items-start">
             {weekDays.map((day) => {
               const dayKey = format(day, "yyyy-MM-dd");
@@ -1141,7 +1133,9 @@ function CalendarPage() {
                       <>
                         {dayBookings.map((b: any, i: number) => (
                           <div key={b.id} className="contents">
-                            <DropLine active={dropHint?.dayKey === dayKey && dropHint.index === i} />
+                            <DropLine
+                              active={dropHint?.dayKey === dayKey && dropHint.index === i}
+                            />
                             <div
                               onDragOver={(e) => {
                                 e.preventDefault();
@@ -1187,9 +1181,7 @@ function CalendarPage() {
                         />
                       </>
                     )}
-
                   </div>
-
 
                   <button
                     type="button"
@@ -1588,7 +1580,10 @@ function CalendarPage() {
                               )}
                             >
                               {b.scheduled_date
-                                ? format(new Date(b.scheduled_date + "T00:00:00"), "EEE, MMM d, yyyy")
+                                ? format(
+                                    new Date(b.scheduled_date + "T00:00:00"),
+                                    "EEE, MMM d, yyyy",
+                                  )
                                 : "Pick a date"}
                             </button>
                           </PopoverTrigger>
@@ -1620,7 +1615,6 @@ function CalendarPage() {
                         </Popover>
                       </div>
                     </div>
-
 
                     <div className="grid grid-cols-1 gap-3 pt-1 border-t border-border/60">
                       <div className="rounded-lg border border-border/60 bg-muted/20 p-3 space-y-2">
@@ -2043,7 +2037,6 @@ function CalendarPage() {
                         </Popover>
                       </div>
                     </div>
-
                   </div>
 
                   <div>
