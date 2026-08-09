@@ -1082,7 +1082,9 @@ function CalendarPage() {
           <div className="grid gap-2 min-w-[980px] grid-cols-7 items-start">
             {weekDays.map((day) => {
               const dayKey = format(day, "yyyy-MM-dd");
-              const dayBookings = (bookings as any[]).filter((b) => b.scheduled_date === dayKey);
+              const dayBookings = sortBookIns(
+                (bookings as any[]).filter((b) => b.scheduled_date === dayKey),
+              );
               const dayNotes = notesByDay.get(dayKey) ?? [];
               const today = isToday(day);
               const cap = capacityFor(day);
