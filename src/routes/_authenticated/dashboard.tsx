@@ -108,6 +108,8 @@ function Dashboard() {
 
   return (
     <div className="space-y-6">
+      <TodayBookIns />
+
       <div className="flex items-start justify-between gap-4">
         <div>
           <div className="text-xs uppercase tracking-[0.25em] text-muted-foreground">Today</div>
