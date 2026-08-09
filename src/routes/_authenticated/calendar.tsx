@@ -1005,10 +1005,15 @@ function CalendarPage() {
       )}
 
       {/* Service-type colour legend */}
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 px-1 pb-2">
+      <div className="flex flex-wrap items-center gap-x-2 sm:gap-x-3 gap-y-1 px-1 pb-1 sm:pb-2">
         {SERVICE_LEGEND.map((l) => (
-          <span key={l.key} className="inline-flex items-center gap-1.5 text-[0.6875rem]">
-            <span className={`h-2.5 w-2.5 rounded-sm ${SERVICE_COLORS[l.key]?.bg ?? "bg-muted"}`} />
+          <span
+            key={l.key}
+            className="inline-flex items-center gap-1 sm:gap-1.5 text-[0.6rem] sm:text-[0.6875rem]"
+          >
+            <span
+              className={`h-2 w-2 sm:h-2.5 sm:w-2.5 rounded-sm ${SERVICE_COLORS[l.key]?.bg ?? "bg-muted"}`}
+            />
             <span className="text-muted-foreground">{l.label}</span>
           </span>
         ))}
@@ -1017,7 +1022,7 @@ function CalendarPage() {
       {/* WEEK VIEW — motorcycles booked in per day (no hourly slots) */}
       {viewMode === "week" && (
         <div className="overflow-x-auto min-w-full">
-          <div className="grid gap-2 min-w-[980px] grid-cols-7 items-start">
+          <div className="grid gap-1.5 sm:gap-2 min-w-[600px] sm:min-w-[980px] grid-cols-7 items-start">
             {weekDays.map((day) => {
               const dayKey = format(day, "yyyy-MM-dd");
               const dayBookings = sortBookIns(
@@ -1042,7 +1047,7 @@ function CalendarPage() {
                     if (id) moveBookingToDate(id, day);
                     setDraggingId(null);
                   }}
-                  className={`card-surface p-2 flex flex-col gap-2 min-h-[280px] ${
+                  className={`card-surface p-1.5 sm:p-2 flex flex-col gap-1.5 sm:gap-2 min-h-[220px] sm:min-h-[280px] ${
                     today ? "ring-2 ring-primary/40" : ""
                   } ${isSunday(day) ? "bg-primary/[0.08]" : ""} ${
                     draggingId ? "border-dashed border-primary/40" : ""
@@ -1056,14 +1061,14 @@ function CalendarPage() {
                     title="Open day view"
                   >
                     <div
-                      className={`text-[0.625rem] font-bold uppercase tracking-wider ${
+                      className={`text-[0.6rem] sm:text-[0.625rem] font-bold uppercase tracking-wider ${
                         today || isSunday(day) ? "text-primary" : "text-muted-foreground"
                       }`}
                     >
                       {format(day, "EEEE")}
                     </div>
-                    <div className="flex items-baseline gap-2">
-                      <span className="font-display text-xl font-bold leading-none group-hover:text-primary transition-colors">
+                    <div className="flex items-baseline gap-1.5 sm:gap-2">
+                      <span className="font-display text-lg sm:text-xl font-bold leading-none group-hover:text-primary transition-colors">
                         {format(day, "d")}
                       </span>
                       <CapacityBadge booked={dayBookings.length} capacity={cap} compact />
@@ -1105,7 +1110,7 @@ function CalendarPage() {
 
                   {/* Book-in cards — drag freely up/down or onto another day */}
                   <div
-                    className="flex flex-col gap-1.5 flex-1"
+                    className="flex flex-col gap-1 sm:gap-1.5 flex-1"
                     onDragOver={(e) => {
                       e.preventDefault();
                       setDropHint({ dayKey, index: dayBookings.length });
@@ -1186,7 +1191,7 @@ function CalendarPage() {
                   <button
                     type="button"
                     onClick={() => setSlotChoice({ date: day, time: null, dayKey })}
-                    className="rounded-lg border border-dashed border-border px-2 h-8 text-[0.625rem] font-bold uppercase tracking-wider text-muted-foreground hover:border-primary/50 hover:text-foreground transition-colors"
+                    className="rounded-lg border border-dashed border-border px-2 h-7 sm:h-8 text-[0.55rem] sm:text-[0.625rem] font-bold uppercase tracking-wider text-muted-foreground hover:border-primary/50 hover:text-foreground transition-colors"
                   >
                     + Book-in / note
                   </button>
