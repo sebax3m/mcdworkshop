@@ -171,10 +171,8 @@ function EditableText({
 }
 
 export const Route = createFileRoute("/_authenticated/invoices/$invoiceId")({
-  validateSearch: (s: Record<string, unknown>) => ({
-    action:
-      s.action === "print" || s.action === "email" ? (s.action as "print" | "email") : undefined,
-  }),
+  validateSearch: (s: Record<string, unknown>): { action?: "print" | "email" } =>
+    s.action === "print" || s.action === "email" ? { action: s.action } : {},
   component: InvoiceDetail,
 });
 
