@@ -149,6 +149,18 @@ function stripPrintBlocks(css: string) {
   return out;
 }
 
+/**
+ * Cloned page markup can carry the source component's own <style> tags, whose
+ * `@media print` rules (e.g. `body * { visibility: hidden }`) would blank out
+ * the other sheets when printing. Strip those blocks from embedded styles.
+ */
+function sanitizePageHtml(html: string) {
+  return html.replace(
+    /<style\b[^>]*>([\s\S]*?)<\/style>/gi,
+    (_m, css: string) => `<style>${stripPrintBlocks(css)}</style>`,
+  );
+}
+
 /** CSS that turns the app's dark UI into ink-friendly white paper. */
 function paperCss(margin: number) {
   return `
@@ -366,7 +378,9 @@ export function PrintPreview({
     const body = pages
       .map(
         (p, i) =>
-          `<div class="sheet" id="page-${i}"><div class="sheet-inner" id="inner-${i}">${p.html}</div></div>`,
+          `<div class="sheet" id="page-${i}"><div class="sheet-inner" id="inner-${i}">${sanitizePageHtml(
+            p.html,
+          )}</div></div>`,
       )
       .join("");
 
