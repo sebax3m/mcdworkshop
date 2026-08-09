@@ -1,6 +1,8 @@
 /** Shared service-type colour legend used by the calendar, day view and cards. */
 export type ServiceColor = {
   bg: string;
+  /** Solid-ish tinted fill for the whole card. */
+  fill: string;
   ring: string;
   label: string;
   text: string;
@@ -11,6 +13,7 @@ export type ServiceColor = {
 export const SERVICE_COLORS: Record<string, ServiceColor> = {
   basic: {
     bg: "bg-status-new/70",
+    fill: "bg-status-new/25",
     ring: "ring-status-new",
     label: "text-status-new",
     text: "text-white",
@@ -19,6 +22,7 @@ export const SERVICE_COLORS: Record<string, ServiceColor> = {
   },
   standard: {
     bg: "bg-primary/70",
+    fill: "bg-primary/25",
     ring: "ring-primary",
     label: "text-primary",
     text: "text-white",
@@ -27,6 +31,7 @@ export const SERVICE_COLORS: Record<string, ServiceColor> = {
   },
   full: {
     bg: "bg-status-assigned/70",
+    fill: "bg-status-assigned/25",
     ring: "ring-status-assigned",
     label: "text-status-assigned",
     text: "text-white",
@@ -35,6 +40,7 @@ export const SERVICE_COLORS: Record<string, ServiceColor> = {
   },
   dyno: {
     bg: "bg-status-dyno/70",
+    fill: "bg-status-dyno/25",
     ring: "ring-status-dyno",
     label: "text-status-dyno",
     text: "text-black",
@@ -43,6 +49,7 @@ export const SERVICE_COLORS: Record<string, ServiceColor> = {
   },
   diagnostic: {
     bg: "bg-status-progress/70",
+    fill: "bg-status-progress/25",
     ring: "ring-status-progress",
     label: "text-status-progress",
     text: "text-black",
@@ -51,6 +58,7 @@ export const SERVICE_COLORS: Record<string, ServiceColor> = {
   },
   insurance: {
     bg: "bg-status-insurance/70",
+    fill: "bg-status-insurance/25",
     ring: "ring-status-insurance",
     label: "text-status-insurance",
     text: "text-white",
@@ -59,6 +67,7 @@ export const SERVICE_COLORS: Record<string, ServiceColor> = {
   },
   postbike: {
     bg: "bg-cyan-400/70",
+    fill: "bg-cyan-400/25",
     ring: "ring-cyan-400",
     label: "text-cyan-400",
     text: "text-black",
@@ -67,6 +76,7 @@ export const SERVICE_COLORS: Record<string, ServiceColor> = {
   },
   other: {
     bg: "bg-muted-foreground/70",
+    fill: "bg-muted-foreground/25",
     ring: "ring-muted-foreground",
     label: "text-muted-foreground",
     text: "text-white",
@@ -75,6 +85,7 @@ export const SERVICE_COLORS: Record<string, ServiceColor> = {
   },
   default: {
     bg: "bg-muted",
+    fill: "bg-muted/60",
     ring: "ring-border",
     label: "text-foreground",
     text: "text-white",
