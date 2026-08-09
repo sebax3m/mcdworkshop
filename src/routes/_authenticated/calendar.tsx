@@ -1105,7 +1105,7 @@ function CalendarPage() {
 
                   {/* Book-in cards — drag freely up/down or onto another day */}
                   <div
-                    className="flex flex-col gap-1.5 flex-1"
+                    className="flex flex-col gap-1 sm:gap-1.5 flex-1"
                     onDragOver={(e) => {
                       e.preventDefault();
                       setDropHint({ dayKey, index: dayBookings.length });
