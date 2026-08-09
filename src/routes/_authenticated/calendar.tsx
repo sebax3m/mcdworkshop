@@ -57,15 +57,6 @@ import { useWorkshopCapacity } from "@/hooks/useWorkshopCapacity";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { StickyNote } from "lucide-react";
 
-function DropLine({ active }: { active: boolean }) {
-  return (
-    <div
-      className={`transition-all duration-100 ${
-        active ? "h-1.5 my-0.5 rounded-full bg-primary shadow-[0_0_0_2px_hsl(var(--primary)/0.25)]" : "h-0"
-      }`}
-    />
-  );
-}
 
 import {
   addMinutesToTime,
