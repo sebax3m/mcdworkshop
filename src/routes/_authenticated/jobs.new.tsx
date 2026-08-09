@@ -19,9 +19,10 @@ import { format } from "date-fns";
 import { useCurrentUser } from "@/hooks/use-current-user";
 
 export const Route = createFileRoute("/_authenticated/jobs/new")({
-  validateSearch: (s: Record<string, unknown>) => ({
+  validateSearch: (s: Record<string, unknown>): { bookingId?: string } => ({
     bookingId: typeof s.bookingId === "string" ? s.bookingId : undefined,
   }),
+
   component: NewJob,
 });
 

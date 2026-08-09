@@ -186,22 +186,44 @@ function paperCss(margin: number) {
 const DRAG_SCRIPT = `
 (function(){
   var drag=null;
+  // Screen-space mouse deltas must be converted to the element's own coordinate
+  // space, otherwise a rotated/scaled page (valve diagram at 90/180/270deg)
+  // moves along the wrong axis.
+  function inverseMatrix(el){
+    var host = el.closest('.sheet-inner');
+    var m = { a:1, b:0, c:0, d:1 };
+    if(host){
+      var t = getComputedStyle(host).transform;
+      if(t && t !== 'none'){
+        var p = t.slice(t.indexOf('(')+1, -1).split(',').map(parseFloat);
+        if(p.length >= 6){ m = { a:p[0], b:p[1], c:p[2], d:p[3] }; }
+        else if(p.length === 16){ m = { a:p[0], b:p[1], c:p[4], d:p[5] }; }
+      }
+    }
+    var det = m.a*m.d - m.b*m.c;
+    if(!det) return { a:1, b:0, c:0, d:1 };
+    return { a:m.d/det, b:-m.b/det, c:-m.c/det, d:m.a/det };
+  }
   document.addEventListener('mousedown',function(e){
     if(!document.body.classList.contains('dragmode'))return;
     var el=e.target.closest('[data-print-section]') || e.target.closest('.sheet-inner > *');
     if(!el)return;
     e.preventDefault();
     drag={el:el,x:e.clientX,y:e.clientY,
+      inv:inverseMatrix(el),
       dx:parseFloat(el.getAttribute('data-dx')||'0'),
       dy:parseFloat(el.getAttribute('data-dy')||'0')};
   });
   document.addEventListener('mousemove',function(e){
     if(!drag)return;
-    var nx=drag.dx+(e.clientX-drag.x), ny=drag.dy+(e.clientY-drag.y);
+    var sx=e.clientX-drag.x, sy=e.clientY-drag.y, i=drag.inv;
+    var lx=i.a*sx + i.c*sy, ly=i.b*sx + i.d*sy;
+    var nx=drag.dx+lx, ny=drag.dy+ly;
     drag.el.setAttribute('data-dx',nx); drag.el.setAttribute('data-dy',ny);
     drag.el.style.position='relative'; drag.el.style.left=nx+'px'; drag.el.style.top=ny+'px';
   });
   document.addEventListener('mouseup',function(){drag=null;});
+
   window.addEventListener('message',function(ev){
     if(ev.data==='drag-on') document.body.classList.add('dragmode');
     if(ev.data==='drag-off') document.body.classList.remove('dragmode');
