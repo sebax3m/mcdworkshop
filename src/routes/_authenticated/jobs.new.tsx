@@ -56,7 +56,28 @@ function NewJob() {
         : "";
       return `${cust} ${bike} ${b.service_type}`.toLowerCase().includes(s);
     });
-  }, [bookings.data, search]);
+
+  // If we arrive with ?bookingId=..., allocate that booking straight away
+  useEffect(() => {
+    if (!bookingId || autoRan.current || userLoading || !isAdmin) return;
+    autoRan.current = true;
+    (async () => {
+      const { data, error } = await supabase
+        .from("bookings")
+        .select("*, customers(first_name,last_name), motorcycles(year,make,model,rego)")
+        .eq("id", bookingId)
+        .maybeSingle();
+      if (error || !data) {
+        toast.error("Booking not found — pick one below.");
+        return;
+      }
+      if (data.job_id) {
+        nav({ to: "/jobs/$jobId", params: { jobId: data.job_id } });
+        return;
+      }
+      await allocate(data);
+    })();
+  }, [bookingId, userLoading, isAdmin]);
 
   if (userLoading) {
     return <div className="card-surface p-8 text-center text-muted-foreground">Loading…</div>;
@@ -74,10 +95,28 @@ function NewJob() {
   }
 
   async function allocate(b: any) {
-    if (!b.customer_id || !b.motorcycle_id) {
-      toast.error("This booking needs a customer and a bike before a job card can be created.");
+    if (!b.customer_id) {
+      toast.error("This booking needs a customer before a job card can be created.");
       return;
     }
+    let motorcycleId: string | null = b.motorcycle_id ?? null;
+    if (!motorcycleId) {
+      // Fall back to the customer's bike(s) so allocation still works
+      const { data: bikes } = await supabase
+        .from("motorcycles")
+        .select("id")
+        .eq("customer_id", b.customer_id)
+        .eq("is_archived", false)
+        .order("updated_at", { ascending: false })
+        .limit(1);
+      motorcycleId = bikes?.[0]?.id ?? null;
+      if (!motorcycleId) {
+        toast.error("This customer has no bike on file. Add a bike first.");
+        return;
+      }
+      await supabase.from("bookings").update({ motorcycle_id: motorcycleId }).eq("id", b.id);
+    }
+
     setBusyId(b.id);
     try {
       const { data: tmpl } = await supabase
