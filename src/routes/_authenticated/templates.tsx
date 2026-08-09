@@ -95,7 +95,7 @@ function Templates() {
                   <Icon className="h-5 w-5" />
                 </span>
                 <div className="min-w-0 flex-1">
-                  <div className="text-[10px] uppercase tracking-wider text-primary">
+                  <div className="text-[0.625rem] uppercase tracking-wider text-primary">
                     {meta.tagline}
                   </div>
                   <div className="font-display text-xl font-bold leading-tight">{t.name}</div>
@@ -281,7 +281,7 @@ function PrintableTemplate({ template, onClose }: { template: any; onClose: () =
           .tpl-sheet .tpl-body > * + * { margin-top: 8px !important; }
           .tpl-sheet .tpl-body li { padding-top: 3px !important; padding-bottom: 3px !important; font-size: 9.5pt !important; line-height: 1.25 !important; }
           .tpl-sheet .tpl-body p, .tpl-sheet .tpl-body .text-sm { font-size: 9.5pt !important; line-height: 1.3 !important; }
-          .tpl-sheet .tpl-body .text-[10px] { font-size: 8pt !important; }
+          .tpl-sheet .tpl-body .text-[0.625rem] { font-size: 8pt !important; }
           .tpl-sheet .tpl-signatures { padding-top: 10px !important; }
           .tpl-sheet .tpl-signatures .mb-6 { margin-bottom: 22px !important; }
           .tpl-sheet ul { page-break-inside: avoid; break-inside: avoid; }
@@ -321,7 +321,7 @@ function PrintableTemplate({ template, onClose }: { template: any; onClose: () =
                 </div>
               </div>
               <div className="text-right">
-                <div className="text-[10px] uppercase tracking-[0.25em] text-primary">
+                <div className="text-[0.625rem] uppercase tracking-[0.25em] text-primary">
                   Service Template
                 </div>
                 <div className="font-display text-2xl font-black">{template.name}</div>
@@ -331,17 +331,17 @@ function PrintableTemplate({ template, onClose }: { template: any; onClose: () =
             <div className="tpl-body p-8 space-y-6">
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 text-sm">
                 <div>
-                  <div className="text-[10px] uppercase tracking-wider text-primary">Category</div>
+                  <div className="text-[0.625rem] uppercase tracking-wider text-primary">Category</div>
                   <div className="font-semibold">{meta.tagline}</div>
                 </div>
                 <div>
-                  <div className="text-[10px] uppercase tracking-wider text-primary">
+                  <div className="text-[0.625rem] uppercase tracking-wider text-primary">
                     Estimated time
                   </div>
                   <div className="font-semibold">{template.estimated_hours ?? "—"} h</div>
                 </div>
                 <div>
-                  <div className="text-[10px] uppercase tracking-wider text-primary">
+                  <div className="text-[0.625rem] uppercase tracking-wider text-primary">
                     Checklist items
                   </div>
                   <div className="font-semibold">{tasks.length}</div>
@@ -350,7 +350,7 @@ function PrintableTemplate({ template, onClose }: { template: any; onClose: () =
 
               {template.description && (
                 <div>
-                  <div className="text-[10px] uppercase tracking-wider text-primary mb-1">
+                  <div className="text-[0.625rem] uppercase tracking-wider text-primary mb-1">
                     Overview
                   </div>
                   <p className="text-sm leading-relaxed">{template.description}</p>
@@ -358,7 +358,7 @@ function PrintableTemplate({ template, onClose }: { template: any; onClose: () =
               )}
 
               <div>
-                <div className="text-[10px] uppercase tracking-wider text-primary mb-2">
+                <div className="text-[0.625rem] uppercase tracking-wider text-primary mb-2">
                   What's included
                 </div>
                 <ul className="border-t border-b divide-y border-border">
@@ -369,7 +369,7 @@ function PrintableTemplate({ template, onClose }: { template: any; onClose: () =
                   )}
                   {tasks.map((task, i) => (
                     <li key={i} className="py-2.5 flex items-start gap-3 text-sm">
-                      <span className="grid h-5 w-5 place-items-center rounded-full border border-primary/40 text-primary text-[10px] font-bold shrink-0 mt-0.5">
+                      <span className="grid h-5 w-5 place-items-center rounded-full border border-primary/40 text-primary text-[0.625rem] font-bold shrink-0 mt-0.5">
                         {i + 1}
                       </span>
                       <span className="flex-1">{taskLabel(task)}</span>
@@ -393,7 +393,7 @@ function PrintableTemplate({ template, onClose }: { template: any; onClose: () =
                 </div>
               </div>
 
-              <div className="text-center text-[10px] text-muted-foreground pt-4 border-t border-border">
+              <div className="text-center text-[0.625rem] text-muted-foreground pt-4 border-t border-border">
                 Motorcycle Doctors · Service reference sheet · Generated{" "}
                 {new Date().toLocaleDateString()}
               </div>

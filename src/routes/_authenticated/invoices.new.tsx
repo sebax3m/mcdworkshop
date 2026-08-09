@@ -424,12 +424,12 @@ function NewInvoice() {
           </div>
         </div>
         <div className="text-right shrink-0">
-          <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+          <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">
             Invoice #
           </div>
           <div className="font-mono font-semibold text-sm">{nextInvoiceNumber.data ?? "…"}</div>
           <div className="mt-2">
-            <Label className="text-[10px] uppercase tracking-wider text-muted-foreground">
+            <Label className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">
               Invoice date
             </Label>
             <Input
@@ -445,7 +445,7 @@ function NewInvoice() {
       {/* Customer */}
       <section className="card-surface p-4 space-y-3">
         <div className="flex items-center justify-between">
-          <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+          <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">
             Customer (optional)
           </div>
           <button
@@ -548,7 +548,7 @@ function NewInvoice() {
       {/* Bike */}
       <section className="card-surface p-4 space-y-3">
         <div className="flex items-center justify-between">
-          <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+          <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">
             Bike (optional)
           </div>
           {customerId && (
@@ -623,7 +623,7 @@ function NewInvoice() {
       {/* Line items */}
       <section className="card-surface p-4">
         <div className="flex items-center justify-between mb-3">
-          <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+          <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">
             Line items
           </div>
           <Button type="button" size="sm" variant="outline" onClick={addLine} className="gap-1.5">
@@ -632,7 +632,7 @@ function NewInvoice() {
         </div>
 
         {/* Column headers */}
-        <div className="hidden md:grid grid-cols-[repeat(24,minmax(0,1fr))] gap-2 px-1 pb-2 text-[10px] uppercase tracking-wider text-muted-foreground font-semibold border-b border-border mb-2">
+        <div className="hidden md:grid grid-cols-[repeat(24,minmax(0,1fr))] gap-2 px-1 pb-2 text-[0.625rem] uppercase tracking-wider text-muted-foreground font-semibold border-b border-border mb-2">
           <div className="col-span-1"></div>
           <div className="col-span-3">Item code</div>
           <div className="col-span-5">Item name</div>
@@ -667,7 +667,7 @@ function NewInvoice() {
 
               {/* Item code (with library picker) */}
               <div className="col-span-24 md:col-span-3 relative">
-                <div className="md:hidden text-[10px] uppercase tracking-wider text-muted-foreground mb-0.5">
+                <div className="md:hidden text-[0.625rem] uppercase tracking-wider text-muted-foreground mb-0.5">
                   Item code
                 </div>
                 <div className="flex gap-1">
@@ -692,7 +692,7 @@ function NewInvoice() {
 
               {/* Item name */}
               <div className="col-span-24 md:col-span-5">
-                <div className="md:hidden text-[10px] uppercase tracking-wider text-muted-foreground mb-0.5">
+                <div className="md:hidden text-[0.625rem] uppercase tracking-wider text-muted-foreground mb-0.5">
                   Item name
                 </div>
                 <Input
@@ -704,7 +704,7 @@ function NewInvoice() {
 
               {/* Description */}
               <div className="col-span-24 md:col-span-5">
-                <div className="md:hidden text-[10px] uppercase tracking-wider text-muted-foreground mb-0.5">
+                <div className="md:hidden text-[0.625rem] uppercase tracking-wider text-muted-foreground mb-0.5">
                   Description
                 </div>
                 <Input
@@ -716,7 +716,7 @@ function NewInvoice() {
 
               {/* Qty */}
               <div className="col-span-6 md:col-span-2">
-                <div className="md:hidden text-[10px] uppercase tracking-wider text-muted-foreground mb-0.5">
+                <div className="md:hidden text-[0.625rem] uppercase tracking-wider text-muted-foreground mb-0.5">
                   Qty
                 </div>
                 <Input
@@ -731,7 +731,7 @@ function NewInvoice() {
 
               {/* Unit $ */}
               <div className="col-span-6 md:col-span-2">
-                <div className="md:hidden text-[10px] uppercase tracking-wider text-muted-foreground mb-0.5">
+                <div className="md:hidden text-[0.625rem] uppercase tracking-wider text-muted-foreground mb-0.5">
                   Unit $
                 </div>
                 <Input
@@ -746,7 +746,7 @@ function NewInvoice() {
 
               {/* Discount % */}
               <div className="col-span-6 md:col-span-2">
-                <div className="md:hidden text-[10px] uppercase tracking-wider text-muted-foreground mb-0.5">
+                <div className="md:hidden text-[0.625rem] uppercase tracking-wider text-muted-foreground mb-0.5">
                   Discount %
                 </div>
                 <div className="relative">
@@ -765,7 +765,7 @@ function NewInvoice() {
                   </span>
                 </div>
                 {Number(l.discount_pct) > 0 && (
-                  <div className="text-[10px] text-emerald-500 mt-0.5 text-center">
+                  <div className="text-[0.625rem] text-emerald-500 mt-0.5 text-center">
                     −${lineDiscAmt(l).toFixed(2)}
                   </div>
                 )}
@@ -773,11 +773,11 @@ function NewInvoice() {
 
               {/* Line total */}
               <div className="col-span-5 md:col-span-3 text-right text-sm tabular-nums pt-2 font-semibold">
-                <div className="md:hidden text-[10px] uppercase tracking-wider text-muted-foreground font-normal">
+                <div className="md:hidden text-[0.625rem] uppercase tracking-wider text-muted-foreground font-normal">
                   Line total
                 </div>
                 {Number(l.discount_pct) > 0 && (
-                  <div className="text-[10px] text-muted-foreground line-through font-normal">
+                  <div className="text-[0.625rem] text-muted-foreground line-through font-normal">
                     ${lineGross(l).toFixed(2)}
                   </div>
                 )}
@@ -881,7 +881,7 @@ function NewInvoice() {
           >
             <div className="p-4 border-b border-border flex items-center justify-between gap-3">
               <div>
-                <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">
                   Inventory library
                 </div>
                 <div className="font-semibold">Pick an item</div>
@@ -921,7 +921,7 @@ function NewInvoice() {
                   </div>
                   <div className="col-span-6">
                     <div className="text-sm font-semibold">{item.name}</div>
-                    <div className="text-[11px] text-muted-foreground">
+                    <div className="text-[0.6875rem] text-muted-foreground">
                       {[item.brand, item.category, item.type].filter(Boolean).join(" · ")}
                     </div>
                   </div>

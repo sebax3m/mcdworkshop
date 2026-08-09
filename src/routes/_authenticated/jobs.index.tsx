@@ -193,7 +193,7 @@ function JobsList() {
                   />
                 )}
                 <div className="w-12 shrink-0 text-center">
-                  <div className="text-[10px] uppercase text-muted-foreground">Job</div>
+                  <div className="text-[0.625rem] uppercase text-muted-foreground">Job</div>
                   <div className="font-display text-lg font-bold tabular-nums">#{j.job_number}</div>
                 </div>
                 <div className="min-w-0 flex-1">
@@ -205,7 +205,7 @@ function JobsList() {
                   </div>
                 </div>
                 <span
-                  className={`shrink-0 inline-flex items-center gap-1.5 rounded-full border px-2 py-1 text-[10px] font-semibold uppercase tracking-wider ${meta.cls}`}
+                  className={`shrink-0 inline-flex items-center gap-1.5 rounded-full border px-2 py-1 text-[0.625rem] font-semibold uppercase tracking-wider ${meta.cls}`}
                 >
                   <span className={`h-1.5 w-1.5 rounded-full ${meta.dot}`} />
                   {meta.label}

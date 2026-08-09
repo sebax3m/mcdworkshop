@@ -376,7 +376,7 @@ function Bikes() {
             }`}
           >
             <div className="text-sm font-semibold">{value}</div>
-            <div className="text-[10px] uppercase tracking-wider text-muted-foreground truncate">
+            <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground truncate">
               {label}
             </div>
           </button>
@@ -618,22 +618,22 @@ function Bikes() {
                 <div className="font-semibold truncate flex items-center gap-1.5">
                   {fullBike(b)}
                   {b.is_archived && (
-                    <span className="text-[10px] uppercase tracking-wider rounded px-1 py-0.5 border border-border text-muted-foreground">
+                    <span className="text-[0.625rem] uppercase tracking-wider rounded px-1 py-0.5 border border-border text-muted-foreground">
                       Archived
                     </span>
                   )}
                   {isBikeSuspicious(b) && (
-                    <span className="inline-flex items-center gap-0.5 text-[10px] uppercase tracking-wider rounded px-1 py-0.5 border border-amber-500/40 text-amber-500">
+                    <span className="inline-flex items-center gap-0.5 text-[0.625rem] uppercase tracking-wider rounded px-1 py-0.5 border border-amber-500/40 text-amber-500">
                       <AlertTriangle className="h-2.5 w-2.5" /> Suspicious
                     </span>
                   )}
                   {!b.customer_id && (
-                    <span className="text-[10px] uppercase tracking-wider rounded px-1 py-0.5 border border-destructive/40 text-destructive">
+                    <span className="text-[0.625rem] uppercase tracking-wider rounded px-1 py-0.5 border border-destructive/40 text-destructive">
                       No owner
                     </span>
                   )}
                   {dupIds.has(b.id) && (
-                    <span className="text-[10px] uppercase tracking-wider rounded px-1 py-0.5 border border-primary/40 text-primary">
+                    <span className="text-[0.625rem] uppercase tracking-wider rounded px-1 py-0.5 border border-primary/40 text-primary">
                       Dup
                     </span>
                   )}

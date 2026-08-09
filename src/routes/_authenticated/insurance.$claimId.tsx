@@ -250,7 +250,7 @@ function ClaimDetail() {
           <h1 className="font-display text-2xl font-bold flex items-center gap-2 flex-wrap">
             {c.claim_number}
             <span
-              className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${meta?.cls}`}
+              className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[0.625rem] font-bold uppercase tracking-wider ${meta?.cls}`}
             >
               {meta?.label}
             </span>
@@ -277,7 +277,7 @@ function ClaimDetail() {
       {/* Customer / bike / insurer */}
       <section className="grid sm:grid-cols-2 gap-4">
         <div className="card-surface p-4">
-          <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold mb-1">
+          <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground font-bold mb-1">
             Customer
           </div>
           <div className="font-bold">
@@ -302,7 +302,7 @@ function ClaimDetail() {
           )}
         </div>
         <div className="card-surface p-4">
-          <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold mb-1">
+          <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground font-bold mb-1">
             Motorcycle
           </div>
           <div className="font-bold flex items-center gap-1.5">
@@ -341,7 +341,7 @@ function ClaimDetail() {
 
       {/* Timeline */}
       <section className="card-surface p-4 print:hidden">
-        <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold mb-2">
+        <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground font-bold mb-2">
           Timeline
         </div>
         {events.isLoading ? (
@@ -352,7 +352,7 @@ function ClaimDetail() {
           <ol className="space-y-2">
             {(events.data ?? []).map((e: any) => (
               <li key={e.id} className="flex items-start gap-3 text-sm">
-                <div className="w-32 shrink-0 text-[11px] text-muted-foreground">
+                <div className="w-32 shrink-0 text-[0.6875rem] text-muted-foreground">
                   {format(new Date(e.created_at), "d MMM HH:mm")}
                 </div>
                 <div className="min-w-0">
@@ -524,7 +524,7 @@ function QuoteBuilder({
             <Wrench className="h-5 w-5" />
           </div>
           <div>
-            <div className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground font-bold">
+            <div className="text-[0.625rem] uppercase tracking-[0.25em] text-muted-foreground font-bold">
               Quotation
             </div>
             <h2 className="font-display text-lg font-semibold">Parts & labour estimate</h2>
@@ -532,7 +532,7 @@ function QuoteBuilder({
         </div>
         <div className="flex items-center gap-2 print:hidden">
           <div className="flex items-center gap-1.5">
-            <Label className="text-[10px] uppercase tracking-wider text-muted-foreground">
+            <Label className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">
               Labour $/hr
             </Label>
             <Input
@@ -558,7 +558,7 @@ function QuoteBuilder({
       {/* Items */}
       <div className="overflow-x-auto">
         <table className="w-full text-sm border-separate border-spacing-y-1">
-          <thead className="text-[10px] uppercase tracking-wider text-muted-foreground">
+          <thead className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">
             <tr className="border-b border-border">
               <th className="text-left py-2 pr-2 w-20">Type</th>
               <th className="text-left py-2 pr-2 w-28">Item code</th>
@@ -584,7 +584,7 @@ function QuoteBuilder({
                 <tr key={it.id} className="border-b border-border/50 align-middle">
                   <td className="py-1.5 pr-2">
                     <span
-                      className={`inline-flex items-center rounded-md border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
+                      className={`inline-flex items-center rounded-md border px-2 py-0.5 text-[0.625rem] font-bold uppercase tracking-wider ${
                         it.kind === "labour"
                           ? "border-blue-500/40 bg-blue-500/10 text-blue-400"
                           : "border-amber-500/40 bg-amber-500/10 text-amber-400"
@@ -694,18 +694,18 @@ function QuoteBuilder({
       {/* Quick add catalog */}
       <div className="mt-4 rounded-lg border border-border bg-muted/30 p-3 print:hidden">
         <div className="flex items-center justify-between gap-2 flex-wrap mb-2">
-          <div className="text-[10px] uppercase tracking-[0.2em] font-bold text-muted-foreground">
+          <div className="text-[0.625rem] uppercase tracking-[0.2em] font-bold text-muted-foreground">
             Quick add — crash parts
           </div>
           <div className="flex items-center gap-1.5">
-            <Label className="text-[10px] uppercase tracking-wider text-muted-foreground">
+            <Label className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">
               Damage
             </Label>
             {(["minor", "moderate", "severe"] as DamageLevel[]).map((lvl) => (
               <button
                 key={lvl}
                 onClick={() => setDamageLevel(lvl)}
-                className={`px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider border ${
+                className={`px-2 py-0.5 rounded-md text-[0.625rem] font-bold uppercase tracking-wider border ${
                   damageLevel === lvl
                     ? lvl === "minor"
                       ? "bg-emerald-500/20 border-emerald-500/50 text-emerald-400"
@@ -747,7 +747,7 @@ function QuoteBuilder({
               >
                 <Plus className="h-3 w-3 text-primary" />
                 <span className="font-medium">{p.name}</span>
-                <span className="text-[10px] text-muted-foreground tabular-nums">
+                <span className="text-[0.625rem] text-muted-foreground tabular-nums">
                   ${p.estPrice} · {hrs}h
                 </span>
               </button>
@@ -755,7 +755,7 @@ function QuoteBuilder({
           })}
         </div>
         <div className="mt-3 pt-3 border-t border-border/60">
-          <div className="text-[10px] uppercase tracking-[0.2em] font-bold text-muted-foreground mb-2">
+          <div className="text-[0.625rem] uppercase tracking-[0.2em] font-bold text-muted-foreground mb-2">
             Quick add — labour bundles
           </div>
           <div className="flex flex-wrap gap-1.5">
@@ -767,7 +767,7 @@ function QuoteBuilder({
               >
                 <Plus className="h-3 w-3 text-blue-400" />
                 <span className="font-medium">{l.name}</span>
-                <span className="text-[10px] text-muted-foreground tabular-nums">{l.hrs}h</span>
+                <span className="text-[0.625rem] text-muted-foreground tabular-nums">{l.hrs}h</span>
               </button>
             ))}
           </div>
@@ -785,7 +785,7 @@ function QuoteBuilder({
 
         <div className="ml-auto flex flex-wrap items-center gap-2">
           <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-            <Label className="text-[10px] uppercase tracking-wider">Approved $</Label>
+            <Label className="text-[0.625rem] uppercase tracking-wider">Approved $</Label>
             <Input
               type="number"
               step="0.01"
@@ -927,7 +927,7 @@ function ClaimCustodyCard({ c, onUpdate }: { c: any; onUpdate: (p: any) => void 
   const location: "workshop" | "customer" = c.bike_with_customer ? "customer" : "workshop";
   return (
     <section className="card-surface p-4 space-y-3">
-      <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold">
+      <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground font-bold">
         Bike custody
       </div>
       <div className="flex flex-wrap gap-2">
@@ -1002,7 +1002,7 @@ function PrintQuoteHeader({ c, bikeText }: { c: any; bikeText: string }) {
   return (
     <div id="claim-print-area" className="hidden print:block">
       <div className="border-b-2 border-black pb-3 mb-4">
-        <div className="text-[10px] uppercase tracking-[0.25em] text-gray-600">
+        <div className="text-[0.625rem] uppercase tracking-[0.25em] text-gray-600">
           Motorcycle Doctors · Insurance Quote
         </div>
         <div className="flex items-end justify-between gap-4">
@@ -1022,7 +1022,7 @@ function PrintQuoteHeader({ c, bikeText }: { c: any; bikeText: string }) {
       </div>
       <div className="grid grid-cols-2 gap-4 text-xs mb-3">
         <div className="border border-gray-400 rounded p-2">
-          <div className="text-[9px] uppercase tracking-wider text-gray-500 mb-1">Customer</div>
+          <div className="text-[0.5625rem] uppercase tracking-wider text-gray-500 mb-1">Customer</div>
           <div className="font-bold">
             {c.customers?.first_name} {c.customers?.last_name}
           </div>
@@ -1031,7 +1031,7 @@ function PrintQuoteHeader({ c, bikeText }: { c: any; bikeText: string }) {
           </div>
         </div>
         <div className="border border-gray-400 rounded p-2">
-          <div className="text-[9px] uppercase tracking-wider text-gray-500 mb-1">Vehicle</div>
+          <div className="text-[0.5625rem] uppercase tracking-wider text-gray-500 mb-1">Vehicle</div>
           <div className="font-bold">{bikeText}</div>
           <div>
             Rego {c.motorcycles?.rego ?? "—"} · VIN {c.motorcycles?.vin ?? "—"}
@@ -1040,7 +1040,7 @@ function PrintQuoteHeader({ c, bikeText }: { c: any; bikeText: string }) {
       </div>
       {c.notes && (
         <div className="border border-gray-400 rounded p-2 mb-3 text-xs">
-          <div className="text-[9px] uppercase tracking-wider text-gray-500 mb-1">Damage</div>
+          <div className="text-[0.5625rem] uppercase tracking-wider text-gray-500 mb-1">Damage</div>
           <p className="whitespace-pre-wrap">{c.notes}</p>
         </div>
       )}
@@ -1266,7 +1266,7 @@ function PipelineFlow({
     <section className="card-surface p-4 sm:p-5 print:hidden">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <div className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground font-bold">
+          <div className="text-[0.625rem] uppercase tracking-[0.25em] text-muted-foreground font-bold">
             Claim flow
           </div>
           <h2 className="font-display text-lg font-semibold">Progress</h2>
@@ -1336,7 +1336,7 @@ function PipelineFlow({
                   <Icon className="h-4 w-4" />
                 </div>
                 <div className="min-w-0">
-                  <div className="text-[9px] uppercase tracking-wider text-muted-foreground font-bold">
+                  <div className="text-[0.5625rem] uppercase tracking-wider text-muted-foreground font-bold">
                     Step {i + 1}
                   </div>
                   <div
@@ -1347,13 +1347,13 @@ function PipelineFlow({
                 </div>
               </div>
               {active && (
-                <div className="mt-2 inline-flex items-center gap-1 rounded-full bg-white/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white">
+                <div className="mt-2 inline-flex items-center gap-1 rounded-full bg-white/10 px-2 py-0.5 text-[0.625rem] font-bold uppercase tracking-wider text-white">
                   <span className="h-1.5 w-1.5 rounded-full bg-white animate-pulse" /> Current
                 </div>
               )}
               {past && (
                 <div
-                  className={`mt-2 inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider ${stage.hue.text}`}
+                  className={`mt-2 inline-flex items-center gap-1 text-[0.625rem] font-bold uppercase tracking-wider ${stage.hue.text}`}
                 >
                   <Check className="h-3 w-3" /> Done
                 </div>
@@ -1366,7 +1366,7 @@ function PipelineFlow({
       {/* Progress bar */}
       {!declined && (
         <div className="mt-5">
-          <div className="flex items-center justify-between text-[10px] uppercase tracking-wider text-muted-foreground font-bold mb-1.5">
+          <div className="flex items-center justify-between text-[0.625rem] uppercase tracking-wider text-muted-foreground font-bold mb-1.5">
             <span>Progress</span>
             <span>{Math.round(((currentIdx + 1) / FLOW_STAGES.length) * 100)}%</span>
           </div>

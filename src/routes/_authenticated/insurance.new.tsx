@@ -212,7 +212,7 @@ function NewClaim() {
                       setCustomerId(null);
                       setBikeId(null);
                     }}
-                    className="text-[11px] uppercase tracking-wider text-destructive hover:underline"
+                    className="text-[0.6875rem] uppercase tracking-wider text-destructive hover:underline"
                   >
                     Clear
                   </button>
@@ -309,7 +309,7 @@ function NewClaim() {
                   <button
                     type="button"
                     onClick={() => setNewBikeOpen((o) => !o)}
-                    className="inline-flex items-center gap-1 rounded-md border border-primary/40 bg-primary/10 text-primary px-2.5 py-1 text-[11px] font-semibold hover:bg-primary/20"
+                    className="inline-flex items-center gap-1 rounded-md border border-primary/40 bg-primary/10 text-primary px-2.5 py-1 text-[0.6875rem] font-semibold hover:bg-primary/20"
                   >
                     <Plus className="h-3 w-3" /> New bike
                   </button>

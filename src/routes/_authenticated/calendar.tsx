@@ -838,7 +838,7 @@ function CalendarPage() {
               {dayNames.map((name) => (
                 <div
                   key={name}
-                  className={`text-center text-[10px] font-bold uppercase tracking-wider py-1 rounded ${
+                  className={`text-center text-[0.625rem] font-bold uppercase tracking-wider py-1 rounded ${
                     name === "Sunday" ? "bg-primary/[0.05] text-primary" : "text-muted-foreground"
                   }`}
                 >
@@ -895,7 +895,7 @@ function CalendarPage() {
                       {over && (
                         <span
                           title="Overbooked"
-                          className="text-[9px] font-bold uppercase tracking-wider text-status-parts"
+                          className="text-[0.5625rem] font-bold uppercase tracking-wider text-status-parts"
                         >
                           <AlertTriangle className="h-3 w-3 inline" />
                         </span>
@@ -909,7 +909,7 @@ function CalendarPage() {
                           e.stopPropagation();
                           setEditNote(n);
                         }}
-                        className="mt-1 inline-flex max-w-full items-center gap-1 rounded-md bg-amber-500/15 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-amber-500 hover:bg-amber-500/25 self-start"
+                        className="mt-1 inline-flex max-w-full items-center gap-1 rounded-md bg-amber-500/15 px-1.5 py-0.5 text-[0.5625rem] font-bold uppercase tracking-wider text-amber-500 hover:bg-amber-500/25 self-start"
                         title={n.title}
                       >
                         <StickyNote className="h-2.5 w-2.5 shrink-0" />
@@ -945,13 +945,13 @@ function CalendarPage() {
                         );
                       })}
                       {dayBookings.length > 6 && (
-                        <span className="text-[9px] text-muted-foreground font-semibold">
+                        <span className="text-[0.5625rem] text-muted-foreground font-semibold">
                           +{dayBookings.length - 6}
                         </span>
                       )}
                     </div>
 
-                    <div className="mt-auto flex items-center justify-between text-[9px] text-muted-foreground tabular-nums">
+                    <div className="mt-auto flex items-center justify-between text-[0.5625rem] text-muted-foreground tabular-nums">
                       <span>{loadHours.toFixed(1)}h</span>
                       <span>
                         {dayBookings.length} job{dayBookings.length === 1 ? "" : "s"}
@@ -1008,7 +1008,7 @@ function CalendarPage() {
                     className="grid border-b border-border/60"
                     style={{ gridTemplateColumns: `56px repeat(7, minmax(0, 1fr))` }}
                   >
-                    <div className="text-[9px] font-bold text-muted-foreground/60 uppercase tracking-wider text-center py-2 border-r border-border/60">
+                    <div className="text-[0.5625rem] font-bold text-muted-foreground/60 uppercase tracking-wider text-center py-2 border-r border-border/60">
                       GMT
                     </div>
                     {weekDays.map((day) => {
@@ -1023,7 +1023,7 @@ function CalendarPage() {
                           } ${isHovered ? "bg-primary/10" : ""}`}
                         >
                           <div
-                            className={`text-[10px] font-semibold uppercase tracking-wider transition-colors ${
+                            className={`text-[0.625rem] font-semibold uppercase tracking-wider transition-colors ${
                               today
                                 ? "text-primary"
                                 : isSunday(day)
@@ -1068,7 +1068,7 @@ function CalendarPage() {
                         return (
                           <div
                             key={hh}
-                            className={`text-[10px] tabular-nums text-right pr-2 -translate-y-1.5 transition-colors ${
+                            className={`text-[0.625rem] tabular-nums text-right pr-2 -translate-y-1.5 transition-colors ${
                               activeHour ? "text-primary font-bold" : "text-muted-foreground"
                             }`}
                             style={{
@@ -1202,7 +1202,7 @@ function CalendarPage() {
                                   e.stopPropagation();
                                   setEditNote(n);
                                 }}
-                                className="absolute z-[15] rounded-md px-2 py-0.5 text-left text-[10px] leading-tight bg-amber-500/20 text-amber-600 dark:text-amber-300 ring-1 ring-amber-500/40 hover:brightness-110 cursor-grab active:cursor-grabbing overflow-hidden"
+                                className="absolute z-[15] rounded-md px-2 py-0.5 text-left text-[0.625rem] leading-tight bg-amber-500/20 text-amber-600 dark:text-amber-300 ring-1 ring-amber-500/40 hover:brightness-110 cursor-grab active:cursor-grabbing overflow-hidden"
                                 style={{
                                   top: `${Math.max(0, nTop) + 1}px`,
                                   height: `${nHeight}px`,
@@ -1349,7 +1349,7 @@ function CalendarPage() {
               className="card-surface w-full max-w-md p-5 space-y-4 relative"
             >
               <div className="flex items-center justify-between gap-2">
-                <div className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground">
+                <div className="text-[0.625rem] uppercase tracking-[0.25em] text-muted-foreground">
                   {bookingView === "edit" ? "Edit booking" : "Booking"}
                 </div>
                 <div className="flex items-center gap-2">
@@ -1409,7 +1409,7 @@ function CalendarPage() {
                       <div className="flex items-center gap-2 flex-wrap">
 
                         <span
-                          className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 ring-1 text-[11px] font-bold uppercase tracking-wider ${c.bg} ${c.ring} ${c.text}`}
+                          className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 ring-1 text-[0.6875rem] font-bold uppercase tracking-wider ${c.bg} ${c.ring} ${c.text}`}
                         >
                           <span className="h-1.5 w-1.5 rounded-full bg-current" />
                           {displayServiceType(b.service_type, b.service_type_other)}
@@ -1427,7 +1427,7 @@ function CalendarPage() {
                             qc.invalidateQueries({ queryKey: ["calendar-bookings"] });
                             toast.success(next ? "Marked confirmed" : "Marked unconfirmed");
                           }}
-                          className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider border transition-colors ${
+                          className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[0.625rem] font-bold uppercase tracking-wider border transition-colors ${
                             b.confirmed
                               ? "bg-green-500/20 border-green-500/60 text-green-400"
                               : "bg-background/40 border-border text-muted-foreground hover:border-green-500/40 hover:text-green-400"
@@ -1443,7 +1443,7 @@ function CalendarPage() {
                         </button>
 
                         {b.loan_bike && (
-                          <span className="inline-flex items-center gap-1 rounded-full bg-amber-400/20 border border-amber-400/60 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-amber-300">
+                          <span className="inline-flex items-center gap-1 rounded-full bg-amber-400/20 border border-amber-400/60 px-2 py-0.5 text-[0.625rem] font-bold uppercase tracking-wider text-amber-300">
                             🏍️ Loan{b.loan_bikes?.name ? ` · ${b.loan_bikes.name}` : ""}
                           </span>
                         )}
@@ -1466,7 +1466,7 @@ function CalendarPage() {
                             qc.invalidateQueries({ queryKey: ["calendar-bookings"] });
                             toast.success(next ? "Marked as in workshop" : "Marked as not arrived");
                           }}
-                          className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider border transition-colors ${
+                          className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[0.625rem] font-bold uppercase tracking-wider border transition-colors ${
                             b.bike_arrived
                               ? "bg-orange-500/20 border-orange-500/60 text-orange-300"
                               : "bg-background/40 border-border text-muted-foreground hover:border-orange-500/40 hover:text-orange-400"
@@ -1484,7 +1484,7 @@ function CalendarPage() {
 
                       <div className="space-y-2">
                         <div>
-                          <div className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground">
+                          <div className="text-[0.625rem] uppercase tracking-[0.25em] text-muted-foreground">
                             Date
                           </div>
                           <div className="text-sm font-semibold text-foreground">
@@ -1499,7 +1499,7 @@ function CalendarPage() {
                         </div>
 
                         <div>
-                          <div className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground">
+                          <div className="text-[0.625rem] uppercase tracking-[0.25em] text-muted-foreground">
                             Name
                           </div>
                           <div className="text-base font-semibold text-foreground">{customer}</div>
@@ -1507,7 +1507,7 @@ function CalendarPage() {
 
                         {b.customers?.phone && (
                           <div>
-                            <div className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground">
+                            <div className="text-[0.625rem] uppercase tracking-[0.25em] text-muted-foreground">
                               Phone
                             </div>
                             <div className="flex items-center gap-2 text-2xl font-bold tracking-tight text-foreground">
@@ -1519,7 +1519,7 @@ function CalendarPage() {
 
                         {bike !== "—" && (
                           <div>
-                            <div className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground">
+                            <div className="text-[0.625rem] uppercase tracking-[0.25em] text-muted-foreground">
                               Bike
                             </div>
                             <div className="text-sm flex items-center gap-1.5">
@@ -1537,7 +1537,7 @@ function CalendarPage() {
 
                       {b.service_type === "Other" && b.service_type_other && (
                         <div className="rounded-lg border border-border bg-background/40 px-3 py-2 text-sm">
-                          <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-0.5">
+                          <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground mb-0.5">
                             Service detail
                           </div>
                           {b.service_type_other}
@@ -1545,7 +1545,7 @@ function CalendarPage() {
                       )}
 
                       <div>
-                        <label className="text-[10px] uppercase tracking-wider text-muted-foreground flex items-center gap-1">
+                        <label className="text-[0.625rem] uppercase tracking-wider text-muted-foreground flex items-center gap-1">
                           <StickyNote className="h-3 w-3" /> Instructions
                         </label>
                         <textarea
@@ -1621,18 +1621,18 @@ function CalendarPage() {
                   <>
                     <div className="flex items-center gap-2 flex-wrap">
                       <span
-                        className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 ring-1 text-[11px] font-bold uppercase tracking-wider ${c.bg} ${c.ring} ${c.text}`}
+                        className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 ring-1 text-[0.6875rem] font-bold uppercase tracking-wider ${c.bg} ${c.ring} ${c.text}`}
                       >
                         <span className="h-1.5 w-1.5 rounded-full bg-current" />
                         {displayServiceType(b.service_type, b.service_type_other)}
                       </span>
                       {b.confirmed && (
-                        <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-green-500">
+                        <span className="inline-flex items-center gap-1 text-[0.625rem] font-bold uppercase tracking-wider text-green-500">
                           <span className="h-1.5 w-1.5 rounded-full bg-green-500" /> Confirmed
                         </span>
                       )}
                       {b.loan_bike && (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-amber-400/20 border border-amber-400/60 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-amber-300">
+                        <span className="inline-flex items-center gap-1 rounded-full bg-amber-400/20 border border-amber-400/60 px-2 py-0.5 text-[0.625rem] font-bold uppercase tracking-wider text-amber-300">
                           🏍️ Loan bike {b.loan_bikes?.name ? `· ${b.loan_bikes.name}` : ""}
                           {b.loan_bike_expected_return
                             ? ` · back ${format(new Date(b.loan_bike_expected_return + "T00:00:00"), "d MMM")}`
@@ -1643,7 +1643,7 @@ function CalendarPage() {
 
                     {/* Service — moved to top to mirror the Quick Booking form */}
                     <div>
-                      <label className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                      <label className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">
                         Service *
                       </label>
                       <select
@@ -1676,7 +1676,7 @@ function CalendarPage() {
                       </select>
                       {(b.service_type ?? "").toLowerCase() === "other" && (
                         <div className="mt-2">
-                          <label className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                          <label className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">
                             Other service details
                           </label>
                           <textarea
@@ -1703,12 +1703,12 @@ function CalendarPage() {
 
                     {/* Scheduled — same Popover / Select components as the create form */}
                     <div>
-                      <div className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground mb-1.5">
+                      <div className="text-[0.625rem] uppercase tracking-[0.25em] text-muted-foreground mb-1.5">
                         Scheduled
                       </div>
                       <div className="grid grid-cols-2 gap-2">
                         <div>
-                          <label className="text-[10px] uppercase tracking-wider text-muted-foreground flex items-center gap-1">
+                          <label className="text-[0.625rem] uppercase tracking-wider text-muted-foreground flex items-center gap-1">
                             <CalendarIcon className="h-3 w-3" /> Date
                           </label>
                           <Popover>
@@ -1770,7 +1770,7 @@ function CalendarPage() {
                           </Popover>
                         </div>
                         <div>
-                          <label className="text-[10px] uppercase tracking-wider text-muted-foreground flex items-center gap-1">
+                          <label className="text-[0.625rem] uppercase tracking-wider text-muted-foreground flex items-center gap-1">
                             <Clock className="h-3 w-3" /> Time
                           </label>
                           <Select
@@ -1882,7 +1882,7 @@ function CalendarPage() {
 
                     <div className="grid grid-cols-1 gap-3 pt-1 border-t border-border/60">
                       <div className="rounded-lg border border-border/60 bg-muted/20 p-3 space-y-2">
-                        <div className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground flex items-center gap-1.5">
+                        <div className="text-[0.625rem] uppercase tracking-[0.25em] text-muted-foreground flex items-center gap-1.5">
                           <UserIcon className="h-3 w-3" /> Customer assigned
                         </div>
                         <div className="text-sm font-semibold">{customer}</div>
@@ -1914,7 +1914,7 @@ function CalendarPage() {
                           />
                         </div>
                         <div>
-                          <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">
+                          <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground mb-1">
                             Change customer
                           </div>
                           <select
@@ -1962,12 +1962,12 @@ function CalendarPage() {
                       </div>
 
                       <div className="rounded-lg border border-border/60 bg-muted/20 p-3 space-y-2">
-                        <div className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground flex items-center gap-1.5">
+                        <div className="text-[0.625rem] uppercase tracking-[0.25em] text-muted-foreground flex items-center gap-1.5">
                           <BikeIcon className="h-3 w-3" /> Motorcycle assigned
                         </div>
                         <div className="text-sm font-semibold">{bike}</div>
                         <div className="flex items-center gap-2">
-                          <span className="text-[10px] uppercase tracking-wider text-muted-foreground shrink-0">
+                          <span className="text-[0.625rem] uppercase tracking-wider text-muted-foreground shrink-0">
                             Rego
                           </span>
                           <input
@@ -1996,7 +1996,7 @@ function CalendarPage() {
                           />
                         </div>
                         <div>
-                          <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">
+                          <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground mb-1">
                             Change motorcycle
                           </div>
                           <select
@@ -2044,7 +2044,7 @@ function CalendarPage() {
 
                       {b.tech_name && (
                         <div>
-                          <div className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground mb-1">
+                          <div className="text-[0.625rem] uppercase tracking-[0.25em] text-muted-foreground mb-1">
                             Technician
                           </div>
                           <div className="text-sm font-semibold">{b.tech_name}</div>
@@ -2053,7 +2053,7 @@ function CalendarPage() {
 
                       {b.complaints && (
                         <div>
-                          <div className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground mb-1">
+                          <div className="text-[0.625rem] uppercase tracking-[0.25em] text-muted-foreground mb-1">
                             Complaints
                           </div>
                           <div className="text-sm">{b.complaints}</div>
@@ -2061,7 +2061,7 @@ function CalendarPage() {
                       )}
 
                       <div>
-                        <div className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground mb-1">
+                        <div className="text-[0.625rem] uppercase tracking-[0.25em] text-muted-foreground mb-1">
                           Instructions
                         </div>
                         <textarea
@@ -2150,7 +2150,7 @@ function CalendarPage() {
               {justCreated ? (
                 <div className="space-y-4">
                   <div>
-                    <div className="text-[10px] uppercase tracking-[0.25em] text-emerald-500">
+                    <div className="text-[0.625rem] uppercase tracking-[0.25em] text-emerald-500">
                       Booking created
                     </div>
                     <div className="font-display text-lg font-bold">
@@ -2170,7 +2170,7 @@ function CalendarPage() {
                   </div>
 
                   <div>
-                    <label className="text-[10px] uppercase tracking-wider text-muted-foreground flex items-center gap-1">
+                    <label className="text-[0.625rem] uppercase tracking-wider text-muted-foreground flex items-center gap-1">
                       <StickyNote className="h-3 w-3" /> Instructions
                     </label>
                     <textarea
@@ -2247,7 +2247,7 @@ function CalendarPage() {
                 <>
                   <div>
                     <div className="flex items-center justify-between gap-2">
-                      <div className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground">
+                      <div className="text-[0.625rem] uppercase tracking-[0.25em] text-muted-foreground">
                         Quick booking
                       </div>
                       <div className="flex items-center gap-2">
@@ -2271,7 +2271,7 @@ function CalendarPage() {
 
                     <div className="mt-1 grid grid-cols-2 gap-2">
                       <div>
-                        <label className="text-[10px] uppercase tracking-wider text-muted-foreground flex items-center gap-1">
+                        <label className="text-[0.625rem] uppercase tracking-wider text-muted-foreground flex items-center gap-1">
                           <CalendarIcon className="h-3 w-3" /> Date
                         </label>
                         <Popover>
@@ -2302,7 +2302,7 @@ function CalendarPage() {
                         </Popover>
                       </div>
                       <div>
-                        <label className="text-[10px] uppercase tracking-wider text-muted-foreground flex items-center gap-1">
+                        <label className="text-[0.625rem] uppercase tracking-wider text-muted-foreground flex items-center gap-1">
                           <Clock className="h-3 w-3" /> Time
                         </label>
                         <Select value={qEditTime} onValueChange={setQEditTime}>
@@ -2324,7 +2324,7 @@ function CalendarPage() {
                   </div>
 
                   <div>
-                    <label className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                    <label className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">
                       Service *
                     </label>
                     <select
@@ -2341,7 +2341,7 @@ function CalendarPage() {
                     </select>
                     {qService === "Other" && (
                       <div className="mt-2">
-                        <label className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                        <label className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">
                           Other service details
                         </label>
                         <textarea
@@ -2356,7 +2356,7 @@ function CalendarPage() {
 
                   {/* Customer search */}
                   <div className="relative">
-                    <label className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                    <label className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">
                       Search by name, phone or rego
                     </label>
                     <div className="mt-1 flex gap-2">
@@ -2383,7 +2383,7 @@ function CalendarPage() {
                       <div className="absolute z-10 left-0 right-0 mt-1 rounded-lg border border-border bg-popover shadow-xl max-h-72 overflow-y-auto">
                         {regoMatches.length > 0 && (
                           <>
-                            <div className="px-3 py-1 text-[9px] font-bold uppercase tracking-wider text-muted-foreground bg-muted/40 border-b border-border/40">
+                            <div className="px-3 py-1 text-[0.5625rem] font-bold uppercase tracking-wider text-muted-foreground bg-muted/40 border-b border-border/40">
                               Matching rego
                             </div>
                             {regoMatches.map((m: any) => (
@@ -2394,15 +2394,15 @@ function CalendarPage() {
                                 className="w-full text-left px-3 py-2 text-sm hover:bg-primary/10 border-b border-border/40 last:border-b-0"
                               >
                                 <div className="flex items-center gap-2">
-                                  <span className="inline-flex items-center gap-1 rounded-md bg-primary/10 border border-primary/30 px-1.5 py-0.5 text-[11px] font-mono font-bold text-primary">
+                                  <span className="inline-flex items-center gap-1 rounded-md bg-primary/10 border border-primary/30 px-1.5 py-0.5 text-[0.6875rem] font-mono font-bold text-primary">
                                     <BikeIcon className="h-3 w-3" /> {m.rego}
                                   </span>
-                                  <span className="text-[11px] text-muted-foreground">
+                                  <span className="text-[0.6875rem] text-muted-foreground">
                                     {`${m.year ?? ""} ${m.make ?? ""} ${m.model ?? ""}`.trim()}
                                   </span>
                                 </div>
                                 {m.customers && (
-                                  <div className="mt-0.5 text-[11px] text-muted-foreground">
+                                  <div className="mt-0.5 text-[0.6875rem] text-muted-foreground">
                                     {`${m.customers.first_name ?? ""} ${m.customers.last_name ?? ""}`.trim() ||
                                       "—"}
                                     {m.customers.phone ? ` · ${m.customers.phone}` : ""}
@@ -2414,7 +2414,7 @@ function CalendarPage() {
                         )}
                         {customerMatches.length > 0 && (
                           <>
-                            <div className="px-3 py-1 text-[9px] font-bold uppercase tracking-wider text-muted-foreground bg-muted/40 border-b border-border/40">
+                            <div className="px-3 py-1 text-[0.5625rem] font-bold uppercase tracking-wider text-muted-foreground bg-muted/40 border-b border-border/40">
                               Matching customer
                             </div>
                             {customerMatches.map((c: any) => (
@@ -2428,7 +2428,7 @@ function CalendarPage() {
                                   {`${c.first_name ?? ""} ${c.last_name ?? ""}`.trim() || "—"}
                                 </div>
                                 {c.phone && (
-                                  <div className="text-[11px] text-muted-foreground flex items-center gap-1">
+                                  <div className="text-[0.6875rem] text-muted-foreground flex items-center gap-1">
                                     <Phone className="h-3 w-3" /> {c.phone}
                                   </div>
                                 )}
@@ -2443,13 +2443,13 @@ function CalendarPage() {
                       customerMatches.length === 0 &&
                       regoMatches.length === 0 &&
                       !regoMatchesQ.isFetching && (
-                        <div className="mt-2 rounded-lg border border-dashed border-primary/40 bg-primary/5 px-3 py-2 text-[11px] text-muted-foreground">
+                        <div className="mt-2 rounded-lg border border-dashed border-primary/40 bg-primary/5 px-3 py-2 text-[0.6875rem] text-muted-foreground">
                           No match. Fill in the fields below to create a new customer + bike inline.
                         </div>
                       )}
                     {qCustomerId && (quickBikes.data ?? []).length > 0 && (
                       <div className="mt-2">
-                        <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">
+                        <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground mb-1">
                           Customer bikes
                         </div>
                         <div className="flex flex-wrap gap-1.5">
@@ -2470,7 +2470,7 @@ function CalendarPage() {
                                       setQBikeRego(""))
                                     : pickBike(bk)
                                 }
-                                className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-semibold transition-colors ${
+                                className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[0.6875rem] font-semibold transition-colors ${
                                   active
                                     ? "border-primary bg-primary/15 text-primary"
                                     : "border-border hover:border-primary/50"
@@ -2489,7 +2489,7 @@ function CalendarPage() {
 
                   <div className="grid grid-cols-2 gap-2">
                     <div className="col-span-1">
-                      <label className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                      <label className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">
                         First name *
                       </label>
                       <input
@@ -2499,7 +2499,7 @@ function CalendarPage() {
                       />
                     </div>
                     <div className="col-span-1">
-                      <label className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                      <label className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">
                         Last name
                       </label>
                       <input
@@ -2509,7 +2509,7 @@ function CalendarPage() {
                       />
                     </div>
                     <div className="col-span-2 relative">
-                      <label className="text-[10px] uppercase tracking-wider text-muted-foreground flex items-center gap-1">
+                      <label className="text-[0.625rem] uppercase tracking-wider text-muted-foreground flex items-center gap-1">
                         <Phone className="h-3 w-3" /> Phone
                       </label>
                       <input
@@ -2536,7 +2536,7 @@ function CalendarPage() {
                           if (matches.length === 0) return null;
                           return (
                             <div className="absolute z-20 left-0 right-0 mt-1 rounded-lg border border-border bg-popover shadow-xl max-h-56 overflow-y-auto">
-                              <div className="px-3 py-1 text-[9px] font-bold uppercase tracking-wider text-muted-foreground bg-muted/40 border-b border-border/40">
+                              <div className="px-3 py-1 text-[0.5625rem] font-bold uppercase tracking-wider text-muted-foreground bg-muted/40 border-b border-border/40">
                                 Matching phone
                               </div>
                               {matches.map((c: any) => (
@@ -2549,7 +2549,7 @@ function CalendarPage() {
                                   <div className="font-semibold">
                                     {`${c.first_name ?? ""} ${c.last_name ?? ""}`.trim() || "—"}
                                   </div>
-                                  <div className="text-[11px] text-muted-foreground flex items-center gap-1">
+                                  <div className="text-[0.6875rem] text-muted-foreground flex items-center gap-1">
                                     <Phone className="h-3 w-3" /> {c.phone}
                                   </div>
                                 </button>
@@ -2559,7 +2559,7 @@ function CalendarPage() {
                         })()}
                     </div>
                     <div className="col-span-1">
-                      <label className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                      <label className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">
                         Year
                       </label>
                       <input
@@ -2577,7 +2577,7 @@ function CalendarPage() {
                       </datalist>
                     </div>
                     <div className="col-span-1">
-                      <label className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                      <label className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">
                         Rego
                       </label>
                       <div className="flex gap-1 mt-1">
@@ -2599,7 +2599,7 @@ function CalendarPage() {
                       </div>
                     </div>
                     <div className="col-span-1">
-                      <label className="text-[10px] uppercase tracking-wider text-muted-foreground flex items-center gap-1">
+                      <label className="text-[0.625rem] uppercase tracking-wider text-muted-foreground flex items-center gap-1">
                         <BikeIcon className="h-3 w-3" /> Make *
                       </label>
                       <input
@@ -2619,7 +2619,7 @@ function CalendarPage() {
                       </datalist>
                     </div>
                     <div className="col-span-1">
-                      <label className="text-[10px] uppercase tracking-wider text-muted-foreground flex items-center gap-1">
+                      <label className="text-[0.625rem] uppercase tracking-wider text-muted-foreground flex items-center gap-1">
                         <BikeIcon className="h-3 w-3" /> Model *
                       </label>
                       <input
@@ -2637,7 +2637,7 @@ function CalendarPage() {
                       </datalist>
                     </div>
                     <div className="col-span-2">
-                      <label className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                      <label className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">
                         Est. hours
                       </label>
                       <input
@@ -2649,7 +2649,7 @@ function CalendarPage() {
                       />
                     </div>
                     <div className="col-span-2">
-                      <label className="text-[10px] uppercase tracking-wider text-muted-foreground flex items-center gap-1">
+                      <label className="text-[0.625rem] uppercase tracking-wider text-muted-foreground flex items-center gap-1">
                         <StickyNote className="h-3 w-3" /> Instructions
                       </label>
                       <textarea
@@ -2674,7 +2674,7 @@ function CalendarPage() {
                     </label>
                     {qWofNeeded && (
                       <div className="mt-2 rounded-xl border border-primary/40 bg-primary/5 p-3">
-                        <label className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                        <label className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">
                           Current WOF expiry (optional)
                         </label>
                         <input
@@ -2699,7 +2699,7 @@ function CalendarPage() {
                     </label>
                     {qLoanBike && (
                       <div className="mt-2 space-y-2 rounded-xl border border-amber-400/40 bg-amber-400/5 p-3">
-                        <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                        <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">
                           Assign loan bike
                         </div>
                         <div className="grid gap-1.5">
@@ -2724,7 +2724,7 @@ function CalendarPage() {
                               >
                                 <span className="flex-1">
                                   <span className="block text-sm font-semibold">{lb.name}</span>
-                                  <span className="block text-[11px] text-muted-foreground">
+                                  <span className="block text-[0.6875rem] text-muted-foreground">
                                     {lb.current_km?.toLocaleString?.() ?? 0} km
                                     {busy &&
                                       outWith?.customers &&
@@ -2735,7 +2735,7 @@ function CalendarPage() {
                                   </span>
                                 </span>
                                 {busy && (
-                                  <span className="rounded-full bg-destructive/15 text-destructive px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider">
+                                  <span className="rounded-full bg-destructive/15 text-destructive px-2 py-0.5 text-[0.625rem] font-bold uppercase tracking-wider">
                                     Out
                                   </span>
                                 )}
@@ -2749,7 +2749,7 @@ function CalendarPage() {
                           )}
                         </div>
                         <div>
-                          <label className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                          <label className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">
                             Expected return
                           </label>
                           <input
@@ -2854,7 +2854,7 @@ function CalendarPage() {
               className="card-surface w-full max-w-sm p-5"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="mb-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+              <div className="mb-1 text-[0.625rem] font-bold uppercase tracking-wider text-muted-foreground">
                 {format(slotChoice.date, "EEEE, d MMM yyyy")}
                 {slotChoice.time ? ` · ${slotChoice.time}` : ""}
               </div>
@@ -2874,7 +2874,7 @@ function CalendarPage() {
                   <Wrench className="h-5 w-5 text-primary" />
                   <div>
                     <div className="font-semibold">New booking</div>
-                    <div className="text-[11px] text-muted-foreground">
+                    <div className="text-[0.6875rem] text-muted-foreground">
                       Schedule a job at this time
                     </div>
                   </div>
@@ -2892,7 +2892,7 @@ function CalendarPage() {
                   <StickyNote className="h-5 w-5 text-amber-500" />
                   <div>
                     <div className="font-semibold">Add note</div>
-                    <div className="text-[11px] text-muted-foreground">
+                    <div className="text-[0.6875rem] text-muted-foreground">
                       Sticky reminder placed at this spot (drag it anywhere later)
                     </div>
                   </div>
@@ -2911,7 +2911,7 @@ function CalendarPage() {
                     <Clock className="h-5 w-5 text-muted-foreground" />
                     <div>
                       <div className="font-semibold">Open in week view</div>
-                      <div className="text-[11px] text-muted-foreground">
+                      <div className="text-[0.6875rem] text-muted-foreground">
                         See the day hour by hour
                       </div>
                     </div>
@@ -2922,7 +2922,7 @@ function CalendarPage() {
                 <button
                   type="button"
                   onClick={() => setSlotChoice(null)}
-                  className="text-[11px] font-semibold text-muted-foreground hover:text-foreground"
+                  className="text-[0.6875rem] font-semibold text-muted-foreground hover:text-foreground"
                 >
                   Cancel
                 </button>

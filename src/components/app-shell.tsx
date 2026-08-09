@@ -122,7 +122,7 @@ export function AppShell() {
               className="h-14 w-auto shrink-0 drop-shadow-[0_0_12px_oklch(0.58_0.22_25/0.35)] transition-transform group-hover:scale-105"
             />
             <div className="hidden sm:block min-w-0">
-              <div className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground leading-none">
+              <div className="text-[0.625rem] uppercase tracking-[0.3em] text-muted-foreground leading-none">
                 Workshop OS
               </div>
               <div className="font-display text-sm font-bold tracking-wide truncate">
@@ -159,7 +159,7 @@ export function AppShell() {
             {!userLoading && (
               <span
                 className={cn(
-                  "hidden xs:inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.18em]",
+                  "hidden xs:inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-[0.625rem] font-bold uppercase tracking-[0.18em]",
                   isAdmin
                     ? "border-primary/40 bg-primary/10 text-primary shadow-[0_0_12px_-2px_oklch(0.58_0.22_25/0.45)]"
                     : isTechnician
@@ -213,7 +213,7 @@ export function AppShell() {
         className="hidden sm:flex fixed left-0 top-[80px] z-40 w-[220px] h-[calc(100vh-80px)] flex-col border-r border-border/60 bg-card/80 backdrop-blur-xl text-sidebar-foreground"
         style={{ overflow: "visible" }}
       >
-        <div className="px-4 pt-4 pb-2 text-[10px] font-bold uppercase tracking-[0.25em] text-sidebar-foreground/50">
+        <div className="px-4 pt-4 pb-2 text-[0.625rem] font-bold uppercase tracking-[0.25em] text-sidebar-foreground/50">
           Main Menu
         </div>
         <nav
@@ -293,7 +293,7 @@ export function AppShell() {
                 key={t.to}
                 to={t.to}
                 className={cn(
-                  "flex flex-col items-center justify-center gap-1 py-3 px-4 text-[10px] uppercase tracking-wider transition-colors shrink-0 snap-start min-w-[72px]",
+                  "flex flex-col items-center justify-center gap-1 py-3 px-4 text-[0.625rem] uppercase tracking-wider transition-colors shrink-0 snap-start min-w-[72px]",
                   active ? "text-primary" : "text-muted-foreground",
                 )}
               >

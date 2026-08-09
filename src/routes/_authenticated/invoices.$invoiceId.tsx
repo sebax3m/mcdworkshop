@@ -679,7 +679,7 @@ function InvoiceDetail() {
             </div>
           </div>
           <div className="text-right">
-            <div className="text-[10px] uppercase tracking-[0.25em] opacity-80">Tax Invoice</div>
+            <div className="text-[0.625rem] uppercase tracking-[0.25em] opacity-80">Tax Invoice</div>
             <div className="font-display text-2xl font-black">{inv.invoice_number}</div>
           </div>
         </div>
@@ -688,23 +688,23 @@ function InvoiceDetail() {
           {/* Meta strip */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
             <div>
-              <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+              <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">
                 Issued
               </div>
               <div className="font-semibold">{issuedAt.toLocaleDateString()}</div>
             </div>
             <div>
-              <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Due</div>
+              <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">Due</div>
               <div className="font-semibold">{dueAt.toLocaleDateString()}</div>
             </div>
             <div>
-              <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+              <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">
                 Status
               </div>
               <div className="font-semibold uppercase">{inv.status}</div>
             </div>
             <div>
-              <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Job</div>
+              <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">Job</div>
               <div className="font-semibold">{inv.jobs ? `#${inv.jobs.job_number}` : "—"}</div>
             </div>
           </div>
@@ -712,7 +712,7 @@ function InvoiceDetail() {
           {/* Bill to + Bike */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-5 border-t border-border">
             <div>
-              <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-2">
+              <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground mb-2">
                 Bill To
               </div>
               <div className="font-display text-lg font-bold">
@@ -726,7 +726,7 @@ function InvoiceDetail() {
               )}
             </div>
             <div>
-              <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-2">
+              <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground mb-2">
                 Motorcycle
               </div>
               <div className="font-display text-lg font-bold">
@@ -755,7 +755,7 @@ function InvoiceDetail() {
           <div className="pt-5 border-t border-border">
             <table className="w-full text-sm">
               <thead>
-                <tr className="text-left text-[10px] uppercase tracking-wider text-muted-foreground border-b border-border">
+                <tr className="text-left text-[0.625rem] uppercase tracking-wider text-muted-foreground border-b border-border">
                   <th className="py-2.5">Description</th>
                   <th className="py-2.5 text-right w-16">Qty</th>
                   <th className="py-2.5 text-right w-24">Unit</th>
@@ -795,7 +795,7 @@ function InvoiceDetail() {
                           />
                           {deltaLabel && (
                             <div
-                              className={`text-[10px] mt-0.5 no-print ${delta > 0 ? "text-amber-500" : "text-emerald-500"}`}
+                              className={`text-[0.625rem] mt-0.5 no-print ${delta > 0 ? "text-amber-500" : "text-emerald-500"}`}
                             >
                               {deltaLabel}
                             </div>
@@ -872,7 +872,7 @@ function InvoiceDetail() {
                           {!hasDiscount && (
                             <button
                               onClick={() => updatePart(p.id, { discount_pct: 10 })}
-                              className="no-print block ml-auto mt-0.5 text-[10px] text-muted-foreground hover:text-primary opacity-0 group-hover:opacity-100"
+                              className="no-print block ml-auto mt-0.5 text-[0.625rem] text-muted-foreground hover:text-primary opacity-0 group-hover:opacity-100"
                               title="Add a discount on this line"
                             >
                               + Disc
@@ -904,13 +904,13 @@ function InvoiceDetail() {
                         )}
                         <td className="py-3 text-right font-semibold">
                           {disc > 0 && (
-                            <div className="text-[10px] text-muted-foreground line-through tabular-nums">
+                            <div className="text-[0.625rem] text-muted-foreground line-through tabular-nums">
                               ${gross.toFixed(2)}
                             </div>
                           )}
                           <span className="tabular-nums">${net.toFixed(2)}</span>
                           {disc > 0 && (
-                            <div className="text-[10px] text-emerald-500 font-semibold">
+                            <div className="text-[0.625rem] text-emerald-500 font-semibold">
                               −${(gross - net).toFixed(2)} ({disc}% off)
                             </div>
                           )}
@@ -1008,7 +1008,7 @@ function InvoiceDetail() {
                             {!hasDiscount && (
                               <button
                                 onClick={() => updateSnapshotLine(idx, { discount_pct: 10 })}
-                                className="no-print block ml-auto mt-0.5 text-[10px] text-muted-foreground hover:text-primary opacity-0 group-hover:opacity-100"
+                                className="no-print block ml-auto mt-0.5 text-[0.625rem] text-muted-foreground hover:text-primary opacity-0 group-hover:opacity-100"
                                 title="Add a discount on this line"
                               >
                                 + Disc
@@ -1042,13 +1042,13 @@ function InvoiceDetail() {
                           )}
                           <td className="py-3 text-right font-semibold">
                             {disc > 0 && (
-                              <div className="text-[10px] text-muted-foreground line-through tabular-nums">
+                              <div className="text-[0.625rem] text-muted-foreground line-through tabular-nums">
                                 ${gross.toFixed(2)}
                               </div>
                             )}
                             <span className="tabular-nums">${net.toFixed(2)}</span>
                             {disc > 0 && (
-                              <div className="text-[10px] text-emerald-500 font-semibold">
+                              <div className="text-[0.625rem] text-emerald-500 font-semibold">
                                 −${(gross - net).toFixed(2)} ({disc}% off)
                               </div>
                             )}
@@ -1129,7 +1129,7 @@ function InvoiceDetail() {
           {/* Payment info */}
           <div className="pt-5 border-t border-border text-sm">
             <div>
-              <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-2">
+              <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground mb-2">
                 Payment Details
               </div>
               <div className="space-y-0.5 text-xs">
@@ -1150,7 +1150,7 @@ function InvoiceDetail() {
           </div>
 
           {/* Footer */}
-          <div className="pt-5 border-t border-border text-center text-[10px] uppercase tracking-[0.25em] text-muted-foreground">
+          <div className="pt-5 border-t border-border text-center text-[0.625rem] uppercase tracking-[0.25em] text-muted-foreground">
             Motorcycle Doctors · Workshop OS · Thank you for your business
           </div>
         </div>
@@ -1297,7 +1297,7 @@ function ServiceChecks({
     <div className="pt-5 border-t border-border">
       <div className="flex items-baseline justify-between mb-3">
         <div>
-          <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+          <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">
             Work Performed
           </div>
           {title && <div className="font-display text-lg font-bold mt-0.5">{title}</div>}
@@ -1403,8 +1403,8 @@ function NotesBox({
   return (
     <div>
       <div className="flex items-center justify-between mb-2">
-        <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Notes</div>
-        <div className="text-[10px] text-muted-foreground no-print">
+        <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">Notes</div>
+        <div className="text-[0.625rem] text-muted-foreground no-print">
           {saving ? "Saving…" : savedAt ? "Saved" : "Auto-saves on blur"}
         </div>
       </div>

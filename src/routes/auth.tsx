@@ -116,7 +116,7 @@ function AuthPage() {
                         <>
                           {admins.length > 0 && (
                             <>
-                              <div className="px-2 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                              <div className="px-2 py-1.5 text-[0.625rem] font-semibold uppercase tracking-wider text-muted-foreground">
                                 Admins
                               </div>
                               {admins.map((s) => (
@@ -130,7 +130,7 @@ function AuthPage() {
                           {techs.length > 0 && (
                             <>
                               {admins.length > 0 && <div className="my-1 h-px bg-border" />}
-                              <div className="px-2 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                              <div className="px-2 py-1.5 text-[0.625rem] font-semibold uppercase tracking-wider text-muted-foreground">
                                 Technicians
                               </div>
                               {techs.map((s) => (
@@ -186,7 +186,7 @@ function AuthPage() {
                 Forgot password?
               </button>
             </div>
-            <p className="text-[11px] text-muted-foreground text-center pt-2 border-t border-border/50">
+            <p className="text-[0.6875rem] text-muted-foreground text-center pt-2 border-t border-border/50">
               Accounts are created by an administrator. If you need access, contact the workshop
               admin.
             </p>

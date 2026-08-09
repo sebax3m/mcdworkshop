@@ -94,7 +94,7 @@ function BookingTypesAdmin() {
           <ArrowLeft className="h-4 w-4" />
         </Link>
         <div>
-          <div className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground">Admin</div>
+          <div className="text-[0.625rem] uppercase tracking-[0.3em] text-muted-foreground">Admin</div>
           <h1 className="font-display text-2xl font-bold">Booking Types</h1>
         </div>
       </header>

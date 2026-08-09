@@ -300,7 +300,7 @@ function ClockPage() {
 
       <div className="grid grid-cols-2 gap-3">
         <div className="card-surface p-4">
-          <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+          <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">
             This week — worked
           </div>
           <div className="font-display text-3xl font-bold gold-gradient-text mt-1">
@@ -308,7 +308,7 @@ function ClockPage() {
           </div>
         </div>
         <div className="card-surface p-4">
-          <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+          <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">
             This week — breaks
           </div>
           <div className="font-display text-3xl font-bold text-foreground mt-1">
@@ -380,12 +380,12 @@ function ClockPage() {
                   <div className="flex items-center gap-2 min-w-0">
                     <span className="font-semibold shrink-0">#{j.job_number}</span>
                     {(j.motorcycles ?? j.bikes)?.rego && (
-                      <span className="font-mono text-[11px] font-bold tracking-wider px-1.5 py-0.5 rounded bg-primary/15 text-primary border border-primary/30 shrink-0">
+                      <span className="font-mono text-[0.6875rem] font-bold tracking-wider px-1.5 py-0.5 rounded bg-primary/15 text-primary border border-primary/30 shrink-0">
                         {(j.motorcycles ?? j.bikes).rego}
                       </span>
                     )}
                   </div>
-                  <span className="text-[10px] uppercase tracking-wider text-muted-foreground shrink-0">
+                  <span className="text-[0.625rem] uppercase tracking-wider text-muted-foreground shrink-0">
                     {j.status}
                   </span>
                 </div>
@@ -447,7 +447,7 @@ function ClockHero({
   const label = state === "on" ? "Clocked in" : state === "break" ? "On break" : "Clocked out";
   return (
     <div className={`rounded-2xl border ${palette} p-6 text-center`}>
-      <div className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground">{label}</div>
+      <div className="text-[0.625rem] uppercase tracking-[0.3em] text-muted-foreground">{label}</div>
       {state !== "off" ? (
         <div className="font-display text-5xl font-bold tabular-nums mt-2">
           {String(h).padStart(2, "0")}

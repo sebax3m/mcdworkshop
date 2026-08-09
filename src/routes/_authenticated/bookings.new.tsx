@@ -427,7 +427,7 @@ function NewBooking() {
             </div>
 
             <div className="flex items-center gap-1.5 flex-wrap">
-              <span className="text-[10px] uppercase tracking-wider text-muted-foreground mr-1">
+              <span className="text-[0.625rem] uppercase tracking-wider text-muted-foreground mr-1">
                 Search by:
               </span>
               {(["name", "rego", "mobile"] as const).map((m) => (
@@ -435,7 +435,7 @@ function NewBooking() {
                   key={m}
                   type="button"
                   onClick={() => setSearchMode(m)}
-                  className={`px-2.5 py-1 rounded-full text-[11px] font-semibold border transition-colors ${
+                  className={`px-2.5 py-1 rounded-full text-[0.6875rem] font-semibold border transition-colors ${
                     searchMode === m
                       ? "bg-primary text-primary-foreground border-primary"
                       : "border-border text-muted-foreground hover:border-primary/50"
@@ -448,7 +448,7 @@ function NewBooking() {
 
             {showNewCustomer && (
               <div className="rounded-xl border border-primary/40 bg-primary/5 p-3 space-y-2">
-                <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">
                   Add new customer
                 </div>
                 <div className="grid grid-cols-2 gap-2">
@@ -571,7 +571,7 @@ function NewBooking() {
             <>
               {showNewBike && (
                 <div className="rounded-xl border border-primary/40 bg-primary/5 p-3 space-y-2">
-                  <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                  <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">
                     Add motorcycle for {customer.first_name}
                   </div>
                   <div className="grid grid-cols-2 gap-2">
@@ -770,7 +770,7 @@ function NewBooking() {
                   onChange={(e) => setEstHours(e.target.value)}
                   className="mt-1.5"
                 />
-                <div className="text-[11px] text-muted-foreground mt-1">
+                <div className="text-[0.6875rem] text-muted-foreground mt-1">
                   Informational — does not change the calendar slot.
                 </div>
               </div>
@@ -817,7 +817,7 @@ function NewBooking() {
                   onClick={() => setTechId(t.id)}
                   className={`rounded-xl border p-3 text-left flex items-center gap-2 ${techId === t.id ? "border-primary bg-primary/10" : "border-border"}`}
                 >
-                  <span className="grid h-7 w-7 place-items-center rounded-full bg-muted text-[10px] font-semibold">
+                  <span className="grid h-7 w-7 place-items-center rounded-full bg-muted text-[0.625rem] font-semibold">
                     {initials(t.full_name || "?")}
                   </span>
                   <span className="text-sm font-semibold truncate">{t.full_name || "Unnamed"}</span>
@@ -877,7 +877,7 @@ function NewBooking() {
                         >
                           <span className="flex-1">
                             <span className="block text-sm font-semibold">{lb.name}</span>
-                            <span className="block text-[11px] text-muted-foreground">
+                            <span className="block text-[0.6875rem] text-muted-foreground">
                               {lb.current_km?.toLocaleString?.() ?? 0} km
                               {busy &&
                                 outWith?.customers &&
@@ -888,7 +888,7 @@ function NewBooking() {
                             </span>
                           </span>
                           {busy && (
-                            <span className="rounded-full bg-destructive/15 text-destructive px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider">
+                            <span className="rounded-full bg-destructive/15 text-destructive px-2 py-0.5 text-[0.625rem] font-bold uppercase tracking-wider">
                               Out
                             </span>
                           )}

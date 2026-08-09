@@ -97,7 +97,7 @@ function InsuranceList() {
             <button
               key={o.k}
               onClick={() => setStatusFilter(o.k)}
-              className={`rounded-full border px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider transition-colors ${
+              className={`rounded-full border px-3 py-1.5 text-[0.6875rem] font-semibold uppercase tracking-wider transition-colors ${
                 statusFilter === o.k
                   ? "border-primary bg-primary/15 text-primary"
                   : "border-border text-muted-foreground hover:text-foreground"
@@ -140,16 +140,16 @@ function InsuranceList() {
                 <div className="flex items-center gap-3 flex-wrap">
                   <div className="font-display text-base font-bold">{c.claim_number}</div>
                   <span
-                    className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${meta?.cls}`}
+                    className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[0.625rem] font-bold uppercase tracking-wider ${meta?.cls}`}
                   >
                     {meta?.label ?? c.status}
                   </span>
                   {c.bike_with_customer && (
-                    <span className="inline-flex items-center rounded-full border border-status-parts/40 bg-status-parts/10 text-status-parts px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider">
+                    <span className="inline-flex items-center rounded-full border border-status-parts/40 bg-status-parts/10 text-status-parts px-2 py-0.5 text-[0.625rem] font-bold uppercase tracking-wider">
                       Bike with customer
                     </span>
                   )}
-                  <span className="ml-auto text-[11px] text-muted-foreground">
+                  <span className="ml-auto text-[0.6875rem] text-muted-foreground">
                     Received {format(new Date(c.date_received), "d MMM yyyy")}
                   </span>
                   <ChevronRight className="h-4 w-4 text-muted-foreground" />

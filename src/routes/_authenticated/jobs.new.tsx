@@ -191,7 +191,7 @@ function NewJob() {
                         {b.drop_off_time.slice(0, 5)}
                       </>
                     )}
-                    <span className="ml-1 rounded-full bg-primary/10 text-primary px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider">
+                    <span className="ml-1 rounded-full bg-primary/10 text-primary px-1.5 py-0.5 text-[0.625rem] font-semibold uppercase tracking-wider">
                       {b.service_type}
                     </span>
                   </span>

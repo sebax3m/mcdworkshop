@@ -23,7 +23,7 @@ const ITEMS = [
 export function ServiceLegend() {
   return (
     <div className="rounded-md border border-dashed border-border/60 bg-background/40 px-3 py-2.5">
-      <div className="text-[10px] font-bold uppercase tracking-[0.25em] text-muted-foreground/70 mb-2">
+      <div className="text-[0.625rem] font-bold uppercase tracking-[0.25em] text-muted-foreground/70 mb-2">
         colour legend
       </div>
       <ul className="grid grid-cols-2 gap-x-2 gap-y-1.5">
@@ -32,7 +32,7 @@ export function ServiceLegend() {
           return (
             <li key={s.k} className="flex items-center gap-2 min-w-0">
               <span className={`h-2 w-2 rounded-full shrink-0 ${c.dot}`} />
-              <span className={`text-[11px] font-medium truncate ${c.text}`}>{s.label}</span>
+              <span className={`text-[0.6875rem] font-medium truncate ${c.text}`}>{s.label}</span>
             </li>
           );
         })}
