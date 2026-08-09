@@ -252,6 +252,7 @@ function Bikes() {
 
   async function saveNewCustomer() {
     if (!newCust.first_name.trim()) return toast.error("First name required");
+    if (!hasPhone(newCust.phone)) return toast.error("A valid phone number is required");
     setSavingCust(true);
     try {
       const { data, error } = await supabase
@@ -283,20 +284,44 @@ function Bikes() {
         <div className="min-w-0">
           <div className="text-xs uppercase tracking-[0.25em] text-muted-foreground">Garage</div>
           <h1 className="font-display text-2xl sm:text-3xl font-bold">
-            {bikes.data?.length ?? 0} bikes
+            {filtered.length}
+            {filtered.length !== counts.all ? ` / ${counts.all}` : ""} bikes
           </h1>
         </div>
         <div className="flex items-center gap-2">
           {isAdmin && selectMode ? (
             <>
+              {filter === "archived" ? (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => archiveSelected(false)}
+                  disabled={selected.size === 0}
+                  className="gap-1.5 shrink-0"
+                >
+                  <ArchiveRestore className="h-4 w-4" /> Restore
+                  {selected.size > 0 ? ` (${selected.size})` : ""}
+                </Button>
+              ) : (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => archiveSelected(true)}
+                  disabled={selected.size === 0}
+                  className="gap-1.5 shrink-0"
+                >
+                  <Archive className="h-4 w-4" /> Archive
+                  {selected.size > 0 ? ` (${selected.size})` : ""}
+                </Button>
+              )}
               <Button
                 variant="destructive"
                 size="sm"
-                onClick={deleteSelected}
+                onClick={permanentDeleteSelected}
                 disabled={selected.size === 0}
                 className="gap-1.5 shrink-0"
               >
-                <Trash2 className="h-4 w-4" /> Delete{selected.size > 0 ? ` (${selected.size})` : ""}
+                <Trash2 className="h-4 w-4" /> Delete
               </Button>
               <Button
                 variant="outline"
@@ -330,14 +355,60 @@ function Bikes() {
         </div>
       </header>
 
+      <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
+        {(
+          [
+            ["Valid", counts.valid, "valid"],
+            ["No owner", counts.no_owner, "no_owner"],
+            ["Suspicious", counts.suspicious, "suspicious"],
+            ["Duplicates", counts.duplicates, "duplicates"],
+            ["Archived", counts.archived, "archived"],
+          ] as [string, number, BikeFilter][]
+        ).map(([label, value, key]) => (
+          <button
+            key={key}
+            type="button"
+            onClick={() => setFilter(key)}
+            className={`rounded-lg border px-2 py-1.5 text-left transition-colors ${
+              filter === key
+                ? "border-primary/60 bg-primary/10"
+                : "border-border bg-card hover:border-primary/40"
+            }`}
+          >
+            <div className="text-sm font-semibold">{value}</div>
+            <div className="text-[10px] uppercase tracking-wider text-muted-foreground truncate">
+              {label}
+            </div>
+          </button>
+        ))}
+      </div>
+
+      <div className="flex items-center gap-2 flex-wrap">
+        {BIKE_FILTERS.map((bf) => (
+          <button
+            key={bf.key}
+            type="button"
+            onClick={() => setFilter(bf.key)}
+            className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${
+              filter === bf.key
+                ? "bg-primary/10 border-primary/60 text-foreground"
+                : "bg-card border-border text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            {bf.label}
+          </button>
+        ))}
+      </div>
+
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search make, model, rego, owner"
+          placeholder="Search make, model, rego, VIN, owner"
           className="w-full rounded-xl bg-card border border-border pl-10 pr-3 py-3 text-sm"
         />
+
       </div>
 
       {open && (
