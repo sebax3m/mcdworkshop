@@ -281,3 +281,121 @@ function EmptyJobs() {
     </div>
   );
 }
+
+/**
+ * Today panel: motorcycles booked in today + the workshop load for the
+ * next 7 days, driven by the configurable daily book-in capacity.
+ */
+function TodayBookIns() {
+  const nav = useNavigate();
+  const { capacityFor } = useWorkshopCapacity();
+  const start = new Date();
+  start.setHours(0, 0, 0, 0);
+  const days = Array.from({ length: 7 }, (_, i) => addDays(start, i));
+  const from = format(days[0], "yyyy-MM-dd");
+  const to = format(days[6], "yyyy-MM-dd");
+
+  const q = useQuery({
+    queryKey: ["today-bookings", from, to],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("bookings")
+        .select(
+          "id, scheduled_date, service_type, service_type_other, status, confirmed, bike_arrived, loan_bike, customers(first_name,last_name,phone), motorcycles(make,model,year,rego,photos)",
+        )
+        .gte("scheduled_date", from)
+        .lte("scheduled_date", to)
+        .order("scheduled_date", { ascending: true });
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+  const rows = (q.data ?? []) as any[];
+  const todayKey = format(start, "yyyy-MM-dd");
+  const todays = rows.filter((b) => b.scheduled_date === todayKey);
+  const arrived = todays.filter((b) => b.bike_arrived).length;
+  const cap = capacityFor(start);
+
+  return (
+    <section className="space-y-3">
+      <div className="flex items-center justify-between gap-3 flex-wrap">
+        <h2 className="font-display text-lg font-semibold flex items-center gap-2">
+          <CalendarDays className="h-4 w-4 text-primary" />
+          Booked in today
+          <span className="text-sm font-normal text-muted-foreground">
+            {arrived}/{todays.length} arrived
+          </span>
+        </h2>
+        <div className="flex items-center gap-3">
+          <CapacityBadge booked={todays.length} capacity={cap} />
+          <Link
+            to="/book-ins/$date"
+            params={{ date: todayKey }}
+            className="text-xs uppercase tracking-wider text-muted-foreground hover:text-primary"
+          >
+            Day view →
+          </Link>
+        </div>
+      </div>
+
+      {q.isLoading ? (
+        <div className="card-surface p-6 text-center text-sm text-muted-foreground">Loading…</div>
+      ) : todays.length === 0 ? (
+        <div className="card-surface p-6 text-center text-sm text-muted-foreground">
+          No motorcycles booked in today.
+        </div>
+      ) : (
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-2">
+          {todays.map((b) => (
+            <BookInCard
+              key={b.id}
+              booking={b}
+              onClick={() => nav({ to: "/book-ins/$date", params: { date: todayKey } })}
+            />
+          ))}
+        </div>
+      )}
+
+      {/* Next 7 days load */}
+      <div className="card-surface p-3">
+        <div className="text-[0.625rem] font-bold uppercase tracking-wider text-muted-foreground mb-2">
+          Workshop load — next 7 days
+        </div>
+        <div className="grid grid-cols-7 gap-2">
+          {days.map((d) => {
+            const key = format(d, "yyyy-MM-dd");
+            const count = rows.filter((b) => b.scheduled_date === key).length;
+            const c = capacityFor(d);
+            const pct = c > 0 ? Math.min(100, (count / c) * 100) : count ? 100 : 0;
+            const full = c > 0 && count >= c;
+            return (
+              <Link
+                key={key}
+                to="/book-ins/$date"
+                params={{ date: key }}
+                className={`rounded-lg border p-2 text-center transition-colors hover:border-primary/50 ${
+                  isToday(d) ? "border-primary/50 bg-primary/5" : "border-border"
+                }`}
+              >
+                <div className="text-[0.5625rem] font-bold uppercase tracking-wider text-muted-foreground">
+                  {format(d, "EEE")}
+                </div>
+                <div className="font-display text-base font-bold tabular-nums leading-tight">
+                  {count}
+                  <span className="text-[0.625rem] text-muted-foreground">/{c}</span>
+                </div>
+                <div className="mt-1 h-1 rounded-full bg-muted overflow-hidden">
+                  <div
+                    className={`h-full rounded-full ${full ? "bg-amber-500" : "bg-primary"}`}
+                    style={{ width: `${pct}%` }}
+                  />
+                </div>
+              </Link>
+            );
+          })}
+        </div>
+      </div>
+    </section>
+  );
+}
