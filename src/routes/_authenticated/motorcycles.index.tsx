@@ -165,17 +165,50 @@ function Bikes() {
     qc.invalidateQueries({ queryKey: ["bikes-list"] });
   }
 
-  async function deleteSelected() {
+  function refresh() {
+    qc.invalidateQueries({ queryKey: ["bikes-list"] });
+    qc.invalidateQueries({ queryKey: ["customers-bikes"] });
+    qc.invalidateQueries({ queryKey: ["customers-list"] });
+  }
+
+  async function archiveSelected(archived: boolean) {
+    if (!isAdmin) return toast.error("Admin only");
+    const ids = Array.from(selected);
+    if (!ids.length) return;
+    const { error } = await (supabase as any)
+      .from("motorcycles")
+      .update({ is_archived: archived })
+      .in("id", ids);
+    if (error) return toast.error(error.message);
+    setSelected(new Set());
+    toast.success(`${ids.length} ${archived ? "archived" : "restored"}`);
+    refresh();
+  }
+
+  async function permanentDeleteSelected() {
     if (!isAdmin) return toast.error("Admin only");
     const ids = Array.from(selected);
     if (ids.length === 0) return;
-    if (!confirm(`Delete ${ids.length} bike${ids.length > 1 ? "s" : ""}? This also removes linked bookings.`)) return;
-    const { error } = await supabase.from("motorcycles").delete().in("id", ids);
-    if (error) return toast.error(error.message);
+    if (
+      !confirm(
+        `Permanently delete ${ids.length} bike(s)?\n\nOnly bikes with no bookings, jobs, invoices, dyno results or claims can be deleted. Others will be skipped.`,
+      )
+    )
+      return;
+    let ok = 0;
+    const blocked: string[] = [];
+    for (const id of ids) {
+      const { error } = await (supabase as any).rpc("delete_motorcycle_safe", {
+        p_motorcycle_id: id,
+      });
+      if (error) blocked.push(id);
+      else ok++;
+    }
     setSelected(new Set());
-    toast.success(`${ids.length} deleted`);
-    qc.invalidateQueries({ queryKey: ["bikes-list"] });
-    qc.invalidateQueries({ queryKey: ["customers-bikes"] });
+    if (ok) toast.success(`${ok} permanently deleted`);
+    if (blocked.length)
+      toast.error(`${blocked.length} kept: they have linked history. Archive them instead.`);
+    refresh();
   }
 
   async function handleBikePhotos(files: FileList | null) {
