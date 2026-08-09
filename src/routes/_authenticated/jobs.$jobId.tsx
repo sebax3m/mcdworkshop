@@ -28,6 +28,7 @@ import {
 } from "lucide-react";
 import { detectServiceKind, KIND_META, SERVICE_PARTS } from "@/lib/service-kinds";
 import { getValveSpec, formatRange, type ValveSpec } from "@/lib/valve-specs";
+import { valveSheetHtml } from "@/lib/valve-sheet-html";
 import { DamageSection } from "@/components/DamageSection";
 import logoAsset from "@/assets/motorcycle-doctors-logo.png.asset.json";
 
@@ -782,16 +783,32 @@ function JobDetail() {
           const root = jobRef.current;
           if (!root) return [];
           const clone = root.cloneNode(true) as HTMLElement;
-          const valve = clone.querySelector(".valve-print-page") as HTMLElement | null;
-          valve?.remove();
-          const pages: { html: string; orientation?: "portrait" | "landscape"; fill?: boolean }[] =
-            [{ html: clone.outerHTML }];
-          if (valve) {
-            valve.classList.remove("hidden");
-            pages.push({ html: valve.outerHTML, orientation: "landscape", fill: true });
-          }
-          return pages;
+          clone.querySelector(".valve-print-page")?.remove();
+          return [{ html: clone.outerHTML }];
         }}
+        optionalPages={[
+          {
+            id: "valve",
+            label: "Valve clearance diagram",
+            defaultOn: kind === "full",
+            orientation: "landscape",
+            variantLabel: "Cylinders",
+            defaultVariant: String(cylinders),
+            variants: [1, 2, 3, 4, 6].map((n) => ({ value: String(n), label: `${n} cylinder` })),
+            getHtml: (v) =>
+              valveSheetHtml({
+                cylinders: Number(v) || cylinders,
+                bike: j.motorcycles as any,
+                values: ((j.service_data as any) ?? {}).valves ?? {},
+                spec: getValveSpec(
+                  (j.motorcycles as any)?.make,
+                  (j.motorcycles as any)?.model,
+                  (j.motorcycles as any)?.year,
+                ),
+              }),
+          },
+        ]}
+
         sections={[
           { id: "instructions", label: "Book-in instructions" },
           { id: "notes", label: "Job notes" },
