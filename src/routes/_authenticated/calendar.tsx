@@ -1288,11 +1288,11 @@ function CalendarPage() {
                                 >
 
                                   {/* Drag grip indicator — visible on hover */}
-                                  <div className="absolute top-0.5 right-0.5 opacity-0 group-hover:opacity-70 transition-opacity pointer-events-none text-current text-[9px] leading-none font-black">
+                                  <div className="absolute top-0.5 right-0.5 opacity-0 group-hover:opacity-70 transition-opacity pointer-events-none text-current text-[0.5625rem] leading-none font-black">
                                     ⋮⋮
                                   </div>
                                   <div className="flex items-center justify-between gap-1">
-                                    <span className="text-[9px] font-bold uppercase tracking-wider truncate">
+                                    <span className="text-[0.5625rem] font-bold uppercase tracking-wider truncate">
                                       {b.drop_off_time
                                         ? fmt12h(String(b.drop_off_time).slice(0, 5))
                                         : ""}{" "}
@@ -1307,16 +1307,12 @@ function CalendarPage() {
                                       )}
                                     </span>
                                   </div>
-                                  {height > 32 && (
-                                    <div className="text-[10px] font-semibold text-current/90 truncate">
-                                      {bike}
-                                    </div>
-                                  )}
-                                  {height > 48 && (
-                                    <div className="text-[9px] text-current/80 truncate">
-                                      {customer}
-                                    </div>
-                                  )}
+                                  <div className="text-[0.625rem] font-semibold text-current/90 truncate">
+                                    {bike}
+                                  </div>
+                                  <div className="text-[0.5625rem] text-current/80 truncate">
+                                    {customer}
+                                  </div>
                                 </div>
                               );
                             });
