@@ -69,8 +69,11 @@ function NewJob() {
   }
 
   async function allocate(b: any) {
+    if (!b.customer_id || !b.motorcycle_id) {
+      toast.error("This booking needs a customer and a bike before a job card can be created.");
+      return;
+    }
     setBusyId(b.id);
-    try {
       const { data: tmpl } = await supabase
         .from("service_templates")
         .select("*")
