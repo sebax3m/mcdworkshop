@@ -353,18 +353,15 @@ export function PrintPreview({
       .join("\n");
 
     const size = PAPER[paper];
-    const pageCss = pages
-      .map((p, i) => {
-        const o = p.orientation ?? "portrait";
-        const w = o === "portrait" ? size.w : size.h;
-        const h = o === "portrait" ? size.h : size.w;
-        // The printable box is the paper minus the real printer margins.
-        const cw = Math.max(20, w - margin * 2);
-        const ch = Math.max(20, h - margin * 2);
-        return `@page p${i} { size: ${size.css} ${o}; margin: ${margin}mm; }
-                #page-${i} { page: p${i}; width:${cw}mm; height:${ch}mm; }`;
-      })
-      .join("\n");
+    // Every sheet uses ONE portrait page size. Browsers do not reliably honour
+    // per-page (named) @page orientation, and a wider landscape page makes the
+    // whole document shrink-to-fit when printing. Landscape content is instead
+    // rotated 90deg inside a portrait sheet, so the printout matches the
+    // preview exactly on any printer.
+    const cw = Math.max(20, size.w - margin * 2);
+    const ch = Math.max(20, size.h - margin * 2);
+    const pageCss = `@page { size: ${size.css} portrait; margin: ${margin}mm; }
+       .sheet { width:${cw}mm; height:${ch}mm; }`;
 
     const body = pages
       .map(
@@ -404,18 +401,23 @@ export function PrintPreview({
       inner.style.transform = "";
       inner.style.width = "";
       inner.style.transformOrigin = "top left";
-      const rot = ((p.rotate ?? 0) % 360 + 360) % 360;
+      const landscape = (p.orientation ?? "portrait") === "landscape" ? 90 : 0;
+      const rot = ((((p.rotate ?? 0) + landscape) % 360) + 360) % 360;
       if (rot) {
-        const w = inner.scrollWidth;
-        const h = inner.scrollHeight;
         const availW = sheet.clientWidth;
         const availH = sheet.clientHeight;
         const swap = rot === 90 || rot === 270;
+        // Lay the content out at the width it will have AFTER rotating.
+        inner.style.width = `${swap ? availH : availW}px`;
+        const w = inner.scrollWidth;
+        const h = inner.scrollHeight;
         const bw = swap ? h : w;
         const bh = swap ? w : h;
         const k = Math.min(availW / bw, availH / bh) * (scale / 100);
         inner.style.transformOrigin = "center center";
-        inner.style.transform = `rotate(${rot}deg) scale(${k})`;
+        inner.style.transform = `translate(${(availW - w) / 2}px, ${
+          (availH - h) / 2
+        }px) rotate(${rot}deg) scale(${k})`;
         return;
       }
       const availPx = sheet.clientHeight;
