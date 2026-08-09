@@ -713,10 +713,12 @@ function JobDetail() {
       <section data-print-section="notes" className="card-surface p-4">
         <h2 className="font-display text-lg font-semibold mb-3">Notes</h2>
         {canEdit && (
-          <AddNote
-            jobId={jobId}
-            onAdded={() => qc.invalidateQueries({ queryKey: ["job-notes", jobId] })}
-          />
+          <div className="no-print">
+            <AddNote
+              jobId={jobId}
+              onAdded={() => qc.invalidateQueries({ queryKey: ["job-notes", jobId] })}
+            />
+          </div>
         )}
         <div className="space-y-2 mt-3">
           {(notes.data ?? []).map((n: any) => (

@@ -70,7 +70,7 @@ function paperCss(margin: number) {
     }
     .no-print, [data-print="hide"], .print-hide { display:none !important; }
     /* interactive chrome never prints */
-    .sheet button, .sheet [role="button"], .sheet select { display:none !important; }
+    .sheet select, .sheet form.no-print { display:none !important; }
     .sheet textarea::placeholder, .sheet input::placeholder { color:transparent !important; }
     /* emulate print media inside the preview */
     .sheet .print\\:hidden { display:none !important; }
