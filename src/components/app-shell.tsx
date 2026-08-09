@@ -100,7 +100,6 @@ export function AppShell() {
         { to: "/settings", label: "Settings", icon: SettingsIcon, color: "#94a3b8" },
       ];
 
-
   async function signOut() {
     await supabase.auth.signOut();
     nav({ to: "/auth", replace: true });

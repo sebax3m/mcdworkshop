@@ -28,7 +28,6 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
   component: Dashboard,
 });
 
-
 function Dashboard() {
   const { fullName, isAdmin } = useCurrentUser();
   const today = useQuery({
@@ -207,7 +206,9 @@ function KpiCard({
   return (
     <div className="card-surface p-4">
       <div className="flex items-center justify-between">
-        <span className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">{label}</span>
+        <span className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">
+          {label}
+        </span>
         <Icon className={`h-4 w-4 ${accentCls}`} />
       </div>
       <div className={`mt-2 font-display text-3xl font-bold tabular-nums ${accentCls}`}>
