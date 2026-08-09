@@ -120,6 +120,35 @@ const TEMPLATES = {
 type TemplateKey = keyof typeof TEMPLATES;
 
 
+/** Remove `@media print { ... }` blocks (brace-balanced) from a CSS string. */
+function stripPrintBlocks(css: string) {
+  let out = "";
+  let i = 0;
+  while (i < css.length) {
+    const at = css.toLowerCase().indexOf("@media print", i);
+    if (at === -1) {
+      out += css.slice(i);
+      break;
+    }
+    out += css.slice(i, at);
+    let j = css.indexOf("{", at);
+    if (j === -1) break;
+    let depth = 0;
+    for (; j < css.length; j++) {
+      if (css[j] === "{") depth++;
+      else if (css[j] === "}") {
+        depth--;
+        if (depth === 0) {
+          j++;
+          break;
+        }
+      }
+    }
+    i = j;
+  }
+  return out;
+}
+
 /** CSS that turns the app's dark UI into ink-friendly white paper. */
 function paperCss(margin: number) {
   return `
@@ -306,8 +335,16 @@ export function PrintPreview({
 
   useEffect(() => {
     if (!open || pages.length === 0) return;
+    // Copy the app's styles, but strip every `@media print { ... }` block from
+    // inline <style> tags: page components ship their own print rules
+    // (`body * { visibility: hidden }`, `font-size: 10.5px`, custom @page
+    // margins) which would hijack this document and make the printout tiny or
+    // blank — and they never show up in the preview, so print != preview.
     const headStyles = Array.from(document.querySelectorAll('style, link[rel="stylesheet"]'))
-      .map((n) => n.outerHTML)
+      .map((n) => {
+        if (n.tagName !== "STYLE") return n.outerHTML;
+        return `<style>${stripPrintBlocks(n.textContent ?? "")}</style>`;
+      })
       .join("\n");
 
     const hideRules = Object.entries(hidden)
