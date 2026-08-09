@@ -55,7 +55,9 @@ function NewJob() {
         ? `${b.motorcycles.make} ${b.motorcycles.model} ${b.motorcycles.rego ?? ""}`
         : "";
       return `${cust} ${bike} ${b.service_type}`.toLowerCase().includes(s);
+    });
   }, [bookings.data, search]);
+
 
 
   // If we arrive with ?bookingId=..., allocate that booking straight away
