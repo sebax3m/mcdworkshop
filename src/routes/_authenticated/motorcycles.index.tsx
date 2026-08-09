@@ -349,6 +349,16 @@ function Bikes() {
                   Select
                 </Button>
               )}
+              {isAdmin && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCleanupOpen(true)}
+                  className="shrink-0 gap-1.5"
+                >
+                  <Sparkles className="h-4 w-4" /> Clean up
+                </Button>
+              )}
               <Button onClick={() => setOpen((o) => !o)} className="gold-surface gap-1.5 shrink-0">
                 <Plus className="h-4 w-4" /> Add
               </Button>
