@@ -56,9 +56,10 @@ export function BookInCard({
         }
       }}
       className={cn(
-        "group w-full rounded-lg border border-border border-l-4 bg-card/70 text-left transition-colors",
+        "group w-full rounded-lg border border-l-4 text-left transition-colors",
         svc.border,
-        "hover:bg-card focus:outline-none focus:ring-2 focus:ring-primary/40",
+        svc.fill,
+        "hover:brightness-110 focus:outline-none focus:ring-2 focus:ring-primary/40",
 
 
         dense ? "p-2" : "p-2.5",
@@ -76,7 +77,7 @@ export function BookInCard({
             className="h-9 w-9 rounded-md object-cover border border-border shrink-0"
           />
         ) : (
-          <div className="h-9 w-9 rounded-md grid place-items-center bg-muted text-muted-foreground shrink-0">
+          <div className="h-9 w-9 rounded-md grid place-items-center bg-background/50 text-foreground/70 shrink-0">
             <BikeIcon className="h-4 w-4" />
           </div>
         )}
@@ -84,16 +85,16 @@ export function BookInCard({
           <div className="flex items-baseline justify-between gap-2">
             <div className="font-semibold text-sm truncate">{bike}</div>
             {rego && (
-              <span className="shrink-0 rounded bg-muted px-1.5 py-0.5 text-[0.625rem] font-bold uppercase tracking-wider tabular-nums">
+              <span className="shrink-0 rounded bg-background/60 px-1.5 py-0.5 text-[0.625rem] font-bold uppercase tracking-wider tabular-nums">
                 {rego}
               </span>
             )}
           </div>
-          <div className="flex items-center gap-1 text-xs text-muted-foreground truncate">
+          <div className="flex items-center gap-1 text-xs text-foreground/70 truncate">
             <UserIcon className="h-3 w-3 shrink-0" />
             <span className="truncate">{customer}</span>
           </div>
-          <div className={cn("flex items-center gap-1 text-xs truncate font-medium", svc.label)}>
+          <div className={cn("flex items-center gap-1 text-xs truncate font-semibold", svc.label)}>
             <Wrench className="h-3 w-3 shrink-0" />
             <span className="truncate">{work}</span>
 
