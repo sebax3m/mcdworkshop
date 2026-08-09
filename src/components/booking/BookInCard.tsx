@@ -5,7 +5,6 @@ import { bookInStage, stageMeta } from "@/lib/workshop-status";
 import { serviceColor } from "@/lib/service-colors";
 import { cn } from "@/lib/utils";
 
-
 type Props = {
   booking: any;
   onClick?: () => void;
@@ -126,7 +125,12 @@ export function BookInCard({
             <UserIcon className="h-2.5 w-2.5 sm:h-3 sm:w-3 shrink-0" />
             <span className="truncate">{customer}</span>
           </div>
-          <div className={cn("flex items-center gap-1 text-[0.65rem] sm:text-xs truncate font-semibold", svc.label)}>
+          <div
+            className={cn(
+              "flex items-center gap-1 text-[0.65rem] sm:text-xs truncate font-semibold",
+              svc.label,
+            )}
+          >
             <Wrench className="h-2.5 w-2.5 sm:h-3 sm:w-3 shrink-0" />
             <span className="truncate">{work}</span>
           </div>
