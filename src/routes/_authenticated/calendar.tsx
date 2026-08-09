@@ -45,6 +45,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
+import { hasPhone } from "@/lib/data-quality";
 import { initials } from "@/lib/format";
 import { BIKE_MAKES, BIKE_MAKE_NAMES, BIKE_YEARS } from "@/lib/bike-library";
 import { lookupRego } from "@/lib/rego-lookup.functions";
@@ -508,6 +509,8 @@ function CalendarPage() {
   async function createQuickBooking() {
     if (!quickSlot) return;
     if (!qFirst.trim()) return toast.error("First name required");
+    if (!qCustomerId && !hasPhone(qPhone))
+      return toast.error("A valid phone number is required");
     if (!qBikeMake.trim() || !qBikeModel.trim()) return toast.error("Bike make and model required");
     const startTime = (qEditTime || quickSlot.time).slice(0, 5);
     const endTime = addMinutesToTime(
