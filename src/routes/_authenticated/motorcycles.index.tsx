@@ -25,6 +25,7 @@ import { uploadPhoto } from "@/lib/photos";
 import { generateBikeImage } from "@/lib/bike-image.functions";
 import { BikeMakeModelYear } from "@/components/BikeMakeModelYear";
 import { useCurrentUser } from "@/hooks/use-current-user";
+import { BikeCleanupDialog } from "@/components/BikeCleanupDialog";
 import {
   duplicateGroups,
   duplicateIds,
@@ -58,6 +59,7 @@ function Bikes() {
   const [selectMode, setSelectMode] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [filter, setFilter] = useState<BikeFilter>("all");
+  const [cleanupOpen, setCleanupOpen] = useState(false);
   const [f, setF] = useState({
     customer_id: "",
     make: "",
@@ -345,6 +347,16 @@ function Bikes() {
                   className="shrink-0"
                 >
                   Select
+                </Button>
+              )}
+              {isAdmin && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCleanupOpen(true)}
+                  className="shrink-0 gap-1.5"
+                >
+                  <Sparkles className="h-4 w-4" /> Clean up
                 </Button>
               )}
               <Button onClick={() => setOpen((o) => !o)} className="gold-surface gap-1.5 shrink-0">
@@ -682,6 +694,15 @@ function Bikes() {
           </div>
         )}
       </div>
+
+      {cleanupOpen && (
+        <BikeCleanupDialog
+          bikes={rows}
+          isAdmin={isAdmin}
+          onClose={() => setCleanupOpen(false)}
+          onDone={refresh}
+        />
+      )}
     </div>
   );
 }
