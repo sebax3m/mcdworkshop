@@ -47,30 +47,76 @@ const PAPER = {
 type PaperKey = keyof typeof PAPER;
 
 const TEMPLATES = {
-  classic: { label: "Classic", css: "" },
+  classic: {
+    label: "Classic (branded)",
+    css: `.sheet-inner { font-family: ui-sans-serif, system-ui, sans-serif; }`,
+  },
+  minimal: {
+    label: "Minimal (no boxes)",
+    css: `.sheet-inner { font-family: ui-sans-serif, system-ui, sans-serif; letter-spacing:.01em; }
+          .sheet-inner section, .sheet-inner .card-surface, .sheet-inner div, .sheet-inner table,
+          .sheet-inner td, .sheet-inner th { border:0 !important; border-radius:0 !important; }
+          .sheet-inner section, .sheet-inner .card-surface {
+            border-bottom:1px solid #e4e4e7 !important; padding:2px 0 10px !important; margin-bottom:14px !important;
+          }
+          .sheet-inner h1 { font-weight:300 !important; font-size:1.6em !important; }
+          .sheet-inner h2, .sheet-inner h3 { font-weight:600 !important; text-transform:uppercase; font-size:.72em !important; letter-spacing:.14em; color:#71717a !important; }
+          .sheet .red-surface, .sheet .gold-surface { background:#ffffff !important; border-bottom:3px solid #b91c1c !important; }
+          .sheet .red-surface *, .sheet .gold-surface * { color:#111 !important; -webkit-text-fill-color:#111 !important; }`,
+  },
   compact: {
-    label: "Compact",
-    css: `.sheet-inner { font-size: 0.9em; }
-          .sheet-inner * { line-height: 1.25 !important; }
-          .sheet-inner section, .sheet-inner .card-surface { padding: 6px !important; margin-bottom: 6px !important; }`,
+    label: "Compact (dense grid)",
+    css: `.sheet-inner { font-size: 0.8em; font-family: ui-sans-serif, system-ui, sans-serif; }
+          .sheet-inner * { line-height: 1.15 !important; }
+          .sheet-inner section, .sheet-inner .card-surface {
+            padding: 4px 6px !important; margin-bottom: 4px !important;
+            border:1px solid #d4d4d8 !important; border-radius:2px !important;
+          }
+          .sheet-inner h1 { font-size:1.15em !important; }
+          .sheet-inner h2, .sheet-inner h3 { font-size:.85em !important; margin:0 0 2px !important; }
+          .sheet-inner td, .sheet-inner th { padding:2px 4px !important; }`,
   },
   bold: {
-    label: "Bold lines",
-    css: `.sheet-inner section, .sheet-inner .card-surface, .sheet-inner table, .sheet-inner td, .sheet-inner th {
-            border: 1.5px solid #111 !important; border-radius: 4px !important;
+    label: "Bold lines (workshop)",
+    css: `.sheet-inner { font-family: ui-sans-serif, system-ui, sans-serif; }
+          .sheet-inner section, .sheet-inner .card-surface, .sheet-inner table {
+            border: 2px solid #111 !important; border-radius: 0 !important; padding:8px !important;
           }
-          .sheet-inner h1, .sheet-inner h2, .sheet-inner h3 { letter-spacing: .02em; }`,
+          .sheet-inner td, .sheet-inner th { border: 1px solid #111 !important; padding:4px 6px !important; }
+          .sheet-inner th { background:#f4f4f5 !important; }
+          .sheet-inner h1, .sheet-inner h2, .sheet-inner h3 {
+            text-transform:uppercase; letter-spacing:.06em; font-weight:800 !important;
+            border-bottom:2px solid #111 !important; padding-bottom:2px !important;
+          }`,
   },
   mono: {
-    label: "Mono (no red)",
-    css: `.sheet .red-surface, .sheet .gold-surface { background: #ffffff !important; }
+    label: "Mono ink-saver (B/W)",
+    css: `.sheet-inner, .sheet-inner * { font-family: ui-monospace, "SFMono-Regular", Menlo, monospace !important; }
+          .sheet-inner { font-size:.86em; }
+          .sheet .red-surface, .sheet .gold-surface { background: #ffffff !important; }
           .sheet .red-surface, .sheet .red-surface *, .sheet .gold-surface, .sheet .gold-surface * {
             color:#111 !important; -webkit-text-fill-color:#111 !important; border-color:#111 !important;
           }
-          .sheet .red-surface { border-bottom: 2px solid #111 !important; }`,
+          .sheet .red-surface { border-bottom: 2px solid #111 !important; }
+          .sheet .red-gradient-text, .sheet .red-gradient-text * { color:#111 !important; -webkit-text-fill-color:#111 !important; }
+          .sheet-inner section, .sheet-inner .card-surface { border:1px dashed #111 !important; border-radius:0 !important; }`,
+  },
+  blueprint: {
+    label: "Blueprint (technical)",
+    css: `.sheet-inner { font-family: ui-sans-serif, system-ui, sans-serif; }
+          .sheet-inner, .sheet-inner * { color:#1e3a8a !important; -webkit-text-fill-color:#1e3a8a !important; }
+          .sheet-inner section, .sheet-inner .card-surface, .sheet-inner table,
+          .sheet-inner td, .sheet-inner th { border:1px solid #1e3a8a !important; border-radius:0 !important; }
+          .sheet-inner section, .sheet-inner .card-surface { padding:8px !important; margin-bottom:8px !important; }
+          .sheet-inner h1, .sheet-inner h2, .sheet-inner h3 {
+            text-transform:uppercase; letter-spacing:.12em; font-weight:700 !important;
+          }
+          .sheet .red-surface, .sheet .gold-surface { background:#1e3a8a !important; }
+          .sheet .red-surface *, .sheet .gold-surface * { color:#fff !important; -webkit-text-fill-color:#fff !important; }`,
   },
 } as const;
 type TemplateKey = keyof typeof TEMPLATES;
+
 
 /** CSS that turns the app's dark UI into ink-friendly white paper. */
 function paperCss(margin: number) {
