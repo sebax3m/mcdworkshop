@@ -57,6 +57,7 @@ function Bikes() {
   const [open, setOpen] = useState(false);
   const [selectMode, setSelectMode] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [filter, setFilter] = useState<BikeFilter>("all");
   const [f, setF] = useState({
     customer_id: "",
     make: "",
@@ -78,8 +79,14 @@ function Bikes() {
   const customers = useQuery({
     queryKey: ["customers-options"],
     queryFn: async () =>
-      (await supabase.from("customers").select("id, first_name, last_name").order("first_name"))
-        .data ?? [],
+      (
+        await (supabase as any)
+          .from("customers")
+          .select("id, first_name, last_name")
+          .eq("is_archived", false)
+          .order("first_name")
+          .range(0, 49999)
+      ).data ?? [],
   });
   const bikes = useQuery({
     queryKey: ["bikes-list"],
@@ -89,12 +96,44 @@ function Bikes() {
           .from("motorcycles")
           .select("*, customers(first_name,last_name)")
           .order("created_at", { ascending: false })
+          .range(0, 49999)
       ).data ?? [],
   });
 
-  const filtered = (bikes.data ?? []).filter((b: any) => {
+  const rows: any[] = useMemo(() => bikes.data ?? [], [bikes.data]);
+  const active = useMemo(() => rows.filter((b) => !b.is_archived), [rows]);
+
+  const dupIds = useMemo(() => {
+    const byRego = duplicateGroups(active, (b: any) => normalizeRego(b.rego));
+    const byVin = duplicateGroups(active, (b: any) => normalizeVin(b.vin));
+    const ids = new Set<string>();
+    for (const id of duplicateIds(byRego as Map<string, any[]>)) ids.add(id);
+    for (const id of duplicateIds(byVin as Map<string, any[]>)) ids.add(id);
+    return ids;
+  }, [active]);
+
+  const counts = useMemo(
+    () => ({
+      all: rows.length,
+      valid: active.filter((b) => isBikeValid(b, !!b.customer_id)).length,
+      no_owner: active.filter((b) => !b.customer_id).length,
+      suspicious: active.filter((b) => isBikeSuspicious(b)).length,
+      duplicates: dupIds.size,
+      archived: rows.filter((b) => b.is_archived).length,
+    }),
+    [rows, active, dupIds],
+  );
+
+  let filtered = active;
+  if (filter === "archived") filtered = rows.filter((b: any) => b.is_archived);
+  else if (filter === "valid") filtered = active.filter((b: any) => isBikeValid(b, !!b.customer_id));
+  else if (filter === "no_owner") filtered = active.filter((b: any) => !b.customer_id);
+  else if (filter === "suspicious") filtered = active.filter((b: any) => isBikeSuspicious(b));
+  else if (filter === "duplicates") filtered = active.filter((b: any) => dupIds.has(b.id));
+
+  filtered = filtered.filter((b: any) => {
     const s =
-      `${b.make} ${b.model} ${b.year ?? ""} ${b.rego ?? ""} ${b.customers?.first_name ?? ""} ${b.customers?.last_name ?? ""}`.toLowerCase();
+      `${b.make} ${b.model} ${b.year ?? ""} ${b.rego ?? ""} ${b.vin ?? ""} ${b.customers?.first_name ?? ""} ${b.customers?.last_name ?? ""}`.toLowerCase();
     return s.includes(search.toLowerCase());
   });
 
