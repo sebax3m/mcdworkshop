@@ -9,6 +9,7 @@ import {
   UserCog,
   Palette,
   KeyRound,
+  Gauge,
 } from "lucide-react";
 import { useCurrentUser } from "@/hooks/use-current-user";
 
