@@ -265,7 +265,7 @@ function CalendarPage() {
   const [qEndTime, setQEndTime] = useState<string>("");
   // Editable date/time on top of the quick booking modal
   const [qEditDate, setQEditDate] = useState<string>("");
-  const [qEditTime, setQEditTime] = useState<string>("");
+  
   // After creation we swap the modal into a "just created" view with quick actions
   const [justCreated, setJustCreated] = useState<any | null>(null);
   const [justCreatedNotes, setJustCreatedNotes] = useState<string>("");
@@ -316,7 +316,7 @@ function CalendarPage() {
   useEffect(() => {
     if (quickSlot) {
       setQEditDate(format(quickSlot.date, "yyyy-MM-dd"));
-      setQEditTime(quickSlot.time);
+      
     }
   }, [quickSlot]);
 
@@ -516,24 +516,14 @@ function CalendarPage() {
     if (!qFirst.trim()) return toast.error("First name required");
     if (!qCustomerId && !hasPhone(qPhone)) return toast.error("A valid phone number is required");
     if (!qBikeMake.trim() || !qBikeModel.trim()) return toast.error("Bike make and model required");
-    const startTime = (qEditTime || quickSlot.time).slice(0, 5);
+    // No time restrictions: book-ins are stacked in the day, not time-slotted.
+    const startTime = (quickSlot.time || "08:00").slice(0, 5);
     const endTime = addMinutesToTime(
       startTime,
       Math.max(15, Math.round((Number(qEstHours) || 1) * 60)),
     );
-    const rangeErr = validateTimeRange(startTime, endTime);
-    if (rangeErr) return toast.error(rangeErr);
     const dateStr = qEditDate || format(quickSlot.date, "yyyy-MM-dd");
-    try {
-      const conflicts = await findBookingConflicts({
-        date: dateStr,
-        startTime,
-        endTime,
-      });
-      if (conflicts.length) return toast.error(formatConflictMessage(conflicts));
-    } catch (e: any) {
-      return toast.error(e?.message ?? "Conflict check failed");
-    }
+
     setCreatingQuick(true);
     try {
       let customerId = qCustomerId;
@@ -2069,7 +2059,7 @@ function CalendarPage() {
                       </div>
                     </div>
 
-                    <div className="mt-1 grid grid-cols-2 gap-2">
+                    <div className="mt-1">
                       <div>
                         <label className="text-[0.625rem] uppercase tracking-wider text-muted-foreground flex items-center gap-1">
                           <CalendarIcon className="h-3 w-3" /> Date
@@ -2101,26 +2091,8 @@ function CalendarPage() {
                           </PopoverContent>
                         </Popover>
                       </div>
-                      <div>
-                        <label className="text-[0.625rem] uppercase tracking-wider text-muted-foreground flex items-center gap-1">
-                          <Clock className="h-3 w-3" /> Time
-                        </label>
-                        <Select value={qEditTime} onValueChange={setQEditTime}>
-                          <SelectTrigger className="w-full mt-1 rounded-lg border border-border bg-background/60 px-3 py-2 text-sm font-semibold tabular-nums h-auto">
-                            <SelectValue placeholder="Pick a time">
-                              {qEditTime ? fmt12h(qEditTime) : undefined}
-                            </SelectValue>
-                          </SelectTrigger>
-                          <SelectContent className="max-h-72">
-                            {TIME_SLOTS.map((t) => (
-                              <SelectItem key={t} value={t} className="tabular-nums">
-                                {fmt12h(t)}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
                     </div>
+
                   </div>
 
                   <div>
