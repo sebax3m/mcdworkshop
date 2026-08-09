@@ -69,6 +69,9 @@ function paperCss(margin: number) {
       color:#111 !important; padding:0 !important;
     }
     .no-print, [data-print="hide"], .print-hide { display:none !important; }
+    /* interactive chrome never prints */
+    .sheet button, .sheet [role="button"], .sheet select { display:none !important; }
+    .sheet textarea::placeholder, .sheet input::placeholder { color:transparent !important; }
     /* emulate print media inside the preview */
     .sheet .print\\:hidden { display:none !important; }
     .sheet .hidden.print\\:block { display:block !important; }
