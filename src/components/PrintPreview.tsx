@@ -125,6 +125,12 @@ function paperCss(margin: number) {
   return `
     :root { color-scheme: light; }
     html, body { margin:0; padding:0; background:#e5e5e5; }
+    /* Screen-only: shrink the sheets so a full page (incl. landscape) is
+       visible in the preview pane. Print is unaffected. */
+    @media screen {
+      body { padding:12px 0; }
+      .sheet { zoom: var(--viewzoom, 1); }
+    }
     * { box-shadow:none !important; }
     .sheet {
       background:#ffffff; color:#111111;
@@ -339,6 +345,20 @@ export function PrintPreview({
   const fit = useCallback(() => {
     const doc = frameRef.current?.contentDocument;
     if (!doc) return;
+    // Fit the widest sheet into the preview pane (screen only).
+    doc.documentElement.style.setProperty("--viewzoom", "1");
+    const frameW = frameRef.current?.clientWidth ?? 0;
+    let widest = 0;
+    pages.forEach((_, i) => {
+      const el = doc.getElementById(`page-${i}`) as HTMLElement | null;
+      if (el) widest = Math.max(widest, el.offsetWidth);
+    });
+    if (widest > 0 && frameW > 0) {
+      doc.documentElement.style.setProperty(
+        "--viewzoom",
+        String(Math.min(1, (frameW - 28) / widest)),
+      );
+    }
     let over = false;
     pages.forEach((p, i) => {
       const sheet = doc.getElementById(`page-${i}`) as HTMLElement | null;
@@ -362,9 +382,15 @@ export function PrintPreview({
         return;
       }
       const availPx = sheet.clientHeight;
+      const availW = sheet.clientWidth;
       const contentPx = inner.scrollHeight;
+      const contentW = inner.scrollWidth;
       let k = scale / 100;
-      if (p.fill && contentPx > 0) k = Math.min(2.5, (availPx / contentPx) * (scale / 100));
+      if (p.fill && contentPx > 0) {
+        k =
+          Math.min(2.5, Math.min(availPx / contentPx, availW / Math.max(1, contentW))) *
+          (scale / 100);
+      }
       if (fitOnePage && contentPx * k > availPx) {
         k = Math.max(0.45, availPx / contentPx);
         if (contentPx * k > availPx + 2) over = true;
