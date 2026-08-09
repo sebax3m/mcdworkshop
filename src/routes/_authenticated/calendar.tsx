@@ -516,24 +516,14 @@ function CalendarPage() {
     if (!qFirst.trim()) return toast.error("First name required");
     if (!qCustomerId && !hasPhone(qPhone)) return toast.error("A valid phone number is required");
     if (!qBikeMake.trim() || !qBikeModel.trim()) return toast.error("Bike make and model required");
-    const startTime = (qEditTime || quickSlot.time).slice(0, 5);
+    // No time restrictions: book-ins are stacked in the day, not time-slotted.
+    const startTime = (quickSlot.time || "08:00").slice(0, 5);
     const endTime = addMinutesToTime(
       startTime,
       Math.max(15, Math.round((Number(qEstHours) || 1) * 60)),
     );
-    const rangeErr = validateTimeRange(startTime, endTime);
-    if (rangeErr) return toast.error(rangeErr);
     const dateStr = qEditDate || format(quickSlot.date, "yyyy-MM-dd");
-    try {
-      const conflicts = await findBookingConflicts({
-        date: dateStr,
-        startTime,
-        endTime,
-      });
-      if (conflicts.length) return toast.error(formatConflictMessage(conflicts));
-    } catch (e: any) {
-      return toast.error(e?.message ?? "Conflict check failed");
-    }
+
     setCreatingQuick(true);
     try {
       let customerId = qCustomerId;
