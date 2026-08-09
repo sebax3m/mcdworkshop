@@ -37,6 +37,13 @@ const sections = [
     desc: "Choose your theme, accent colour, density and text size.",
     staff: true,
   },
+  {
+    to: "/settings/capacity",
+    icon: Gauge,
+    title: "Workshop Capacity",
+    desc: "Set how many motorcycles can be booked in each weekday.",
+  },
+
 
   {
     to: "/customers",
