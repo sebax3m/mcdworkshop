@@ -1,6 +1,7 @@
 import { Link, Outlet, useRouterState, useNavigate, useRouter } from "@tanstack/react-router";
 import {
   CalendarDays,
+  LayoutDashboard,
   Wrench,
   Bike,
   Timer,
