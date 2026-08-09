@@ -1162,31 +1162,79 @@ function CalendarPage() {
                     </button>
                   ))}
 
-                  {/* Book-in cards */}
-                  <div className="flex flex-col gap-1.5 flex-1">
+                  {/* Book-in cards — drag freely up/down or onto another day */}
+                  <div
+                    className="flex flex-col gap-1.5 flex-1"
+                    onDragOver={(e) => {
+                      e.preventDefault();
+                      setDropHint({ dayKey, index: dayBookings.length });
+                    }}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      const id = e.dataTransfer.getData("text/booking-id");
+                      if (id) reorderBooking(id, day, dayBookings.length);
+                      setDraggingId(null);
+                      setDropHint(null);
+                    }}
+                  >
                     {dayBookings.length === 0 ? (
                       <div className="flex-1 grid place-items-center text-[0.6875rem] text-muted-foreground text-center px-2">
                         No motorcycles booked in
                       </div>
                     ) : (
-                      dayBookings.map((b: any) => (
-                        <BookInCard
+                      dayBookings.map((b: any, i: number) => (
+                        <div
                           key={b.id}
-                          booking={b}
-                          dense
-                          draggable
-                          onDragStart={(e) => {
-                            e.dataTransfer.effectAllowed = "move";
-                            e.dataTransfer.setData("text/booking-id", b.id);
-                            setDraggingId(b.id);
+                          onDragOver={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            const rect = e.currentTarget.getBoundingClientRect();
+                            const after = e.clientY > rect.top + rect.height / 2;
+                            setDropHint({ dayKey, index: after ? i + 1 : i });
                           }}
-                          onDragEnd={() => setDraggingId(null)}
-                          onClick={() => setSelectedBooking(b)}
-                          className={draggingId === b.id ? "opacity-40" : ""}
-                        />
+                          onDrop={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            const id = e.dataTransfer.getData("text/booking-id");
+                            const rect = e.currentTarget.getBoundingClientRect();
+                            const after = e.clientY > rect.top + rect.height / 2;
+                            if (id) reorderBooking(id, day, after ? i + 1 : i);
+                            setDraggingId(null);
+                            setDropHint(null);
+                          }}
+                          className={
+                            dropHint && dropHint.dayKey === dayKey && dropHint.index === i
+                              ? "border-t-2 border-primary pt-1"
+                              : dropHint &&
+                                  dropHint.dayKey === dayKey &&
+                                  dropHint.index === i + 1 &&
+                                  i === dayBookings.length - 1
+                                ? "border-b-2 border-primary pb-1"
+                                : ""
+                          }
+                        >
+                          <BookInCard
+                            booking={b}
+                            dense
+                            draggable
+                            onDragStart={(e) => {
+                              e.dataTransfer.effectAllowed = "move";
+                              e.dataTransfer.setData("text/booking-id", b.id);
+                              setDraggingId(b.id);
+                            }}
+                            onDragEnd={() => {
+                              setDraggingId(null);
+                              setDropHint(null);
+                            }}
+                            onClick={() => setSelectedBooking(b)}
+                            className={draggingId === b.id ? "opacity-40" : ""}
+                          />
+                        </div>
                       ))
                     )}
                   </div>
+
 
                   <button
                     type="button"
