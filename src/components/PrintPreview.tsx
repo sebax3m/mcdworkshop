@@ -378,7 +378,9 @@ export function PrintPreview({
     const cw = Math.max(20, size.w - margin * 2);
     const ch = Math.max(20, size.h - margin * 2);
     const pageCss = `@page { size: ${size.css} portrait; margin: ${margin}mm; }
-       .sheet { width:${cw}mm; height:${ch}mm; }`;
+       /* 0.5mm slack absorbs mm→px rounding so a full sheet never spills into
+          an extra printed page (preview page count == printed page count). */
+       .sheet { width:${cw}mm; height:calc(${ch}mm - 0.5mm); max-height:calc(${ch}mm - 0.5mm); }`;
 
     const body = pages
       .map(
