@@ -1,14 +1,33 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
+import { addDays, format, isToday } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { STATUS_META, fullBike, initials } from "@/lib/format";
-import { Bike, Wrench, Clock, AlertCircle, CheckCircle2, Plus } from "lucide-react";
+import { Bike, Wrench, Clock, AlertCircle, CheckCircle2, Plus, CalendarDays } from "lucide-react";
 import { useCurrentUser } from "@/hooks/use-current-user";
+import { BookInCard, CapacityBadge } from "@/components/booking/BookInCard";
+import { useWorkshopCapacity } from "@/hooks/useWorkshopCapacity";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
+  head: () => ({
+    meta: [
+      { title: "Today in the workshop — Motorcycle Doctors" },
+      {
+        name: "description",
+        content:
+          "Today's motorcycle book-ins, workshop capacity for the week ahead and active jobs at a glance.",
+      },
+      { property: "og:title", content: "Today in the workshop — Motorcycle Doctors" },
+      {
+        property: "og:description",
+        content: "Today's book-ins, workshop load for the week ahead and active jobs.",
+      },
+    ],
+  }),
   component: Dashboard,
 });
+
 
 function Dashboard() {
   const { fullName, isAdmin } = useCurrentUser();
