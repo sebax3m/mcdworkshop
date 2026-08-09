@@ -19,7 +19,7 @@ type Props = {
 /**
  * Compact book-in card: motorcycle → rego → customer → requested work → status.
  * Used by the book-in calendar, the day view and the Today dashboard.
- * Mobile gets an extra-condensed layout to keep the weekly grid readable.
+ * Mobile gets an ultra-condensed layout to keep the weekly grid readable.
  */
 export function BookInCard({
   booking: b,
@@ -61,14 +61,46 @@ export function BookInCard({
         svc.border,
         svc.fill,
         "hover:brightness-110 focus:outline-none focus:ring-2 focus:ring-primary/40",
-
-        dense ? "p-1.5 sm:p-2" : "p-2.5",
+        dense ? "p-1 sm:p-1.5" : "p-2.5",
         b.bike_arrived && "ring-1 ring-orange-500/60",
         draggable && "cursor-grab active:cursor-grabbing",
         className,
       )}
     >
-      <div className="flex items-start gap-1.5 sm:gap-2">
+      {/* Ultra-compact mobile view: bike + customer + tiny status dots */}
+      <div className="sm:hidden flex items-start gap-1">
+        {photo ? (
+          <img
+            src={typeof photo === "string" ? photo : photo?.url}
+            alt=""
+            loading="lazy"
+            className="h-5 w-5 rounded object-cover border border-border shrink-0"
+          />
+        ) : (
+          <div className="h-5 w-5 rounded grid place-items-center bg-background/50 text-foreground/70 shrink-0">
+            <BikeIcon className="h-2.5 w-2.5" />
+          </div>
+        )}
+        <div className="min-w-0 flex-1">
+          <div className="font-semibold text-[0.65rem] leading-tight truncate">{bike}</div>
+          <div className="flex items-center gap-0.5 text-[0.6rem] text-foreground/70 truncate">
+            <UserIcon className="h-2 w-2 shrink-0" />
+            <span className="truncate">{customer}</span>
+          </div>
+          <div className="mt-0.5 flex items-center gap-1 flex-wrap">
+            <span className={cn("h-1.5 w-1.5 rounded-full", stage.dot)} title={stage.label} />
+            {b.loan_bike && (
+              <span className="h-1.5 w-1.5 rounded-full bg-amber-500" title="Loan bike" />
+            )}
+            {b.confirmed && (
+              <span className="h-1.5 w-1.5 rounded-full bg-green-500" title="Confirmed" />
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Desktop / tablet view */}
+      <div className="hidden sm:flex items-start gap-2">
         {photo ? (
           <img
             src={typeof photo === "string" ? photo : photo?.url}
@@ -172,4 +204,3 @@ export function CapacityBadge({
     </span>
   );
 }
-
