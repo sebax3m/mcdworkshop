@@ -120,17 +120,66 @@ const TEMPLATES = {
 type TemplateKey = keyof typeof TEMPLATES;
 
 
+/** Remove `@media print { ... }` blocks (brace-balanced) from a CSS string. */
+function stripPrintBlocks(css: string) {
+  let out = "";
+  let i = 0;
+  while (i < css.length) {
+    const at = css.toLowerCase().indexOf("@media print", i);
+    if (at === -1) {
+      out += css.slice(i);
+      break;
+    }
+    out += css.slice(i, at);
+    let j = css.indexOf("{", at);
+    if (j === -1) break;
+    let depth = 0;
+    for (; j < css.length; j++) {
+      if (css[j] === "{") depth++;
+      else if (css[j] === "}") {
+        depth--;
+        if (depth === 0) {
+          j++;
+          break;
+        }
+      }
+    }
+    i = j;
+  }
+  return out;
+}
+
+/**
+ * Cloned page markup can carry the source component's own <style> tags, whose
+ * `@media print` rules (e.g. `body * { visibility: hidden }`) would blank out
+ * the other sheets when printing. Strip those blocks from embedded styles.
+ */
+function sanitizePageHtml(html: string) {
+  return html.replace(
+    /<style\b[^>]*>([\s\S]*?)<\/style>/gi,
+    (_m, css: string) => `<style>${stripPrintBlocks(css)}</style>`,
+  );
+}
+
 /** CSS that turns the app's dark UI into ink-friendly white paper. */
 function paperCss(margin: number) {
   return `
     :root { color-scheme: light; }
     html, body { margin:0; padding:0; background:#e5e5e5; }
+    /* Screen-only: shrink the sheets so a full page (incl. landscape) is
+       visible in the preview pane. Print is unaffected. */
+    @media screen {
+      body { padding:12px 0; }
+      .sheet { zoom: var(--viewzoom, 1); }
+    }
     * { box-shadow:none !important; }
     .sheet {
       background:#ffffff; color:#111111;
       margin:0 auto 12px; overflow:hidden; position:relative;
     }
-    .sheet-inner { padding:${margin}mm; transform-origin: top left; }
+    /* Page margins come from @page so the sheet matches the printer's
+       printable area exactly — no browser shrink-to-fit. */
+    .sheet-inner { padding:0; transform-origin: top left; }
     .sheet, .sheet * {
       background-color: transparent !important;
       color:#111111 !important;
@@ -177,8 +226,11 @@ function paperCss(margin: number) {
     body.dragmode [data-print-section]:hover { outline: 1px dashed #b91c1c; }
     @media print {
       html, body { background:#ffffff !important; }
-      .sheet { margin:0 !important; box-shadow:none !important; page-break-after: always; }
-      .sheet:last-child { page-break-after: auto; }
+      .sheet {
+        margin:0 !important; box-shadow:none !important;
+        break-after: page; page-break-after: always;
+      }
+      .sheet:last-child { break-after: auto; page-break-after: auto; }
     }
   `;
 }
@@ -295,8 +347,16 @@ export function PrintPreview({
 
   useEffect(() => {
     if (!open || pages.length === 0) return;
+    // Copy the app's styles, but strip every `@media print { ... }` block from
+    // inline <style> tags: page components ship their own print rules
+    // (`body * { visibility: hidden }`, `font-size: 10.5px`, custom @page
+    // margins) which would hijack this document and make the printout tiny or
+    // blank — and they never show up in the preview, so print != preview.
     const headStyles = Array.from(document.querySelectorAll('style, link[rel="stylesheet"]'))
-      .map((n) => n.outerHTML)
+      .map((n) => {
+        if (n.tagName !== "STYLE") return n.outerHTML;
+        return `<style>${stripPrintBlocks(n.textContent ?? "")}</style>`;
+      })
       .join("\n");
 
     const hideRules = Object.entries(hidden)
@@ -305,20 +365,22 @@ export function PrintPreview({
       .join("\n");
 
     const size = PAPER[paper];
-    const pageCss = pages
-      .map((p, i) => {
-        const o = p.orientation ?? "portrait";
-        const w = o === "portrait" ? size.w : size.h;
-        const h = o === "portrait" ? size.h : size.w;
-        return `@page p${i} { size: ${size.css} ${o}; margin: 0; }
-                #page-${i} { page: p${i}; width:${w}mm; min-height:${h}mm; }`;
-      })
-      .join("\n");
+    // Every sheet uses ONE portrait page size. Browsers do not reliably honour
+    // per-page (named) @page orientation, and a wider landscape page makes the
+    // whole document shrink-to-fit when printing. Landscape content is instead
+    // rotated 90deg inside a portrait sheet, so the printout matches the
+    // preview exactly on any printer.
+    const cw = Math.max(20, size.w - margin * 2);
+    const ch = Math.max(20, size.h - margin * 2);
+    const pageCss = `@page { size: ${size.css} portrait; margin: ${margin}mm; }
+       .sheet { width:${cw}mm; height:${ch}mm; }`;
 
     const body = pages
       .map(
         (p, i) =>
-          `<div class="sheet" id="page-${i}"><div class="sheet-inner" id="inner-${i}">${p.html}</div></div>`,
+          `<div class="sheet" id="page-${i}"><div class="sheet-inner" id="inner-${i}">${sanitizePageHtml(
+            p.html,
+          )}</div></div>`,
       )
       .join("");
 
@@ -331,6 +393,20 @@ export function PrintPreview({
   const fit = useCallback(() => {
     const doc = frameRef.current?.contentDocument;
     if (!doc) return;
+    // Fit the widest sheet into the preview pane (screen only).
+    doc.documentElement.style.setProperty("--viewzoom", "1");
+    const frameW = frameRef.current?.clientWidth ?? 0;
+    let widest = 0;
+    pages.forEach((_, i) => {
+      const el = doc.getElementById(`page-${i}`) as HTMLElement | null;
+      if (el) widest = Math.max(widest, el.offsetWidth);
+    });
+    if (widest > 0 && frameW > 0) {
+      doc.documentElement.style.setProperty(
+        "--viewzoom",
+        String(Math.min(1, (frameW - 28) / widest)),
+      );
+    }
     let over = false;
     pages.forEach((p, i) => {
       const sheet = doc.getElementById(`page-${i}`) as HTMLElement | null;
@@ -339,24 +415,37 @@ export function PrintPreview({
       inner.style.transform = "";
       inner.style.width = "";
       inner.style.transformOrigin = "top left";
-      const rot = ((p.rotate ?? 0) % 360 + 360) % 360;
+      const landscape = (p.orientation ?? "portrait") === "landscape" ? 90 : 0;
+      const rot = ((((p.rotate ?? 0) + landscape) % 360) + 360) % 360;
       if (rot) {
-        const w = inner.scrollWidth;
-        const h = inner.scrollHeight;
         const availW = sheet.clientWidth;
         const availH = sheet.clientHeight;
         const swap = rot === 90 || rot === 270;
+        // Lay the content out at the width it will have AFTER rotating.
+        inner.style.width = `${swap ? availH : availW}px`;
+        const w = inner.scrollWidth;
+        const h = inner.scrollHeight;
         const bw = swap ? h : w;
         const bh = swap ? w : h;
-        const k = Math.min(availW / bw, availH / bh) * (scale / 100);
+        // 0.98 keeps the rotated box just inside the page box: a transformed
+        // element that touches the print page edge is dropped by Chrome.
+        const k = Math.min(availW / bw, availH / bh) * 0.98 * (scale / 100);
         inner.style.transformOrigin = "center center";
-        inner.style.transform = `rotate(${rot}deg) scale(${k})`;
+        inner.style.transform = `translate(${(availW - w) / 2}px, ${
+          (availH - h) / 2
+        }px) rotate(${rot}deg) scale(${k})`;
         return;
       }
       const availPx = sheet.clientHeight;
+      const availW = sheet.clientWidth;
       const contentPx = inner.scrollHeight;
+      const contentW = inner.scrollWidth;
       let k = scale / 100;
-      if (p.fill && contentPx > 0) k = Math.min(2.5, (availPx / contentPx) * (scale / 100));
+      if (p.fill && contentPx > 0) {
+        k =
+          Math.min(2.5, Math.min(availPx / contentPx, availW / Math.max(1, contentW))) *
+          (scale / 100);
+      }
       if (fitOnePage && contentPx * k > availPx) {
         k = Math.max(0.45, availPx / contentPx);
         if (contentPx * k > availPx + 2) over = true;
@@ -388,8 +477,10 @@ export function PrintPreview({
   const doPrint = () => {
     const w = frameRef.current?.contentWindow;
     if (!w) return;
+    // Re-measure first so what prints is exactly what the preview shows.
+    fit();
     w.focus();
-    w.print();
+    setTimeout(() => w.print(), 120);
   };
 
   return (
