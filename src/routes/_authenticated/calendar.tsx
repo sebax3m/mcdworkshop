@@ -1017,7 +1017,7 @@ function CalendarPage() {
       {/* WEEK VIEW — motorcycles booked in per day (no hourly slots) */}
       {viewMode === "week" && (
         <div className="overflow-x-auto min-w-full">
-          <div className="grid gap-2 min-w-[980px] grid-cols-7 items-start">
+          <div className="grid gap-1.5 sm:gap-2 min-w-[680px] sm:min-w-[980px] grid-cols-7 items-start">
             {weekDays.map((day) => {
               const dayKey = format(day, "yyyy-MM-dd");
               const dayBookings = sortBookIns(
@@ -1042,7 +1042,7 @@ function CalendarPage() {
                     if (id) moveBookingToDate(id, day);
                     setDraggingId(null);
                   }}
-                  className={`card-surface p-2 flex flex-col gap-2 min-h-[280px] ${
+                  className={`card-surface p-1.5 sm:p-2 flex flex-col gap-1.5 sm:gap-2 min-h-[220px] sm:min-h-[280px] ${
                     today ? "ring-2 ring-primary/40" : ""
                   } ${isSunday(day) ? "bg-primary/[0.08]" : ""} ${
                     draggingId ? "border-dashed border-primary/40" : ""
