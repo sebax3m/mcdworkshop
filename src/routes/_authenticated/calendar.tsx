@@ -1009,9 +1009,22 @@ function CalendarPage() {
         </div>
       )}
 
+      {/* Service-type colour legend */}
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 px-1 pb-2">
+        {SERVICE_LEGEND.map((l) => (
+          <span key={l.key} className="inline-flex items-center gap-1.5 text-[0.6875rem]">
+            <span
+              className={`h-2.5 w-2.5 rounded-sm ${SERVICE_COLORS[l.key]?.bg ?? "bg-muted"}`}
+            />
+            <span className="text-muted-foreground">{l.label}</span>
+          </span>
+        ))}
+      </div>
+
       {/* WEEK VIEW — motorcycles booked in per day (no hourly slots) */}
       {viewMode === "week" && (
         <div className="overflow-x-auto min-w-full">
+
           <div className="grid gap-2 min-w-[980px] grid-cols-7 items-start">
             {weekDays.map((day) => {
               const dayKey = format(day, "yyyy-MM-dd");
