@@ -45,6 +45,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
+import { hasPhone } from "@/lib/data-quality";
 import { initials } from "@/lib/format";
 import { BIKE_MAKES, BIKE_MAKE_NAMES, BIKE_YEARS } from "@/lib/bike-library";
 import { lookupRego } from "@/lib/rego-lookup.functions";
@@ -340,10 +341,12 @@ function CalendarPage() {
     queryKey: ["quick-customers"],
     enabled: !!quickSlot || !!selectedBooking,
     queryFn: async () => {
-      const { data } = await supabase
+      const { data } = await (supabase as any)
         .from("customers")
         .select("id, first_name, last_name, phone, email")
-        .order("first_name");
+        .eq("is_archived", false)
+        .order("first_name")
+        .range(0, 49999);
       return data ?? [];
     },
   });
@@ -352,10 +355,11 @@ function CalendarPage() {
     queryKey: ["edit-bikes", selectedBooking?.customer_id],
     enabled: !!selectedBooking?.customer_id,
     queryFn: async () => {
-      const { data } = await supabase
+      const { data } = await (supabase as any)
         .from("motorcycles")
         .select("id, year, make, model, rego")
-        .eq("customer_id", selectedBooking!.customer_id);
+        .eq("customer_id", selectedBooking!.customer_id)
+        .eq("is_archived", false);
       return data ?? [];
     },
   });
@@ -367,7 +371,8 @@ function CalendarPage() {
       const { data } = await (supabase as any)
         .from("motorcycles")
         .select("id, make, model, year, rego")
-        .eq("customer_id", qCustomerId);
+        .eq("customer_id", qCustomerId)
+        .eq("is_archived", false);
       return data ?? [];
     },
   });
@@ -421,6 +426,7 @@ function CalendarPage() {
           "id, year, make, model, rego, customer_id, customers(id, first_name, last_name, phone, email)",
         )
         .ilike("rego", `%${term}%`)
+        .eq("is_archived", false)
         .not("customer_id", "is", null)
         .limit(6);
       return (data ?? []) as any[];
@@ -503,6 +509,8 @@ function CalendarPage() {
   async function createQuickBooking() {
     if (!quickSlot) return;
     if (!qFirst.trim()) return toast.error("First name required");
+    if (!qCustomerId && !hasPhone(qPhone))
+      return toast.error("A valid phone number is required");
     if (!qBikeMake.trim() || !qBikeModel.trim()) return toast.error("Bike make and model required");
     const startTime = (qEditTime || quickSlot.time).slice(0, 5);
     const endTime = addMinutesToTime(

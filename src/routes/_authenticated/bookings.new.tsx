@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { ArrowLeft, Plus, Search, Bike as BikeIcon, Camera, X } from "lucide-react";
 import { toast } from "sonner";
+import { hasPhone } from "@/lib/data-quality";
 import { fullBike, initials } from "@/lib/format";
 import { uploadPhoto } from "@/lib/photos";
 import { useBookingTypes } from "@/hooks/useBookingTypes";
@@ -83,18 +84,18 @@ function NewBooking() {
   const customers = useQuery({
     queryKey: ["bk-customers"],
     queryFn: async () =>
-      (await supabase.from("customers").select("*").order("first_name")).data ?? [],
+      (await (supabase as any).from("customers").select("*").eq("is_archived", false).order("first_name").range(0, 49999)).data ?? [],
   });
   const bikes = useQuery({
     queryKey: ["bk-bikes", customerId],
     enabled: !!customerId,
     queryFn: async () =>
-      (await supabase.from("motorcycles").select("*").eq("customer_id", customerId!)).data ?? [],
+      (await (supabase as any).from("motorcycles").select("*").eq("customer_id", customerId!).eq("is_archived", false)).data ?? [],
   });
   const allBikes = useQuery({
     queryKey: ["bk-all-bikes"],
     queryFn: async () =>
-      (await supabase.from("motorcycles").select("id, customer_id, rego, year, make, model"))
+      (await (supabase as any).from("motorcycles").select("id, customer_id, rego, year, make, model").eq("is_archived", false).range(0, 49999))
         .data ?? [],
   });
   const techs = useQuery({
@@ -159,6 +160,7 @@ function NewBooking() {
 
   async function createCustomer() {
     if (!ncFirst.trim()) return toast.error("First name required");
+    if (!hasPhone(ncPhone)) return toast.error("A valid phone number is required");
     setCreatingCustomer(true);
     try {
       const { data, error } = await supabase

@@ -249,6 +249,7 @@ export type Database = {
           email: string | null
           first_name: string
           id: string
+          is_archived: boolean
           last_name: string | null
           notes: string | null
           phone: string | null
@@ -261,6 +262,7 @@ export type Database = {
           email?: string | null
           first_name: string
           id?: string
+          is_archived?: boolean
           last_name?: string | null
           notes?: string | null
           phone?: string | null
@@ -273,6 +275,7 @@ export type Database = {
           email?: string | null
           first_name?: string
           id?: string
+          is_archived?: boolean
           last_name?: string | null
           notes?: string | null
           phone?: string | null
@@ -1051,6 +1054,7 @@ export type Database = {
           cylinders: number
           ecu_info: string | null
           id: string
+          is_archived: boolean
           make: string
           mileage: number | null
           model: string
@@ -1073,6 +1077,7 @@ export type Database = {
           cylinders?: number
           ecu_info?: string | null
           id?: string
+          is_archived?: boolean
           make: string
           mileage?: number | null
           model: string
@@ -1095,6 +1100,7 @@ export type Database = {
           cylinders?: number
           ecu_info?: string | null
           id?: string
+          is_archived?: boolean
           make?: string
           mileage?: number | null
           model?: string
@@ -1358,6 +1364,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      customer_reference_counts: {
+        Args: { p_customer_id: string }
+        Returns: Json
+      }
+      delete_customer_safe: { Args: { p_customer_id: string }; Returns: Json }
+      delete_motorcycle_safe: {
+        Args: { p_motorcycle_id: string }
+        Returns: Json
+      }
       find_booking_conflicts: {
         Args: {
           p_date: string
@@ -1375,6 +1390,14 @@ export type Database = {
           service_type: string
           status: string
         }[]
+      }
+      merge_customers: {
+        Args: { p_keep_id: string; p_merge_id: string }
+        Returns: Json
+      }
+      motorcycle_reference_counts: {
+        Args: { p_motorcycle_id: string }
+        Returns: Json
       }
     }
     Enums: {

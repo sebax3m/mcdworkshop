@@ -46,13 +46,13 @@ function NewClaim() {
   const customers = useQuery({
     queryKey: ["ins-customers"],
     queryFn: async () =>
-      (await supabase.from("customers").select("*").order("first_name")).data ?? [],
+      (await (supabase as any).from("customers").select("*").eq("is_archived", false).order("first_name").range(0, 49999)).data ?? [],
   });
   const bikes = useQuery({
     queryKey: ["ins-bikes", customerId],
     enabled: !!customerId,
     queryFn: async () =>
-      (await supabase.from("motorcycles").select("*").eq("customer_id", customerId!)).data ?? [],
+      (await (supabase as any).from("motorcycles").select("*").eq("customer_id", customerId!).eq("is_archived", false)).data ?? [],
   });
 
   const filteredCust = useMemo(() => {

@@ -1,12 +1,23 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Bike as BikeIcon, Plus, Search, Camera, X, Sparkles, Trash2 } from "lucide-react";
+import {
+  Bike as BikeIcon,
+  Plus,
+  Search,
+  Camera,
+  X,
+  Sparkles,
+  Trash2,
+  Archive,
+  ArchiveRestore,
+  AlertTriangle,
+} from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { fullBike } from "@/lib/format";
@@ -14,6 +25,26 @@ import { uploadPhoto } from "@/lib/photos";
 import { generateBikeImage } from "@/lib/bike-image.functions";
 import { BikeMakeModelYear } from "@/components/BikeMakeModelYear";
 import { useCurrentUser } from "@/hooks/use-current-user";
+import {
+  duplicateGroups,
+  duplicateIds,
+  hasPhone,
+  isBikeSuspicious,
+  isBikeValid,
+  normalizeRego,
+  normalizeVin,
+} from "@/lib/data-quality";
+
+type BikeFilter = "all" | "valid" | "no_owner" | "suspicious" | "duplicates" | "archived";
+
+const BIKE_FILTERS: { key: BikeFilter; label: string }[] = [
+  { key: "all", label: "All" },
+  { key: "valid", label: "Valid" },
+  { key: "no_owner", label: "No owner" },
+  { key: "suspicious", label: "Suspicious" },
+  { key: "duplicates", label: "Duplicate rego/VIN" },
+  { key: "archived", label: "Archived" },
+];
 
 export const Route = createFileRoute("/_authenticated/motorcycles/")({
   component: Bikes,
@@ -26,6 +57,7 @@ function Bikes() {
   const [open, setOpen] = useState(false);
   const [selectMode, setSelectMode] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [filter, setFilter] = useState<BikeFilter>("all");
   const [f, setF] = useState({
     customer_id: "",
     make: "",
@@ -47,8 +79,14 @@ function Bikes() {
   const customers = useQuery({
     queryKey: ["customers-options"],
     queryFn: async () =>
-      (await supabase.from("customers").select("id, first_name, last_name").order("first_name"))
-        .data ?? [],
+      (
+        await (supabase as any)
+          .from("customers")
+          .select("id, first_name, last_name")
+          .eq("is_archived", false)
+          .order("first_name")
+          .range(0, 49999)
+      ).data ?? [],
   });
   const bikes = useQuery({
     queryKey: ["bikes-list"],
@@ -58,12 +96,44 @@ function Bikes() {
           .from("motorcycles")
           .select("*, customers(first_name,last_name)")
           .order("created_at", { ascending: false })
+          .range(0, 49999)
       ).data ?? [],
   });
 
-  const filtered = (bikes.data ?? []).filter((b: any) => {
+  const rows: any[] = useMemo(() => bikes.data ?? [], [bikes.data]);
+  const active = useMemo(() => rows.filter((b) => !b.is_archived), [rows]);
+
+  const dupIds = useMemo(() => {
+    const byRego = duplicateGroups(active, (b: any) => normalizeRego(b.rego));
+    const byVin = duplicateGroups(active, (b: any) => normalizeVin(b.vin));
+    const ids = new Set<string>();
+    for (const id of duplicateIds(byRego as Map<string, any[]>)) ids.add(id);
+    for (const id of duplicateIds(byVin as Map<string, any[]>)) ids.add(id);
+    return ids;
+  }, [active]);
+
+  const counts = useMemo(
+    () => ({
+      all: rows.length,
+      valid: active.filter((b) => isBikeValid(b, !!b.customer_id)).length,
+      no_owner: active.filter((b) => !b.customer_id).length,
+      suspicious: active.filter((b) => isBikeSuspicious(b)).length,
+      duplicates: dupIds.size,
+      archived: rows.filter((b) => b.is_archived).length,
+    }),
+    [rows, active, dupIds],
+  );
+
+  let filtered = active;
+  if (filter === "archived") filtered = rows.filter((b: any) => b.is_archived);
+  else if (filter === "valid") filtered = active.filter((b: any) => isBikeValid(b, !!b.customer_id));
+  else if (filter === "no_owner") filtered = active.filter((b: any) => !b.customer_id);
+  else if (filter === "suspicious") filtered = active.filter((b: any) => isBikeSuspicious(b));
+  else if (filter === "duplicates") filtered = active.filter((b: any) => dupIds.has(b.id));
+
+  filtered = filtered.filter((b: any) => {
     const s =
-      `${b.make} ${b.model} ${b.year ?? ""} ${b.rego ?? ""} ${b.customers?.first_name ?? ""} ${b.customers?.last_name ?? ""}`.toLowerCase();
+      `${b.make} ${b.model} ${b.year ?? ""} ${b.rego ?? ""} ${b.vin ?? ""} ${b.customers?.first_name ?? ""} ${b.customers?.last_name ?? ""}`.toLowerCase();
     return s.includes(search.toLowerCase());
   });
 
@@ -95,17 +165,50 @@ function Bikes() {
     qc.invalidateQueries({ queryKey: ["bikes-list"] });
   }
 
-  async function deleteSelected() {
+  function refresh() {
+    qc.invalidateQueries({ queryKey: ["bikes-list"] });
+    qc.invalidateQueries({ queryKey: ["customers-bikes"] });
+    qc.invalidateQueries({ queryKey: ["customers-list"] });
+  }
+
+  async function archiveSelected(archived: boolean) {
+    if (!isAdmin) return toast.error("Admin only");
+    const ids = Array.from(selected);
+    if (!ids.length) return;
+    const { error } = await (supabase as any)
+      .from("motorcycles")
+      .update({ is_archived: archived })
+      .in("id", ids);
+    if (error) return toast.error(error.message);
+    setSelected(new Set());
+    toast.success(`${ids.length} ${archived ? "archived" : "restored"}`);
+    refresh();
+  }
+
+  async function permanentDeleteSelected() {
     if (!isAdmin) return toast.error("Admin only");
     const ids = Array.from(selected);
     if (ids.length === 0) return;
-    if (!confirm(`Delete ${ids.length} bike${ids.length > 1 ? "s" : ""}? This also removes linked bookings.`)) return;
-    const { error } = await supabase.from("motorcycles").delete().in("id", ids);
-    if (error) return toast.error(error.message);
+    if (
+      !confirm(
+        `Permanently delete ${ids.length} bike(s)?\n\nOnly bikes with no bookings, jobs, invoices, dyno results or claims can be deleted. Others will be skipped.`,
+      )
+    )
+      return;
+    let ok = 0;
+    const blocked: string[] = [];
+    for (const id of ids) {
+      const { error } = await (supabase as any).rpc("delete_motorcycle_safe", {
+        p_motorcycle_id: id,
+      });
+      if (error) blocked.push(id);
+      else ok++;
+    }
     setSelected(new Set());
-    toast.success(`${ids.length} deleted`);
-    qc.invalidateQueries({ queryKey: ["bikes-list"] });
-    qc.invalidateQueries({ queryKey: ["customers-bikes"] });
+    if (ok) toast.success(`${ok} permanently deleted`);
+    if (blocked.length)
+      toast.error(`${blocked.length} kept: they have linked history. Archive them instead.`);
+    refresh();
   }
 
   async function handleBikePhotos(files: FileList | null) {
@@ -149,6 +252,7 @@ function Bikes() {
 
   async function saveNewCustomer() {
     if (!newCust.first_name.trim()) return toast.error("First name required");
+    if (!hasPhone(newCust.phone)) return toast.error("A valid phone number is required");
     setSavingCust(true);
     try {
       const { data, error } = await supabase
@@ -180,20 +284,44 @@ function Bikes() {
         <div className="min-w-0">
           <div className="text-xs uppercase tracking-[0.25em] text-muted-foreground">Garage</div>
           <h1 className="font-display text-2xl sm:text-3xl font-bold">
-            {bikes.data?.length ?? 0} bikes
+            {filtered.length}
+            {filtered.length !== counts.all ? ` / ${counts.all}` : ""} bikes
           </h1>
         </div>
         <div className="flex items-center gap-2">
           {isAdmin && selectMode ? (
             <>
+              {filter === "archived" ? (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => archiveSelected(false)}
+                  disabled={selected.size === 0}
+                  className="gap-1.5 shrink-0"
+                >
+                  <ArchiveRestore className="h-4 w-4" /> Restore
+                  {selected.size > 0 ? ` (${selected.size})` : ""}
+                </Button>
+              ) : (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => archiveSelected(true)}
+                  disabled={selected.size === 0}
+                  className="gap-1.5 shrink-0"
+                >
+                  <Archive className="h-4 w-4" /> Archive
+                  {selected.size > 0 ? ` (${selected.size})` : ""}
+                </Button>
+              )}
               <Button
                 variant="destructive"
                 size="sm"
-                onClick={deleteSelected}
+                onClick={permanentDeleteSelected}
                 disabled={selected.size === 0}
                 className="gap-1.5 shrink-0"
               >
-                <Trash2 className="h-4 w-4" /> Delete{selected.size > 0 ? ` (${selected.size})` : ""}
+                <Trash2 className="h-4 w-4" /> Delete
               </Button>
               <Button
                 variant="outline"
@@ -227,14 +355,60 @@ function Bikes() {
         </div>
       </header>
 
+      <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
+        {(
+          [
+            ["Valid", counts.valid, "valid"],
+            ["No owner", counts.no_owner, "no_owner"],
+            ["Suspicious", counts.suspicious, "suspicious"],
+            ["Duplicates", counts.duplicates, "duplicates"],
+            ["Archived", counts.archived, "archived"],
+          ] as [string, number, BikeFilter][]
+        ).map(([label, value, key]) => (
+          <button
+            key={key}
+            type="button"
+            onClick={() => setFilter(key)}
+            className={`rounded-lg border px-2 py-1.5 text-left transition-colors ${
+              filter === key
+                ? "border-primary/60 bg-primary/10"
+                : "border-border bg-card hover:border-primary/40"
+            }`}
+          >
+            <div className="text-sm font-semibold">{value}</div>
+            <div className="text-[10px] uppercase tracking-wider text-muted-foreground truncate">
+              {label}
+            </div>
+          </button>
+        ))}
+      </div>
+
+      <div className="flex items-center gap-2 flex-wrap">
+        {BIKE_FILTERS.map((bf) => (
+          <button
+            key={bf.key}
+            type="button"
+            onClick={() => setFilter(bf.key)}
+            className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${
+              filter === bf.key
+                ? "bg-primary/10 border-primary/60 text-foreground"
+                : "bg-card border-border text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            {bf.label}
+          </button>
+        ))}
+      </div>
+
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search make, model, rego, owner"
+          placeholder="Search make, model, rego, VIN, owner"
           className="w-full rounded-xl bg-card border border-border pl-10 pr-3 py-3 text-sm"
         />
+
       </div>
 
       {open && (
@@ -422,7 +596,7 @@ function Bikes() {
             });
           const rowClass = `card-surface p-3 flex items-center gap-3 transition hover:border-primary/40 hover:bg-card/80 ${
             selectMode && checked ? "border-primary/60 bg-primary/5" : ""
-          } ${selectMode ? "cursor-pointer" : "active:scale-[0.99]"}`;
+          } ${selectMode ? "cursor-pointer" : "active:scale-[0.99]"} ${b.is_archived ? "opacity-60" : ""}`;
           const inner = (
             <>
               {isAdmin && selectMode && (
@@ -441,7 +615,29 @@ function Bikes() {
                 </span>
               )}
               <div className="min-w-0 flex-1">
-                <div className="font-semibold truncate">{fullBike(b)}</div>
+                <div className="font-semibold truncate flex items-center gap-1.5">
+                  {fullBike(b)}
+                  {b.is_archived && (
+                    <span className="text-[10px] uppercase tracking-wider rounded px-1 py-0.5 border border-border text-muted-foreground">
+                      Archived
+                    </span>
+                  )}
+                  {isBikeSuspicious(b) && (
+                    <span className="inline-flex items-center gap-0.5 text-[10px] uppercase tracking-wider rounded px-1 py-0.5 border border-amber-500/40 text-amber-500">
+                      <AlertTriangle className="h-2.5 w-2.5" /> Suspicious
+                    </span>
+                  )}
+                  {!b.customer_id && (
+                    <span className="text-[10px] uppercase tracking-wider rounded px-1 py-0.5 border border-destructive/40 text-destructive">
+                      No owner
+                    </span>
+                  )}
+                  {dupIds.has(b.id) && (
+                    <span className="text-[10px] uppercase tracking-wider rounded px-1 py-0.5 border border-primary/40 text-primary">
+                      Dup
+                    </span>
+                  )}
+                </div>
                 <div className="text-xs text-muted-foreground truncate">
                   {b.customers ? `${b.customers.first_name} ${b.customers.last_name}` : "—"}
                   {b.rego ? ` · ${b.rego}` : ""}
