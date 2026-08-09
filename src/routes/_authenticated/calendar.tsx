@@ -1370,10 +1370,6 @@ function CalendarPage() {
                                 )
                               : "—"}
                           </div>
-                          <div className="text-xs text-muted-foreground">
-                            {fmt12h(currentStart)}
-                            {currentEnd ? ` – ${fmt12h(currentEnd)}` : ""}
-                          </div>
                         </div>
 
                         <div>
