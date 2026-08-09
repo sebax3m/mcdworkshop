@@ -1056,14 +1056,14 @@ function CalendarPage() {
                     title="Open day view"
                   >
                     <div
-                      className={`text-[0.625rem] font-bold uppercase tracking-wider ${
+                      className={`text-[0.6rem] sm:text-[0.625rem] font-bold uppercase tracking-wider ${
                         today || isSunday(day) ? "text-primary" : "text-muted-foreground"
                       }`}
                     >
                       {format(day, "EEEE")}
                     </div>
-                    <div className="flex items-baseline gap-2">
-                      <span className="font-display text-xl font-bold leading-none group-hover:text-primary transition-colors">
+                    <div className="flex items-baseline gap-1.5 sm:gap-2">
+                      <span className="font-display text-lg sm:text-xl font-bold leading-none group-hover:text-primary transition-colors">
                         {format(day, "d")}
                       </span>
                       <CapacityBadge booked={dayBookings.length} capacity={cap} compact />
