@@ -2,7 +2,9 @@
 import { Bike as BikeIcon, User as UserIcon, Wrench } from "lucide-react";
 import { displayBike, displayCustomerName, displayServiceType } from "@/lib/display";
 import { bookInStage, stageMeta } from "@/lib/workshop-status";
+import { serviceColor } from "@/lib/service-colors";
 import { cn } from "@/lib/utils";
+
 
 type Props = {
   booking: any;
@@ -32,6 +34,8 @@ export function BookInCard({
   const rego = b.motorcycles?.rego || b.rego || "";
   const customer = displayCustomerName(b.customers);
   const work = displayServiceType(b.service_type, b.service_type_other);
+  const svc = serviceColor(b.service_type);
+
   const photo = Array.isArray(b.motorcycles?.photos) ? b.motorcycles.photos[0] : null;
 
   return (
@@ -52,8 +56,11 @@ export function BookInCard({
         }
       }}
       className={cn(
-        "group w-full rounded-lg border border-border bg-card/70 text-left transition-colors",
-        "hover:border-primary/50 hover:bg-card focus:outline-none focus:ring-2 focus:ring-primary/40",
+        "group w-full rounded-lg border border-border border-l-4 bg-card/70 text-left transition-colors",
+        svc.border,
+        "hover:bg-card focus:outline-none focus:ring-2 focus:ring-primary/40",
+
+
         dense ? "p-2" : "p-2.5",
         b.bike_arrived && "ring-1 ring-orange-500/60",
         draggable && "cursor-grab active:cursor-grabbing",
@@ -86,9 +93,10 @@ export function BookInCard({
             <UserIcon className="h-3 w-3 shrink-0" />
             <span className="truncate">{customer}</span>
           </div>
-          <div className="flex items-center gap-1 text-xs truncate">
-            <Wrench className="h-3 w-3 shrink-0 text-muted-foreground" />
+          <div className={cn("flex items-center gap-1 text-xs truncate font-medium", svc.label)}>
+            <Wrench className="h-3 w-3 shrink-0" />
             <span className="truncate">{work}</span>
+
           </div>
           <div className="mt-1.5 flex items-center gap-1.5 flex-wrap">
             <span
