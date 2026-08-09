@@ -34,6 +34,8 @@ export function BookInCard({
   const rego = b.motorcycles?.rego || b.rego || "";
   const customer = displayCustomerName(b.customers);
   const work = displayServiceType(b.service_type, b.service_type_other);
+  const svc = serviceColor(b.service_type);
+
   const photo = Array.isArray(b.motorcycles?.photos) ? b.motorcycles.photos[0] : null;
 
   return (
@@ -54,8 +56,10 @@ export function BookInCard({
         }
       }}
       className={cn(
-        "group w-full rounded-lg border border-border bg-card/70 text-left transition-colors",
+        "group w-full rounded-lg border border-border border-l-4 bg-card/70 text-left transition-colors",
+        svc.border,
         "hover:border-primary/50 hover:bg-card focus:outline-none focus:ring-2 focus:ring-primary/40",
+
         dense ? "p-2" : "p-2.5",
         b.bike_arrived && "ring-1 ring-orange-500/60",
         draggable && "cursor-grab active:cursor-grabbing",
