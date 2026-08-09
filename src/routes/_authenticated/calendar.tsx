@@ -726,6 +726,40 @@ function CalendarPage() {
     qc.invalidateQueries({ queryKey: ["calendar-bookings"] });
   }
 
+  /**
+   * Day-based move: the book-in belongs to a DAY, so dragging a card only
+   * changes scheduled_date. Historical times are preserved untouched.
+   */
+  async function moveBookingToDate(bookingId: string, newDate: Date) {
+    const dateStr = format(newDate, "yyyy-MM-dd");
+    const current = (bookings as any[]).find((b) => b.id === bookingId);
+    if (current?.scheduled_date === dateStr) return;
+    const count = (bookings as any[]).filter(
+      (b) => b.scheduled_date === dateStr && b.id !== bookingId,
+    ).length;
+    const cap = capacityFor(newDate);
+    if (cap > 0 && count >= cap) {
+      if (!isAdmin) {
+        return toast.error(
+          `${format(newDate, "EEEE d MMM")} is full (${count}/${cap}). Ask an admin to override.`,
+        );
+      }
+      const ok = window.confirm(
+        `${format(newDate, "EEEE d MMM")} is already at capacity (${count}/${cap}).\n\nOverride and move this book-in anyway?`,
+      );
+      if (!ok) return;
+    }
+    const { error } = await supabase
+      .from("bookings")
+      .update({ scheduled_date: dateStr })
+      .eq("id", bookingId);
+    if (error) return toast.error(error.message);
+    toast.success("Book-in moved to " + format(newDate, "EEE d MMM"));
+    qc.invalidateQueries({ queryKey: ["calendar-bookings"] });
+    qc.invalidateQueries({ queryKey: ["day-bookings"] });
+    qc.invalidateQueries({ queryKey: ["today-bookings"] });
+  }
+
   const totals = useMemo(() => {
     const byDay = new Map<string, number>();
     for (const b of bookings as any[]) {
@@ -734,6 +768,7 @@ function CalendarPage() {
     }
     return byDay;
   }, [bookings]);
+
 
   const goPrev = () => {
     if (viewMode === "week") setWeekStart((d) => addWeeks(d, -1));
