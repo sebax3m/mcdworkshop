@@ -1,0 +1,1 @@
+ALTER TABLE public.daily_notes ADD COLUMN IF NOT EXISTS note_time time;
