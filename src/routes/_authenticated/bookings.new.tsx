@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { ArrowLeft, Plus, Search, Bike as BikeIcon, Camera, X } from "lucide-react";
 import { toast } from "sonner";
+import { hasPhone } from "@/lib/data-quality";
 import { fullBike, initials } from "@/lib/format";
 import { uploadPhoto } from "@/lib/photos";
 import { useBookingTypes } from "@/hooks/useBookingTypes";
@@ -159,6 +160,7 @@ function NewBooking() {
 
   async function createCustomer() {
     if (!ncFirst.trim()) return toast.error("First name required");
+    if (!hasPhone(ncPhone)) return toast.error("A valid phone number is required");
     setCreatingCustomer(true);
     try {
       const { data, error } = await supabase
