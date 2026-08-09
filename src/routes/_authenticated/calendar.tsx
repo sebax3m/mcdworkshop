@@ -265,7 +265,7 @@ function CalendarPage() {
   const [qEndTime, setQEndTime] = useState<string>("");
   // Editable date/time on top of the quick booking modal
   const [qEditDate, setQEditDate] = useState<string>("");
-  const [qEditTime, setQEditTime] = useState<string>("");
+  
   // After creation we swap the modal into a "just created" view with quick actions
   const [justCreated, setJustCreated] = useState<any | null>(null);
   const [justCreatedNotes, setJustCreatedNotes] = useState<string>("");
