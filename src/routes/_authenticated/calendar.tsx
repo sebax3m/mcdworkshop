@@ -49,8 +49,8 @@ import { initials } from "@/lib/format";
 import { BIKE_MAKES, BIKE_MAKE_NAMES, BIKE_YEARS } from "@/lib/bike-library";
 import { lookupRego } from "@/lib/rego-lookup.functions";
 import { useBookingTypes } from "@/hooks/useBookingTypes";
-import { useDailyNotesRange } from "@/hooks/useDailyNotes";
-import { DailyNoteDialog } from "@/components/booking/DailyNoteDialog";
+import { useDailyNotesRange, useUpdateDailyNote, type DailyNote } from "@/hooks/useDailyNotes";
+import { NoteDialog } from "@/components/booking/NoteDialog";
 import { StickyNote } from "lucide-react";
 import {
   addMinutesToTime,
@@ -264,7 +264,9 @@ function CalendarPage() {
   const [justCreated, setJustCreated] = useState<any | null>(null);
   const [justCreatedNotes, setJustCreatedNotes] = useState<string>("");
   const [savingJustCreatedNotes, setSavingJustCreatedNotes] = useState(false);
-  const [dayNoteFor, setDayNoteFor] = useState<string | null>(null);
+  const [noteDraft, setNoteDraft] = useState<{ date: string; time: string | null } | null>(null);
+  const [editNote, setEditNote] = useState<DailyNote | null>(null);
+  const updateNote = useUpdateDailyNote();
   const [slotChoice, setSlotChoice] = useState<{
     date: Date;
     time: string | null;
@@ -778,13 +780,6 @@ function CalendarPage() {
           >
             <ChevronRight className="h-4 w-4" />
           </button>
-          <button
-            onClick={() => setDayNoteFor(format(new Date(), "yyyy-MM-dd"))}
-            className="inline-flex items-center gap-1.5 px-3 h-10 rounded-xl border border-amber-500/40 bg-amber-500/10 hover:border-amber-500 text-xs font-semibold uppercase tracking-wider text-amber-500"
-            title="Add or edit day notes"
-          >
-            <StickyNote className="h-3.5 w-3.5" /> Day notes
-          </button>
         </div>
 
         <div className="flex items-center gap-3">
@@ -898,23 +893,21 @@ function CalendarPage() {
                         </span>
                       )}
                     </div>
-                    {(notesByDay.get(dayKey) ?? []).length > 0 && (
+                    {(notesByDay.get(dayKey) ?? []).map((n: any) => (
                       <button
+                        key={n.id}
                         type="button"
                         onClick={(e) => {
                           e.stopPropagation();
-                          setDayNoteFor(dayKey);
+                          setEditNote(n);
                         }}
-                        className="mt-1 inline-flex items-center gap-1 rounded-md bg-amber-500/15 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-amber-500 hover:bg-amber-500/25 self-start"
-                        title={(notesByDay.get(dayKey) ?? []).map((n: any) => n.title).join(" · ")}
+                        className="mt-1 inline-flex max-w-full items-center gap-1 rounded-md bg-amber-500/15 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-amber-500 hover:bg-amber-500/25 self-start"
+                        title={n.title}
                       >
-                        <StickyNote className="h-2.5 w-2.5" />
-                        {(notesByDay.get(dayKey) ?? [])[0].title}
-                        {(notesByDay.get(dayKey) ?? []).length > 1
-                          ? ` +${(notesByDay.get(dayKey) ?? []).length - 1}`
-                          : ""}
+                        <StickyNote className="h-2.5 w-2.5 shrink-0" />
+                        <span className="truncate">{n.title}</span>
                       </button>
-                    )}
+                    ))}
 
                     {loadHours > 0 && (
                       <div className="mt-1.5 h-1 rounded-full bg-muted overflow-hidden">
@@ -1110,7 +1103,8 @@ function CalendarPage() {
                           onDrop={(e) => {
                             e.preventDefault();
                             const id = e.dataTransfer.getData("text/booking-id");
-                            if (!id) return;
+                            const noteId = e.dataTransfer.getData("text/note-id");
+                            if (!id && !noteId) return;
                             const offsetY = Number(e.dataTransfer.getData("text/grab-offset")) || 0;
                             const rect = e.currentTarget.getBoundingClientRect();
                             const y = e.clientY - rect.top - offsetY;
@@ -1122,6 +1116,14 @@ function CalendarPage() {
                             const nh = Math.floor(totalMin / 60);
                             const nm = totalMin % 60;
                             const time = `${String(nh).padStart(2, "0")}:${String(nm).padStart(2, "0")}`;
+                            if (noteId) {
+                              updateNote.mutate({
+                                id: noteId,
+                                note_date: format(day, "yyyy-MM-dd"),
+                                note_time: `${time}:00`,
+                              });
+                              return;
+                            }
                             moveBooking(id, day, time);
                             setDraggingId(null);
                           }}
@@ -1165,45 +1167,49 @@ function CalendarPage() {
                             </div>
                           )}
 
-                          {/* Day notes banner (top of the day) + always-available add button */}
-                          {(() => {
-                            const notes = notesByDay.get(dayKey) ?? [];
+                          {/* Individual notes, placed where they were created and draggable */}
+                          {(notesByDay.get(dayKey) ?? []).map((n: any) => {
+                            const nt = n.note_time ? String(n.note_time) : "08:00";
+                            const [nh, nm] = nt.split(":");
+                            const nMin = (Number(nh) || 0) * 60 + (Number(nm) || 0);
+                            const nTop = ((nMin - START_HOUR * 60) / 60) * SLOT_H;
+                            const nHeight = SLOT_H / 2 - 3;
+                            if (nTop > GRID_H || nTop + nHeight < 0) return null;
                             return (
-                              <>
-                                {notes.length > 0 && (
-                                  <button
-                                    type="button"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      setDayNoteFor(dayKey);
-                                    }}
-                                    className="absolute z-[15] left-0.5 right-0.5 rounded-md px-2 py-0.5 text-left text-[10px] leading-tight bg-amber-500/15 text-amber-600 dark:text-amber-300 ring-1 ring-amber-500/30 hover:brightness-110 transition-colors"
-                                    style={{ top: 0, height: `${SLOT_H / 2}px` }}
-                                    title={notes.map((n: any) => n.title).join(" · ")}
-                                  >
-                                    <div className="flex items-start gap-1">
-                                      <StickyNote className="h-2.5 w-2.5 mt-0.5 shrink-0" />
-                                      <span className="truncate font-medium">
-                                        {notes.map((n: any) => n.title).join(" · ")}
-                                      </span>
-                                    </div>
-                                  </button>
-                                )}
-                                <button
-                                  type="button"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setDayNoteFor(dayKey);
-                                  }}
-                                  className="absolute z-[20] bottom-1 right-1 inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-muted-foreground/40 hover:text-amber-500 hover:bg-amber-500/10 transition-colors"
-                                  title="Add day note"
-                                >
-                                  <StickyNote className="h-2.5 w-2.5" />+ note
-                                </button>
-                              </>
+                              <button
+                                key={n.id}
+                                type="button"
+                                draggable
+                                onDragStart={(e) => {
+                                  const rect = e.currentTarget.getBoundingClientRect();
+                                  e.dataTransfer.effectAllowed = "move";
+                                  e.dataTransfer.setData("text/note-id", n.id);
+                                  e.dataTransfer.setData(
+                                    "text/grab-offset",
+                                    String(e.clientY - rect.top),
+                                  );
+                                }}
+                                onMouseEnter={() => setHoverSlot(null)}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setEditNote(n);
+                                }}
+                                className="absolute z-[15] rounded-md px-2 py-0.5 text-left text-[10px] leading-tight bg-amber-500/20 text-amber-600 dark:text-amber-300 ring-1 ring-amber-500/40 hover:brightness-110 cursor-grab active:cursor-grabbing overflow-hidden"
+                                style={{
+                                  top: `${Math.max(0, nTop) + 1}px`,
+                                  height: `${nHeight}px`,
+                                  left: "2px",
+                                  right: "2px",
+                                }}
+                                title={[n.title, n.body].filter(Boolean).join(" — ")}
+                              >
+                                <div className="flex items-start gap-1">
+                                  <StickyNote className="h-2.5 w-2.5 mt-0.5 shrink-0" />
+                                  <span className="truncate font-medium">{n.title}</span>
+                                </div>
+                              </button>
                             );
-                          })()}
-
+                          })}
 
                           {/* Bookings positioned at their real time (side-by-side when overlapping) */}
                           {(() => {
@@ -2809,11 +2815,21 @@ function CalendarPage() {
         </AlertDialogContent>
       </AlertDialog>
 
-      {dayNoteFor && (
-        <DailyNoteDialog
-          date={dayNoteFor}
-          open={!!dayNoteFor}
-          onOpenChange={(o) => !o && setDayNoteFor(null)}
+      {noteDraft && (
+        <NoteDialog
+          date={noteDraft.date}
+          time={noteDraft.time}
+          open={!!noteDraft}
+          onOpenChange={(o) => !o && setNoteDraft(null)}
+        />
+      )}
+
+      {editNote && (
+        <NoteDialog
+          date={editNote.note_date}
+          note={editNote}
+          open={!!editNote}
+          onOpenChange={(o) => !o && setEditNote(null)}
         />
       )}
 
@@ -2863,16 +2879,17 @@ function CalendarPage() {
                   type="button"
                   onClick={() => {
                     const key = slotChoice.dayKey;
+                    const t = slotChoice.time;
                     setSlotChoice(null);
-                    setDayNoteFor(key);
+                    setNoteDraft({ date: key, time: t });
                   }}
                   className="flex items-center gap-3 rounded-lg border border-border/60 bg-amber-500/5 p-3 text-left hover:bg-amber-500/10 hover:ring-1 hover:ring-amber-500 transition"
                 >
                   <StickyNote className="h-5 w-5 text-amber-500" />
                   <div>
-                    <div className="font-semibold">Add day note</div>
+                    <div className="font-semibold">Add note</div>
                     <div className="text-[11px] text-muted-foreground">
-                      Reminder for the whole day (mechanic off, order parts…)
+                      Sticky reminder placed at this spot (drag it anywhere later)
                     </div>
                   </div>
                 </button>

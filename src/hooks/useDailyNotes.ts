@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 export type DailyNote = {
   id: string;
   note_date: string;
+  note_time: string | null;
   title: string;
   body: string | null;
   created_by: string | null;
@@ -17,7 +18,7 @@ export function useDailyNotesRange(startDate: string, endDate: string) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("daily_notes" as never)
-        .select("id, note_date, title, body, created_by, created_at, updated_at")
+        .select("id, note_date, note_time, title, body, created_by, created_at, updated_at")
         .gte("note_date", startDate)
         .lte("note_date", endDate)
         .order("note_date", { ascending: true })
@@ -34,7 +35,7 @@ export function useDailyNotesForDate(date: string) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("daily_notes" as never)
-        .select("id, note_date, title, body, created_by, created_at, updated_at")
+        .select("id, note_date, note_time, title, body, created_by, created_at, updated_at")
         .eq("note_date", date)
         .order("created_at", { ascending: true });
       if (error) throw error;
@@ -47,7 +48,7 @@ export function useDailyNotesForDate(date: string) {
 export function useCreateDailyNote() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (input: { note_date: string; title: string; body?: string | null }) => {
+    mutationFn: async (input: { note_date: string; note_time?: string | null; title: string; body?: string | null }) => {
       const {
         data: { user },
       } = await supabase.auth.getUser();
@@ -56,11 +57,12 @@ export function useCreateDailyNote() {
         .from("daily_notes" as never)
         .insert({
           note_date: input.note_date,
+          note_time: input.note_time ?? null,
           title: input.title,
           body: input.body ?? null,
           created_by: user.id,
         } as never)
-        .select("id, note_date, title, body, created_by, created_at, updated_at")
+        .select("id, note_date, note_time, title, body, created_by, created_at, updated_at")
         .single();
       if (error) throw error;
       return data as unknown as DailyNote;
@@ -75,10 +77,12 @@ export function useCreateDailyNote() {
 export function useUpdateDailyNote() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (input: { id: string; title?: string; body?: string | null }) => {
+    mutationFn: async (input: { id: string; title?: string; body?: string | null; note_date?: string; note_time?: string | null }) => {
       const patch: Record<string, unknown> = {};
       if (input.title !== undefined) patch.title = input.title;
       if (input.body !== undefined) patch.body = input.body;
+      if (input.note_date !== undefined) patch.note_date = input.note_date;
+      if (input.note_time !== undefined) patch.note_time = input.note_time;
       const { error } = await supabase
         .from("daily_notes" as never)
         .update(patch as never)

@@ -314,7 +314,7 @@ function NewInvoice() {
     nav({
       to: "/invoices/$invoiceId",
       params: { invoiceId: data.id },
-      search: postAction === "view" ? undefined : { action: postAction },
+      search: postAction === "view" ? {} : { action: postAction },
     });
   }
 

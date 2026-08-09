@@ -287,6 +287,7 @@ export type Database = {
           created_by: string | null
           id: string
           note_date: string
+          note_time: string | null
           title: string
           updated_at: string
         }
@@ -296,6 +297,7 @@ export type Database = {
           created_by?: string | null
           id?: string
           note_date: string
+          note_time?: string | null
           title: string
           updated_at?: string
         }
@@ -305,6 +307,7 @@ export type Database = {
           created_by?: string | null
           id?: string
           note_date?: string
+          note_time?: string | null
           title?: string
           updated_at?: string
         }
