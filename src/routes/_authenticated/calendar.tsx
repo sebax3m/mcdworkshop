@@ -1273,12 +1273,6 @@ function CalendarPage() {
                 const c = serviceColor(b.service_type);
                 const bike = displayBike(b.motorcycles);
                 const customer = displayCustomerName(b.customers);
-                const currentStart = b.drop_off_time ? String(b.drop_off_time).slice(0, 5) : "";
-                const currentEnd = b.scheduled_end_time
-                  ? String(b.scheduled_end_time).slice(0, 5)
-                  : currentStart
-                    ? addMinutesToTime(currentStart, bookingDurationMin(b))
-                    : "";
                 if (bookingView === "summary") {
                   return (
                     <div className="space-y-4">
