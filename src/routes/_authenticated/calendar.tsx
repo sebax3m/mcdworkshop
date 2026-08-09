@@ -316,7 +316,7 @@ function CalendarPage() {
   useEffect(() => {
     if (quickSlot) {
       setQEditDate(format(quickSlot.date, "yyyy-MM-dd"));
-      setQEditTime(quickSlot.time);
+      
     }
   }, [quickSlot]);
 
