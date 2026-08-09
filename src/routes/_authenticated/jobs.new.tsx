@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -19,14 +19,19 @@ import { format } from "date-fns";
 import { useCurrentUser } from "@/hooks/use-current-user";
 
 export const Route = createFileRoute("/_authenticated/jobs/new")({
+  validateSearch: (s: Record<string, unknown>) => ({
+    bookingId: typeof s.bookingId === "string" ? s.bookingId : undefined,
+  }),
   component: NewJob,
 });
 
 function NewJob() {
   const nav = useNavigate();
+  const { bookingId } = Route.useSearch();
   const { isAdmin, loading: userLoading } = useCurrentUser();
   const [search, setSearch] = useState("");
   const [busyId, setBusyId] = useState<string | null>(null);
+  const autoRan = useRef(false);
 
   const bookings = useQuery({
     queryKey: ["bookings-pending"],
