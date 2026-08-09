@@ -1359,6 +1359,24 @@ export type Database = {
         }
         Relationships: []
       }
+      workshop_capacity: {
+        Row: {
+          max_bookins: number
+          updated_at: string
+          weekday: number
+        }
+        Insert: {
+          max_bookins?: number
+          updated_at?: string
+          weekday: number
+        }
+        Update: {
+          max_bookins?: number
+          updated_at?: string
+          weekday?: number
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
