@@ -52,6 +52,9 @@ import { lookupRego } from "@/lib/rego-lookup.functions";
 import { useBookingTypes } from "@/hooks/useBookingTypes";
 import { useDailyNotesRange, useUpdateDailyNote, type DailyNote } from "@/hooks/useDailyNotes";
 import { NoteDialog } from "@/components/booking/NoteDialog";
+import { BookInCard, CapacityBadge } from "@/components/booking/BookInCard";
+import { useWorkshopCapacity } from "@/hooks/useWorkshopCapacity";
+import { useCurrentUser } from "@/hooks/use-current-user";
 import { StickyNote } from "lucide-react";
 import {
   addMinutesToTime,
@@ -214,6 +217,8 @@ function chunk<T>(arr: T[], size: number): T[][] {
 function CalendarPage() {
   const qc = useQueryClient();
   const nav = useNavigate();
+  const { capacityFor } = useWorkshopCapacity();
+  const { isAdmin } = useCurrentUser();
   const [viewMode, setViewMode] = useState<ViewMode>("week");
   const [monthStart, setMonthStart] = useState<Date>(() => startOfMonth(new Date()));
   const [weekStart, setWeekStart] = useState<Date>(() =>
@@ -509,8 +514,7 @@ function CalendarPage() {
   async function createQuickBooking() {
     if (!quickSlot) return;
     if (!qFirst.trim()) return toast.error("First name required");
-    if (!qCustomerId && !hasPhone(qPhone))
-      return toast.error("A valid phone number is required");
+    if (!qCustomerId && !hasPhone(qPhone)) return toast.error("A valid phone number is required");
     if (!qBikeMake.trim() || !qBikeModel.trim()) return toast.error("Bike make and model required");
     const startTime = (qEditTime || quickSlot.time).slice(0, 5);
     const endTime = addMinutesToTime(
@@ -688,7 +692,6 @@ function CalendarPage() {
     return 60;
   }
 
-
   async function moveBooking(bookingId: string, newDate: Date, newTime?: string) {
     const dateStr = format(newDate, "yyyy-MM-dd");
     const current = (bookings as any[]).find((b) => b.id === bookingId);
@@ -719,6 +722,40 @@ function CalendarPage() {
     if (error) return toast.error(error.message);
     toast.success("Booking moved to " + format(newDate, "EEE d MMM") + ` · ${startTime}`);
     qc.invalidateQueries({ queryKey: ["calendar-bookings"] });
+  }
+
+  /**
+   * Day-based move: the book-in belongs to a DAY, so dragging a card only
+   * changes scheduled_date. Historical times are preserved untouched.
+   */
+  async function moveBookingToDate(bookingId: string, newDate: Date) {
+    const dateStr = format(newDate, "yyyy-MM-dd");
+    const current = (bookings as any[]).find((b) => b.id === bookingId);
+    if (current?.scheduled_date === dateStr) return;
+    const count = (bookings as any[]).filter(
+      (b) => b.scheduled_date === dateStr && b.id !== bookingId,
+    ).length;
+    const cap = capacityFor(newDate);
+    if (cap > 0 && count >= cap) {
+      if (!isAdmin) {
+        return toast.error(
+          `${format(newDate, "EEEE d MMM")} is full (${count}/${cap}). Ask an admin to override.`,
+        );
+      }
+      const ok = window.confirm(
+        `${format(newDate, "EEEE d MMM")} is already at capacity (${count}/${cap}).\n\nOverride and move this book-in anyway?`,
+      );
+      if (!ok) return;
+    }
+    const { error } = await supabase
+      .from("bookings")
+      .update({ scheduled_date: dateStr })
+      .eq("id", bookingId);
+    if (error) return toast.error(error.message);
+    toast.success("Book-in moved to " + format(newDate, "EEE d MMM"));
+    qc.invalidateQueries({ queryKey: ["calendar-bookings"] });
+    qc.invalidateQueries({ queryKey: ["day-bookings"] });
+    qc.invalidateQueries({ queryKey: ["today-bookings"] });
   }
 
   const totals = useMemo(() => {
@@ -854,9 +891,15 @@ function CalendarPage() {
               {monthDays.map((day, idx) => {
                 const dayKey = format(day, "yyyy-MM-dd");
                 const dayBookings = (bookings as any[]).filter((b) => b.scheduled_date === dayKey);
-                const loadHours = totals.get(dayKey) ?? 0;
-                const loadPct = Math.min(100, (loadHours / DAILY_CAPACITY_HOURS) * 100);
-                const over = loadHours > DAILY_CAPACITY_HOURS;
+                const cap = capacityFor(day);
+                const loadPct =
+                  cap > 0
+                    ? Math.min(100, (dayBookings.length / cap) * 100)
+                    : dayBookings.length
+                      ? 100
+                      : 0;
+                const over = cap > 0 && dayBookings.length > cap;
+                const full = cap > 0 && dayBookings.length >= cap;
                 const today = isToday(day);
                 const inMonth = isSameMonth(day, monthStart);
 
@@ -870,17 +913,15 @@ function CalendarPage() {
                     onDrop={(e) => {
                       e.preventDefault();
                       const id = e.dataTransfer.getData("text/booking-id");
-                      if (id) moveBooking(id, day);
+                      if (id) moveBookingToDate(id, day);
                       setDraggingId(null);
                     }}
-                    onClick={() => {
-                      setSlotChoice({ date: day, time: null, dayKey });
-                    }}
+                    onClick={() => nav({ to: "/book-ins/$date", params: { date: dayKey } })}
                     className={`card-surface p-2 min-h-[160px] flex flex-col cursor-pointer transition-colors hover:ring-1 hover:ring-primary/30 ${
                       today ? "ring-2 ring-primary/40" : ""
                     } ${isSunday(day) ? "bg-primary/[0.14]" : ""} ${draggingId ? "border-dashed" : ""} ${!inMonth ? "opacity-40" : ""}`}
                   >
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between gap-1">
                       <div
                         className={`font-display text-lg font-bold leading-none ${
                           today
@@ -892,14 +933,7 @@ function CalendarPage() {
                       >
                         {format(day, "d")}
                       </div>
-                      {over && (
-                        <span
-                          title="Overbooked"
-                          className="text-[0.5625rem] font-bold uppercase tracking-wider text-status-parts"
-                        >
-                          <AlertTriangle className="h-3 w-3 inline" />
-                        </span>
-                      )}
+                      <CapacityBadge booked={dayBookings.length} capacity={cap} compact />
                     </div>
                     {(notesByDay.get(dayKey) ?? []).map((n: any) => (
                       <button
@@ -917,45 +951,47 @@ function CalendarPage() {
                       </button>
                     ))}
 
-                    {loadHours > 0 && (
+                    {dayBookings.length > 0 && (
                       <div className="mt-1.5 h-1 rounded-full bg-muted overflow-hidden">
                         <div
-                          className={`h-full rounded-full ${over ? "bg-status-parts" : "bg-gradient-to-r from-[color:var(--primary)] to-[color:var(--md-blue)]"}`}
+                          className={`h-full rounded-full ${over ? "bg-status-parts" : full ? "bg-amber-500" : "bg-gradient-to-r from-[color:var(--primary)] to-[color:var(--md-blue)]"}`}
                           style={{ width: `${loadPct}%` }}
                         />
                       </div>
                     )}
 
-                    <div className="mt-1.5 flex-1 flex flex-wrap gap-1 content-start">
-                      {dayBookings.slice(0, 6).map((b: any) => {
+                    <div className="mt-1.5 flex-1 flex flex-col gap-0.5 content-start overflow-hidden">
+                      {dayBookings.slice(0, 4).map((b: any) => {
                         const c = serviceColor(b.service_type);
                         return (
                           <div
                             key={b.id}
-                            className="relative"
-                            title={`${b.service_type} — ${b.motorcycles?.make ?? ""} ${b.motorcycles?.model ?? ""}${b.bike_arrived ? " · In workshop" : ""}${b.confirmed ? " · Confirmed" : ""}`}
+                            className="flex items-center gap-1 min-w-0"
+                            title={`${b.service_type} — ${b.motorcycles?.make ?? ""} ${b.motorcycles?.model ?? ""}`}
                           >
-                            <div
-                              className={`rounded-full ${c.bg} ring-1 ${c.ring} ${b.bike_arrived ? "h-3 w-3 !ring-2 !ring-orange-500" : "h-2 w-2"}`}
+                            <span
+                              className={`shrink-0 rounded-full ${c.bg} ring-1 ${c.ring} ${b.bike_arrived ? "h-2 w-2 !ring-2 !ring-orange-500" : "h-1.5 w-1.5"}`}
                             />
-                            {b.confirmed && (
-                              <span className="absolute -top-0.5 -right-0.5 h-1.5 w-1.5 rounded-full bg-green-500 ring-1 ring-background" />
-                            )}
+                            <span className="truncate text-[0.5625rem] font-semibold">
+                              {b.motorcycles
+                                ? `${b.motorcycles.make ?? ""} ${b.motorcycles.model ?? ""}`.trim()
+                                : (b.customers?.first_name ?? "Booking")}
+                            </span>
                           </div>
                         );
                       })}
-                      {dayBookings.length > 6 && (
+                      {dayBookings.length > 4 && (
                         <span className="text-[0.5625rem] text-muted-foreground font-semibold">
-                          +{dayBookings.length - 6}
+                          +{dayBookings.length - 4} more
                         </span>
                       )}
                     </div>
 
                     <div className="mt-auto flex items-center justify-between text-[0.5625rem] text-muted-foreground tabular-nums">
-                      <span>{loadHours.toFixed(1)}h</span>
                       <span>
-                        {dayBookings.length} job{dayBookings.length === 1 ? "" : "s"}
+                        {dayBookings.length} bike{dayBookings.length === 1 ? "" : "s"}
                       </span>
+                      {over && <AlertTriangle className="h-3 w-3 text-status-parts" />}
                     </div>
                   </motion.div>
                 );
@@ -965,368 +1001,132 @@ function CalendarPage() {
         </div>
       )}
 
-      {/* WEEK VIEW — Google-Calendar-style time grid */}
-      {viewMode === "week" &&
-        (() => {
-          const START_HOUR = 8;
-          const END_HOUR = 18; // exclusive last label; grid ends at 18:00
-          const HOURS = END_HOUR - START_HOUR;
-          const SLOT_H = gridH / HOURS;
-          const GRID_H = gridH;
-
-          const parseTime = (t?: string | null) => {
-            if (!t) return { h: 9, m: 0 };
-            const [hh, mm] = t.split(":");
-            return { h: Number(hh) || 0, m: Number(mm) || 0 };
-          };
-
-          const nowMinutes = now.getHours() * 60 + now.getMinutes();
-          const nowTop = ((nowMinutes - START_HOUR * 60) / 60) * SLOT_H;
-          const showNow = nowTop >= 0 && nowTop <= GRID_H;
-
-          const handleSlotClick = (e: React.MouseEvent<HTMLDivElement>, day: Date) => {
-            const rect = e.currentTarget.getBoundingClientRect();
-            const y = e.clientY - rect.top;
-            const hourFloat = START_HOUR + y / SLOT_H;
-            // snap to 30 min
-            const totalMin = Math.max(START_HOUR * 60, Math.round((hourFloat * 60) / 30) * 30);
-            const h = Math.floor(totalMin / 60);
-            const m = totalMin % 60;
-            const time = `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
-            const dayKey = format(day, "yyyy-MM-dd");
-            // Clicking empty grid space always offers "booking or note".
-            // Clicks on a booking card are handled by the card itself.
-            setSlotChoice({ date: day, time, dayKey });
-          };
-
-          return (
-            <div className="card-surface p-0 overflow-hidden flex flex-col flex-1 min-h-[560px]">
-              <div className="overflow-x-auto min-w-full min-h-0 flex-1">
-                <div className="min-w-[900px] h-full flex flex-col">
-                  {/* Day headers */}
-                  <div
-                    className="grid border-b border-border/60"
-                    style={{ gridTemplateColumns: `56px repeat(7, minmax(0, 1fr))` }}
+      {/* WEEK VIEW — motorcycles booked in per day (no hourly slots) */}
+      {viewMode === "week" && (
+        <div className="overflow-x-auto min-w-full">
+          <div className="grid gap-2 min-w-[980px] grid-cols-7 items-start">
+            {weekDays.map((day) => {
+              const dayKey = format(day, "yyyy-MM-dd");
+              const dayBookings = (bookings as any[]).filter((b) => b.scheduled_date === dayKey);
+              const dayNotes = notesByDay.get(dayKey) ?? [];
+              const today = isToday(day);
+              const cap = capacityFor(day);
+              const full = cap > 0 && dayBookings.length >= cap;
+              return (
+                <div
+                  key={dayKey}
+                  onDragOver={(e) => e.preventDefault()}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    const id = e.dataTransfer.getData("text/booking-id");
+                    const noteId = e.dataTransfer.getData("text/note-id");
+                    if (noteId) {
+                      updateNote.mutate({ id: noteId, note_date: dayKey });
+                      return;
+                    }
+                    if (id) moveBookingToDate(id, day);
+                    setDraggingId(null);
+                  }}
+                  className={`card-surface p-2 flex flex-col gap-2 min-h-[280px] ${
+                    today ? "ring-2 ring-primary/40" : ""
+                  } ${isSunday(day) ? "bg-primary/[0.08]" : ""} ${
+                    draggingId ? "border-dashed border-primary/40" : ""
+                  }`}
+                >
+                  {/* Day header */}
+                  <button
+                    type="button"
+                    onClick={() => nav({ to: "/book-ins/$date", params: { date: dayKey } })}
+                    className="text-left group"
+                    title="Open day view"
                   >
-                    <div className="text-[0.5625rem] font-bold text-muted-foreground/60 uppercase tracking-wider text-center py-2 border-r border-border/60">
-                      GMT
+                    <div
+                      className={`text-[0.625rem] font-bold uppercase tracking-wider ${
+                        today || isSunday(day) ? "text-primary" : "text-muted-foreground"
+                      }`}
+                    >
+                      {format(day, "EEEE")}
                     </div>
-                    {weekDays.map((day) => {
-                      const today = isToday(day);
-                      const dayKey = format(day, "yyyy-MM-dd");
-                      const isHovered = hoverSlot?.dayKey === dayKey;
-                      return (
-                        <div
-                          key={dayKey}
-                          className={`text-center py-2 border-r border-border/40 last:border-r-0 transition-colors ${
-                            today ? "bg-primary/5" : isSunday(day) ? "bg-primary/[0.14]" : ""
-                          } ${isHovered ? "bg-primary/10" : ""}`}
-                        >
-                          <div
-                            className={`text-[0.625rem] font-semibold uppercase tracking-wider transition-colors ${
-                              today
-                                ? "text-primary"
-                                : isSunday(day)
-                                  ? "text-primary"
-                                  : isHovered
-                                    ? "text-foreground"
-                                    : "text-muted-foreground"
-                            }`}
-                          >
-                            {format(day, "EEEE")}
-                          </div>
-                          <div
-                            className={`mt-0.5 mx-auto grid place-items-center font-display font-bold text-lg leading-none ${
-                              today
-                                ? "h-8 w-8 rounded-full bg-primary text-primary-foreground"
-                                : isHovered
-                                  ? "text-primary"
-                                  : ""
-                            }`}
-                          >
-                            {format(day, "d")}
-                          </div>
-                        </div>
-                      );
-                    })}
+                    <div className="flex items-baseline gap-2">
+                      <span className="font-display text-xl font-bold leading-none group-hover:text-primary transition-colors">
+                        {format(day, "d")}
+                      </span>
+                      <CapacityBadge booked={dayBookings.length} capacity={cap} compact />
+                    </div>
+                  </button>
+
+                  {/* Capacity bar */}
+                  <div className="h-1 rounded-full bg-muted overflow-hidden">
+                    <div
+                      className={`h-full rounded-full ${full ? "bg-amber-500" : "bg-primary"}`}
+                      style={{
+                        width: `${cap > 0 ? Math.min(100, (dayBookings.length / cap) * 100) : dayBookings.length ? 100 : 0}%`,
+                      }}
+                    />
                   </div>
 
-                  {/* Time grid body */}
-                  <div
-                    ref={bodyRef}
-                    className="grid relative flex-1 min-h-[560px]"
-                    style={{
-                      gridTemplateColumns: `56px repeat(7, minmax(0, 1fr))`,
-                    }}
-                  >
-                    {/* Hours column */}
-                    <div className="relative border-r border-border/60">
-                      {Array.from({ length: HOURS }, (_, i) => {
-                        const hh = START_HOUR + i;
-                        const label = hh === 12 ? "12 PM" : hh > 12 ? `${hh - 12} PM` : `${hh} AM`;
-                        const activeHour = hoverSlot && Math.floor(hoverSlot.slotIdx / 2) === i;
-                        return (
-                          <div
-                            key={hh}
-                            className={`text-[0.625rem] tabular-nums text-right pr-2 -translate-y-1.5 transition-colors ${
-                              activeHour ? "text-primary font-bold" : "text-muted-foreground"
-                            }`}
-                            style={{
-                              position: "absolute",
-                              top: `${i * SLOT_H}px`,
-                              right: 0,
-                              left: 0,
-                            }}
-                          >
-                            {label}
-                          </div>
-                        );
-                      })}
-                    </div>
+                  {/* Day notes */}
+                  {dayNotes.map((n: any) => (
+                    <button
+                      key={n.id}
+                      type="button"
+                      draggable
+                      onDragStart={(e) => {
+                        e.dataTransfer.effectAllowed = "move";
+                        e.dataTransfer.setData("text/note-id", n.id);
+                      }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setEditNote(n);
+                      }}
+                      className="w-full text-left rounded-md border border-amber-500/40 bg-amber-500/10 px-2 py-1"
+                    >
+                      <div className="flex items-center gap-1 text-[0.5625rem] font-bold uppercase tracking-wider text-amber-400">
+                        <StickyNote className="h-2.5 w-2.5" /> Note
+                      </div>
+                      <div className="text-xs font-semibold truncate">{n.title}</div>
+                    </button>
+                  ))}
 
-                    {/* Day columns */}
-                    {weekDays.map((day) => {
-                      const dayKey = format(day, "yyyy-MM-dd");
-                      const dayBookings = (bookings as any[]).filter(
-                        (b) => b.scheduled_date === dayKey,
-                      );
-                      const today = isToday(day);
-                      return (
-                        <div
-                          key={dayKey}
-                          onClick={(e) => handleSlotClick(e, day)}
-                          onMouseMove={(e) => {
-                            const rect = e.currentTarget.getBoundingClientRect();
-                            const y = e.clientY - rect.top;
-                            const slotIdx = Math.max(
-                              0,
-                              Math.min(HOURS * 2 - 1, Math.floor(y / (SLOT_H / 2))),
-                            );
-                            if (hoverSlot?.dayKey !== dayKey || hoverSlot?.slotIdx !== slotIdx) {
-                              setHoverSlot({ dayKey, slotIdx });
-                            }
+                  {/* Book-in cards */}
+                  <div className="flex flex-col gap-1.5 flex-1">
+                    {dayBookings.length === 0 ? (
+                      <div className="flex-1 grid place-items-center text-[0.6875rem] text-muted-foreground text-center px-2">
+                        No motorcycles booked in
+                      </div>
+                    ) : (
+                      dayBookings.map((b: any) => (
+                        <BookInCard
+                          key={b.id}
+                          booking={b}
+                          dense
+                          draggable
+                          onDragStart={(e) => {
+                            e.dataTransfer.effectAllowed = "move";
+                            e.dataTransfer.setData("text/booking-id", b.id);
+                            setDraggingId(b.id);
                           }}
-                          onMouseLeave={() => setHoverSlot(null)}
-                          onDragOver={(e) => e.preventDefault()}
-                          onDrop={(e) => {
-                            e.preventDefault();
-                            const id = e.dataTransfer.getData("text/booking-id");
-                            const noteId = e.dataTransfer.getData("text/note-id");
-                            if (!id && !noteId) return;
-                            const offsetY = Number(e.dataTransfer.getData("text/grab-offset")) || 0;
-                            const rect = e.currentTarget.getBoundingClientRect();
-                            const y = e.clientY - rect.top - offsetY;
-                            const hourFloat = START_HOUR + y / SLOT_H;
-                            const totalMin = Math.max(
-                              START_HOUR * 60,
-                              Math.min(END_HOUR * 60 - 30, Math.round((hourFloat * 60) / 30) * 30),
-                            );
-                            const nh = Math.floor(totalMin / 60);
-                            const nm = totalMin % 60;
-                            const time = `${String(nh).padStart(2, "0")}:${String(nm).padStart(2, "0")}`;
-                            if (noteId) {
-                              updateNote.mutate({
-                                id: noteId,
-                                note_date: format(day, "yyyy-MM-dd"),
-                                note_time: `${time}:00`,
-                              });
-                              return;
-                            }
-                            moveBooking(id, day, time);
-                            setDraggingId(null);
-                          }}
-                          className={`relative border-r border-border/40 last:border-r-0 cursor-pointer ${
-                            today ? "bg-primary/[0.03]" : isSunday(day) ? "bg-primary/[0.14]" : ""
-                          } ${draggingId ? "bg-primary/5" : ""}`}
-                          style={{
-                            backgroundImage: `repeating-linear-gradient(to bottom, transparent 0, transparent ${SLOT_H - 1}px, var(--border) ${SLOT_H - 1}px, var(--border) ${SLOT_H}px)`,
-                          }}
-                          title="Click to create booking"
-                        >
-                          {/* Half-hour lighter guides */}
-                          <div
-                            className="absolute inset-0 pointer-events-none opacity-40"
-                            style={{
-                              backgroundImage: `repeating-linear-gradient(to bottom, transparent 0, transparent ${SLOT_H / 2 - 1}px, var(--border) ${SLOT_H / 2 - 1}px, var(--border) ${SLOT_H / 2}px)`,
-                            }}
-                          />
-
-                          {/* Hover slot highlight */}
-                          {hoverSlot?.dayKey === dayKey && (
-                            <div
-                              className="absolute left-0.5 right-0.5 pointer-events-none rounded-md bg-primary/15 ring-1 ring-primary/50 shadow-[0_0_12px_rgba(59,130,246,0.35)] transition-[top] duration-75"
-                              style={{
-                                top: `${hoverSlot.slotIdx * (SLOT_H / 2)}px`,
-                                height: `${SLOT_H / 2}px`,
-                              }}
-                            />
-                          )}
-
-                          {/* Current-time line */}
-                          {today && showNow && (
-                            <div
-                              className="absolute left-0 right-0 z-20 pointer-events-none"
-                              style={{ top: `${nowTop}px` }}
-                            >
-                              <div className="relative h-0">
-                                <div className="absolute -left-1 -top-1 h-2.5 w-2.5 rounded-full bg-status-parts shadow-[0_0_8px_rgba(239,68,68,0.7)]" />
-                                <div className="absolute left-0 right-0 h-[2px] bg-status-parts shadow-[0_0_6px_rgba(239,68,68,0.6)]" />
-                              </div>
-                            </div>
-                          )}
-
-                          {/* Individual notes, placed where they were created and draggable */}
-                          {(notesByDay.get(dayKey) ?? []).map((n: any) => {
-                            const nt = n.note_time ? String(n.note_time) : "08:00";
-                            const [nh, nm] = nt.split(":");
-                            const nMin = (Number(nh) || 0) * 60 + (Number(nm) || 0);
-                            const nTop = ((nMin - START_HOUR * 60) / 60) * SLOT_H;
-                            const nHeight = SLOT_H / 2 - 3;
-                            if (nTop > GRID_H || nTop + nHeight < 0) return null;
-                            return (
-                              <button
-                                key={n.id}
-                                type="button"
-                                draggable
-                                onDragStart={(e) => {
-                                  const rect = e.currentTarget.getBoundingClientRect();
-                                  e.dataTransfer.effectAllowed = "move";
-                                  e.dataTransfer.setData("text/note-id", n.id);
-                                  e.dataTransfer.setData(
-                                    "text/grab-offset",
-                                    String(e.clientY - rect.top),
-                                  );
-                                }}
-                                onMouseEnter={() => setHoverSlot(null)}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setEditNote(n);
-                                }}
-                                className="absolute z-[15] rounded-md px-2 py-0.5 text-left text-[0.625rem] leading-tight bg-amber-500/20 text-amber-600 dark:text-amber-300 ring-1 ring-amber-500/40 hover:brightness-110 cursor-grab active:cursor-grabbing overflow-hidden"
-                                style={{
-                                  top: `${Math.max(0, nTop) + 1}px`,
-                                  height: `${nHeight}px`,
-                                  left: "2px",
-                                  right: "2px",
-                                }}
-                                title={[n.title, n.body].filter(Boolean).join(" — ")}
-                              >
-                                <div className="flex items-start gap-1">
-                                  <StickyNote className="h-2.5 w-2.5 mt-0.5 shrink-0" />
-                                  <span className="truncate font-medium">{n.title}</span>
-                                </div>
-                              </button>
-                            );
-                          })}
-
-                          {/* Bookings positioned at their real time (side-by-side when overlapping) */}
-                          {(() => {
-                            const startMinOf = (bk: any) => {
-                              const t = bk.drop_off_time ? String(bk.drop_off_time) : "09:00";
-                              const [hh, mm] = t.split(":");
-                              return (Number(hh) || 0) * 60 + (Number(mm) || 0);
-                            };
-                            const sorted = [...dayBookings].sort(
-                              (a: any, b: any) => startMinOf(a) - startMinOf(b),
-                            );
-                            // Simple lane packing so overlapping bookings sit next to each other
-                            const laneEnds: number[] = [];
-                            const laneOf = new Map<string, number>();
-                            for (const bk of sorted) {
-                              const s = startMinOf(bk);
-                              const e = s + bookingDurationMin(bk);
-                              let lane = laneEnds.findIndex((end) => end <= s);
-                              if (lane === -1) {
-                                lane = laneEnds.length;
-                                laneEnds.push(e);
-                              } else {
-                                laneEnds[lane] = e;
-                              }
-                              laneOf.set(bk.id, lane);
-                            }
-                            const laneCount = Math.max(1, laneEnds.length);
-                            return sorted.map((b: any) => {
-                              const s = startMinOf(b);
-                              const dur = bookingDurationMin(b);
-                              const top = ((s - START_HOUR * 60) / 60) * SLOT_H;
-                              const height = Math.max(SLOT_H / 2 - 3, (dur / 60) * SLOT_H - 3);
-                              if (top > GRID_H || top + height < 0) return null;
-                              const lane = laneOf.get(b.id) ?? 0;
-                              const widthPct = 100 / laneCount;
-
-                              const c = serviceColor(b.service_type);
-                              const bike = displayBike(b.motorcycles);
-                              const customer = displayCustomerName(b.customers);
-                              return (
-                                <div
-                                  key={b.id}
-                                  role="button"
-                                  tabIndex={0}
-                                  draggable
-                                  onMouseEnter={() => setHoverSlot(null)}
-                                  onMouseMove={(e) => e.stopPropagation()}
-                                  onDragStart={(e) => {
-                                    const rect = e.currentTarget.getBoundingClientRect();
-                                    const grabY = e.clientY - rect.top;
-                                    e.dataTransfer.effectAllowed = "move";
-                                    e.dataTransfer.setData("text/booking-id", b.id);
-                                    e.dataTransfer.setData("text/grab-offset", String(grabY));
-                                    setDraggingId(b.id);
-                                  }}
-                                  onDragEnd={() => setDraggingId(null)}
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setSelectedBooking(b);
-                                  }}
-                                  className={`group absolute z-10 rounded-md p-2 text-left ring-1 overflow-hidden select-none transition-all hover:z-30 hover:brightness-110 hover:ring-2 hover:ring-primary hover:shadow-[0_8px_24px_rgba(0,0,0,0.35)] cursor-grab active:cursor-grabbing ${c.bg} ${c.ring} ${c.text} ${draggingId === b.id ? "opacity-40" : ""} ${b.loan_bike ? "!ring-2 !ring-amber-400" : ""} ${b.bike_arrived ? "!ring-[3px] !ring-orange-500 shadow-[0_0_0_3px_rgba(249,115,22,0.35)]" : ""}`}
-                                  style={{
-                                    top: `${Math.max(0, top) + 1}px`,
-                                    height: `${height}px`,
-                                    left: `calc(${lane * widthPct}% + 2px)`,
-                                    width: `calc(${widthPct}% - 4px)`,
-                                  }}
-                                >
-
-                                  {/* Drag grip indicator — visible on hover */}
-                                  <div className="absolute top-0.5 right-0.5 opacity-0 group-hover:opacity-70 transition-opacity pointer-events-none text-current text-[0.5625rem] leading-none font-black">
-                                    ⋮⋮
-                                  </div>
-                                  <div className="flex items-center justify-between gap-1">
-                                    <span className="text-[0.5625rem] font-bold uppercase tracking-wider truncate">
-                                      {b.drop_off_time
-                                        ? fmt12h(String(b.drop_off_time).slice(0, 5))
-                                        : ""}{" "}
-                                      · {b.service_type}
-                                      {b.service_type === "Other" && b.service_type_other
-                                        ? ` — ${b.service_type_other}`
-                                        : ""}
-                                    </span>
-                                    <span className="flex items-center gap-1.5 shrink-0">
-                                      {b.confirmed && (
-                                        <span className="h-1.5 w-1.5 rounded-full bg-green-500" />
-                                      )}
-                                    </span>
-                                  </div>
-                                  <div className="text-[0.625rem] font-semibold text-current/90 truncate">
-                                    {bike}
-                                  </div>
-                                  <div className="text-[0.5625rem] text-current/80 truncate">
-                                    {customer}
-                                  </div>
-                                </div>
-                              );
-                            });
-                          })()}
-                        </div>
-                      );
-                    })}
+                          onDragEnd={() => setDraggingId(null)}
+                          onClick={() => setSelectedBooking(b)}
+                          className={draggingId === b.id ? "opacity-40" : ""}
+                        />
+                      ))
+                    )}
                   </div>
 
+                  <button
+                    type="button"
+                    onClick={() => setSlotChoice({ date: day, time: null, dayKey })}
+                    className="rounded-lg border border-dashed border-border px-2 h-8 text-[0.625rem] font-bold uppercase tracking-wider text-muted-foreground hover:border-primary/50 hover:text-foreground transition-colors"
+                  >
+                    + Book-in / note
+                  </button>
                 </div>
-              </div>
-            </div>
-          );
-        })()}
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* LEGEND moved to sidebar (only visible on /calendar) */}
 
@@ -1391,7 +1191,6 @@ function CalendarPage() {
                 </div>
               </div>
 
-
               {(() => {
                 const b = selectedBooking;
                 const c = serviceColor(b.service_type);
@@ -1407,7 +1206,6 @@ function CalendarPage() {
                   return (
                     <div className="space-y-4">
                       <div className="flex items-center gap-2 flex-wrap">
-
                         <span
                           className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 ring-1 text-[0.6875rem] font-bold uppercase tracking-wider ${c.bg} ${c.ring} ${c.text}`}
                         >
@@ -1489,7 +1287,10 @@ function CalendarPage() {
                           </div>
                           <div className="text-sm font-semibold text-foreground">
                             {b.scheduled_date
-                              ? format(new Date(b.scheduled_date + "T00:00:00"), "EEEE, MMMM d, yyyy")
+                              ? format(
+                                  new Date(b.scheduled_date + "T00:00:00"),
+                                  "EEEE, MMMM d, yyyy",
+                                )
                               : "—"}
                           </div>
                           <div className="text-xs text-muted-foreground">
@@ -2146,7 +1947,6 @@ function CalendarPage() {
               onClick={(e) => e.stopPropagation()}
               className="w-full max-w-md max-h-[90vh] overflow-y-auto rounded-2xl border border-border/60 bg-background/70 backdrop-blur-xl shadow-2xl p-5 space-y-4"
             >
-
               {justCreated ? (
                 <div className="space-y-4">
                   <div>

@@ -33,6 +33,7 @@ import { Route as AuthenticatedInsuranceIndexRouteImport } from './routes/_authe
 import { Route as AuthenticatedCustomersIndexRouteImport } from './routes/_authenticated/customers.index'
 import { Route as AuthenticatedBookingsIndexRouteImport } from './routes/_authenticated/bookings.index'
 import { Route as AuthenticatedSettingsThemesRouteImport } from './routes/_authenticated/settings_.themes'
+import { Route as AuthenticatedSettingsCapacityRouteImport } from './routes/_authenticated/settings_.capacity'
 import { Route as AuthenticatedSettingsBookingTypesRouteImport } from './routes/_authenticated/settings_.booking-types'
 import { Route as AuthenticatedMotorcyclesBikeIdRouteImport } from './routes/_authenticated/motorcycles.$bikeId'
 import { Route as AuthenticatedLoanBikesBikeIdRouteImport } from './routes/_authenticated/loan-bikes.$bikeId'
@@ -45,6 +46,7 @@ import { Route as AuthenticatedInsuranceClaimIdRouteImport } from './routes/_aut
 import { Route as AuthenticatedCustomersCustomerIdRouteImport } from './routes/_authenticated/customers.$customerId'
 import { Route as AuthenticatedBookingsNewRouteImport } from './routes/_authenticated/bookings.new'
 import { Route as AuthenticatedBookingsBookingIdRouteImport } from './routes/_authenticated/bookings.$bookingId'
+import { Route as AuthenticatedBookInsDateRouteImport } from './routes/_authenticated/book-ins.$date'
 
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
@@ -172,6 +174,12 @@ const AuthenticatedSettingsThemesRoute =
     path: '/settings/themes',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedSettingsCapacityRoute =
+  AuthenticatedSettingsCapacityRouteImport.update({
+    id: '/settings_/capacity',
+    path: '/settings/capacity',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedSettingsBookingTypesRoute =
   AuthenticatedSettingsBookingTypesRouteImport.update({
     id: '/settings_/booking-types',
@@ -242,6 +250,12 @@ const AuthenticatedBookingsBookingIdRoute =
     path: '/bookings/$bookingId',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedBookInsDateRoute =
+  AuthenticatedBookInsDateRouteImport.update({
+    id: '/book-ins/$date',
+    path: '/book-ins/$date',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -259,6 +273,7 @@ export interface FileRoutesByFullPath {
   '/settings': typeof AuthenticatedSettingsRoute
   '/templates': typeof AuthenticatedTemplatesRoute
   '/users': typeof AuthenticatedUsersRoute
+  '/book-ins/$date': typeof AuthenticatedBookInsDateRoute
   '/bookings/$bookingId': typeof AuthenticatedBookingsBookingIdRoute
   '/bookings/new': typeof AuthenticatedBookingsNewRoute
   '/customers/$customerId': typeof AuthenticatedCustomersCustomerIdRoute
@@ -271,6 +286,7 @@ export interface FileRoutesByFullPath {
   '/loan-bikes/$bikeId': typeof AuthenticatedLoanBikesBikeIdRoute
   '/motorcycles/$bikeId': typeof AuthenticatedMotorcyclesBikeIdRoute
   '/settings/booking-types': typeof AuthenticatedSettingsBookingTypesRoute
+  '/settings/capacity': typeof AuthenticatedSettingsCapacityRoute
   '/settings/themes': typeof AuthenticatedSettingsThemesRoute
   '/bookings/': typeof AuthenticatedBookingsIndexRoute
   '/customers/': typeof AuthenticatedCustomersIndexRoute
@@ -293,6 +309,7 @@ export interface FileRoutesByTo {
   '/settings': typeof AuthenticatedSettingsRoute
   '/templates': typeof AuthenticatedTemplatesRoute
   '/users': typeof AuthenticatedUsersRoute
+  '/book-ins/$date': typeof AuthenticatedBookInsDateRoute
   '/bookings/$bookingId': typeof AuthenticatedBookingsBookingIdRoute
   '/bookings/new': typeof AuthenticatedBookingsNewRoute
   '/customers/$customerId': typeof AuthenticatedCustomersCustomerIdRoute
@@ -305,6 +322,7 @@ export interface FileRoutesByTo {
   '/loan-bikes/$bikeId': typeof AuthenticatedLoanBikesBikeIdRoute
   '/motorcycles/$bikeId': typeof AuthenticatedMotorcyclesBikeIdRoute
   '/settings/booking-types': typeof AuthenticatedSettingsBookingTypesRoute
+  '/settings/capacity': typeof AuthenticatedSettingsCapacityRoute
   '/settings/themes': typeof AuthenticatedSettingsThemesRoute
   '/bookings': typeof AuthenticatedBookingsIndexRoute
   '/customers': typeof AuthenticatedCustomersIndexRoute
@@ -332,6 +350,7 @@ export interface FileRoutesById {
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/templates': typeof AuthenticatedTemplatesRoute
   '/_authenticated/users': typeof AuthenticatedUsersRoute
+  '/_authenticated/book-ins/$date': typeof AuthenticatedBookInsDateRoute
   '/_authenticated/bookings/$bookingId': typeof AuthenticatedBookingsBookingIdRoute
   '/_authenticated/bookings/new': typeof AuthenticatedBookingsNewRoute
   '/_authenticated/customers/$customerId': typeof AuthenticatedCustomersCustomerIdRoute
@@ -344,6 +363,7 @@ export interface FileRoutesById {
   '/_authenticated/loan-bikes/$bikeId': typeof AuthenticatedLoanBikesBikeIdRoute
   '/_authenticated/motorcycles/$bikeId': typeof AuthenticatedMotorcyclesBikeIdRoute
   '/_authenticated/settings_/booking-types': typeof AuthenticatedSettingsBookingTypesRoute
+  '/_authenticated/settings_/capacity': typeof AuthenticatedSettingsCapacityRoute
   '/_authenticated/settings_/themes': typeof AuthenticatedSettingsThemesRoute
   '/_authenticated/bookings/': typeof AuthenticatedBookingsIndexRoute
   '/_authenticated/customers/': typeof AuthenticatedCustomersIndexRoute
@@ -371,6 +391,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/templates'
     | '/users'
+    | '/book-ins/$date'
     | '/bookings/$bookingId'
     | '/bookings/new'
     | '/customers/$customerId'
@@ -383,6 +404,7 @@ export interface FileRouteTypes {
     | '/loan-bikes/$bikeId'
     | '/motorcycles/$bikeId'
     | '/settings/booking-types'
+    | '/settings/capacity'
     | '/settings/themes'
     | '/bookings/'
     | '/customers/'
@@ -405,6 +427,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/templates'
     | '/users'
+    | '/book-ins/$date'
     | '/bookings/$bookingId'
     | '/bookings/new'
     | '/customers/$customerId'
@@ -417,6 +440,7 @@ export interface FileRouteTypes {
     | '/loan-bikes/$bikeId'
     | '/motorcycles/$bikeId'
     | '/settings/booking-types'
+    | '/settings/capacity'
     | '/settings/themes'
     | '/bookings'
     | '/customers'
@@ -443,6 +467,7 @@ export interface FileRouteTypes {
     | '/_authenticated/settings'
     | '/_authenticated/templates'
     | '/_authenticated/users'
+    | '/_authenticated/book-ins/$date'
     | '/_authenticated/bookings/$bookingId'
     | '/_authenticated/bookings/new'
     | '/_authenticated/customers/$customerId'
@@ -455,6 +480,7 @@ export interface FileRouteTypes {
     | '/_authenticated/loan-bikes/$bikeId'
     | '/_authenticated/motorcycles/$bikeId'
     | '/_authenticated/settings_/booking-types'
+    | '/_authenticated/settings_/capacity'
     | '/_authenticated/settings_/themes'
     | '/_authenticated/bookings/'
     | '/_authenticated/customers/'
@@ -642,6 +668,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSettingsThemesRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/settings_/capacity': {
+      id: '/_authenticated/settings_/capacity'
+      path: '/settings/capacity'
+      fullPath: '/settings/capacity'
+      preLoaderRoute: typeof AuthenticatedSettingsCapacityRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/settings_/booking-types': {
       id: '/_authenticated/settings_/booking-types'
       path: '/settings/booking-types'
@@ -726,6 +759,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedBookingsBookingIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/book-ins/$date': {
+      id: '/_authenticated/book-ins/$date'
+      path: '/book-ins/$date'
+      fullPath: '/book-ins/$date'
+      preLoaderRoute: typeof AuthenticatedBookInsDateRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
@@ -794,6 +834,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedTemplatesRoute: typeof AuthenticatedTemplatesRoute
   AuthenticatedUsersRoute: typeof AuthenticatedUsersRoute
+  AuthenticatedBookInsDateRoute: typeof AuthenticatedBookInsDateRoute
   AuthenticatedBookingsBookingIdRoute: typeof AuthenticatedBookingsBookingIdRoute
   AuthenticatedBookingsNewRoute: typeof AuthenticatedBookingsNewRoute
   AuthenticatedJobsJobIdRoute: typeof AuthenticatedJobsJobIdRoute
@@ -801,6 +842,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedLoanBikesBikeIdRoute: typeof AuthenticatedLoanBikesBikeIdRoute
   AuthenticatedMotorcyclesBikeIdRoute: typeof AuthenticatedMotorcyclesBikeIdRoute
   AuthenticatedSettingsBookingTypesRoute: typeof AuthenticatedSettingsBookingTypesRoute
+  AuthenticatedSettingsCapacityRoute: typeof AuthenticatedSettingsCapacityRoute
   AuthenticatedSettingsThemesRoute: typeof AuthenticatedSettingsThemesRoute
   AuthenticatedBookingsIndexRoute: typeof AuthenticatedBookingsIndexRoute
   AuthenticatedJobsIndexRoute: typeof AuthenticatedJobsIndexRoute
@@ -821,6 +863,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedTemplatesRoute: AuthenticatedTemplatesRoute,
   AuthenticatedUsersRoute: AuthenticatedUsersRoute,
+  AuthenticatedBookInsDateRoute: AuthenticatedBookInsDateRoute,
   AuthenticatedBookingsBookingIdRoute: AuthenticatedBookingsBookingIdRoute,
   AuthenticatedBookingsNewRoute: AuthenticatedBookingsNewRoute,
   AuthenticatedJobsJobIdRoute: AuthenticatedJobsJobIdRoute,
@@ -829,6 +872,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedMotorcyclesBikeIdRoute: AuthenticatedMotorcyclesBikeIdRoute,
   AuthenticatedSettingsBookingTypesRoute:
     AuthenticatedSettingsBookingTypesRoute,
+  AuthenticatedSettingsCapacityRoute: AuthenticatedSettingsCapacityRoute,
   AuthenticatedSettingsThemesRoute: AuthenticatedSettingsThemesRoute,
   AuthenticatedBookingsIndexRoute: AuthenticatedBookingsIndexRoute,
   AuthenticatedJobsIndexRoute: AuthenticatedJobsIndexRoute,

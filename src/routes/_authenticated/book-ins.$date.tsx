@@ -1,0 +1,266 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
+import { addDays, format, isValid, parseISO } from "date-fns";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Plus,
+  StickyNote,
+  CalendarDays,
+  ClipboardCheck,
+} from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { BookInCard, CapacityBadge } from "@/components/booking/BookInCard";
+import { NoteDialog } from "@/components/booking/NoteDialog";
+import { useDailyNotesForDate, type DailyNote } from "@/hooks/useDailyNotes";
+import { useWorkshopCapacity } from "@/hooks/useWorkshopCapacity";
+import { bookInStage } from "@/lib/workshop-status";
+import { toast } from "sonner";
+
+export const Route = createFileRoute("/_authenticated/book-ins/$date")({
+  head: () => ({
+    meta: [
+      { title: "Day book-ins — Motorcycle Doctors Workshop" },
+      {
+        name: "description",
+        content: "Every motorcycle booked into the workshop for the selected day.",
+      },
+      { property: "og:title", content: "Day book-ins — Motorcycle Doctors Workshop" },
+      {
+        property: "og:description",
+        content: "Every motorcycle booked into the workshop for the selected day.",
+      },
+    ],
+  }),
+  component: DayView,
+});
+
+export function useDayBookings(dateStr: string) {
+  return useQuery({
+    queryKey: ["day-bookings", dateStr],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("bookings")
+        .select(
+          "id, service_type, service_type_other, scheduled_date, drop_off_time, estimated_hours, status, confirmed, bike_arrived, bike_arrived_at, loan_bike, job_id, notes, complaints, rego, customer_id, motorcycle_id, customers(first_name,last_name,phone), motorcycles(year,make,model,rego,photos)",
+        )
+        .eq("scheduled_date", dateStr)
+        .order("drop_off_time", { ascending: true });
+      if (error) throw error;
+      return data ?? [];
+    },
+    enabled: !!dateStr,
+  });
+}
+
+function DayView() {
+  const { date } = Route.useParams();
+  const nav = useNavigate();
+  const qc = useQueryClient();
+  const parsed = parseISO(date);
+  const day = isValid(parsed) ? parsed : new Date();
+  const dateStr = format(day, "yyyy-MM-dd");
+
+  const { data: bookings = [], isLoading } = useDayBookings(dateStr);
+  const notesQ = useDailyNotesForDate(dateStr);
+  const { capacityFor } = useWorkshopCapacity();
+  const capacity = capacityFor(day);
+
+  const [noteOpen, setNoteOpen] = useState(false);
+  const [editNote, setEditNote] = useState<DailyNote | null>(null);
+
+  const groups = {
+    booked: (bookings as any[]).filter((b) => bookInStage(b) === "booked"),
+    arrived: (bookings as any[]).filter((b) => bookInStage(b) === "arrived"),
+    waiting_inspection: (bookings as any[]).filter((b) => bookInStage(b) === "waiting_inspection"),
+  };
+
+  async function checkIn(b: any) {
+    const { error } = await supabase
+      .from("bookings")
+      .update({ bike_arrived: true, bike_arrived_at: new Date().toISOString() })
+      .eq("id", b.id);
+    if (error) return toast.error(error.message);
+    toast.success("Checked in");
+    qc.invalidateQueries({ queryKey: ["day-bookings"] });
+    qc.invalidateQueries({ queryKey: ["calendar-bookings"] });
+    qc.invalidateQueries({ queryKey: ["today-bookings"] });
+  }
+
+  const go = (delta: number) =>
+    nav({
+      to: "/book-ins/$date",
+      params: { date: format(addDays(day, delta), "yyyy-MM-dd") },
+    });
+
+  return (
+    <div className="space-y-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => go(-1)}
+            className="grid h-9 w-9 place-items-center rounded-lg border border-border hover:border-primary/50"
+            aria-label="Previous day"
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </button>
+          <button
+            onClick={() => go(1)}
+            className="grid h-9 w-9 place-items-center rounded-lg border border-border hover:border-primary/50"
+            aria-label="Next day"
+          >
+            <ChevronRight className="h-4 w-4" />
+          </button>
+          <div>
+            <h1 className="font-display text-xl sm:text-2xl font-bold leading-tight">
+              {format(day, "EEEE d MMMM")}
+            </h1>
+            <div className="text-xs text-muted-foreground flex items-center gap-2">
+              <CapacityBadge booked={bookings.length} capacity={capacity} />
+              <span>book-ins</span>
+            </div>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => {
+              setEditNote(null);
+              setNoteOpen(true);
+            }}
+            className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 h-9 text-xs font-semibold uppercase tracking-wider hover:border-primary/50"
+          >
+            <StickyNote className="h-4 w-4" /> Day note
+          </button>
+          <Link
+            to="/bookings/new"
+            search={{ date: dateStr } as never}
+            className="inline-flex items-center gap-1.5 rounded-lg red-surface px-3 h-9 text-xs font-bold uppercase tracking-wider"
+          >
+            <Plus className="h-4 w-4" /> New book-in
+          </Link>
+          <Link
+            to="/calendar"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 h-9 text-xs font-semibold uppercase tracking-wider hover:border-primary/50"
+          >
+            <CalendarDays className="h-4 w-4" /> Calendar
+          </Link>
+        </div>
+      </div>
+
+      {/* Day notes */}
+      {(notesQ.data ?? []).length > 0 && (
+        <div className="space-y-2">
+          {(notesQ.data ?? []).map((n) => (
+            <button
+              key={n.id}
+              type="button"
+              onClick={() => {
+                setEditNote(n);
+                setNoteOpen(true);
+              }}
+              className="w-full text-left rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-2"
+            >
+              <div className="text-[0.625rem] font-bold uppercase tracking-wider text-amber-400">
+                Workshop note
+              </div>
+              <div className="text-sm font-semibold">{n.title}</div>
+              {n.body && <div className="text-xs text-muted-foreground">{n.body}</div>}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {isLoading ? (
+        <div className="text-sm text-muted-foreground">Loading book-ins…</div>
+      ) : bookings.length === 0 ? (
+        <div className="card-surface p-8 text-center space-y-3">
+          <div className="text-sm text-muted-foreground">
+            No motorcycles booked in for {format(day, "EEEE d MMMM")}
+          </div>
+          <Link
+            to="/bookings/new"
+            className="inline-flex items-center gap-1.5 rounded-lg red-surface px-3 h-9 text-xs font-bold uppercase tracking-wider"
+          >
+            <Plus className="h-4 w-4" /> New book-in
+          </Link>
+        </div>
+      ) : (
+        <div className="grid gap-4 md:grid-cols-3">
+          {(
+            [
+              ["Booked in", groups.booked, true],
+              ["Arrived", groups.arrived, false],
+              ["Waiting inspection", groups.waiting_inspection, false],
+            ] as const
+          ).map(([label, list, showCheckIn]) => (
+            <section key={label} className="card-surface p-3 space-y-2">
+              <div className="flex items-center justify-between">
+                <h2 className="text-[0.6875rem] font-bold uppercase tracking-[0.2em] text-muted-foreground">
+                  {label}
+                </h2>
+                <span className="text-xs font-bold tabular-nums text-muted-foreground">
+                  {list.length}
+                </span>
+              </div>
+              {list.length === 0 ? (
+                <div className="text-xs text-muted-foreground py-4 text-center">
+                  Nothing here yet
+                </div>
+              ) : (
+                list.map((b: any) => (
+                  <div key={b.id} className="space-y-1.5">
+                    <BookInCard
+                      booking={b}
+                      onClick={() =>
+                        nav({ to: "/bookings/$bookingId", params: { bookingId: b.id } })
+                      }
+                    />
+                    <div className="flex gap-1.5">
+                      {showCheckIn && (
+                        <button
+                          onClick={() => checkIn(b)}
+                          className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg border border-border px-2 h-8 text-[0.6875rem] font-bold uppercase tracking-wider hover:border-primary/50"
+                        >
+                          <ClipboardCheck className="h-3.5 w-3.5" /> Check in
+                        </button>
+                      )}
+                      {b.job_id && (
+                        <Link
+                          to="/jobs/$jobId"
+                          params={{ jobId: b.job_id }}
+                          className="flex-1 inline-flex items-center justify-center rounded-lg border border-border px-2 h-8 text-[0.6875rem] font-bold uppercase tracking-wider hover:border-primary/50"
+                        >
+                          Open job
+                        </Link>
+                      )}
+                      {b.customers?.phone && (
+                        <a
+                          href={`tel:${b.customers.phone}`}
+                          className="inline-flex items-center justify-center rounded-lg border border-border px-2 h-8 text-[0.6875rem] font-bold uppercase tracking-wider hover:border-primary/50"
+                        >
+                          Call
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                ))
+              )}
+            </section>
+          ))}
+        </div>
+      )}
+
+      <NoteDialog
+        open={noteOpen}
+        onOpenChange={(v) => {
+          setNoteOpen(v);
+          if (!v) setEditNote(null);
+        }}
+        date={dateStr}
+        note={editNote}
+      />
+    </div>
+  );
+}
