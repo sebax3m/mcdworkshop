@@ -1575,184 +1575,58 @@ function CalendarPage() {
                       )}
                     </div>
 
-                    {/* Scheduled — same Popover / Select components as the create form */}
+                    {/* Scheduled — date only; book-ins stack in day order */}
                     <div>
                       <div className="text-[0.625rem] uppercase tracking-[0.25em] text-muted-foreground mb-1.5">
                         Scheduled
                       </div>
-                      <div className="grid grid-cols-2 gap-2">
-                        <div>
-                          <label className="text-[0.625rem] uppercase tracking-wider text-muted-foreground flex items-center gap-1">
-                            <CalendarIcon className="h-3 w-3" /> Date
-                          </label>
-                          <Popover>
-                            <PopoverTrigger asChild>
-                              <button
-                                type="button"
-                                className={cn(
-                                  "w-full mt-1 rounded-lg border border-border bg-background/60 px-3 py-2 text-sm font-semibold text-left focus:border-primary/60 focus:outline-none hover:bg-primary/5",
-                                  !b.scheduled_date && "text-muted-foreground",
-                                )}
-                              >
-                                {b.scheduled_date
-                                  ? format(
-                                      new Date(b.scheduled_date + "T00:00:00"),
-                                      "EEE, MMM d, yyyy",
-                                    )
-                                  : "Pick a date"}
-                              </button>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-auto p-0" align="start">
-                              <CalendarPicker
-                                mode="single"
-                                selected={
-                                  b.scheduled_date
-                                    ? new Date(b.scheduled_date + "T00:00:00")
-                                    : undefined
-                                }
-                                onSelect={async (d) => {
-                                  if (!d) return;
-                                  const v = format(d, "yyyy-MM-dd");
-                                  if (v === b.scheduled_date) return;
-                                  const start = currentStart || "09:00";
-                                  const end = currentEnd || addMinutesToTime(start, 60);
-                                  try {
-                                    const conflicts = await findBookingConflicts({
-                                      date: v,
-                                      startTime: start,
-                                      endTime: end,
-                                      excludeBookingId: b.id,
-                                    });
-                                    if (conflicts.length)
-                                      return toast.error(formatConflictMessage(conflicts));
-                                  } catch (err: any) {
-                                    return toast.error(err?.message ?? "Conflict check failed");
-                                  }
-                                  const { error } = await supabase
-                                    .from("bookings")
-                                    .update({ scheduled_date: v })
-                                    .eq("id", b.id);
-                                  if (error) return toast.error(error.message);
-                                  patchSelected({ scheduled_date: v });
-                                  qc.invalidateQueries({ queryKey: ["calendar-bookings"] });
-                                  toast.success("Date updated");
-                                }}
-                                initialFocus
-                                className={cn("p-3 pointer-events-auto")}
-                              />
-                            </PopoverContent>
-                          </Popover>
-                        </div>
-                        <div>
-                          <label className="text-[0.625rem] uppercase tracking-wider text-muted-foreground flex items-center gap-1">
-                            <Clock className="h-3 w-3" /> Time
-                          </label>
-                          <Select
-                            value={currentStart}
-                            onValueChange={async (v) => {
-                              if (!v || v === currentStart) return;
-                              const durationMin = bookingDurationMin(b);
-                              const newEnd = addMinutesToTime(v, durationMin);
-                              const rangeErr = validateTimeRange(v, newEnd);
-                              if (rangeErr) return toast.error(rangeErr);
-                              try {
-                                const conflicts = await findBookingConflicts({
-                                  date: b.scheduled_date,
-                                  startTime: v,
-                                  endTime: newEnd,
-                                  excludeBookingId: b.id,
-                                });
-                                if (conflicts.length)
-                                  return toast.error(formatConflictMessage(conflicts));
-                              } catch (err: any) {
-                                return toast.error(err?.message ?? "Conflict check failed");
+                      <div>
+                        <label className="text-[0.625rem] uppercase tracking-wider text-muted-foreground flex items-center gap-1">
+                          <CalendarIcon className="h-3 w-3" /> Date
+                        </label>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <button
+                              type="button"
+                              className={cn(
+                                "w-full mt-1 rounded-lg border border-border bg-background/60 px-3 py-2 text-sm font-semibold text-left focus:border-primary/60 focus:outline-none hover:bg-primary/5",
+                                !b.scheduled_date && "text-muted-foreground",
+                              )}
+                            >
+                              {b.scheduled_date
+                                ? format(new Date(b.scheduled_date + "T00:00:00"), "EEE, MMM d, yyyy")
+                                : "Pick a date"}
+                            </button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0" align="start">
+                            <CalendarPicker
+                              mode="single"
+                              selected={
+                                b.scheduled_date
+                                  ? new Date(b.scheduled_date + "T00:00:00")
+                                  : undefined
                               }
-                              const { error } = await supabase
-                                .from("bookings")
-                                .update({
-                                  drop_off_time: `${v}:00`,
-                                  scheduled_end_time: `${newEnd}:00`,
-                                })
-                                .eq("id", b.id);
-                              if (error) return toast.error(error.message);
-                              patchSelected({
-                                drop_off_time: `${v}:00`,
-                                scheduled_end_time: `${newEnd}:00`,
-                              });
-                              qc.invalidateQueries({ queryKey: ["calendar-bookings"] });
-                              toast.success("Start time updated");
-                            }}
-                          >
-                            <SelectTrigger className="w-full mt-1 rounded-lg border border-border bg-background/60 px-3 py-2 text-sm font-semibold tabular-nums h-auto">
-                              <SelectValue placeholder="Pick a time">
-                                {currentStart ? fmt12h(currentStart) : undefined}
-                              </SelectValue>
-                            </SelectTrigger>
-                            <SelectContent className="max-h-72">
-                              {TIME_SLOTS.map((t) => (
-                                <SelectItem key={t} value={t} className="tabular-nums">
-                                  {fmt12h(t)}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      </div>
-                      <div className="mt-2 flex items-center gap-2 text-xs text-muted-foreground">
-                        <span>Ends {fmt12h(currentEnd)} · Est. hours:</span>
-                        <input
-                          type="number"
-                          min="0.25"
-                          step="0.25"
-                          defaultValue={b.estimated_hours ?? 1}
-                          onBlur={async (e) => {
-                            const v = Number(e.target.value);
-                            if (!v || v === Number(b.estimated_hours)) return;
-                            const start = currentStart || "09:00";
-                            const newEnd = addMinutesToTime(start, Math.round(v * 60));
-                            const rangeErr = validateTimeRange(start, newEnd);
-                            if (rangeErr) {
-                              e.target.value = String(b.estimated_hours ?? 1);
-                              return toast.error(rangeErr);
-                            }
-                            try {
-                              const conflicts = await findBookingConflicts({
-                                date: b.scheduled_date,
-                                startTime: start,
-                                endTime: newEnd,
-                                excludeBookingId: b.id,
-                              });
-                              if (conflicts.length) {
-                                e.target.value = String(b.estimated_hours ?? 1);
-                                return toast.error(formatConflictMessage(conflicts));
-                              }
-                            } catch (err: any) {
-                              e.target.value = String(b.estimated_hours ?? 1);
-                              return toast.error(err?.message ?? "Conflict check failed");
-                            }
-                            const { error } = await supabase
-                              .from("bookings")
-                              .update({
-                                estimated_hours: v,
-                                scheduled_end_time: `${newEnd}:00`,
-                              })
-                              .eq("id", b.id);
-                            if (error) return toast.error(error.message);
-                            patchSelected({
-                              estimated_hours: v,
-                              scheduled_end_time: `${newEnd}:00`,
-                            });
-                            qc.invalidateQueries({ queryKey: ["calendar-bookings"] });
-                            toast.success("Estimated hours updated");
-                          }}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter") (e.target as HTMLInputElement).blur();
-                          }}
-                          className="w-16 rounded-md border border-border bg-background px-2 py-0.5 text-xs tabular-nums text-foreground focus:border-primary/60 outline-none"
-                        />
-                        <span>h</span>
+                              onSelect={async (d) => {
+                                if (!d) return;
+                                const v = format(d, "yyyy-MM-dd");
+                                if (v === b.scheduled_date) return;
+                                const { error } = await supabase
+                                  .from("bookings")
+                                  .update({ scheduled_date: v })
+                                  .eq("id", b.id);
+                                if (error) return toast.error(error.message);
+                                patchSelected({ scheduled_date: v });
+                                qc.invalidateQueries({ queryKey: ["calendar-bookings"] });
+                                toast.success("Date updated");
+                              }}
+                              initialFocus
+                              className={cn("p-3 pointer-events-auto")}
+                            />
+                          </PopoverContent>
+                        </Popover>
                       </div>
                     </div>
+
 
                     <div className="grid grid-cols-1 gap-3 pt-1 border-t border-border/60">
                       <div className="rounded-lg border border-border/60 bg-muted/20 p-3 space-y-2">
