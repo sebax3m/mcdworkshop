@@ -11,6 +11,8 @@ export type PrintPage = {
   orientation?: "portrait" | "landscape";
   /** Fill the whole page (used for the big valve worksheet). */
   fill?: boolean;
+  /** Rotate the page content by 0/90/180/270 degrees. */
+  rotate?: number;
 };
 
 /** An extra page the user can switch on, optionally with variants (e.g. cylinders). */
@@ -227,6 +229,7 @@ export function PrintPreview({
   const [extraOn, setExtraOn] = useState<Record<string, boolean>>({});
   const [extraVariant, setExtraVariant] = useState<Record<string, string>>({});
   const [extraSize, setExtraSize] = useState(100);
+  const [extraRotate, setExtraRotate] = useState(0);
   const [fitOnePage, setFitOnePage] = useState(true);
   const [scale, setScale] = useState(100);
   const [margin, setMargin] = useState(10);
@@ -260,10 +263,11 @@ export function PrintPreview({
         html: `<div style="zoom:${extraSize / 100}">${p.getHtml(extraVariant[p.id] ?? "")}</div>`,
         orientation: p.orientation ?? "portrait",
         fill: p.fill,
+        rotate: extraRotate,
       }));
     return [...basePages, ...extras];
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [basePages, extraOn, extraVariant, extraSize]);
+  }, [basePages, extraOn, extraVariant, extraSize, extraRotate]);
 
   const [srcDoc, setSrcDoc] = useState("");
 
@@ -312,6 +316,21 @@ export function PrintPreview({
       if (!sheet || !inner) return;
       inner.style.transform = "";
       inner.style.width = "";
+      inner.style.transformOrigin = "top left";
+      const rot = ((p.rotate ?? 0) % 360 + 360) % 360;
+      if (rot) {
+        const w = inner.scrollWidth;
+        const h = inner.scrollHeight;
+        const availW = sheet.clientWidth;
+        const availH = sheet.clientHeight;
+        const swap = rot === 90 || rot === 270;
+        const bw = swap ? h : w;
+        const bh = swap ? w : h;
+        const k = Math.min(availW / bw, availH / bh) * (scale / 100);
+        inner.style.transformOrigin = "center center";
+        inner.style.transform = `rotate(${rot}deg) scale(${k})`;
+        return;
+      }
       const availPx = sheet.clientHeight;
       const contentPx = inner.scrollHeight;
       let k = scale / 100;
@@ -434,6 +453,24 @@ export function PrintPreview({
                             </button>
                           </div>
                         </div>
+                        <div className="flex items-center justify-between gap-2 text-sm">
+                          <span className="text-muted-foreground">Rotate</span>
+                          <div className="flex items-center gap-1">
+                            {[0, 90, 180, 270].map((deg) => (
+                              <button
+                                key={deg}
+                                onClick={() => setExtraRotate(deg)}
+                                className={`rounded border px-2 py-1 text-xs tabular-nums ${
+                                  extraRotate === deg
+                                    ? "border-primary bg-primary/10 text-primary"
+                                    : "border-border"
+                                }`}
+                              >
+                                {deg}°
+                              </button>
+                            ))}
+                          </div>
+                        </div>
                       </div>
                     )}
                   </div>
@@ -529,6 +566,7 @@ export function PrintPreview({
                   setPaper("A4");
                   setTemplate("classic");
                   setExtraSize(100);
+                  setExtraRotate(0);
                   frameRef.current?.contentWindow?.postMessage("drag-reset", "*");
                 }}
                 className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
