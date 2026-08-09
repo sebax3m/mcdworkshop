@@ -28,6 +28,7 @@ import {
 } from "lucide-react";
 import { detectServiceKind, KIND_META, SERVICE_PARTS } from "@/lib/service-kinds";
 import { getValveSpec, formatRange, type ValveSpec } from "@/lib/valve-specs";
+import { valveSheetHtml } from "@/lib/valve-sheet-html";
 import { DamageSection } from "@/components/DamageSection";
 import logoAsset from "@/assets/motorcycle-doctors-logo.png.asset.json";
 
