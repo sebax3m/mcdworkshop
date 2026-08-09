@@ -56,6 +56,17 @@ import { BookInCard, CapacityBadge } from "@/components/booking/BookInCard";
 import { useWorkshopCapacity } from "@/hooks/useWorkshopCapacity";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { StickyNote } from "lucide-react";
+
+function DropLine({ active }: { active: boolean }) {
+  return (
+    <div
+      className={`transition-all duration-100 ${
+        active ? "h-1.5 my-0.5 rounded-full bg-primary shadow-[0_0_0_2px_hsl(var(--primary)/0.25)]" : "h-0"
+      }`}
+    />
+  );
+}
+
 import {
   addMinutesToTime,
   findBookingConflicts,
@@ -1182,60 +1193,66 @@ function CalendarPage() {
                     }}
                   >
                     {dayBookings.length === 0 ? (
-                      <div className="flex-1 grid place-items-center text-[0.6875rem] text-muted-foreground text-center px-2">
-                        No motorcycles booked in
+                      <div
+                        className={`flex-1 grid place-items-center rounded-lg text-[0.6875rem] text-center px-2 ${
+                          dropHint?.dayKey === dayKey
+                            ? "border-2 border-dashed border-primary bg-primary/10 text-primary font-semibold"
+                            : "text-muted-foreground"
+                        }`}
+                      >
+                        {dropHint?.dayKey === dayKey ? "Drop here" : "No motorcycles booked in"}
                       </div>
                     ) : (
-                      dayBookings.map((b: any, i: number) => (
-                        <div
-                          key={b.id}
-                          onDragOver={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            const rect = e.currentTarget.getBoundingClientRect();
-                            const after = e.clientY > rect.top + rect.height / 2;
-                            setDropHint({ dayKey, index: after ? i + 1 : i });
-                          }}
-                          onDrop={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            const id = e.dataTransfer.getData("text/booking-id");
-                            const rect = e.currentTarget.getBoundingClientRect();
-                            const after = e.clientY > rect.top + rect.height / 2;
-                            if (id) reorderBooking(id, day, after ? i + 1 : i);
-                            setDraggingId(null);
-                            setDropHint(null);
-                          }}
-                          className={
-                            dropHint && dropHint.dayKey === dayKey && dropHint.index === i
-                              ? "border-t-2 border-primary pt-1"
-                              : dropHint &&
-                                  dropHint.dayKey === dayKey &&
-                                  dropHint.index === i + 1 &&
-                                  i === dayBookings.length - 1
-                                ? "border-b-2 border-primary pb-1"
-                                : ""
+                      <>
+                        {dayBookings.map((b: any, i: number) => (
+                          <div key={b.id} className="contents">
+                            <DropLine active={dropHint?.dayKey === dayKey && dropHint.index === i} />
+                            <div
+                              onDragOver={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                const rect = e.currentTarget.getBoundingClientRect();
+                                const after = e.clientY > rect.top + rect.height / 2;
+                                setDropHint({ dayKey, index: after ? i + 1 : i });
+                              }}
+                              onDrop={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                const id = e.dataTransfer.getData("text/booking-id");
+                                const rect = e.currentTarget.getBoundingClientRect();
+                                const after = e.clientY > rect.top + rect.height / 2;
+                                if (id) reorderBooking(id, day, after ? i + 1 : i);
+                                setDraggingId(null);
+                                setDropHint(null);
+                              }}
+                            >
+                              <BookInCard
+                                booking={b}
+                                dense
+                                draggable
+                                onDragStart={(e) => {
+                                  e.dataTransfer.effectAllowed = "move";
+                                  e.dataTransfer.setData("text/booking-id", b.id);
+                                  setDraggingId(b.id);
+                                }}
+                                onDragEnd={() => {
+                                  setDraggingId(null);
+                                  setDropHint(null);
+                                }}
+                                onClick={() => setSelectedBooking(b)}
+                                className={draggingId === b.id ? "opacity-40" : ""}
+                              />
+                            </div>
+                          </div>
+                        ))}
+                        <DropLine
+                          active={
+                            dropHint?.dayKey === dayKey && dropHint.index >= dayBookings.length
                           }
-                        >
-                          <BookInCard
-                            booking={b}
-                            dense
-                            draggable
-                            onDragStart={(e) => {
-                              e.dataTransfer.effectAllowed = "move";
-                              e.dataTransfer.setData("text/booking-id", b.id);
-                              setDraggingId(b.id);
-                            }}
-                            onDragEnd={() => {
-                              setDraggingId(null);
-                              setDropHint(null);
-                            }}
-                            onClick={() => setSelectedBooking(b)}
-                            className={draggingId === b.id ? "opacity-40" : ""}
-                          />
-                        </div>
-                      ))
+                        />
+                      </>
                     )}
+
                   </div>
 
 
