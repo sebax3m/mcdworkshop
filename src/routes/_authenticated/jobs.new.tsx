@@ -74,6 +74,7 @@ function NewJob() {
       return;
     }
     setBusyId(b.id);
+    try {
       const { data: tmpl } = await supabase
         .from("service_templates")
         .select("*")
