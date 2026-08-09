@@ -2,7 +2,9 @@
 import { Bike as BikeIcon, User as UserIcon, Wrench } from "lucide-react";
 import { displayBike, displayCustomerName, displayServiceType } from "@/lib/display";
 import { bookInStage, stageMeta } from "@/lib/workshop-status";
+import { serviceColor } from "@/lib/service-colors";
 import { cn } from "@/lib/utils";
+
 
 type Props = {
   booking: any;

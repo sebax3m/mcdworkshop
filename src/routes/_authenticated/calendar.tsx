@@ -121,7 +121,7 @@ const DAILY_CAPACITY_HOURS = 16;
 
 type ViewMode = "month" | "week";
 
-// Service-type colour legend lives in @/lib/service-colors (shared with BookInCard)
+import { serviceColor, SERVICE_LEGEND, SERVICE_COLORS } from "@/lib/service-colors";
 
 
 const FALLBACK_SERVICE_TYPES = [
