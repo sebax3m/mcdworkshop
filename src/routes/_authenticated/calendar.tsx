@@ -1186,7 +1186,7 @@ function CalendarPage() {
                   <button
                     type="button"
                     onClick={() => setSlotChoice({ date: day, time: null, dayKey })}
-                    className="rounded-lg border border-dashed border-border px-2 h-8 text-[0.625rem] font-bold uppercase tracking-wider text-muted-foreground hover:border-primary/50 hover:text-foreground transition-colors"
+                    className="rounded-lg border border-dashed border-border px-2 h-7 sm:h-8 text-[0.55rem] sm:text-[0.625rem] font-bold uppercase tracking-wider text-muted-foreground hover:border-primary/50 hover:text-foreground transition-colors"
                   >
                     + Book-in / note
                   </button>
