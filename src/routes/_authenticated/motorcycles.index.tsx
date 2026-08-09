@@ -81,26 +81,27 @@ function Bikes() {
   const customers = useQuery({
     queryKey: ["customers-options"],
     queryFn: async () =>
-      (
-        await (supabase as any)
+      await fetchAllRows((from, to) =>
+        (supabase as any)
           .from("customers")
           .select("id, first_name, last_name")
           .eq("is_archived", false)
           .order("first_name")
-          .range(0, 49999)
-      ).data ?? [],
+          .range(from, to),
+      ),
   });
   const bikes = useQuery({
     queryKey: ["bikes-list"],
     queryFn: async () =>
-      (
-        await supabase
+      await fetchAllRows((from, to) =>
+        supabase
           .from("motorcycles")
           .select("*, customers(first_name,last_name)")
           .order("created_at", { ascending: false })
-          .range(0, 49999)
-      ).data ?? [],
+          .range(from, to),
+      ),
   });
+
 
   const rows: any[] = useMemo(() => bikes.data ?? [], [bikes.data]);
   const active = useMemo(() => rows.filter((b) => !b.is_archived), [rows]);
