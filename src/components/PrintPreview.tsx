@@ -130,7 +130,9 @@ function paperCss(margin: number) {
       background:#ffffff; color:#111111;
       margin:0 auto 12px; overflow:hidden; position:relative;
     }
-    .sheet-inner { padding:${margin}mm; transform-origin: top left; }
+    /* Page margins come from @page so the sheet matches the printer's
+       printable area exactly — no browser shrink-to-fit. */
+    .sheet-inner { padding:0; transform-origin: top left; }
     .sheet, .sheet * {
       background-color: transparent !important;
       color:#111111 !important;
@@ -177,8 +179,11 @@ function paperCss(margin: number) {
     body.dragmode [data-print-section]:hover { outline: 1px dashed #b91c1c; }
     @media print {
       html, body { background:#ffffff !important; }
-      .sheet { margin:0 !important; box-shadow:none !important; page-break-after: always; }
-      .sheet:last-child { page-break-after: auto; }
+      .sheet {
+        margin:0 !important; box-shadow:none !important;
+        break-after: page; page-break-after: always;
+      }
+      .sheet:last-child { break-after: auto; page-break-after: auto; }
     }
   `;
 }
@@ -310,8 +315,11 @@ export function PrintPreview({
         const o = p.orientation ?? "portrait";
         const w = o === "portrait" ? size.w : size.h;
         const h = o === "portrait" ? size.h : size.w;
-        return `@page p${i} { size: ${size.css} ${o}; margin: 0; }
-                #page-${i} { page: p${i}; width:${w}mm; min-height:${h}mm; }`;
+        // The printable box is the paper minus the real printer margins.
+        const cw = Math.max(20, w - margin * 2);
+        const ch = Math.max(20, h - margin * 2);
+        return `@page p${i} { size: ${size.css} ${o}; margin: ${margin}mm; }
+                #page-${i} { page: p${i}; width:${cw}mm; height:${ch}mm; }`;
       })
       .join("\n");
 
@@ -388,8 +396,10 @@ export function PrintPreview({
   const doPrint = () => {
     const w = frameRef.current?.contentWindow;
     if (!w) return;
+    // Re-measure first so what prints is exactly what the preview shows.
+    fit();
     w.focus();
-    w.print();
+    setTimeout(() => w.print(), 120);
   };
 
   return (
