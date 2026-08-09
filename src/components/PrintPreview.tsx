@@ -413,7 +413,9 @@ export function PrintPreview({
         const h = inner.scrollHeight;
         const bw = swap ? h : w;
         const bh = swap ? w : h;
-        const k = Math.min(availW / bw, availH / bh) * (scale / 100);
+        // 0.98 keeps the rotated box just inside the page box: a transformed
+        // element that touches the print page edge is dropped by Chrome.
+        const k = Math.min(availW / bw, availH / bh) * 0.98 * (scale / 100);
         inner.style.transformOrigin = "center center";
         inner.style.transform = `translate(${(availW - w) / 2}px, ${
           (availH - h) / 2
