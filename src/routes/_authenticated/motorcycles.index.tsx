@@ -596,7 +596,7 @@ function Bikes() {
             });
           const rowClass = `card-surface p-3 flex items-center gap-3 transition hover:border-primary/40 hover:bg-card/80 ${
             selectMode && checked ? "border-primary/60 bg-primary/5" : ""
-          } ${selectMode ? "cursor-pointer" : "active:scale-[0.99]"}`;
+          } ${selectMode ? "cursor-pointer" : "active:scale-[0.99]"} ${b.is_archived ? "opacity-60" : ""}`;
           const inner = (
             <>
               {isAdmin && selectMode && (
@@ -615,7 +615,29 @@ function Bikes() {
                 </span>
               )}
               <div className="min-w-0 flex-1">
-                <div className="font-semibold truncate">{fullBike(b)}</div>
+                <div className="font-semibold truncate flex items-center gap-1.5">
+                  {fullBike(b)}
+                  {b.is_archived && (
+                    <span className="text-[10px] uppercase tracking-wider rounded px-1 py-0.5 border border-border text-muted-foreground">
+                      Archived
+                    </span>
+                  )}
+                  {isBikeSuspicious(b) && (
+                    <span className="inline-flex items-center gap-0.5 text-[10px] uppercase tracking-wider rounded px-1 py-0.5 border border-amber-500/40 text-amber-500">
+                      <AlertTriangle className="h-2.5 w-2.5" /> Suspicious
+                    </span>
+                  )}
+                  {!b.customer_id && (
+                    <span className="text-[10px] uppercase tracking-wider rounded px-1 py-0.5 border border-destructive/40 text-destructive">
+                      No owner
+                    </span>
+                  )}
+                  {dupIds.has(b.id) && (
+                    <span className="text-[10px] uppercase tracking-wider rounded px-1 py-0.5 border border-primary/40 text-primary">
+                      Dup
+                    </span>
+                  )}
+                </div>
                 <div className="text-xs text-muted-foreground truncate">
                   {b.customers ? `${b.customers.first_name} ${b.customers.last_name}` : "—"}
                   {b.rego ? ` · ${b.rego}` : ""}
