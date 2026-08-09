@@ -1413,6 +1413,10 @@ export type Database = {
         Args: { p_keep_id: string; p_merge_id: string }
         Returns: Json
       }
+      merge_motorcycles: {
+        Args: { p_keep_id: string; p_merge_id: string }
+        Returns: Json
+      }
       motorcycle_reference_counts: {
         Args: { p_motorcycle_id: string }
         Returns: Json
