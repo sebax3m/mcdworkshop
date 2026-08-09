@@ -22,6 +22,7 @@ import logoAsset from "@/assets/motorcycle-doctors-logo.png.asset.json";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useCurrentUser } from "@/hooks/use-current-user";
+import { PrintPreview } from "@/components/PrintPreview";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -291,13 +292,16 @@ function InvoiceDetail() {
     })();
   }, [invoice.data?.job_id, parts.data, invoiceId, qc]);
 
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const sheetRef = useRef<HTMLDivElement>(null);
+
   // Handle ?action=print|email passed in from "Create & print/email" on the new-invoice page.
   const actionFiredRef = useRef(false);
   useEffect(() => {
     if (!action || actionFiredRef.current) return;
     actionFiredRef.current = true;
     const t = setTimeout(() => {
-      if (action === "print") window.print();
+      if (action === "print") setPreviewOpen(true);
       else if (action === "email") {
         const inv: any = invoice.data;
         const customer: any = inv?.customers;
@@ -630,11 +634,11 @@ function InvoiceDetail() {
           >
             <Mail className="h-4 w-4" /> Email
           </Button>
-          <Button onClick={() => window.print()} variant="outline" className="gap-2">
+          <Button onClick={() => setPreviewOpen(true)} variant="outline" className="gap-2">
             <FileDown className="h-4 w-4" /> Save PDF
           </Button>
-          <Button onClick={() => window.print()} className="red-surface gap-2">
-            <Printer className="h-4 w-4" /> Print
+          <Button onClick={() => setPreviewOpen(true)} className="red-surface gap-2">
+            <Printer className="h-4 w-4" /> Preview & print
           </Button>
           {canDelete && (
             <AlertDialog>
@@ -660,7 +664,7 @@ function InvoiceDetail() {
         </div>
       </header>
 
-      <div className="card-surface invoice-sheet overflow-hidden">
+      <div ref={sheetRef} className="card-surface invoice-sheet overflow-hidden">
         {/* Gold banner */}
         <div className="red-surface px-8 py-6 flex items-start justify-between gap-4 flex-wrap">
           <div className="flex items-center gap-4">
@@ -679,14 +683,16 @@ function InvoiceDetail() {
             </div>
           </div>
           <div className="text-right">
-            <div className="text-[0.625rem] uppercase tracking-[0.25em] opacity-80">Tax Invoice</div>
+            <div className="text-[0.625rem] uppercase tracking-[0.25em] opacity-80">
+              Tax Invoice
+            </div>
             <div className="font-display text-2xl font-black">{inv.invoice_number}</div>
           </div>
         </div>
 
         <div className="p-8 space-y-7">
           {/* Meta strip */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
+          <div data-print-section="meta" className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
             <div>
               <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">
                 Issued
@@ -694,7 +700,9 @@ function InvoiceDetail() {
               <div className="font-semibold">{issuedAt.toLocaleDateString()}</div>
             </div>
             <div>
-              <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">Due</div>
+              <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">
+                Due
+              </div>
               <div className="font-semibold">{dueAt.toLocaleDateString()}</div>
             </div>
             <div>
@@ -704,7 +712,9 @@ function InvoiceDetail() {
               <div className="font-semibold uppercase">{inv.status}</div>
             </div>
             <div>
-              <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">Job</div>
+              <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">
+                Job
+              </div>
               <div className="font-semibold">{inv.jobs ? `#${inv.jobs.job_number}` : "—"}</div>
             </div>
           </div>
@@ -742,14 +752,16 @@ function InvoiceDetail() {
           </div>
 
           {/* Service checks */}
-          <ServiceChecks
-            jobId={inv.job_id}
-            title={inv.jobs?.title ?? null}
-            items={checks.data ?? []}
-            onChanged={() =>
-              qc.invalidateQueries({ queryKey: ["invoice-checks", invoiceId, inv.job_id] })
-            }
-          />
+          <div data-print-section="checks">
+            <ServiceChecks
+              jobId={inv.job_id}
+              title={inv.jobs?.title ?? null}
+              items={checks.data ?? []}
+              onChanged={() =>
+                qc.invalidateQueries({ queryKey: ["invoice-checks", invoiceId, inv.job_id] })
+              }
+            />
+          </div>
 
           {/* Line items */}
           <div className="pt-5 border-t border-border">
@@ -1094,12 +1106,14 @@ function InvoiceDetail() {
 
           {/* Notes + Totals */}
           <div className="pt-5 border-t border-border grid grid-cols-1 sm:grid-cols-[1fr_18rem] gap-6">
-            <NotesBox
-              invoiceId={invoiceId}
-              initial={inv.notes ?? ""}
-              jobNotes={jobNotes.data ?? []}
-              onSaved={() => qc.invalidateQueries({ queryKey: ["invoice", invoiceId] })}
-            />
+            <div data-print-section="notes">
+              <NotesBox
+                invoiceId={invoiceId}
+                initial={inv.notes ?? ""}
+                jobNotes={jobNotes.data ?? []}
+                onSaved={() => qc.invalidateQueries({ queryKey: ["invoice", invoiceId] })}
+              />
+            </div>
             <div className="space-y-2 text-sm">
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Labour (incl GST)</span>
@@ -1127,7 +1141,7 @@ function InvoiceDetail() {
           </div>
 
           {/* Payment info */}
-          <div className="pt-5 border-t border-border text-sm">
+          <div data-print-section="payment" className="pt-5 border-t border-border text-sm">
             <div>
               <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground mb-2">
                 Payment Details
@@ -1150,7 +1164,10 @@ function InvoiceDetail() {
           </div>
 
           {/* Footer */}
-          <div className="pt-5 border-t border-border text-center text-[0.625rem] uppercase tracking-[0.25em] text-muted-foreground">
+          <div
+            data-print-section="footer"
+            className="pt-5 border-t border-border text-center text-[0.625rem] uppercase tracking-[0.25em] text-muted-foreground"
+          >
             Motorcycle Doctors · Workshop OS · Thank you for your business
           </div>
         </div>
@@ -1167,6 +1184,20 @@ function InvoiceDetail() {
           </Link>
         </div>
       )}
+
+      <PrintPreview
+        open={previewOpen}
+        onOpenChange={setPreviewOpen}
+        title={`Invoice ${inv.invoice_number} — preview`}
+        getPages={() => [{ html: sheetRef.current?.outerHTML ?? "" }]}
+        sections={[
+          { id: "meta", label: "Dates & status strip" },
+          { id: "checks", label: "Service checks" },
+          { id: "notes", label: "Notes" },
+          { id: "payment", label: "Payment details" },
+          { id: "footer", label: "Footer line" },
+        ]}
+      />
 
       {/* Inventory library picker — used by both job-linked parts and standalone snapshot lines */}
       <Dialog open={!!libraryTarget} onOpenChange={(o) => !o && setLibraryTarget(null)}>
