@@ -1,7 +1,7 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Printer, Minus, Plus, RotateCcw } from "lucide-react";
+import { Printer, Minus, Plus, RotateCcw, Move } from "lucide-react";
 
 export type PrintSection = { id: string; label: string; defaultOn?: boolean };
 
@@ -13,6 +13,19 @@ export type PrintPage = {
   fill?: boolean;
 };
 
+/** An extra page the user can switch on, optionally with variants (e.g. cylinders). */
+export type OptionalPage = {
+  id: string;
+  label: string;
+  defaultOn?: boolean;
+  orientation?: "portrait" | "landscape";
+  fill?: boolean;
+  variantLabel?: string;
+  variants?: { value: string; label: string }[];
+  defaultVariant?: string;
+  getHtml: (variant: string) => string;
+};
+
 type Props = {
   open: boolean;
   onOpenChange: (o: boolean) => void;
@@ -20,12 +33,44 @@ type Props = {
   /** Called when the dialog opens — return the pages to render. */
   getPages: () => PrintPage[];
   sections?: PrintSection[];
+  optionalPages?: OptionalPage[];
 };
 
-const PAGE = {
-  portrait: { w: 210, h: 297 },
-  landscape: { w: 297, h: 210 },
-};
+/** Paper sizes in mm (portrait). */
+const PAPER = {
+  A4: { w: 210, h: 297, css: "A4" },
+  A5: { w: 148, h: 210, css: "A5" },
+  A3: { w: 297, h: 420, css: "A3" },
+  Letter: { w: 216, h: 279, css: "Letter" },
+  Legal: { w: 216, h: 356, css: "Legal" },
+} as const;
+type PaperKey = keyof typeof PAPER;
+
+const TEMPLATES = {
+  classic: { label: "Classic", css: "" },
+  compact: {
+    label: "Compact",
+    css: `.sheet-inner { font-size: 0.9em; }
+          .sheet-inner * { line-height: 1.25 !important; }
+          .sheet-inner section, .sheet-inner .card-surface { padding: 6px !important; margin-bottom: 6px !important; }`,
+  },
+  bold: {
+    label: "Bold lines",
+    css: `.sheet-inner section, .sheet-inner .card-surface, .sheet-inner table, .sheet-inner td, .sheet-inner th {
+            border: 1.5px solid #111 !important; border-radius: 4px !important;
+          }
+          .sheet-inner h1, .sheet-inner h2, .sheet-inner h3 { letter-spacing: .02em; }`,
+  },
+  mono: {
+    label: "Mono (no red)",
+    css: `.sheet .red-surface, .sheet .gold-surface { background: #ffffff !important; }
+          .sheet .red-surface, .sheet .red-surface *, .sheet .gold-surface, .sheet .gold-surface * {
+            color:#111 !important; -webkit-text-fill-color:#111 !important; border-color:#111 !important;
+          }
+          .sheet .red-surface { border-bottom: 2px solid #111 !important; }`,
+  },
+} as const;
+type TemplateKey = keyof typeof TEMPLATES;
 
 /** CSS that turns the app's dark UI into ink-friendly white paper. */
 function paperCss(margin: number) {
@@ -79,6 +124,9 @@ function paperCss(margin: number) {
     .sheet .hidden.print\\:inline { display:inline !important; }
     .sheet .print\\:grid-cols-3 { grid-template-columns: repeat(3, minmax(0,1fr)) !important; }
     .sheet .print\\:border-0 { border:0 !important; }
+    /* drag mode */
+    body.dragmode .sheet-inner > *, body.dragmode [data-print-section] { cursor: move; }
+    body.dragmode [data-print-section]:hover { outline: 1px dashed #b91c1c; }
     @media print {
       html, body { background:#ffffff !important; }
       .sheet { margin:0 !important; box-shadow:none !important; page-break-after: always; }
@@ -87,29 +135,89 @@ function paperCss(margin: number) {
   `;
 }
 
+const DRAG_SCRIPT = `
+(function(){
+  var drag=null;
+  document.addEventListener('mousedown',function(e){
+    if(!document.body.classList.contains('dragmode'))return;
+    var el=e.target.closest('[data-print-section]') || e.target.closest('.sheet-inner > *');
+    if(!el)return;
+    e.preventDefault();
+    drag={el:el,x:e.clientX,y:e.clientY,
+      dx:parseFloat(el.getAttribute('data-dx')||'0'),
+      dy:parseFloat(el.getAttribute('data-dy')||'0')};
+  });
+  document.addEventListener('mousemove',function(e){
+    if(!drag)return;
+    var nx=drag.dx+(e.clientX-drag.x), ny=drag.dy+(e.clientY-drag.y);
+    drag.el.setAttribute('data-dx',nx); drag.el.setAttribute('data-dy',ny);
+    drag.el.style.position='relative'; drag.el.style.left=nx+'px'; drag.el.style.top=ny+'px';
+  });
+  document.addEventListener('mouseup',function(){drag=null;});
+  window.addEventListener('message',function(ev){
+    if(ev.data==='drag-on') document.body.classList.add('dragmode');
+    if(ev.data==='drag-off') document.body.classList.remove('dragmode');
+    if(ev.data==='drag-reset'){
+      Array.prototype.forEach.call(document.querySelectorAll('[data-dx]'),function(el){
+        el.removeAttribute('data-dx'); el.removeAttribute('data-dy');
+        el.style.left=''; el.style.top='';
+      });
+    }
+  });
+})();
+`;
+
 export function PrintPreview({
   open,
   onOpenChange,
   title = "Print preview",
   getPages,
   sections = [],
+  optionalPages = [],
 }: Props) {
   const frameRef = useRef<HTMLIFrameElement>(null);
-  const [pages, setPages] = useState<PrintPage[]>([]);
+  const [basePages, setBasePages] = useState<PrintPage[]>([]);
   const [hidden, setHidden] = useState<Record<string, boolean>>({});
+  const [extraOn, setExtraOn] = useState<Record<string, boolean>>({});
+  const [extraVariant, setExtraVariant] = useState<Record<string, string>>({});
+  const [extraSize, setExtraSize] = useState(100);
   const [fitOnePage, setFitOnePage] = useState(true);
   const [scale, setScale] = useState(100);
   const [margin, setMargin] = useState(10);
+  const [paper, setPaper] = useState<PaperKey>("A4");
+  const [template, setTemplate] = useState<TemplateKey>("classic");
+  const [dragMode, setDragMode] = useState(false);
   const [overflow, setOverflow] = useState(false);
 
   useEffect(() => {
     if (!open) return;
-    setPages(getPages());
+    setBasePages(getPages());
     const init: Record<string, boolean> = {};
     for (const s of sections) if (s.defaultOn === false) init[s.id] = true;
     setHidden(init);
+    const on: Record<string, boolean> = {};
+    const va: Record<string, string> = {};
+    for (const p of optionalPages) {
+      on[p.id] = p.defaultOn ?? false;
+      va[p.id] = p.defaultVariant ?? p.variants?.[0]?.value ?? "";
+    }
+    setExtraOn(on);
+    setExtraVariant(va);
+    setDragMode(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
+
+  const pages = useMemo<PrintPage[]>(() => {
+    const extras = optionalPages
+      .filter((p) => extraOn[p.id])
+      .map((p) => ({
+        html: `<div style="zoom:${extraSize / 100}">${p.getHtml(extraVariant[p.id] ?? "")}</div>`,
+        orientation: p.orientation ?? "portrait",
+        fill: p.fill,
+      }));
+    return [...basePages, ...extras];
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [basePages, extraOn, extraVariant, extraSize]);
 
   const [srcDoc, setSrcDoc] = useState("");
 
@@ -124,11 +232,14 @@ export function PrintPreview({
       .map(([id]) => `[data-print-section="${id}"]{display:none !important;}`)
       .join("\n");
 
+    const size = PAPER[paper];
     const pageCss = pages
       .map((p, i) => {
         const o = p.orientation ?? "portrait";
-        return `@page p${i} { size: A4 ${o}; margin: 0; }
-                #page-${i} { page: p${i}; width:${PAGE[o].w}mm; min-height:${PAGE[o].h}mm; }`;
+        const w = o === "portrait" ? size.w : size.h;
+        const h = o === "portrait" ? size.h : size.w;
+        return `@page p${i} { size: ${size.css} ${o}; margin: 0; }
+                #page-${i} { page: p${i}; width:${w}mm; min-height:${h}mm; }`;
       })
       .join("\n");
 
@@ -140,9 +251,9 @@ export function PrintPreview({
       .join("");
 
     setSrcDoc(
-      `<!doctype html><html><head><meta charset="utf-8"><base href="${window.location.origin}/">${headStyles}<style>${paperCss(margin)}${pageCss}${hideRules}</style></head><body>${body}</body></html>`,
+      `<!doctype html><html><head><meta charset="utf-8"><base href="${window.location.origin}/">${headStyles}<style>${paperCss(margin)}${TEMPLATES[template].css}${pageCss}${hideRules}</style></head><body>${body}<script>${DRAG_SCRIPT}<\/script></body></html>`,
     );
-  }, [open, pages, hidden, margin]);
+  }, [open, pages, hidden, margin, paper, template]);
 
   // Fit each page onto exactly one sheet once the frame content is ready.
   const fit = useCallback(() => {
@@ -182,6 +293,11 @@ export function PrintPreview({
     };
   }, [open, srcDoc, fit]);
 
+  // Keep drag mode in sync with the iframe.
+  useEffect(() => {
+    frameRef.current?.contentWindow?.postMessage(dragMode ? "drag-on" : "drag-off", "*");
+  }, [dragMode, srcDoc]);
+
   const doPrint = () => {
     const w = frameRef.current?.contentWindow;
     if (!w) return;
@@ -220,9 +336,96 @@ export function PrintPreview({
               </div>
             )}
 
+            {optionalPages.length > 0 && (
+              <div className="space-y-2">
+                <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">
+                  Extra pages
+                </div>
+                {optionalPages.map((p) => (
+                  <div key={p.id} className="space-y-2">
+                    <label className="flex items-center gap-2 text-sm cursor-pointer">
+                      <input
+                        type="checkbox"
+                        className="accent-primary"
+                        checked={!!extraOn[p.id]}
+                        onChange={(e) => setExtraOn((o) => ({ ...o, [p.id]: e.target.checked }))}
+                      />
+                      {p.label}
+                    </label>
+                    {extraOn[p.id] && p.variants && p.variants.length > 0 && (
+                      <div className="pl-6 space-y-2">
+                        <div className="flex items-center justify-between gap-2 text-sm">
+                          <span className="text-muted-foreground">{p.variantLabel ?? "Option"}</span>
+                          <select
+                            value={extraVariant[p.id] ?? ""}
+                            onChange={(e) =>
+                              setExtraVariant((v) => ({ ...v, [p.id]: e.target.value }))
+                            }
+                            className="rounded-md border border-border bg-background px-2 py-1 text-sm"
+                          >
+                            {p.variants.map((v) => (
+                              <option key={v.value} value={v.value}>
+                                {v.label}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                        <div className="flex items-center justify-between gap-2 text-sm">
+                          <span className="text-muted-foreground">Diagram size</span>
+                          <div className="flex items-center gap-1">
+                            <button
+                              className="rounded border border-border p-1"
+                              onClick={() => setExtraSize((s) => Math.max(60, s - 10))}
+                            >
+                              <Minus className="h-3 w-3" />
+                            </button>
+                            <span className="w-10 text-center tabular-nums">{extraSize}%</span>
+                            <button
+                              className="rounded border border-border p-1"
+                              onClick={() => setExtraSize((s) => Math.min(160, s + 10))}
+                            >
+                              <Plus className="h-3 w-3" />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+
             <div className="space-y-2">
               <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">
                 Format
+              </div>
+              <div className="flex items-center justify-between gap-2 text-sm">
+                <span className="text-muted-foreground">Paper</span>
+                <select
+                  value={paper}
+                  onChange={(e) => setPaper(e.target.value as PaperKey)}
+                  className="rounded-md border border-border bg-background px-2 py-1 text-sm"
+                >
+                  {Object.keys(PAPER).map((k) => (
+                    <option key={k} value={k}>
+                      {k}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="flex items-center justify-between gap-2 text-sm">
+                <span className="text-muted-foreground">Template</span>
+                <select
+                  value={template}
+                  onChange={(e) => setTemplate(e.target.value as TemplateKey)}
+                  className="rounded-md border border-border bg-background px-2 py-1 text-sm"
+                >
+                  {Object.entries(TEMPLATES).map(([k, t]) => (
+                    <option key={k} value={k}>
+                      {t.label}
+                    </option>
+                  ))}
+                </select>
               </div>
               <label className="flex items-center gap-2 text-sm cursor-pointer">
                 <input
@@ -263,11 +466,24 @@ export function PrintPreview({
                   <option value={16}>Wide</option>
                 </select>
               </div>
+              <label className="flex items-center gap-2 text-sm cursor-pointer">
+                <input
+                  type="checkbox"
+                  className="accent-primary"
+                  checked={dragMode}
+                  onChange={(e) => setDragMode(e.target.checked)}
+                />
+                <Move className="h-3.5 w-3.5" /> Move blocks with mouse
+              </label>
               <button
                 onClick={() => {
                   setScale(100);
                   setMargin(10);
                   setFitOnePage(true);
+                  setPaper("A4");
+                  setTemplate("classic");
+                  setExtraSize(100);
+                  frameRef.current?.contentWindow?.postMessage("drag-reset", "*");
                 }}
                 className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
               >
@@ -291,7 +507,13 @@ export function PrintPreview({
               ref={frameRef}
               title="print-preview"
               srcDoc={srcDoc}
-              onLoad={fit}
+              onLoad={() => {
+                fit();
+                frameRef.current?.contentWindow?.postMessage(
+                  dragMode ? "drag-on" : "drag-off",
+                  "*",
+                );
+              }}
               className="w-full h-full border-0 bg-neutral-200"
             />
           </div>
