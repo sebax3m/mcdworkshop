@@ -225,6 +225,7 @@ function CalendarPage() {
     startOfWeek(new Date(), { weekStartsOn: 1 }),
   );
   const [draggingId, setDraggingId] = useState<string | null>(null);
+  const [dropHint, setDropHint] = useState<{ dayKey: string; index: number } | null>(null);
   const [selectedBooking, setSelectedBooking] = useState<any | null>(null);
   // View mode for the selected booking modal: quick summary vs full editor
   const [bookingView, setBookingView] = useState<"summary" | "edit">("summary");
