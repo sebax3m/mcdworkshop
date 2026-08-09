@@ -694,6 +694,15 @@ function Bikes() {
           </div>
         )}
       </div>
+
+      {cleanupOpen && (
+        <BikeCleanupDialog
+          bikes={rows}
+          isAdmin={isAdmin}
+          onClose={() => setCleanupOpen(false)}
+          onDone={refresh}
+        />
+      )}
     </div>
   );
 }
