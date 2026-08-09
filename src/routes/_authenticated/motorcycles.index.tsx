@@ -1,12 +1,23 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Bike as BikeIcon, Plus, Search, Camera, X, Sparkles, Trash2 } from "lucide-react";
+import {
+  Bike as BikeIcon,
+  Plus,
+  Search,
+  Camera,
+  X,
+  Sparkles,
+  Trash2,
+  Archive,
+  ArchiveRestore,
+  AlertTriangle,
+} from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { fullBike } from "@/lib/format";
@@ -14,6 +25,26 @@ import { uploadPhoto } from "@/lib/photos";
 import { generateBikeImage } from "@/lib/bike-image.functions";
 import { BikeMakeModelYear } from "@/components/BikeMakeModelYear";
 import { useCurrentUser } from "@/hooks/use-current-user";
+import {
+  duplicateGroups,
+  duplicateIds,
+  hasPhone,
+  isBikeSuspicious,
+  isBikeValid,
+  normalizeRego,
+  normalizeVin,
+} from "@/lib/data-quality";
+
+type BikeFilter = "all" | "valid" | "no_owner" | "suspicious" | "duplicates" | "archived";
+
+const BIKE_FILTERS: { key: BikeFilter; label: string }[] = [
+  { key: "all", label: "All" },
+  { key: "valid", label: "Valid" },
+  { key: "no_owner", label: "No owner" },
+  { key: "suspicious", label: "Suspicious" },
+  { key: "duplicates", label: "Duplicate rego/VIN" },
+  { key: "archived", label: "Archived" },
+];
 
 export const Route = createFileRoute("/_authenticated/motorcycles/")({
   component: Bikes,
