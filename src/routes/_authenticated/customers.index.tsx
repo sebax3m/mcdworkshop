@@ -3,6 +3,8 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { fetchAllRows } from "@/lib/fetch-all";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -77,25 +79,19 @@ function Customers() {
   const customers = useQuery({
     queryKey: ["customers-list"],
     queryFn: async () =>
-      (
-        await supabase
-          .from("customers")
-          .select("*")
-          .order("created_at", { ascending: false })
-          .range(0, 49999)
-      ).data ?? [],
+      await fetchAllRows((from, to) =>
+        supabase.from("customers").select("*").order("created_at", { ascending: false }).range(from, to),
+      ),
   });
 
   const bikes = useQuery({
     queryKey: ["customers-bikes"],
     queryFn: async () =>
-      (
-        await supabase
-          .from("motorcycles")
-          .select("id, customer_id, make, model, year, rego")
-          .range(0, 49999)
-      ).data ?? [],
+      await fetchAllRows((from, to) =>
+        supabase.from("motorcycles").select("id, customer_id, make, model, year, rego").range(from, to),
+      ),
   });
+
 
   const bikesByCustomer = new Map<string, any[]>();
   for (const b of bikes.data ?? []) {
