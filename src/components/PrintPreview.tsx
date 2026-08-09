@@ -228,10 +228,15 @@ function paperCss(margin: number) {
       html, body { background:#ffffff !important; }
       .sheet {
         margin:0 !important; box-shadow:none !important;
+        overflow:hidden !important;
+        break-inside: avoid; page-break-inside: avoid;
         break-after: page; page-break-after: always;
       }
-      .sheet:last-child { break-after: auto; page-break-after: auto; }
+      /* The trailing <script> is the real last child, so :last-child never
+         matched and every document printed one extra blank page. */
+      .sheet:last-of-type { break-after: auto; page-break-after: auto; }
     }
+
   `;
 }
 
