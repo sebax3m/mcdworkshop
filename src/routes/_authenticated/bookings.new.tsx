@@ -83,18 +83,18 @@ function NewBooking() {
   const customers = useQuery({
     queryKey: ["bk-customers"],
     queryFn: async () =>
-      (await supabase.from("customers").select("*").order("first_name")).data ?? [],
+      (await (supabase as any).from("customers").select("*").eq("is_archived", false).order("first_name").range(0, 49999)).data ?? [],
   });
   const bikes = useQuery({
     queryKey: ["bk-bikes", customerId],
     enabled: !!customerId,
     queryFn: async () =>
-      (await supabase.from("motorcycles").select("*").eq("customer_id", customerId!)).data ?? [],
+      (await (supabase as any).from("motorcycles").select("*").eq("customer_id", customerId!).eq("is_archived", false)).data ?? [],
   });
   const allBikes = useQuery({
     queryKey: ["bk-all-bikes"],
     queryFn: async () =>
-      (await supabase.from("motorcycles").select("id, customer_id, rego, year, make, model"))
+      (await (supabase as any).from("motorcycles").select("id, customer_id, rego, year, make, model").eq("is_archived", false).range(0, 49999))
         .data ?? [],
   });
   const techs = useQuery({

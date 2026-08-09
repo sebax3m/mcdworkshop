@@ -340,10 +340,12 @@ function CalendarPage() {
     queryKey: ["quick-customers"],
     enabled: !!quickSlot || !!selectedBooking,
     queryFn: async () => {
-      const { data } = await supabase
+      const { data } = await (supabase as any)
         .from("customers")
         .select("id, first_name, last_name, phone, email")
-        .order("first_name");
+        .eq("is_archived", false)
+        .order("first_name")
+        .range(0, 49999);
       return data ?? [];
     },
   });
@@ -352,10 +354,11 @@ function CalendarPage() {
     queryKey: ["edit-bikes", selectedBooking?.customer_id],
     enabled: !!selectedBooking?.customer_id,
     queryFn: async () => {
-      const { data } = await supabase
+      const { data } = await (supabase as any)
         .from("motorcycles")
         .select("id, year, make, model, rego")
-        .eq("customer_id", selectedBooking!.customer_id);
+        .eq("customer_id", selectedBooking!.customer_id)
+        .eq("is_archived", false);
       return data ?? [];
     },
   });
@@ -367,7 +370,8 @@ function CalendarPage() {
       const { data } = await (supabase as any)
         .from("motorcycles")
         .select("id, make, model, year, rego")
-        .eq("customer_id", qCustomerId);
+        .eq("customer_id", qCustomerId)
+        .eq("is_archived", false);
       return data ?? [];
     },
   });
@@ -421,6 +425,7 @@ function CalendarPage() {
           "id, year, make, model, rego, customer_id, customers(id, first_name, last_name, phone, email)",
         )
         .ilike("rego", `%${term}%`)
+        .eq("is_archived", false)
         .not("customer_id", "is", null)
         .limit(6);
       return (data ?? []) as any[];
