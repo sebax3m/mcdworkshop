@@ -313,7 +313,9 @@ function LoanBikesIndex() {
                         e.preventDefault();
                         e.stopPropagation();
                         setReassignFromId(current.id);
+                        setPickerMode("customer");
                         setPickerBikeId(b.id);
+
                       }}
                       className="rounded-lg border border-border bg-background px-3 h-8 text-xs font-semibold hover:border-primary/50"
                       title="Move this loan bike to a different customer"
