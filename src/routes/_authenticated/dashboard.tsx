@@ -2,6 +2,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { addDays, format, isToday } from "date-fns";
+import { TechnicianLoad } from "@/components/booking/TechnicianLoad";
 import { supabase } from "@/integrations/supabase/client";
 import { STATUS_META, fullBike, initials } from "@/lib/format";
 import { Bike, Wrench, Clock, AlertCircle, CheckCircle2, Plus, CalendarDays } from "lucide-react";
@@ -302,7 +303,7 @@ function TodayBookIns() {
       const { data, error } = await supabase
         .from("bookings")
         .select(
-          "id, scheduled_date, service_type, service_type_other, status, confirmed, bike_arrived, loan_bike, customers(first_name,last_name,phone), motorcycles(make,model,year,rego,photos)",
+          "id, scheduled_date, service_type, service_type_other, status, confirmed, bike_arrived, loan_bike, assigned_tech_id, rego, customers(first_name,last_name,phone), motorcycles(make,model,year,rego,photos)",
         )
         .gte("scheduled_date", from)
         .lte("scheduled_date", to)
@@ -357,6 +358,12 @@ function TodayBookIns() {
           ))}
         </div>
       )}
+
+      {/* Technician load for today */}
+      <TechnicianLoad
+        bookings={todays}
+        onOpenBooking={(id) => nav({ to: "/bookings/$bookingId", params: { bookingId: id } })}
+      />
 
       {/* Next 7 days load */}
       <div className="card-surface p-3">

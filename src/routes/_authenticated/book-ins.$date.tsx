@@ -17,6 +17,8 @@ import { NoteDialog } from "@/components/booking/NoteDialog";
 import { useDailyNotesForDate, type DailyNote } from "@/hooks/useDailyNotes";
 import { useWorkshopCapacity } from "@/hooks/useWorkshopCapacity";
 import { bookInStage } from "@/lib/workshop-status";
+import { TechnicianLoad } from "@/components/booking/TechnicianLoad";
+
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/book-ins/$date")({
@@ -44,8 +46,9 @@ export function useDayBookings(dateStr: string) {
       const { data, error } = await supabase
         .from("bookings")
         .select(
-          "id, service_type, service_type_other, scheduled_date, drop_off_time, estimated_hours, status, confirmed, bike_arrived, bike_arrived_at, loan_bike, job_id, notes, complaints, rego, customer_id, motorcycle_id, customers(first_name,last_name,phone), motorcycles(year,make,model,rego,photos)",
+          "id, service_type, service_type_other, scheduled_date, drop_off_time, estimated_hours, status, confirmed, bike_arrived, bike_arrived_at, loan_bike, job_id, notes, complaints, rego, customer_id, motorcycle_id, assigned_tech_id, customers(first_name,last_name,phone), motorcycles(year,make,model,rego,photos)",
         )
+
         .eq("scheduled_date", dateStr)
         .order("drop_off_time", { ascending: true });
       if (error) throw error;
@@ -106,7 +109,19 @@ function DayView() {
     invalidate();
   }
 
+  /** Assign (or unassign) a book-in to a technician via drag & drop. */
+  async function assignTech(bookingId: string, techId: string | null) {
+    const { error } = await supabase
+      .from("bookings")
+      .update({ assigned_tech_id: techId })
+      .eq("id", bookingId);
+    if (error) return toast.error(error.message);
+    toast.success(techId ? "Assigned to technician" : "Unassigned");
+    invalidate();
+  }
+
   /** Move a booking between the day columns via drag & drop. */
+
   async function moveTo(
     b: any,
     target: "booked" | "arrived" | "waiting_inspection" | "in_workshop",
@@ -246,9 +261,9 @@ function DayView() {
               ["waiting_inspection", "Awaiting inspection", groups.waiting_inspection, true],
               ["arrived", "Arrived", groups.arrived, false],
               ["in_workshop", "In workshop", groups.in_workshop, false],
-              ["booked", "Booked in (upcoming)", groups.booked, true],
             ] as const
           ).map(([key, label, list, showCheckIn]) => (
+
             <section
               key={key}
               onDragOver={(e) => {
@@ -362,7 +377,15 @@ function DayView() {
               )}
             </section>
           ))}
+
+          <TechnicianLoad
+            bookings={bookings as any[]}
+            droppable
+            onAssign={assignTech}
+            onOpenBooking={(id) => nav({ to: "/bookings/$bookingId", params: { bookingId: id } })}
+          />
         </div>
+
       )}
 
       <NoteDialog
