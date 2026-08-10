@@ -25,6 +25,8 @@ import {
   X,
   FileText,
   Printer,
+  Trash2,
+
 } from "lucide-react";
 import { detectServiceKind, KIND_META, SERVICE_PARTS } from "@/lib/service-kinds";
 import { getValveSpec, formatRange, type ValveSpec } from "@/lib/valve-specs";
@@ -160,7 +162,31 @@ function JobDetail() {
   );
 
   const [previewOpen, setPreviewOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const jobRef = useRef<HTMLDivElement>(null);
+
+  /** Admin-only: permanently delete this job card and unlink it from its booking. */
+  async function deleteJob() {
+    if (!confirm("Delete this job card permanently? This cannot be undone.")) return;
+    setDeleting(true);
+    // Unlink the booking first so it returns to the day board instead of dangling.
+    await supabase.from("bookings").update({ job_id: null }).eq("job_id", jobId);
+    const { error } = await supabase.from("jobs").delete().eq("id", jobId);
+    setDeleting(false);
+    if (error) {
+      return toast.error(
+        error.message.includes("violates foreign key")
+          ? "This job has an invoice linked. Delete the invoice first."
+          : error.message,
+      );
+    }
+    toast.success("Job card deleted");
+    qc.invalidateQueries({ queryKey: ["jobs"] });
+    qc.invalidateQueries({ queryKey: ["dashboard-jobs"] });
+    qc.invalidateQueries({ queryKey: ["dashboard-counts"] });
+    nav({ to: "/jobs" });
+  }
+
 
   if (job.isLoading)
     return (
@@ -362,8 +388,21 @@ function JobDetail() {
               <Printer className="h-4 w-4" />
               <span className="hidden sm:inline">Preview & print</span>
             </Button>
+            {isAdmin && (
+              <Button
+                onClick={deleteJob}
+                variant="outline"
+                size="sm"
+                disabled={deleting}
+                className="gap-1.5 h-8 px-2.5 border-destructive/50 text-destructive hover:bg-destructive/10 hover:text-destructive"
+              >
+                <Trash2 className="h-4 w-4" />
+                <span className="hidden sm:inline">{deleting ? "Deleting…" : "Delete"}</span>
+              </Button>
+            )}
             <StatusDropdown current={j.status} onChange={setStatus} />
           </div>
+
         </div>
         <div className="min-w-0">
           <div className="text-[0.625rem] uppercase tracking-[0.25em] text-muted-foreground flex flex-wrap items-center gap-2">

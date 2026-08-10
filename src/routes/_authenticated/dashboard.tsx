@@ -208,7 +208,7 @@ function TodayBookIns() {
       const { data, error } = await supabase
         .from("bookings")
         .select(
-          "id, scheduled_date, service_type, service_type_other, status, confirmed, bike_arrived, loan_bike, assigned_tech_id, rego, customers(first_name,last_name,phone), motorcycles(make,model,year,rego,photos)",
+          "id, scheduled_date, service_type, service_type_other, status, confirmed, bike_arrived, loan_bike, assigned_tech_id, job_id, rego, customers(first_name,last_name,phone), motorcycles(make,model,year,rego,photos)",
         )
         .gte("scheduled_date", from)
         .lte("scheduled_date", to)
@@ -232,9 +232,19 @@ function TodayBookIns() {
       toast.error(error.message);
       return;
     }
+    // Keep the linked job card's technician in sync with the book-in.
+    const booking = rows.find((b) => b.id === bookingId);
+    if (booking?.job_id) {
+      await supabase
+        .from("jobs")
+        .update({ assigned_tech_id: techId, technician_id: techId })
+        .eq("id", booking.job_id);
+    }
     toast.success(techId ? "Assigned" : "Unassigned");
     qc.invalidateQueries({ queryKey: ["today-bookings"] });
+    qc.invalidateQueries({ queryKey: ["jobs"] });
   }
+
 
   const arrived = todays.filter((b) => b.bike_arrived).length;
   const cap = capacityFor(start);

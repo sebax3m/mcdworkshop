@@ -113,16 +113,29 @@ function DayView() {
     invalidate();
   }
 
-  /** Assign (or unassign) a book-in to a technician via drag & drop. */
+  /** Assign (or unassign) a book-in to a technician via drag & drop.
+   * Keeps the linked job card's technician in sync so both views agree. */
   async function assignTech(bookingId: string, techId: string | null) {
     const { error } = await supabase
       .from("bookings")
       .update({ assigned_tech_id: techId })
       .eq("id", bookingId);
     if (error) return toast.error(error.message);
+    const booking = (bookings as any[]).find((b: any) => b.id === bookingId) as any;
+    if (booking?.job_id) {
+      await supabase
+        .from("jobs")
+        .update({
+          assigned_tech_id: techId,
+          technician_id: techId,
+          ...(techId ? {} : {}),
+        })
+        .eq("id", booking.job_id);
+    }
     toast.success(techId ? "Assigned to technician" : "Unassigned");
     invalidate();
   }
+
 
   /** Move a booking between the day columns via drag & drop. */
 
