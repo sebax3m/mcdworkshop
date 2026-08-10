@@ -809,7 +809,7 @@ function CalendarPage() {
 
   const monthWeeks = useMemo(() => chunk(monthDays, 7), [monthDays]);
 
-  const dayNames = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+  const dayNames = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
   return (
     <div className="flex flex-col gap-3 h-full">
