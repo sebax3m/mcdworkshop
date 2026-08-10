@@ -420,6 +420,7 @@ function CalendarPage() {
     setQBikeModel("");
     setQBikeYear("");
     setQBikeRego("");
+    setQNoRego(false);
     setQSearch("");
   }
 
