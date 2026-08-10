@@ -986,9 +986,9 @@ function BikeDetailDialog({
                       )}
                     </div>
                     <div className="whitespace-pre-wrap text-xs text-muted-foreground">
-                      {l.service_type ? `${l.service_type} — ` : ""}
                       {l.description}
                     </div>
+
                   </div>
 
                   <button
