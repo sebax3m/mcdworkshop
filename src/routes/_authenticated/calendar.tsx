@@ -2616,6 +2616,18 @@ function CalendarPage() {
         />
       )}
 
+      <LoanBikeDialog
+        bookingId={loanEditBookingId}
+        open={!!loanEditBookingId}
+        onOpenChange={(o) => !o && setLoanEditBookingId(null)}
+        onSaved={() => {
+          qc.invalidateQueries({ queryKey: ["calendar-bookings"] });
+          setSelectedBooking(null);
+        }}
+      />
+
+
+
       {/* Slot chooser: Booking or Note */}
       <AnimatePresence>
         {slotChoice && (
