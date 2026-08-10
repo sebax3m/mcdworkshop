@@ -78,6 +78,7 @@ function NewBooking() {
   const [nbModel, setNbModel] = useState("");
   const [nbYear, setNbYear] = useState("");
   const [nbRego, setNbRego] = useState("");
+  const [nbNoRego, setNbNoRego] = useState(false);
   const [nbColor, setNbColor] = useState("");
   const [creatingBike, setCreatingBike] = useState(false);
 
