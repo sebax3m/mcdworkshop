@@ -122,6 +122,8 @@ const DAILY_CAPACITY_HOURS = 16;
 type ViewMode = "month" | "week";
 
 import { serviceColor, SERVICE_LEGEND, SERVICE_COLORS } from "@/lib/service-colors";
+import { changeBookingServiceType, changeBookingServiceOther } from "@/lib/service-sync";
+
 import { initialsOf } from "@/hooks/use-technician-names";
 
 const FALLBACK_SERVICE_TYPES = [
