@@ -88,7 +88,7 @@ export function AppShell() {
         { to: "/clock", label: "Clock", icon: Timer, color: "#34d399" },
         { to: "/invoices", label: "Invoices", icon: FileText, color: "#22d3ee" },
         { to: "/insurance", label: "Insurance", icon: ShieldCheck, color: "#a78bfa" },
-        { to: "/loan-bikes", label: "Loan", icon: KeyRound, color: "#f59e0b" },
+        { to: "/loan-bikes", label: "Loan Bikes", icon: KeyRound, color: "#f59e0b" },
         { to: "/analytics", label: "Analytics", icon: BarChart3, color: "#4ade80" },
         { to: "/settings", label: "Settings", icon: SettingsIcon, color: "#94a3b8" },
       ]
