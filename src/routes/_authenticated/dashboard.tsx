@@ -5,6 +5,7 @@ import { addDays, format, isToday } from "date-fns";
 import { TechnicianLoad } from "@/components/booking/TechnicianLoad";
 import { supabase } from "@/integrations/supabase/client";
 import { STATUS_META, fullBike, initials } from "@/lib/format";
+import { displayCustomerName } from "@/lib/display";
 import { Bike, Wrench, Clock, AlertCircle, CheckCircle2, Plus, CalendarDays } from "lucide-react";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { BookInCard, CapacityBadge } from "@/components/booking/BookInCard";

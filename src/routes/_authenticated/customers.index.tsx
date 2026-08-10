@@ -25,6 +25,7 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { initials } from "@/lib/format";
+import { displayCustomerName } from "@/lib/display";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import {
   duplicateGroups,
