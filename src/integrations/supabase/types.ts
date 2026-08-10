@@ -50,6 +50,7 @@ export type Database = {
           assigned_tech_id: string | null
           bike_arrived: boolean
           bike_arrived_at: string | null
+          branch: string | null
           color: string | null
           complaints: string | null
           confirmed: boolean
@@ -91,6 +92,7 @@ export type Database = {
           assigned_tech_id?: string | null
           bike_arrived?: boolean
           bike_arrived_at?: string | null
+          branch?: string | null
           color?: string | null
           complaints?: string | null
           confirmed?: boolean
@@ -132,6 +134,7 @@ export type Database = {
           assigned_tech_id?: string | null
           bike_arrived?: boolean
           bike_arrived_at?: string | null
+          branch?: string | null
           color?: string | null
           complaints?: string | null
           confirmed?: boolean
