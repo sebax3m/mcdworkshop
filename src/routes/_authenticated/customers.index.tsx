@@ -510,8 +510,7 @@ function Customers() {
                 </span>
                 <div className="min-w-0 flex-1">
                   <div className="font-semibold truncate flex items-center gap-1.5">
-                    {c.first_name}
-                    {c.last_name ? ` ${c.last_name}` : ""}
+                    {displayCustomerName(c, "")}
                     {c.is_archived && (
                       <span className="text-[0.625rem] uppercase tracking-wider rounded px-1 py-0.5 border border-border text-muted-foreground">
                         Archived
