@@ -4,6 +4,7 @@ import { displayBike, displayCustomerName, displayServiceType } from "@/lib/disp
 import { bookInStage, stageMeta } from "@/lib/workshop-status";
 import { serviceColor } from "@/lib/service-colors";
 import { cn } from "@/lib/utils";
+import { useTechnicianNames, initialsOf } from "@/hooks/use-technician-names";
 
 type Props = {
   booking: any;
@@ -35,6 +36,11 @@ export function BookInCard({
   const customer = displayCustomerName(b.customers);
   const work = displayServiceType(b.service_type, b.service_type_other);
   const svc = serviceColor(b.service_type);
+
+  const techNames = useTechnicianNames();
+  const techName = b.assigned_tech_id
+    ? (b.tech_name ?? techNames.get(b.assigned_tech_id) ?? "Assigned")
+    : null;
 
   const photo = Array.isArray(b.motorcycles?.photos) ? b.motorcycles.photos[0] : null;
 
@@ -94,6 +100,14 @@ export function BookInCard({
             {b.confirmed && (
               <span className="h-1.5 w-1.5 rounded-full bg-green-500" title="Confirmed" />
             )}
+            {techName && (
+              <span
+                className="ml-auto grid h-3.5 w-3.5 place-items-center rounded-full bg-primary text-[0.5rem] font-black text-primary-foreground"
+                title={`Assigned to ${techName}`}
+              >
+                {initialsOf(techName).charAt(0)}
+              </span>
+            )}
           </div>
         </div>
       </div>
@@ -148,6 +162,17 @@ export function BookInCard({
             {b.loan_bike && (
               <span className="rounded-full border border-amber-500/40 bg-amber-500/10 px-1 sm:px-1.5 py-0.5 text-[0.55rem] sm:text-[0.625rem] font-bold uppercase tracking-wider text-amber-400">
                 Loan
+              </span>
+            )}
+            {techName && (
+              <span
+                className="inline-flex items-center gap-1 rounded-full border border-primary/50 bg-primary/15 px-1 sm:px-1.5 py-0.5 text-[0.55rem] sm:text-[0.625rem] font-bold uppercase tracking-wider text-primary"
+                title={`Assigned to ${techName}`}
+              >
+                <span className="grid h-3 w-3 place-items-center rounded-full bg-primary text-[0.5rem] font-black text-primary-foreground">
+                  {initialsOf(techName).charAt(0)}
+                </span>
+                <span className="hidden sm:inline">{techName.split(" ")[0]}</span>
               </span>
             )}
             {b.confirmed && (
