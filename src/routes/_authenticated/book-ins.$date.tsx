@@ -130,7 +130,6 @@ function DayView() {
     nav({ to: "/jobs/new", search: { bookingId: b.id } as never });
   }
 
-
   const go = (delta: number) =>
     nav({
       to: "/book-ins/$date",
@@ -292,7 +291,6 @@ function DayView() {
                       }
                     />
                     <div className="flex gap-1.5">
-
                       {showCheckIn && (
                         <button
                           onClick={() => checkIn(b)}
