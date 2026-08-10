@@ -295,7 +295,7 @@ function BikeCard({
           </div>
           <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[0.6875rem] text-muted-foreground">
             {bike.rego && <span className="font-mono uppercase">{bike.rego}</span>}
-            {bike.current_km != null && <span>{bike.current_km.toLocaleString()} km</span>}
+            {bike.current_km != null && <span>{fmtKm(bike.current_km)} km</span>}
             {bike.last_service_date && (
               <span>Last: {format(new Date(bike.last_service_date), "d MMM yy")}</span>
             )}
@@ -306,7 +306,7 @@ function BikeCard({
                 dueKm <= 0 ? "text-destructive" : "text-muted-foreground"
               }`}
             >
-              {dueKm <= 0 ? "Service due" : `${dueKm.toLocaleString()} km to service`}
+              {dueKm <= 0 ? "Service due" : `${fmtKm(dueKm)} km to service`}
             </div>
           )}
         </div>
@@ -439,7 +439,7 @@ function CalendarPostBikes({
                   <div className="truncate text-sm font-semibold">{label}</div>
                   <div className="mt-0.5 flex flex-wrap items-center gap-x-2 text-[0.6875rem] text-muted-foreground">
                     {b.rego && <span className="font-mono uppercase">{b.rego}</span>}
-                    {b.mileage != null && <span>{b.mileage.toLocaleString()} km</span>}
+                    {b.mileage != null && <span>{fmtKm(b.mileage)} km</span>}
                     <span>Last book-in: {format(new Date(b.lastDate), "d MMM yy")}</span>
                     {b.count > 1 && <span>{b.count} book-ins</span>}
                   </div>
