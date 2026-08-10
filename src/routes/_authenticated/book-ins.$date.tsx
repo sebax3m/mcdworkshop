@@ -44,8 +44,9 @@ export function useDayBookings(dateStr: string) {
       const { data, error } = await supabase
         .from("bookings")
         .select(
-          "id, service_type, service_type_other, scheduled_date, drop_off_time, estimated_hours, status, confirmed, bike_arrived, bike_arrived_at, loan_bike, job_id, notes, complaints, rego, customer_id, motorcycle_id, customers(first_name,last_name,phone), motorcycles(year,make,model,rego,photos)",
+          "id, service_type, service_type_other, scheduled_date, drop_off_time, estimated_hours, status, confirmed, bike_arrived, bike_arrived_at, loan_bike, job_id, notes, complaints, rego, customer_id, motorcycle_id, assigned_tech_id, customers(first_name,last_name,phone), motorcycles(year,make,model,rego,photos)",
         )
+
         .eq("scheduled_date", dateStr)
         .order("drop_off_time", { ascending: true });
       if (error) throw error;
