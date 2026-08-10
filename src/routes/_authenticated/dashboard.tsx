@@ -316,6 +316,8 @@ function TodayBookIns() {
   const rows = (q.data ?? []) as any[];
   const todayKey = format(start, "yyyy-MM-dd");
   const todays = rows.filter((b) => b.scheduled_date === todayKey);
+  const assignedToday = todays.filter((b: any) => b.assigned_tech_id);
+
   const arrived = todays.filter((b) => b.bike_arrived).length;
   const cap = capacityFor(start);
 
@@ -356,6 +358,24 @@ function TodayBookIns() {
               onClick={() => nav({ to: "/book-ins/$date", params: { date: todayKey } })}
             />
           ))}
+        </div>
+      )}
+
+      {/* Assigned jobs today */}
+      {assignedToday.length > 0 && (
+        <div className="card-surface p-3 space-y-2">
+          <div className="text-[0.625rem] font-bold uppercase tracking-wider text-muted-foreground">
+            Assigned today · {assignedToday.length}
+          </div>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-2">
+            {assignedToday.map((b: any) => (
+              <BookInCard
+                key={b.id}
+                booking={b}
+                onClick={() => nav({ to: "/bookings/$bookingId", params: { bookingId: b.id } })}
+              />
+            ))}
+          </div>
         </div>
       )}
 
