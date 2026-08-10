@@ -950,7 +950,7 @@ function BikeDetailDialog({
               {logs.map((l) => (
                 <li key={l.id} className="flex items-start gap-2 p-2.5 text-sm">
                   <div className="min-w-0 flex-1">
-                    <div className="font-medium">
+                    <div className="font-medium whitespace-pre-wrap">
                       {l.service_type ? `${l.service_type} — ` : ""}
                       {l.description}
                     </div>
@@ -958,8 +958,8 @@ function BikeDetailDialog({
                       <span>{format(new Date(l.service_date), "d MMM yyyy")}</span>
                       {l.km != null && <span>{l.km.toLocaleString()} km</span>}
                       {l.performed_by && <span>by {l.performed_by}</span>}
-                      {l.cost != null && <span>${Number(l.cost).toFixed(2)}</span>}
                     </div>
+
                   </div>
                   <button
                     onClick={() => removeLog(l.id)}
