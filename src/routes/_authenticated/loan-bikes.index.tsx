@@ -512,6 +512,8 @@ function LoanBikesIndex() {
               <p className="text-sm text-muted-foreground">Loading book-ins…</p>
             )}
           </div>
+          )}
+
         </DialogContent>
       </Dialog>
 
