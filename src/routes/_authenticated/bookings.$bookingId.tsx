@@ -158,6 +158,45 @@ function BookingDetail() {
         <InfoRow icon={FileText} label="Status" value={b.status} />
       </div>
 
+      <div className="card-surface p-4 flex items-center gap-3">
+        <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-muted">
+          <KeyRound className="h-4 w-4 text-primary" />
+        </span>
+        <div className="min-w-0 flex-1">
+          <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">
+            Loan bike
+          </div>
+          <div className="text-sm font-semibold truncate">
+            {b.loan_bikes
+              ? `${b.loan_bikes.name}${b.loan_bikes.rego ? ` · ${b.loan_bikes.rego}` : ""}`
+              : "None assigned"}
+          </div>
+          {b.loan_bikes && (
+            <div className="text-xs text-muted-foreground truncate">
+              {b.loan_bike_returned_at
+                ? `Returned ${format(new Date(b.loan_bike_returned_at), "d MMM yyyy")}`
+                : b.loan_bike_expected_return
+                  ? `Expected back ${format(new Date(b.loan_bike_expected_return + "T00:00:00"), "EEE d MMM")}`
+                  : "Out"}
+            </div>
+          )}
+        </div>
+        <Button variant="outline" size="sm" onClick={() => setLoanOpen(true)}>
+          {b.loan_bikes ? "Edit" : "Add loan bike"}
+        </Button>
+      </div>
+
+      <LoanBikeDialog
+        bookingId={bookingId}
+        open={loanOpen}
+        onOpenChange={setLoanOpen}
+        onSaved={() => {
+          qc.invalidateQueries({ queryKey: ["booking", bookingId] });
+          qc.invalidateQueries({ queryKey: ["loan-bikes"] });
+          qc.invalidateQueries({ queryKey: ["loan-bikes-active-assignments"] });
+        }}
+      />
+
       {b.complaints && (
         <div className="card-surface p-4">
           <div className="text-xs uppercase tracking-wider text-muted-foreground">
