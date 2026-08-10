@@ -160,6 +160,7 @@ function CalendarPage() {
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [dropHint, setDropHint] = useState<{ dayKey: string; index: number } | null>(null);
   const [selectedBooking, setSelectedBooking] = useState<any | null>(null);
+  const [loanEditBookingId, setLoanEditBookingId] = useState<string | null>(null);
   // View mode for the selected booking modal: quick summary vs full editor
   const [bookingView, setBookingView] = useState<"summary" | "edit">("summary");
   // Notes edit buffer for the summary view (independent from the edit view's textarea)
