@@ -57,6 +57,7 @@ function LoanBikesIndex() {
   const [presetBikeId, setPresetBikeId] = useState<string | null>(null);
   const [pickerBikeId, setPickerBikeId] = useState<string | null>(null);
   const [pickerSearch, setPickerSearch] = useState("");
+  const [reassignFromId, setReassignFromId] = useState<string | null>(null);
 
   const openBookings = useQuery({
     queryKey: ["loan-bike-open-bookings"],
@@ -166,7 +167,7 @@ function LoanBikesIndex() {
                 <Link
                   to="/loan-bikes/$bikeId"
                   params={{ bikeId: b.id }}
-                  className="w-full card-surface p-4 pr-28 flex items-center gap-3 hover:border-primary/50 transition-colors"
+                  className="w-full card-surface p-4 pr-56 flex items-center gap-3 hover:border-primary/50 transition-colors"
                 >
                   <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-amber-400/10 text-amber-400">
                     <BikeIcon className="h-5 w-5" />
@@ -308,12 +309,13 @@ function LoanBikesIndex() {
           if (!v) {
             setPickerBikeId(null);
             setPickerSearch("");
+            setReassignFromId(null);
           }
         }}
       >
         <DialogContent className="max-w-lg">
           <DialogHeader>
-            <DialogTitle>Give loan bike to a book-in</DialogTitle>
+            <DialogTitle>{reassignFromId ? "Move loan bike to another book-in" : "Give loan bike to a book-in"}</DialogTitle>
           </DialogHeader>
           <Input
             value={pickerSearch}
@@ -342,11 +344,23 @@ function LoanBikesIndex() {
                 <button
                   key={bk.id}
                   type="button"
-                  onClick={() => {
+                  onClick={async () => {
+                    if (reassignFromId) {
+                      const { error } = await supabase
+                        .from("bookings")
+                        .update({
+                          loan_bike: false,
+                          loan_bike_id: null,
+                          loan_bike_expected_return: null,
+                        })
+                        .eq("id", reassignFromId);
+                      if (error) return toast.error(error.message);
+                    }
                     setPresetBikeId(pickerBikeId);
                     setEditBookingId(bk.id);
                     setPickerBikeId(null);
                     setPickerSearch("");
+                    setReassignFromId(null);
                   }}
                   className="w-full text-left rounded-lg border border-border px-3 py-2 text-sm hover:border-primary/50"
                 >
