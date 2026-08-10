@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { adminDeleteMotorcycle, adminMergeMotorcycles } from "@/lib/admin-data-ops.functions";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Merge, Sparkles, Trash2, X, AlertTriangle } from "lucide-react";
@@ -93,11 +94,7 @@ export function BikeCleanupDialog({ bikes, isAdmin, onClose, onDone }: Props) {
     try {
       let merged = 0;
       for (const r of sorted.slice(1)) {
-        const { error } = await (supabase as any).rpc("merge_motorcycles", {
-          p_keep_id: keep.id,
-          p_merge_id: r.id,
-        });
-        if (error) throw error;
+        await adminMergeMotorcycles({ data: { keepId: keep.id, mergeId: r.id } });
         merged++;
       }
       toast.success(`${merged} duplicate(s) merged into ${fullBike(keep)}`);
@@ -122,12 +119,12 @@ export function BikeCleanupDialog({ bikes, isAdmin, onClose, onDone }: Props) {
         const sorted = [...groups[i].rows].sort((a, b) => completeness(b) - completeness(a));
         const keep = sorted[0];
         for (const r of sorted.slice(1)) {
-          const { error } = await (supabase as any).rpc("merge_motorcycles", {
-            p_keep_id: keep.id,
-            p_merge_id: r.id,
-          });
-          if (error) failed++;
-          else merged++;
+          try {
+            await adminMergeMotorcycles({ data: { keepId: keep.id, mergeId: r.id } });
+            merged++;
+          } catch {
+            failed++;
+          }
         }
       }
       if (merged) toast.success(`${merged} duplicate bike(s) merged`);
@@ -157,11 +154,12 @@ export function BikeCleanupDialog({ bikes, isAdmin, onClose, onDone }: Props) {
     try {
       for (let i = 0; i < rows.length; i++) {
         setProgress(`Removing ${i + 1}/${rows.length}…`);
-        const { error } = await (supabase as any).rpc("delete_motorcycle_safe", {
-          p_motorcycle_id: rows[i].id,
-        });
-        if (error) blocked.push(rows[i].id);
-        else deleted++;
+        try {
+          await adminDeleteMotorcycle({ data: { motorcycleId: rows[i].id } });
+          deleted++;
+        } catch {
+          blocked.push(rows[i].id);
+        }
       }
       if (archiveFallback && blocked.length) {
         await (supabase as any)

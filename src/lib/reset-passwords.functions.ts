@@ -1,8 +1,16 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
-const TECH_PASSWORD = "Moto26";
-const ADMIN_PASSWORD = "MCDR26";
+// Never hardcode shared passwords. Each reset generates a unique,
+// cryptographically-random password that is returned once to the invoking
+// admin so it can be handed to that single user.
+function generateStrongPassword(): string {
+  const bytes = new Uint8Array(24);
+  crypto.getRandomValues(bytes);
+  let bin = "";
+  for (const b of bytes) bin += String.fromCharCode(b);
+  return btoa(bin).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
 
 export const resetStaffPasswords = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -34,12 +42,14 @@ export const resetStaffPasswords = createServerFn({ method: "POST" })
       role: string;
       status: "ok" | "error";
       message?: string;
+      // Unique one-time password, only shown to the admin who ran the reset.
+      temporary_password?: string;
     }> = [];
     for (const [userId, role] of roleByUser) {
-      const password = role === "admin" ? ADMIN_PASSWORD : TECH_PASSWORD;
+      const password = generateStrongPassword();
       const { error } = await supabaseAdmin.auth.admin.updateUserById(userId, { password });
       if (error) results.push({ user_id: userId, role, status: "error", message: error.message });
-      else results.push({ user_id: userId, role, status: "ok" });
+      else results.push({ user_id: userId, role, status: "ok", temporary_password: password });
     }
-    return { results, tech_password: TECH_PASSWORD, admin_password: ADMIN_PASSWORD };
+    return { results };
   });

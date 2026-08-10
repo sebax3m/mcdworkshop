@@ -4,6 +4,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchAllRows } from "@/lib/fetch-all";
+import { adminDeleteMotorcycle } from "@/lib/admin-data-ops.functions";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -204,11 +205,12 @@ function Bikes() {
     let ok = 0;
     const blocked: string[] = [];
     for (const id of ids) {
-      const { error } = await (supabase as any).rpc("delete_motorcycle_safe", {
-        p_motorcycle_id: id,
-      });
-      if (error) blocked.push(id);
-      else ok++;
+      try {
+        await adminDeleteMotorcycle({ data: { motorcycleId: id } });
+        ok++;
+      } catch {
+        blocked.push(id);
+      }
     }
     setSelected(new Set());
     if (ok) toast.success(`${ok} permanently deleted`);
