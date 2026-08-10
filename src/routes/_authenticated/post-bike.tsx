@@ -221,6 +221,13 @@ function PostBikePage() {
         </div>
       )}
 
+      <CalendarPostBikes
+        branches={branches}
+        existing={bikes}
+        onImported={() => qc.invalidateQueries({ queryKey: ["post-bikes"] })}
+      />
+
+
       <NewBranchDialog
         open={branchOpen}
         onOpenChange={setBranchOpen}
