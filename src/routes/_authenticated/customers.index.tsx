@@ -40,13 +40,7 @@ export const Route = createFileRoute("/_authenticated/customers/")({
   component: Customers,
 });
 
-type Filter =
-  | "all"
-  | "valid"
-  | "missing_phone"
-  | "suspicious"
-  | "duplicate_phone"
-  | "archived";
+type Filter = "all" | "valid" | "missing_phone" | "suspicious" | "duplicate_phone" | "archived";
 
 const FILTERS: { key: Filter; label: string }[] = [
   { key: "all", label: "All" },
@@ -81,7 +75,11 @@ function Customers() {
     queryKey: ["customers-list"],
     queryFn: async () =>
       await fetchAllRows((from, to) =>
-        supabase.from("customers").select("*").order("created_at", { ascending: false }).range(from, to),
+        supabase
+          .from("customers")
+          .select("*")
+          .order("created_at", { ascending: false })
+          .range(from, to),
       ),
   });
 
@@ -89,10 +87,12 @@ function Customers() {
     queryKey: ["customers-bikes"],
     queryFn: async () =>
       await fetchAllRows((from, to) =>
-        supabase.from("motorcycles").select("id, customer_id, make, model, year, rego").range(from, to),
+        supabase
+          .from("motorcycles")
+          .select("id, customer_id, make, model, year, rego")
+          .range(from, to),
       ),
   });
-
 
   const bikesByCustomer = new Map<string, any[]>();
   for (const b of bikes.data ?? []) {
@@ -667,7 +667,9 @@ function MergeDialog({
           </button>
         </div>
         <div className="rounded-lg border border-primary/40 bg-primary/5 p-3">
-          <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">Keeping</div>
+          <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">
+            Keeping
+          </div>
           <div className="font-semibold">{name(keep)}</div>
           <div className="text-xs text-muted-foreground">{keep.phone ?? "—"}</div>
         </div>
@@ -686,7 +688,10 @@ function MergeDialog({
             ["Invoices", c["invoices"]],
             ["Insurance claims", c["insurance_claims"]],
           ].map(([label, value]) => (
-            <div key={String(label)} className="rounded-md border border-border bg-muted/30 px-2 py-1.5">
+            <div
+              key={String(label)}
+              className="rounded-md border border-border bg-muted/30 px-2 py-1.5"
+            >
               <div className="font-semibold">{counts.isLoading ? "…" : (value ?? 0)}</div>
               <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">
                 {label}

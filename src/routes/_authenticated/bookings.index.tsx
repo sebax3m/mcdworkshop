@@ -216,9 +216,7 @@ function BookingsList() {
             const bike = b.motorcycles
               ? `${b.motorcycles.year ?? ""} ${b.motorcycles.make} ${b.motorcycles.model}`.trim()
               : "—";
-            const customer = b.customers
-              ? displayCustomerName(b.customers, "")
-              : "—";
+            const customer = b.customers ? displayCustomerName(b.customers, "") : "—";
             const phone = b.customers?.phone ?? "";
             const pLabel = (b.priority ?? "normal").toLowerCase();
             const pColor =

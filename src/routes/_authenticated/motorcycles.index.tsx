@@ -105,7 +105,6 @@ function Bikes() {
       ),
   });
 
-
   const rows: any[] = useMemo(() => bikes.data ?? [], [bikes.data]);
   const active = useMemo(() => rows.filter((b) => !b.is_archived), [rows]);
 
@@ -132,7 +131,8 @@ function Bikes() {
 
   let filtered = active;
   if (filter === "archived") filtered = rows.filter((b: any) => b.is_archived);
-  else if (filter === "valid") filtered = active.filter((b: any) => isBikeValid(b, !!b.customer_id));
+  else if (filter === "valid")
+    filtered = active.filter((b: any) => isBikeValid(b, !!b.customer_id));
   else if (filter === "no_owner") filtered = active.filter((b: any) => !b.customer_id);
   else if (filter === "suspicious") filtered = active.filter((b: any) => isBikeSuspicious(b));
   else if (filter === "duplicates") filtered = active.filter((b: any) => dupIds.has(b.id));
@@ -424,7 +424,6 @@ function Bikes() {
           placeholder="Search make, model, rego, VIN, owner"
           className="w-full rounded-xl bg-card border border-border pl-10 pr-3 py-3 text-sm"
         />
-
       </div>
 
       {open && (
@@ -596,7 +595,10 @@ function Bikes() {
                 setSelected(checked ? new Set(filtered.map((b: any) => b.id)) : new Set())
               }
             />
-            <label htmlFor="select-all-bikes" className="text-xs text-muted-foreground cursor-pointer">
+            <label
+              htmlFor="select-all-bikes"
+              className="text-xs text-muted-foreground cursor-pointer"
+            >
               Select all
             </label>
           </div>

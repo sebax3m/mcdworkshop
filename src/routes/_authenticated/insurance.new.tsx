@@ -47,13 +47,26 @@ function NewClaim() {
   const customers = useQuery({
     queryKey: ["ins-customers"],
     queryFn: async () =>
-      (await (supabase as any).from("customers").select("*").eq("is_archived", false).order("first_name").range(0, 49999)).data ?? [],
+      (
+        await (supabase as any)
+          .from("customers")
+          .select("*")
+          .eq("is_archived", false)
+          .order("first_name")
+          .range(0, 49999)
+      ).data ?? [],
   });
   const bikes = useQuery({
     queryKey: ["ins-bikes", customerId],
     enabled: !!customerId,
     queryFn: async () =>
-      (await (supabase as any).from("motorcycles").select("*").eq("customer_id", customerId!).eq("is_archived", false)).data ?? [],
+      (
+        await (supabase as any)
+          .from("motorcycles")
+          .select("*")
+          .eq("customer_id", customerId!)
+          .eq("is_archived", false)
+      ).data ?? [],
   });
 
   const filteredCust = useMemo(() => {
@@ -195,9 +208,7 @@ function NewClaim() {
               return (
                 <div className="flex items-center justify-between gap-2 flex-wrap">
                   <span>
-                    <b>
-                      {displayCustomerName(c, "")}
-                    </b>
+                    <b>{displayCustomerName(c, "")}</b>
                     {b ? (
                       <span className="text-muted-foreground">
                         {" "}

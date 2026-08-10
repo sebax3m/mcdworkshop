@@ -60,8 +60,6 @@ function NewJob() {
     });
   }, [bookings.data, search]);
 
-
-
   // If we arrive with ?bookingId=..., allocate that booking straight away
   useEffect(() => {
     if (!bookingId || autoRan.current || userLoading || !isAdmin) return;

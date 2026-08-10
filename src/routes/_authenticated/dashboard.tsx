@@ -222,9 +222,7 @@ function KpiCard({
 
 function JobCard({ job }: { job: any }) {
   const meta = STATUS_META[job.status];
-  const customer = job.customers
-    ? displayCustomerName(job.customers, "")
-    : "—";
+  const customer = job.customers ? displayCustomerName(job.customers, "") : "—";
   const bike = job.motorcycles ? fullBike(job.motorcycles) : "—";
   const tech = job.technician_name;
   return (

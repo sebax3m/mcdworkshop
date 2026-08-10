@@ -413,9 +413,7 @@ function NewBooking() {
               {initials(displayCustomerName(customer, ""))}
             </span>
             <div className="min-w-0">
-              <div className="font-semibold truncate">
-                {displayCustomerName(customer, "")}
-              </div>
+              <div className="font-semibold truncate">{displayCustomerName(customer, "")}</div>
               <div className="text-xs text-muted-foreground truncate">
                 {customer.phone || customer.email || "—"}
               </div>
