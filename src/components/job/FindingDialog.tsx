@@ -96,6 +96,17 @@ export function FindingDialog({ open, onOpenChange, jobId, userId, finding, onSa
     onOpenChange(false);
   }
 
+  async function remove() {
+    if (!finding) return;
+    setDeleting(true);
+    const { error } = await supabase.from("job_inspection_findings").delete().eq("id", finding.id);
+    setDeleting(false);
+    if (error) return toast.error(error.message);
+    toast.success("Finding deleted");
+    onSaved();
+    onOpenChange(false);
+  }
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
