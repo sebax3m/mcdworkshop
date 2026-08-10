@@ -800,20 +800,35 @@ function InvoiceDetail() {
               </thead>
               <tbody>
                 {inv.job_id &&
+                  !(inv.snapshot as any)?.labour_hidden &&
                   (() => {
                     const rate = LABOUR_RATE;
                     const hours = Number(inv.labour_total) / rate;
                     const delta = hours - defaultHours;
+                    const snap = (inv.snapshot as any) ?? {};
+                    const title = snap.labour_title ?? "Workshop labour";
+                    const desc =
+                      snap.labour_desc ?? `Diagnostics, service & repair · $${rate}/hr (incl. GST)`;
                     const deltaLabel =
                       Math.abs(delta) < 0.01
                         ? null
                         : `${delta > 0 ? "+" : ""}${delta.toFixed(2)}h vs tracked`;
                     return (
-                      <tr className="border-b border-border/40">
+                      <tr className="border-b border-border/40 group">
                         <td className="py-3">
-                          <div className="font-medium">Workshop labour</div>
+                          <EditableText
+                            value={title}
+                            onCommit={(v) =>
+                              saveSnapshotMeta({ labour_title: v || "Workshop labour" })
+                            }
+                            className="font-medium"
+                          />
                           <div className="text-xs text-muted-foreground">
-                            Diagnostics, service & repair · $130/hr (incl. GST)
+                            <EditableText
+                              value={desc}
+                              onCommit={(v) => saveSnapshotMeta({ labour_desc: v })}
+                              className="text-xs text-muted-foreground"
+                            />
                             {defaultHours > 0 && (
                               <span className="no-print">
                                 {" "}
