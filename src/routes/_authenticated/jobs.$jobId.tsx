@@ -160,6 +160,34 @@ function JobDetail() {
   });
   const hasPendingApproval = !!pendingApproval.data;
 
+  /** Approved extra work (findings the customer said yes to) — printed on the job card. */
+  const approvedFindings = useQuery({
+    queryKey: ["job-approved-findings", jobId],
+    queryFn: async () =>
+      (
+        await supabase
+          .from("job_inspection_findings")
+          .select(
+            "id, title, description, category, severity, recommended_action, estimated_labour, estimated_parts_cost, decision_note, updated_at",
+          )
+          .eq("job_id", jobId)
+          .eq("status", "approved")
+          .order("created_at", { ascending: true })
+      ).data ?? [],
+  });
+  const approvalDecisions = useQuery({
+    queryKey: ["job-approval-approved", jobId],
+    queryFn: async () =>
+      (
+        await supabase
+          .from("job_approval_requests")
+          .select("id, decision, customer_contact_method, resolution_note, resolved_at")
+          .eq("job_id", jobId)
+          .eq("status", "resolved")
+          .order("resolved_at", { ascending: true })
+      ).data ?? [],
+  });
+
   const activeTimer = useMemo(
     () => (time.data ?? []).find((t) => !t.ended_at && t.technician_id === user?.id),
     [time.data, user],
