@@ -18,6 +18,12 @@ import {
 const fmtKm = (n: number | null | undefined) =>
   n == null ? "" : new Intl.NumberFormat("de-DE").format(n);
 
+/** Parses a possibly dot-formatted km string back to a number */
+const parseKm = (v: string): number | null => {
+  const digits = v.replace(/\D/g, "");
+  return digits ? Number(digits) : null;
+};
+
 
 type Branch = {
   id: string;
