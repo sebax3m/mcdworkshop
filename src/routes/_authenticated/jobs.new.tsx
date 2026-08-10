@@ -219,7 +219,7 @@ function NewJob() {
       ) : (
         <div className="space-y-2">
           {filtered.map((b, i) => {
-            const cust = b.customers ? `${b.customers.first_name} ${b.customers.last_name}` : "—";
+            const cust = displayCustomerName(b.customers);
             const busy = busyId === b.id;
             return (
               <motion.button

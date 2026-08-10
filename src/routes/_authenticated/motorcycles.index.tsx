@@ -438,7 +438,7 @@ function Bikes() {
               <option value="">Select customer…</option>
               {(customers.data ?? []).map((c: any) => (
                 <option key={c.id} value={c.id}>
-                  {c.first_name} {c.last_name}
+                  {displayCustomerName(c, "")}
                 </option>
               ))}
             </select>
@@ -655,7 +655,7 @@ function Bikes() {
                   )}
                 </div>
                 <div className="text-xs text-muted-foreground truncate">
-                  {b.customers ? `${b.customers.first_name} ${b.customers.last_name}` : "—"}
+                  {displayCustomerName(b.customers)}
                   {b.rego ? ` · ${b.rego}` : ""}
                   {b.mileage ? ` · ${Number(b.mileage).toLocaleString()} km` : ""}
                 </div>

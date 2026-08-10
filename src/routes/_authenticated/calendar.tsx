@@ -2489,7 +2489,7 @@ function CalendarPage() {
                                     {lb.current_km?.toLocaleString?.() ?? 0} km
                                     {busy &&
                                       outWith?.customers &&
-                                      ` · Out with ${outWith.customers.first_name} ${outWith.customers.last_name}`}
+                                      ` · Out with ${displayCustomerName(outWith.customers, "")}`}
                                     {busy &&
                                       outWith?.loan_bike_expected_return &&
                                       ` · back ${outWith.loan_bike_expected_return}`}
