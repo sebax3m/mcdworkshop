@@ -312,9 +312,7 @@ function LoanBikeDetail() {
             <div className="flex items-center gap-2 flex-wrap">
               <UserIcon className="h-3.5 w-3.5" />
               <span className="font-semibold">
-                {active.customers
-                  ? `${active.customers.first_name} ${active.customers.last_name}`
-                  : "—"}
+                {displayCustomerName(active.customers, "")}
               </span>
               <span className="text-xs text-muted-foreground">
                 · Given {format(new Date(active.scheduled_date + "T00:00:00"), "d MMM")}

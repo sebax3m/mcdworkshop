@@ -191,7 +191,7 @@ function Customers() {
   else if (filter === "duplicate_phone") filtered = active.filter((c) => dupIds.has(c.id));
 
   filtered = filtered.filter((c: any) =>
-    `${c.first_name} ${c.last_name} ${c.phone ?? ""} ${c.email ?? ""}`
+    `${displayCustomerName(c, "")} ${c.phone ?? ""} ${c.email ?? ""}`
       .toLowerCase()
       .includes(search.toLowerCase()),
   );
