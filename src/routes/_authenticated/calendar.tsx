@@ -407,6 +407,7 @@ function CalendarPage() {
     setQBikeModel(b.model ?? "");
     setQBikeYear(b.year ? String(b.year) : "");
     setQBikeRego(b.rego ?? "");
+    setQNoRego(false);
   }
 
   function clearCustomerSelection() {
