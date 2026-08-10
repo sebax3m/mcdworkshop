@@ -885,24 +885,22 @@ function BikeDetailDialog({
             <div className="grid gap-2 sm:grid-cols-6">
               <input
                 type="date"
-                className={`${inputCls} sm:col-span-2`}
+                className={`${inputCls} sm:col-span-3`}
                 value={logForm.service_date}
                 onChange={(e) => setLogForm((f) => ({ ...f, service_date: e.target.value }))}
               />
               <input
-                type="number"
+                type="text"
+                inputMode="numeric"
                 placeholder="km"
-                className={`${inputCls} sm:col-span-1`}
-                value={logForm.km}
-                onChange={(e) => setLogForm((f) => ({ ...f, km: e.target.value }))}
-              />
-              <input
-                placeholder="Type (oil, tyres…)"
                 className={`${inputCls} sm:col-span-3`}
-                value={logForm.service_type}
-                onChange={(e) => setLogForm((f) => ({ ...f, service_type: e.target.value }))}
+                value={fmtKm(parseKm(logForm.km))}
+                onChange={(e) =>
+                  setLogForm((f) => ({ ...f, km: String(parseKm(e.target.value) ?? "") }))
+                }
               />
             </div>
+
 
             <div className="space-y-1">
               <span className="text-xs font-semibold text-muted-foreground">What was done</span>
