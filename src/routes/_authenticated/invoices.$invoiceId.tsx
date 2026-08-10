@@ -400,6 +400,29 @@ function InvoiceDetail() {
     await recomputeInvoiceTotals(nextAmount);
   }
 
+  async function saveSnapshotMeta(patch: Record<string, unknown>) {
+    const newSnap = { ...((inv.snapshot as any) ?? {}), ...patch };
+    const { error } = await supabase
+      .from("invoices")
+      .update({ snapshot: newSnap })
+      .eq("id", invoiceId);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    qc.invalidateQueries({ queryKey: ["invoice", invoiceId] });
+  }
+
+  async function removeLabourLine() {
+    await saveSnapshotMeta({ labour_hidden: true });
+    await recomputeInvoiceTotals(0);
+  }
+
+  async function restoreLabourLine() {
+    await saveSnapshotMeta({ labour_hidden: false });
+    await recomputeInvoiceTotals(defaultHours * LABOUR_RATE);
+  }
+
   async function updatePart(
     id: string,
     patch: {
