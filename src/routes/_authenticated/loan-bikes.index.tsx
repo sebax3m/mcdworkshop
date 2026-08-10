@@ -17,6 +17,7 @@ import { displayCustomerName } from "@/lib/display";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { LoanBikeDialog } from "@/components/booking/LoanBikeDialog";
 import {
   Dialog,
   DialogContent,
