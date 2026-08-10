@@ -1340,11 +1340,22 @@ function CalendarPage() {
                           {b.confirmed ? "Confirmed" : "Confirm"}
                         </button>
 
-                        {b.loan_bike && (
-                          <span className="inline-flex items-center gap-1 rounded-full bg-amber-400/20 border border-amber-400/60 px-2 py-0.5 text-[0.625rem] font-bold uppercase tracking-wider text-amber-300">
-                            🏍️ Loan{b.loan_bikes?.name ? ` · ${b.loan_bikes.name}` : ""}
-                          </span>
-                        )}
+                        <button
+                          type="button"
+                          onClick={() => setLoanEditBookingId(b.id)}
+                          className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[0.625rem] font-bold uppercase tracking-wider border transition-colors ${
+                            b.loan_bike
+                              ? "bg-fuchsia-500/20 border-fuchsia-500/60 text-fuchsia-300"
+                              : "bg-background/40 border-border text-muted-foreground hover:border-fuchsia-500/50 hover:text-fuchsia-300"
+                          }`}
+                          title="Assign or edit loan bike"
+                        >
+                          🏍️{" "}
+                          {b.loan_bike
+                            ? `Loan${b.loan_bikes?.name ? ` · ${b.loan_bikes.name}` : ""}`
+                            : "Add loan bike"}
+                        </button>
+
                         <button
                           type="button"
                           onClick={async () => {
