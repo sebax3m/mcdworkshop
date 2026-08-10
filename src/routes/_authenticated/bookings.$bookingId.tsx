@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Calendar, Clock, Wrench, User, Bike as BikeIcon, FileText } from "lucide-react";
 import { toast } from "sonner";
+import { displayCustomerName } from "@/lib/display";
 import { fullBike } from "@/lib/format";
 import { getSignedUrls } from "@/lib/photos";
 import { format } from "date-fns";

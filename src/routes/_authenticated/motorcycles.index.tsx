@@ -23,6 +23,7 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { fullBike } from "@/lib/format";
+import { displayCustomerName } from "@/lib/display";
 import { uploadPhoto } from "@/lib/photos";
 import { generateBikeImage } from "@/lib/bike-image.functions";
 import { BikeMakeModelYear } from "@/components/BikeMakeModelYear";

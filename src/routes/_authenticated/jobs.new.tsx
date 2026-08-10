@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { fullBike, initials } from "@/lib/format";
+import { displayCustomerName } from "@/lib/display";
 import { format } from "date-fns";
 import { useCurrentUser } from "@/hooks/use-current-user";
 

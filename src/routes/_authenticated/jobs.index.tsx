@@ -4,6 +4,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { STATUS_META, STATUS_ORDER, fullBike } from "@/lib/format";
+import { displayCustomerName } from "@/lib/display";
 import { Plus, Search, Trash2, X } from "lucide-react";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import {
