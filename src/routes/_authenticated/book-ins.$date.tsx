@@ -193,12 +193,18 @@ function DayView() {
           >
             <Plus className="h-4 w-4" /> New book-in
           </Link>
-          <Link
-            to="/calendar"
-            className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 h-9 text-xs font-semibold uppercase tracking-wider hover:border-primary/50"
-          >
-            <CalendarDays className="h-4 w-4" /> Calendar
-          </Link>
+          <div className="inline-flex items-center rounded-lg border border-border p-0.5">
+            <span className="inline-flex items-center gap-1.5 rounded-md bg-primary/15 text-primary px-3 h-8 text-xs font-bold uppercase tracking-wider">
+              <ClipboardCheck className="h-4 w-4" /> Day
+            </span>
+            <Link
+              to="/calendar"
+              className="inline-flex items-center gap-1.5 rounded-md px-3 h-8 text-xs font-semibold uppercase tracking-wider text-muted-foreground hover:text-foreground hover:bg-muted"
+            >
+              <CalendarDays className="h-4 w-4" /> Calendar
+            </Link>
+          </div>
+
         </div>
       </div>
 
