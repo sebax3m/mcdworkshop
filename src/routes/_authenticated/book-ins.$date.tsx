@@ -241,14 +241,16 @@ function DayView() {
           </Link>
         </div>
       ) : (
-        <div className="grid gap-4 md:grid-cols-3">
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
           {(
             [
-              ["booked", "Booked in", groups.booked, true],
+              ["waiting_inspection", "Awaiting inspection", groups.waiting_inspection, true],
               ["arrived", "Arrived", groups.arrived, false],
-              ["waiting_inspection", "Waiting inspection", groups.waiting_inspection, false],
+              ["in_workshop", "In workshop", groups.in_workshop, false],
+              ["booked", "Booked in (upcoming)", groups.booked, true],
             ] as const
           ).map(([key, label, list, showCheckIn]) => (
+
             <section
               key={key}
               onDragOver={(e) => {
