@@ -1234,6 +1234,157 @@ export type Database = {
           },
         ]
       }
+      post_bike_branches: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          name: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      post_bike_services: {
+        Row: {
+          cost: number | null
+          created_at: string
+          created_by: string | null
+          description: string
+          id: string
+          km: number | null
+          notes: string | null
+          performed_by: string | null
+          post_bike_id: string
+          service_date: string
+          service_type: string | null
+          updated_at: string
+        }
+        Insert: {
+          cost?: number | null
+          created_at?: string
+          created_by?: string | null
+          description: string
+          id?: string
+          km?: number | null
+          notes?: string | null
+          performed_by?: string | null
+          post_bike_id: string
+          service_date?: string
+          service_type?: string | null
+          updated_at?: string
+        }
+        Update: {
+          cost?: number | null
+          created_at?: string
+          created_by?: string | null
+          description?: string
+          id?: string
+          km?: number | null
+          notes?: string | null
+          performed_by?: string | null
+          post_bike_id?: string
+          service_date?: string
+          service_type?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "post_bike_services_post_bike_id_fkey"
+            columns: ["post_bike_id"]
+            isOneToOne: false
+            referencedRelation: "post_bikes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      post_bikes: {
+        Row: {
+          branch_id: string | null
+          color: string | null
+          created_at: string
+          created_by: string | null
+          current_km: number | null
+          id: string
+          is_active: boolean
+          last_service_date: string | null
+          last_service_km: number | null
+          make: string | null
+          model: string | null
+          name: string | null
+          notes: string | null
+          rego: string | null
+          service_interval_km: number
+          sort_order: number
+          updated_at: string
+          year: number | null
+        }
+        Insert: {
+          branch_id?: string | null
+          color?: string | null
+          created_at?: string
+          created_by?: string | null
+          current_km?: number | null
+          id?: string
+          is_active?: boolean
+          last_service_date?: string | null
+          last_service_km?: number | null
+          make?: string | null
+          model?: string | null
+          name?: string | null
+          notes?: string | null
+          rego?: string | null
+          service_interval_km?: number
+          sort_order?: number
+          updated_at?: string
+          year?: number | null
+        }
+        Update: {
+          branch_id?: string | null
+          color?: string | null
+          created_at?: string
+          created_by?: string | null
+          current_km?: number | null
+          id?: string
+          is_active?: boolean
+          last_service_date?: string | null
+          last_service_km?: number | null
+          make?: string | null
+          model?: string | null
+          name?: string | null
+          notes?: string | null
+          rego?: string | null
+          service_interval_km?: number
+          sort_order?: number
+          updated_at?: string
+          year?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "post_bikes_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "post_bike_branches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
