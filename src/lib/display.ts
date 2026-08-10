@@ -18,15 +18,17 @@ export function displayCustomerName(
     | {
         first_name?: string | null;
         last_name?: string | null;
+        n?: string | null;
       }
     | null
     | undefined,
+  fallback = "—",
 ): string {
-  if (!c) return "—";
+  if (!c) return fallback;
   const first = (c.first_name ?? "").trim();
-  const last = (c.last_name ?? "").trim();
+  const last = (c.last_name ?? c.n ?? "").trim();
   const full = `${first} ${last}`.trim();
-  return full || "—";
+  return full || fallback;
 }
 
 export function displayBike(
