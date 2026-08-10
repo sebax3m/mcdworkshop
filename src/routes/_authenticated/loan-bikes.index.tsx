@@ -139,61 +139,78 @@ function LoanBikesIndex() {
             const serviceSoon = kmToService <= 500;
             const isOut = !!current;
             return (
-              <Link
-                key={b.id}
-                to="/loan-bikes/$bikeId"
-                params={{ bikeId: b.id }}
-                className="w-full card-surface p-4 flex items-center gap-3 hover:border-primary/50 transition-colors"
-              >
-                <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-amber-400/10 text-amber-400">
-                  <BikeIcon className="h-5 w-5" />
-                </span>
-                <span className="min-w-0 flex-1">
-                  <span className="flex items-center gap-2 flex-wrap">
-                    <span className="font-semibold truncate">{b.name}</span>
-                    {b.rego && (
-                      <span className="text-[0.625rem] text-muted-foreground">· {b.rego}</span>
-                    )}
-                    {isOut ? (
-                      <span className="rounded-full bg-destructive/15 text-destructive px-2 py-0.5 text-[0.625rem] font-bold uppercase tracking-wider">
-                        Out
-                      </span>
-                    ) : (
-                      <span className="rounded-full bg-emerald-500/15 text-emerald-500 px-2 py-0.5 text-[0.625rem] font-bold uppercase tracking-wider">
-                        Available
-                      </span>
-                    )}
-                    {serviceSoon && (
-                      <span className="rounded-full bg-amber-400/15 text-amber-400 px-2 py-0.5 text-[0.625rem] font-bold uppercase tracking-wider inline-flex items-center gap-1">
-                        <Wrench className="h-3 w-3" /> Service due
-                      </span>
-                    )}
+              <div key={b.id} className="relative">
+                <Link
+                  to="/loan-bikes/$bikeId"
+                  params={{ bikeId: b.id }}
+                  className="w-full card-surface p-4 pr-28 flex items-center gap-3 hover:border-primary/50 transition-colors"
+                >
+                  <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-amber-400/10 text-amber-400">
+                    <BikeIcon className="h-5 w-5" />
                   </span>
-                  <span className="mt-0.5 flex items-center gap-3 text-xs text-muted-foreground flex-wrap">
-                    <span>{b.current_km.toLocaleString()} km</span>
-                    <span>Next service @ {nextServiceKm.toLocaleString()} km</span>
-                    {isOut && (
-                      <>
-                        <span className="inline-flex items-center gap-1">
-                          <UserIcon className="h-3 w-3" />
-                          {displayCustomerName(current.customers, "")}
+                  <span className="min-w-0 flex-1">
+                    <span className="flex items-center gap-2 flex-wrap">
+                      <span className="font-semibold truncate">{b.name}</span>
+                      {b.rego && (
+                        <span className="text-[0.625rem] text-muted-foreground">· {b.rego}</span>
+                      )}
+                      {isOut ? (
+                        <span className="rounded-full bg-destructive/15 text-destructive px-2 py-0.5 text-[0.625rem] font-bold uppercase tracking-wider">
+                          Out
                         </span>
-                        {current.loan_bike_expected_return && (
-                          <span className="inline-flex items-center gap-1 text-amber-400">
-                            <CalendarClock className="h-3 w-3" />
-                            Back{" "}
-                            {format(
-                              new Date(current.loan_bike_expected_return + "T00:00:00"),
-                              "EEE d MMM",
-                            )}
+                      ) : (
+                        <span className="rounded-full bg-emerald-500/15 text-emerald-500 px-2 py-0.5 text-[0.625rem] font-bold uppercase tracking-wider">
+                          Available
+                        </span>
+                      )}
+                      {serviceSoon && (
+                        <span className="rounded-full bg-amber-400/15 text-amber-400 px-2 py-0.5 text-[0.625rem] font-bold uppercase tracking-wider inline-flex items-center gap-1">
+                          <Wrench className="h-3 w-3" /> Service due
+                        </span>
+                      )}
+                    </span>
+                    <span className="mt-0.5 flex items-center gap-3 text-xs text-muted-foreground flex-wrap">
+                      <span>{b.current_km.toLocaleString()} km</span>
+                      <span>Next service @ {nextServiceKm.toLocaleString()} km</span>
+                      {isOut && (
+                        <>
+                          <span className="inline-flex items-center gap-1">
+                            <UserIcon className="h-3 w-3" />
+                            {displayCustomerName(current.customers, "")}
                           </span>
-                        )}
-                      </>
-                    )}
+                          {current.loan_bike_expected_return && (
+                            <span className="inline-flex items-center gap-1 text-amber-400">
+                              <CalendarClock className="h-3 w-3" />
+                              Back{" "}
+                              {format(
+                                new Date(current.loan_bike_expected_return + "T00:00:00"),
+                                "EEE d MMM",
+                              )}
+                            </span>
+                          )}
+                        </>
+                      )}
+                    </span>
                   </span>
-                </span>
-                <ChevronRight className="h-4 w-4 text-muted-foreground" />
-              </Link>
+                  <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                </Link>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (isOut) {
+                      setEditBookingId(current.id);
+                      setPresetBikeId(b.id);
+                    } else {
+                      setPickerBikeId(b.id);
+                    }
+                  }}
+                  className="absolute right-9 top-1/2 -translate-y-1/2 rounded-lg border border-border bg-background px-3 h-8 text-xs font-semibold hover:border-primary/50"
+                >
+                  {isOut ? "Edit out" : "Give out"}
+                </button>
+              </div>
             );
           })}
         </div>
