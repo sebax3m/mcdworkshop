@@ -216,6 +216,7 @@ function NewBooking() {
       setNbModel("");
       setNbYear("");
       setNbRego("");
+      setNbNoRego(false);
       setNbColor("");
       setShowNewBike(false);
       toast.success("Motorcycle added");
