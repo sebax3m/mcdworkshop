@@ -1055,7 +1055,7 @@ function CalendarPage() {
       {/* WEEK VIEW — motorcycles booked in per day (no hourly slots) */}
       {viewMode === "week" && (
         <div className="overflow-x-auto min-w-full">
-          <div className="grid gap-1.5 sm:gap-2 min-w-[600px] sm:min-w-[980px] grid-cols-7 items-start">
+          <div className="grid gap-1.5 sm:gap-2 min-w-[600px] sm:min-w-[980px] grid-cols-6 items-start">
             {weekDays.map((day) => {
               const dayKey = format(day, "yyyy-MM-dd");
               const dayBookings = sortBookIns(
