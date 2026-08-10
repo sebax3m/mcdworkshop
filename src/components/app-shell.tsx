@@ -14,6 +14,7 @@ import {
   KeyRound,
   Users,
   ArrowLeft,
+  Truck,
 } from "lucide-react";
 import { useRef, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -80,6 +81,7 @@ export function AppShell() {
     ? [
         { to: "/dashboard", label: "Today", icon: LayoutDashboard, color: "#f87171" },
         { to: "/calendar", label: "Book-ins", icon: CalendarDays, color: "#60a5fa" },
+        { to: "/post-bike", label: "Post Bike", icon: Truck, color: "#38bdf8" },
         { to: "/bookings", label: "List", icon: ClipboardList, color: "#f472b6" },
         { to: "/jobs", label: "Jobs", icon: Wrench, color: "#fb923c" },
         { to: "/motorcycles", label: "Bikes", icon: Bike, color: "#facc15" },
@@ -93,6 +95,7 @@ export function AppShell() {
     : [
         { to: "/dashboard", label: "Today", icon: LayoutDashboard, color: "#f87171" },
         { to: "/calendar", label: "Book-ins", icon: CalendarDays, color: "#60a5fa" },
+        { to: "/post-bike", label: "Post Bike", icon: Truck, color: "#38bdf8" },
         { to: "/jobs", label: "Job Cards", icon: Wrench, color: "#fb923c" },
         { to: "/motorcycles", label: "Bikes", icon: Bike, color: "#facc15" },
         { to: "/customers", label: "Customers", icon: Users, color: "#f472b6" },

@@ -1,3 +1,5 @@
+import { isPostBike } from "@/lib/post-bike";
+
 /* Shared semantic status system for the workshop workflow. */
 
 export type BookInStage = "booked" | "waiting_inspection" | "arrived" | "in_workshop";
@@ -106,9 +108,12 @@ export function bookInStage(b: {
   bike_arrived?: boolean | null;
   job_id?: string | null;
   scheduled_date?: string | null;
+  service_type?: string | null;
 }): BookInStage {
   if (b?.job_id) return "in_workshop";
   if (b?.bike_arrived) return "arrived";
+  // Post bikes are tracked per branch and never auto-advance to inspection.
+  if (isPostBike(b?.service_type)) return "booked";
   const today = new Date();
   const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
   if (b?.scheduled_date && b.scheduled_date <= todayStr) return "waiting_inspection";
