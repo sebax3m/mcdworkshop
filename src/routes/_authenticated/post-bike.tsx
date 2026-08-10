@@ -673,21 +673,24 @@ function NewBikeDialog({
           <label className="space-y-1">
             <span className="text-xs font-semibold text-muted-foreground">Current km</span>
             <input
-              type="number"
+              type="text"
+              inputMode="numeric"
               className={inputCls}
-              value={form.current_km}
-              onChange={(e) => set("current_km", e.target.value)}
+              value={fmtKm(parseKm(form.current_km))}
+              onChange={(e) => set("current_km", String(parseKm(e.target.value) ?? ""))}
             />
           </label>
           <label className="space-y-1">
             <span className="text-xs font-semibold text-muted-foreground">Service every (km)</span>
             <input
-              type="number"
+              type="text"
+              inputMode="numeric"
               className={inputCls}
-              value={form.service_interval_km}
-              onChange={(e) => set("service_interval_km", e.target.value)}
+              value={fmtKm(parseKm(form.service_interval_km))}
+              onChange={(e) => set("service_interval_km", String(parseKm(e.target.value) ?? ""))}
             />
           </label>
+
           <label className="space-y-1 sm:col-span-2">
             <span className="text-xs font-semibold text-muted-foreground">Notes</span>
             <textarea
