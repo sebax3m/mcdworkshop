@@ -553,7 +553,7 @@ function CalendarPage() {
 
   const visibleRange = useMemo(() => {
     if (viewMode === "week") {
-      return { start: weekStart, end: addDays(weekStart, 6) };
+      return { start: weekStart, end: addDays(weekStart, 5) };
     }
     const start = startOfWeek(startOfMonth(monthStart), { weekStartsOn: 1 });
     const end = endOfWeek(endOfMonth(monthStart), { weekStartsOn: 1 });
