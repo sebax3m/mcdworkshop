@@ -1,12 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { toast } from "sonner";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { addDays, format, isToday } from "date-fns";
 import { TechnicianLoad } from "@/components/booking/TechnicianLoad";
 import { supabase } from "@/integrations/supabase/client";
-import { STATUS_META, fullBike, initials } from "@/lib/format";
-import { displayCustomerName } from "@/lib/display";
-import { Bike, Wrench, Clock, AlertCircle, CheckCircle2, Plus, CalendarDays } from "lucide-react";
+import { Bike, Wrench, Clock, AlertCircle, CheckCircle2, Plus, CalendarDays, Search } from "lucide-react";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { BookInCard, CapacityBadge } from "@/components/booking/BookInCard";
 import { useWorkshopCapacity } from "@/hooks/useWorkshopCapacity";
@@ -32,40 +32,13 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
 
 function Dashboard() {
   const { fullName, isAdmin } = useCurrentUser();
-  const today = useQuery({
-    queryKey: ["dashboard-jobs"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("jobs")
-        .select(
-          "id, job_number, title, status, technician_id, customers(first_name,last_name), motorcycles(year,make,model)",
-        )
-        .order("created_at", { ascending: false })
-        .limit(20);
-      if (error) throw error;
-      const rows = data ?? [];
-      const techIds = [...new Set(rows.map((r: any) => r.technician_id).filter(Boolean))];
-      const techMap = new Map<string, string>();
-      if (techIds.length) {
-        const { data: profs } = await supabase
-          .from("profiles")
-          .select("id, full_name")
-          .in("id", techIds);
-        (profs ?? []).forEach((p) => techMap.set(p.id, p.full_name));
-      }
-      return rows.map((r: any) => ({
-        ...r,
-        technician_name: r.technician_id ? techMap.get(r.technician_id) : null,
-      }));
-    },
-  });
-
   const counts = useQuery({
     queryKey: ["dashboard-counts"],
     queryFn: async () => {
       const startOfDay = new Date();
       startOfDay.setHours(0, 0, 0, 0);
-      const [todayJobs, inShop, waitingParts, ready] = await Promise.all([
+      const todayKey = new Date().toISOString().slice(0, 10);
+      const [todayJobs, inShop, waitingParts, ready, awaiting] = await Promise.all([
         supabase
           .from("jobs")
           .select("id", { count: "exact", head: true })
@@ -82,6 +55,12 @@ function Dashboard() {
           .from("jobs")
           .select("id", { count: "exact", head: true })
           .eq("status", "ready_for_pickup"),
+        supabase
+          .from("bookings")
+          .select("id", { count: "exact", head: true })
+          .lte("scheduled_date", todayKey)
+          .is("job_id", null)
+          .neq("status", "cancelled"),
       ]);
       const { data: clockData } = await supabase
         .from("clock_events")
@@ -100,12 +79,11 @@ function Dashboard() {
         bikesIn: inShop.count ?? 0,
         waitingParts: waitingParts.count ?? 0,
         ready: ready.count ?? 0,
+        awaiting: awaiting.count ?? 0,
         activeTechs: onClock,
       };
     },
   });
-
-  const jobs = today.data ?? [];
 
   return (
     <div className="space-y-6">
@@ -129,7 +107,7 @@ function Dashboard() {
         )}
       </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
+      <div className="grid grid-cols-2 lg:grid-cols-6 gap-3">
         <KpiCard
           label="Jobs Today"
           value={counts.data?.jobsToday ?? 0}
@@ -155,6 +133,12 @@ function Dashboard() {
           accent="green"
         />
         <KpiCard
+          label="Awaiting Assessment"
+          value={counts.data?.awaiting ?? 0}
+          icon={Search}
+          accent="blue"
+        />
+        <KpiCard
           label="Active Techs"
           value={counts.data?.activeTechs ?? 0}
           icon={Clock}
@@ -162,28 +146,6 @@ function Dashboard() {
         />
       </div>
 
-      <section>
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="font-display text-lg font-semibold">Active Jobs</h2>
-          <Link
-            to="/jobs"
-            className="text-xs uppercase tracking-wider text-muted-foreground hover:text-primary"
-          >
-            View all →
-          </Link>
-        </div>
-        {today.isLoading ? (
-          <div className="card-surface p-8 text-center text-sm text-muted-foreground">Loading…</div>
-        ) : jobs.length === 0 ? (
-          <EmptyJobs />
-        ) : (
-          <div className="grid sm:grid-cols-2 gap-3">
-            {jobs.map((j: any) => (
-              <JobCard key={j.id} job={j} />
-            ))}
-          </div>
-        )}
-      </section>
     </div>
   );
 }
@@ -220,75 +182,14 @@ function KpiCard({
   );
 }
 
-function JobCard({ job }: { job: any }) {
-  const meta = STATUS_META[job.status];
-  const customer = job.customers ? displayCustomerName(job.customers, "") : "—";
-  const bike = job.motorcycles ? fullBike(job.motorcycles) : "—";
-  const tech = job.technician_name;
-  return (
-    <Link
-      to="/jobs/$jobId"
-      params={{ jobId: job.id }}
-      className="card-surface p-4 hover:border-primary/40 transition-colors block"
-    >
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">
-            Job #{job.job_number}
-          </div>
-          <div className="font-semibold truncate mt-0.5">{job.title}</div>
-          <div className="text-sm text-muted-foreground truncate">{customer}</div>
-          <div className="text-xs text-muted-foreground truncate mt-0.5">{bike}</div>
-        </div>
-        <span
-          className={`shrink-0 inline-flex items-center gap-1.5 rounded-full border px-2 py-1 text-[0.625rem] font-semibold uppercase tracking-wider ${meta.cls}`}
-        >
-          <span className={`h-1.5 w-1.5 rounded-full ${meta.dot}`} />
-          {meta.label}
-        </span>
-      </div>
-      <div className="mt-3 flex items-center justify-between text-xs">
-        {tech ? (
-          <div className="flex items-center gap-1.5 text-muted-foreground">
-            <span className="grid h-6 w-6 place-items-center rounded-full bg-muted text-[0.625rem] font-semibold text-foreground">
-              {initials(tech)}
-            </span>
-            {tech}
-          </div>
-        ) : (
-          <span className="text-muted-foreground italic">Unassigned</span>
-        )}
-      </div>
-    </Link>
-  );
-}
-
-function EmptyJobs() {
-  return (
-    <div className="card-surface p-10 text-center">
-      <div className="mx-auto h-12 w-12 grid place-items-center rounded-xl bg-muted">
-        <Wrench className="h-6 w-6 text-muted-foreground" />
-      </div>
-      <h3 className="font-display text-lg font-semibold mt-4">No jobs yet</h3>
-      <p className="text-sm text-muted-foreground mt-1">
-        Create your first job card in under 15 seconds.
-      </p>
-      <Link
-        to="/jobs/new"
-        className="inline-flex items-center gap-1.5 rounded-lg gold-surface px-4 py-2 text-sm font-semibold mt-4"
-      >
-        <Plus className="h-4 w-4" /> New job
-      </Link>
-    </div>
-  );
-}
-
 /**
  * Today panel: motorcycles booked in today + the workshop load for the
  * next 7 days, driven by the configurable daily book-in capacity.
  */
 function TodayBookIns() {
   const nav = useNavigate();
+  const qc = useQueryClient();
+  const [dragId, setDragId] = useState<string | null>(null);
   const { capacityFor } = useWorkshopCapacity();
   const start = new Date();
   start.setHours(0, 0, 0, 0);
@@ -316,6 +217,19 @@ function TodayBookIns() {
   const todayKey = format(start, "yyyy-MM-dd");
   const todays = rows.filter((b) => b.scheduled_date === todayKey);
   const assignedToday = todays.filter((b: any) => b.assigned_tech_id);
+
+  async function assignTech(bookingId: string, techId: string | null) {
+    const { error } = await supabase
+      .from("bookings")
+      .update({ assigned_tech_id: techId })
+      .eq("id", bookingId);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    toast.success(techId ? "Assigned" : "Unassigned");
+    qc.invalidateQueries({ queryKey: ["today-bookings"] });
+  }
 
   const arrived = todays.filter((b) => b.bike_arrived).length;
   const cap = capacityFor(start);
@@ -354,6 +268,14 @@ function TodayBookIns() {
             <BookInCard
               key={b.id}
               booking={b}
+              draggable
+              onDragStart={(e) => {
+                e.dataTransfer.setData("text/plain", b.id);
+                e.dataTransfer.effectAllowed = "move";
+                setDragId(b.id);
+              }}
+              onDragEnd={() => setDragId(null)}
+              className={dragId === b.id ? "opacity-50" : undefined}
               onClick={() => nav({ to: "/book-ins/$date", params: { date: todayKey } })}
             />
           ))}
@@ -378,9 +300,12 @@ function TodayBookIns() {
         </div>
       )}
 
-      {/* Technician load for today */}
+      {/* Active techs — drop a book-in on a name to assign it */}
       <TechnicianLoad
+        title="Active techs"
         bookings={todays}
+        droppable
+        onAssign={assignTech}
         onOpenBooking={(id) => nav({ to: "/bookings/$bookingId", params: { bookingId: id } })}
       />
 
