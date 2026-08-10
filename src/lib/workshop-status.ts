@@ -28,11 +28,19 @@ export const STAGE_META: Record<string, StageMeta> = {
   },
   waiting_inspection: {
     key: "waiting_inspection",
-    label: "Waiting inspection",
-    dot: "bg-blue-400",
-    chip: "bg-blue-400/15 text-blue-300 border-blue-400/40",
-    ring: "ring-blue-400/50",
+    label: "Awaiting inspection",
+    dot: "bg-amber-400",
+    chip: "bg-amber-400/15 text-amber-300 border-amber-400/40",
+    ring: "ring-amber-400/50",
   },
+  in_workshop: {
+    key: "in_workshop",
+    label: "In workshop",
+    dot: "bg-primary",
+    chip: "bg-primary/15 text-primary border-primary/40",
+    ring: "ring-primary/50",
+  },
+
   waiting_approval: {
     key: "waiting_approval",
     label: "Waiting approval",
