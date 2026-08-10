@@ -22,6 +22,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
+import { Trash2 } from "lucide-react";
 
 type Props = {
   open: boolean;
@@ -43,6 +44,7 @@ export function FindingDialog({ open, onOpenChange, jobId, userId, finding, onSa
   const [photoPath, setPhotoPath] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     if (!open) return;
@@ -90,6 +92,17 @@ export function FindingDialog({ open, onOpenChange, jobId, userId, finding, onSa
           .insert({ ...payload, job_id: jobId, created_by: userId, status: "draft" });
     setSaving(false);
     if (error) return toast.error(error.message);
+    onSaved();
+    onOpenChange(false);
+  }
+
+  async function remove() {
+    if (!finding) return;
+    setDeleting(true);
+    const { error } = await supabase.from("job_inspection_findings").delete().eq("id", finding.id);
+    setDeleting(false);
+    if (error) return toast.error(error.message);
+    toast.success("Finding deleted");
     onSaved();
     onOpenChange(false);
   }
@@ -234,12 +247,29 @@ export function FindingDialog({ open, onOpenChange, jobId, userId, finding, onSa
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
-          </Button>
-          <Button onClick={save} disabled={saving || uploading}>
-            {saving ? "Saving…" : finding ? "Save changes" : "Add finding"}
-          </Button>
+          <div className="flex items-center gap-2 w-full justify-between">
+            {finding ? (
+              <Button
+                variant="outline"
+                onClick={remove}
+                disabled={deleting}
+                className="text-destructive hover:text-destructive hover:bg-destructive/10"
+              >
+                <Trash2 className="h-4 w-4 mr-1" />
+                {deleting ? "Deleting…" : "Delete"}
+              </Button>
+            ) : (
+              <span />
+            )}
+            <div className="flex items-center gap-2">
+              <Button variant="outline" onClick={() => onOpenChange(false)}>
+                Cancel
+              </Button>
+              <Button onClick={save} disabled={saving || uploading}>
+                {saving ? "Saving…" : finding ? "Save changes" : "Add finding"}
+              </Button>
+            </div>
+          </div>
         </DialogFooter>
       </DialogContent>
     </Dialog>
