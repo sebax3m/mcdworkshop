@@ -70,12 +70,20 @@ function DayView() {
 
   const [noteOpen, setNoteOpen] = useState(false);
   const [editNote, setEditNote] = useState<DailyNote | null>(null);
+  const [dragId, setDragId] = useState<string | null>(null);
+  const [overCol, setOverCol] = useState<string | null>(null);
 
   const groups = {
     booked: (bookings as any[]).filter((b) => bookInStage(b) === "booked"),
     arrived: (bookings as any[]).filter((b) => bookInStage(b) === "arrived"),
     waiting_inspection: (bookings as any[]).filter((b) => bookInStage(b) === "waiting_inspection"),
   };
+
+  function invalidate() {
+    qc.invalidateQueries({ queryKey: ["day-bookings"] });
+    qc.invalidateQueries({ queryKey: ["calendar-bookings"] });
+    qc.invalidateQueries({ queryKey: ["today-bookings"] });
+  }
 
   async function checkIn(b: any) {
     const { error } = await supabase
@@ -84,9 +92,42 @@ function DayView() {
       .eq("id", b.id);
     if (error) return toast.error(error.message);
     toast.success("Checked in");
-    qc.invalidateQueries({ queryKey: ["day-bookings"] });
-    qc.invalidateQueries({ queryKey: ["calendar-bookings"] });
-    qc.invalidateQueries({ queryKey: ["today-bookings"] });
+    invalidate();
+  }
+
+  /** Move a booking between the three day columns via drag & drop. */
+  async function moveTo(b: any, target: "booked" | "arrived" | "waiting_inspection") {
+    if (bookInStage(b) === target) return;
+
+    if (target === "booked") {
+      if (b.job_id) return toast.error("This book-in already has a job card");
+      const { error } = await supabase
+        .from("bookings")
+        .update({ bike_arrived: false, bike_arrived_at: null })
+        .eq("id", b.id);
+      if (error) return toast.error(error.message);
+      toast.success("Moved back to Booked in");
+      invalidate();
+      return;
+    }
+
+    if (target === "arrived") {
+      if (b.job_id) return toast.error("This book-in already has a job card");
+      await checkIn(b);
+      return;
+    }
+
+    // waiting_inspection needs a job card
+    if (!b.bike_arrived) {
+      const { error } = await supabase
+        .from("bookings")
+        .update({ bike_arrived: true, bike_arrived_at: new Date().toISOString() })
+        .eq("id", b.id);
+      if (error) return toast.error(error.message);
+      invalidate();
+    }
+    toast.info("Create the job card to move it to Waiting inspection");
+    nav({ to: "/jobs/new", search: { bookingId: b.id } as never });
   }
 
   const go = (delta: number) =>
@@ -190,12 +231,33 @@ function DayView() {
         <div className="grid gap-4 md:grid-cols-3">
           {(
             [
-              ["Booked in", groups.booked, true],
-              ["Arrived", groups.arrived, false],
-              ["Waiting inspection", groups.waiting_inspection, false],
+              ["booked", "Booked in", groups.booked, true],
+              ["arrived", "Arrived", groups.arrived, false],
+              ["waiting_inspection", "Waiting inspection", groups.waiting_inspection, false],
             ] as const
-          ).map(([label, list, showCheckIn]) => (
-            <section key={label} className="card-surface p-3 space-y-2">
+          ).map(([key, label, list, showCheckIn]) => (
+            <section
+              key={key}
+              onDragOver={(e) => {
+                if (!dragId) return;
+                e.preventDefault();
+                e.dataTransfer.dropEffect = "move";
+                setOverCol(key);
+              }}
+              onDragLeave={() => setOverCol((c) => (c === key ? null : c))}
+              onDrop={(e) => {
+                e.preventDefault();
+                setOverCol(null);
+                const id = e.dataTransfer.getData("text/plain") || dragId;
+                setDragId(null);
+                const b = (bookings as any[]).find((x) => x.id === id);
+                if (b) void moveTo(b, key);
+              }}
+              className={
+                "card-surface p-3 space-y-2 transition-colors " +
+                (overCol === key ? "ring-2 ring-primary/60 bg-primary/5" : "")
+              }
+            >
               <div className="flex items-center justify-between">
                 <h2 className="text-[0.6875rem] font-bold uppercase tracking-[0.2em] text-muted-foreground">
                   {label}
@@ -206,13 +268,24 @@ function DayView() {
               </div>
               {list.length === 0 ? (
                 <div className="text-xs text-muted-foreground py-4 text-center">
-                  Nothing here yet
+                  {dragId ? "Drop here" : "Nothing here yet"}
                 </div>
               ) : (
                 list.map((b: any) => (
                   <div key={b.id} className="space-y-1.5">
                     <BookInCard
                       booking={b}
+                      draggable
+                      onDragStart={(e) => {
+                        e.dataTransfer.setData("text/plain", b.id);
+                        e.dataTransfer.effectAllowed = "move";
+                        setDragId(b.id);
+                      }}
+                      onDragEnd={() => {
+                        setDragId(null);
+                        setOverCol(null);
+                      }}
+                      className={dragId === b.id ? "opacity-50" : ""}
                       onClick={() =>
                         nav({ to: "/bookings/$bookingId", params: { bookingId: b.id } })
                       }
