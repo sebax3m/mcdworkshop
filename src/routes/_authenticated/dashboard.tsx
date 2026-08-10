@@ -49,7 +49,8 @@ function Dashboard() {
 }
 
 function AdminDashboard() {
-  const { fullName } = useCurrentUser();
+  const { fullName, isAdmin } = useCurrentUser();
+
 
 
 
