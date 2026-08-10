@@ -38,6 +38,8 @@ export function TechnicianLoad({
   );
   const [openId, setOpenId] = useState<string | null>(null);
   const [overId, setOverId] = useState<string | null>(null);
+  const [dragId, setDragId] = useState<string | null>(null);
+
 
   const forTech = (id: string) => bookings.filter((b) => b.assigned_tech_id === id);
   const unassigned = bookings.filter((b) => !b.assigned_tech_id);
