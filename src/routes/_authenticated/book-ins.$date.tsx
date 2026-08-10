@@ -363,7 +363,15 @@ function DayView() {
               )}
             </section>
           ))}
+
+          <TechnicianLoad
+            bookings={bookings as any[]}
+            droppable
+            onAssign={assignTech}
+            onOpenBooking={(id) => nav({ to: "/bookings/$bookingId", params: { bookingId: id } })}
+          />
         </div>
+
       )}
 
       <NoteDialog
