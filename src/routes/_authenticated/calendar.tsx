@@ -987,7 +987,7 @@ function CalendarPage() {
                         return (
                           <div
                             key={b.id}
-                            className="flex items-center gap-1 min-w-0"
+                            className="flex items-center gap-1 w-full min-w-0 rounded-md bg-muted/30 px-1 py-0.5"
                             title={`${b.service_type} — ${b.motorcycles?.make ?? ""} ${b.motorcycles?.model ?? ""}`}
                           >
                             <span
