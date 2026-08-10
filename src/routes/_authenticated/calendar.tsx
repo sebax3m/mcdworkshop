@@ -1000,7 +1000,7 @@ function CalendarPage() {
                               />
                             )}
 
-                            <span className="truncate text-[0.5625rem] font-semibold">
+                            <span className="flex-1 min-w-0 truncate text-[0.5rem] font-semibold leading-tight">
                               {b.motorcycles
                                 ? `${b.motorcycles.make ?? ""} ${b.motorcycles.model ?? ""}`.trim()
                                 : (b.customers?.first_name ?? "Booking")}
