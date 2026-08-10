@@ -70,12 +70,20 @@ function DayView() {
 
   const [noteOpen, setNoteOpen] = useState(false);
   const [editNote, setEditNote] = useState<DailyNote | null>(null);
+  const [dragId, setDragId] = useState<string | null>(null);
+  const [overCol, setOverCol] = useState<string | null>(null);
 
   const groups = {
     booked: (bookings as any[]).filter((b) => bookInStage(b) === "booked"),
     arrived: (bookings as any[]).filter((b) => bookInStage(b) === "arrived"),
     waiting_inspection: (bookings as any[]).filter((b) => bookInStage(b) === "waiting_inspection"),
   };
+
+  function invalidate() {
+    qc.invalidateQueries({ queryKey: ["day-bookings"] });
+    qc.invalidateQueries({ queryKey: ["calendar-bookings"] });
+    qc.invalidateQueries({ queryKey: ["today-bookings"] });
+  }
 
   async function checkIn(b: any) {
     const { error } = await supabase
@@ -84,10 +92,44 @@ function DayView() {
       .eq("id", b.id);
     if (error) return toast.error(error.message);
     toast.success("Checked in");
-    qc.invalidateQueries({ queryKey: ["day-bookings"] });
-    qc.invalidateQueries({ queryKey: ["calendar-bookings"] });
-    qc.invalidateQueries({ queryKey: ["today-bookings"] });
+    invalidate();
   }
+
+  /** Move a booking between the three day columns via drag & drop. */
+  async function moveTo(b: any, target: "booked" | "arrived" | "waiting_inspection") {
+    if (bookInStage(b) === target) return;
+
+    if (target === "booked") {
+      if (b.job_id) return toast.error("This book-in already has a job card");
+      const { error } = await supabase
+        .from("bookings")
+        .update({ bike_arrived: false, bike_arrived_at: null })
+        .eq("id", b.id);
+      if (error) return toast.error(error.message);
+      toast.success("Moved back to Booked in");
+      invalidate();
+      return;
+    }
+
+    if (target === "arrived") {
+      if (b.job_id) return toast.error("This book-in already has a job card");
+      await checkIn(b);
+      return;
+    }
+
+    // waiting_inspection needs a job card
+    if (!b.bike_arrived) {
+      const { error } = await supabase
+        .from("bookings")
+        .update({ bike_arrived: true, bike_arrived_at: new Date().toISOString() })
+        .eq("id", b.id);
+      if (error) return toast.error(error.message);
+      invalidate();
+    }
+    toast.info("Create the job card to move it to Waiting inspection");
+    nav({ to: "/jobs/new", search: { bookingId: b.id } as never });
+  }
+
 
   const go = (delta: number) =>
     nav({
