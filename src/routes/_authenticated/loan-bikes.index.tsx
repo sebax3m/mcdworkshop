@@ -17,6 +17,7 @@ import { displayCustomerName } from "@/lib/display";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { LoanBikeDialog } from "@/components/booking/LoanBikeDialog";
 import {
   Dialog,
   DialogContent,
@@ -52,6 +53,28 @@ function LoanBikesIndex() {
   const [nColor, setNColor] = useState("");
   const [nRego, setNRego] = useState("");
   const [saving, setSaving] = useState(false);
+  const [editBookingId, setEditBookingId] = useState<string | null>(null);
+  const [presetBikeId, setPresetBikeId] = useState<string | null>(null);
+  const [pickerBikeId, setPickerBikeId] = useState<string | null>(null);
+  const [pickerSearch, setPickerSearch] = useState("");
+
+  const openBookings = useQuery({
+    queryKey: ["loan-bike-open-bookings"],
+    enabled: !!pickerBikeId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("bookings")
+        .select(
+          "id, scheduled_date, service_type, customers(first_name,last_name,phone), motorcycles(make,model,year,rego)",
+        )
+        .is("loan_bike_id", null)
+        .not("status", "in", '("cancelled","deleted","no_show")')
+        .order("scheduled_date", { ascending: false })
+        .limit(200);
+      if (error) throw error;
+      return (data ?? []) as any[];
+    },
+  });
 
   const bikes = useQuery({
     queryKey: ["loan-bikes"],
@@ -139,61 +162,78 @@ function LoanBikesIndex() {
             const serviceSoon = kmToService <= 500;
             const isOut = !!current;
             return (
-              <Link
-                key={b.id}
-                to="/loan-bikes/$bikeId"
-                params={{ bikeId: b.id }}
-                className="w-full card-surface p-4 flex items-center gap-3 hover:border-primary/50 transition-colors"
-              >
-                <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-amber-400/10 text-amber-400">
-                  <BikeIcon className="h-5 w-5" />
-                </span>
-                <span className="min-w-0 flex-1">
-                  <span className="flex items-center gap-2 flex-wrap">
-                    <span className="font-semibold truncate">{b.name}</span>
-                    {b.rego && (
-                      <span className="text-[0.625rem] text-muted-foreground">· {b.rego}</span>
-                    )}
-                    {isOut ? (
-                      <span className="rounded-full bg-destructive/15 text-destructive px-2 py-0.5 text-[0.625rem] font-bold uppercase tracking-wider">
-                        Out
-                      </span>
-                    ) : (
-                      <span className="rounded-full bg-emerald-500/15 text-emerald-500 px-2 py-0.5 text-[0.625rem] font-bold uppercase tracking-wider">
-                        Available
-                      </span>
-                    )}
-                    {serviceSoon && (
-                      <span className="rounded-full bg-amber-400/15 text-amber-400 px-2 py-0.5 text-[0.625rem] font-bold uppercase tracking-wider inline-flex items-center gap-1">
-                        <Wrench className="h-3 w-3" /> Service due
-                      </span>
-                    )}
+              <div key={b.id} className="relative">
+                <Link
+                  to="/loan-bikes/$bikeId"
+                  params={{ bikeId: b.id }}
+                  className="w-full card-surface p-4 pr-28 flex items-center gap-3 hover:border-primary/50 transition-colors"
+                >
+                  <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-amber-400/10 text-amber-400">
+                    <BikeIcon className="h-5 w-5" />
                   </span>
-                  <span className="mt-0.5 flex items-center gap-3 text-xs text-muted-foreground flex-wrap">
-                    <span>{b.current_km.toLocaleString()} km</span>
-                    <span>Next service @ {nextServiceKm.toLocaleString()} km</span>
-                    {isOut && (
-                      <>
-                        <span className="inline-flex items-center gap-1">
-                          <UserIcon className="h-3 w-3" />
-                          {displayCustomerName(current.customers, "")}
+                  <span className="min-w-0 flex-1">
+                    <span className="flex items-center gap-2 flex-wrap">
+                      <span className="font-semibold truncate">{b.name}</span>
+                      {b.rego && (
+                        <span className="text-[0.625rem] text-muted-foreground">· {b.rego}</span>
+                      )}
+                      {isOut ? (
+                        <span className="rounded-full bg-destructive/15 text-destructive px-2 py-0.5 text-[0.625rem] font-bold uppercase tracking-wider">
+                          Out
                         </span>
-                        {current.loan_bike_expected_return && (
-                          <span className="inline-flex items-center gap-1 text-amber-400">
-                            <CalendarClock className="h-3 w-3" />
-                            Back{" "}
-                            {format(
-                              new Date(current.loan_bike_expected_return + "T00:00:00"),
-                              "EEE d MMM",
-                            )}
+                      ) : (
+                        <span className="rounded-full bg-emerald-500/15 text-emerald-500 px-2 py-0.5 text-[0.625rem] font-bold uppercase tracking-wider">
+                          Available
+                        </span>
+                      )}
+                      {serviceSoon && (
+                        <span className="rounded-full bg-amber-400/15 text-amber-400 px-2 py-0.5 text-[0.625rem] font-bold uppercase tracking-wider inline-flex items-center gap-1">
+                          <Wrench className="h-3 w-3" /> Service due
+                        </span>
+                      )}
+                    </span>
+                    <span className="mt-0.5 flex items-center gap-3 text-xs text-muted-foreground flex-wrap">
+                      <span>{b.current_km.toLocaleString()} km</span>
+                      <span>Next service @ {nextServiceKm.toLocaleString()} km</span>
+                      {isOut && (
+                        <>
+                          <span className="inline-flex items-center gap-1">
+                            <UserIcon className="h-3 w-3" />
+                            {displayCustomerName(current.customers, "")}
                           </span>
-                        )}
-                      </>
-                    )}
+                          {current.loan_bike_expected_return && (
+                            <span className="inline-flex items-center gap-1 text-amber-400">
+                              <CalendarClock className="h-3 w-3" />
+                              Back{" "}
+                              {format(
+                                new Date(current.loan_bike_expected_return + "T00:00:00"),
+                                "EEE d MMM",
+                              )}
+                            </span>
+                          )}
+                        </>
+                      )}
+                    </span>
                   </span>
-                </span>
-                <ChevronRight className="h-4 w-4 text-muted-foreground" />
-              </Link>
+                  <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                </Link>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (isOut) {
+                      setEditBookingId(current.id);
+                      setPresetBikeId(b.id);
+                    } else {
+                      setPickerBikeId(b.id);
+                    }
+                  }}
+                  className="absolute right-9 top-1/2 -translate-y-1/2 rounded-lg border border-border bg-background px-3 h-8 text-xs font-semibold hover:border-primary/50"
+                >
+                  {isOut ? "Edit out" : "Give out"}
+                </button>
+              </div>
             );
           })}
         </div>
@@ -242,6 +282,88 @@ function LoanBikesIndex() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Pick which existing book-in gets this loan bike */}
+      <Dialog
+        open={!!pickerBikeId}
+        onOpenChange={(v) => {
+          if (!v) {
+            setPickerBikeId(null);
+            setPickerSearch("");
+          }
+        }}
+      >
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Give loan bike to a book-in</DialogTitle>
+          </DialogHeader>
+          <Input
+            value={pickerSearch}
+            onChange={(e) => setPickerSearch(e.target.value)}
+            placeholder="Search customer, rego or bike…"
+          />
+          <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
+            {(openBookings.data ?? [])
+              .filter((bk: any) => {
+                const q = pickerSearch.trim().toLowerCase();
+                if (!q) return true;
+                const hay = [
+                  displayCustomerName(bk.customers, ""),
+                  bk.motorcycles?.rego,
+                  bk.motorcycles?.make,
+                  bk.motorcycles?.model,
+                  bk.service_type,
+                ]
+                  .filter(Boolean)
+                  .join(" ")
+                  .toLowerCase();
+                return hay.includes(q);
+              })
+              .slice(0, 60)
+              .map((bk: any) => (
+                <button
+                  key={bk.id}
+                  type="button"
+                  onClick={() => {
+                    setPresetBikeId(pickerBikeId);
+                    setEditBookingId(bk.id);
+                    setPickerBikeId(null);
+                    setPickerSearch("");
+                  }}
+                  className="w-full text-left rounded-lg border border-border px-3 py-2 text-sm hover:border-primary/50"
+                >
+                  <div className="font-semibold truncate">
+                    {displayCustomerName(bk.customers, "Customer")}
+                  </div>
+                  <div className="text-xs text-muted-foreground truncate">
+                    {bk.scheduled_date} · {bk.service_type}
+                    {bk.motorcycles?.rego ? ` · ${bk.motorcycles.rego}` : ""}
+                  </div>
+                </button>
+              ))}
+            {openBookings.isLoading && (
+              <p className="text-sm text-muted-foreground">Loading book-ins…</p>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <LoanBikeDialog
+        bookingId={editBookingId}
+        presetBikeId={presetBikeId}
+        open={!!editBookingId}
+        onOpenChange={(v) => {
+          if (!v) {
+            setEditBookingId(null);
+            setPresetBikeId(null);
+          }
+        }}
+        onSaved={() => {
+          bikes.refetch();
+          assignments.refetch();
+          openBookings.refetch();
+        }}
+      />
     </div>
   );
 }

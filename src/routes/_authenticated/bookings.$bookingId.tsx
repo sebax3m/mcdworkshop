@@ -5,7 +5,17 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Calendar, Clock, Wrench, User, Bike as BikeIcon, FileText } from "lucide-react";
+import {
+  ArrowLeft,
+  Calendar,
+  Clock,
+  Wrench,
+  User,
+  Bike as BikeIcon,
+  FileText,
+  KeyRound,
+} from "lucide-react";
+import { LoanBikeDialog } from "@/components/booking/LoanBikeDialog";
 import { toast } from "sonner";
 import { displayCustomerName } from "@/lib/display";
 import { fullBike } from "@/lib/format";
@@ -22,6 +32,7 @@ function BookingDetail() {
   const nav = useNavigate();
   const [converting, setConverting] = useState(false);
   const [photoUrls, setPhotoUrls] = useState<string[]>([]);
+  const [loanOpen, setLoanOpen] = useState(false);
 
   const { data: b, isLoading } = useQuery({
     queryKey: ["booking", bookingId],
@@ -29,7 +40,7 @@ function BookingDetail() {
       const { data, error } = await supabase
         .from("bookings")
         .select(
-          "*, customers(first_name,last_name,phone,email), motorcycles(year,make,model,rego,vin,mileage)",
+          "*, customers(first_name,last_name,phone,email), motorcycles(year,make,model,rego,vin,mileage), loan_bikes(name,rego)",
         )
         .eq("id", bookingId)
         .single();
@@ -146,6 +157,45 @@ function BookingDetail() {
         <InfoRow icon={Wrench} label="Est. hours" value={`${b.estimated_hours ?? "—"}h`} />
         <InfoRow icon={FileText} label="Status" value={b.status} />
       </div>
+
+      <div className="card-surface p-4 flex items-center gap-3">
+        <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-muted">
+          <KeyRound className="h-4 w-4 text-primary" />
+        </span>
+        <div className="min-w-0 flex-1">
+          <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">
+            Loan bike
+          </div>
+          <div className="text-sm font-semibold truncate">
+            {b.loan_bikes
+              ? `${b.loan_bikes.name}${b.loan_bikes.rego ? ` · ${b.loan_bikes.rego}` : ""}`
+              : "None assigned"}
+          </div>
+          {b.loan_bikes && (
+            <div className="text-xs text-muted-foreground truncate">
+              {b.loan_bike_returned_at
+                ? `Returned ${format(new Date(b.loan_bike_returned_at), "d MMM yyyy")}`
+                : b.loan_bike_expected_return
+                  ? `Expected back ${format(new Date(b.loan_bike_expected_return + "T00:00:00"), "EEE d MMM")}`
+                  : "Out"}
+            </div>
+          )}
+        </div>
+        <Button variant="outline" size="sm" onClick={() => setLoanOpen(true)}>
+          {b.loan_bikes ? "Edit" : "Add loan bike"}
+        </Button>
+      </div>
+
+      <LoanBikeDialog
+        bookingId={bookingId}
+        open={loanOpen}
+        onOpenChange={setLoanOpen}
+        onSaved={() => {
+          qc.invalidateQueries({ queryKey: ["booking", bookingId] });
+          qc.invalidateQueries({ queryKey: ["loan-bikes"] });
+          qc.invalidateQueries({ queryKey: ["loan-bikes-active-assignments"] });
+        }}
+      />
 
       {b.complaints && (
         <div className="card-surface p-4">
