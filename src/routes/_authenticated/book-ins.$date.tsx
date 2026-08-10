@@ -90,7 +90,11 @@ function DayView() {
     waiting_inspection: (bookings as any[]).filter((b) => bookInStage(b) === "waiting_inspection"),
     arrived: (bookings as any[]).filter((b) => bookInStage(b) === "arrived"),
     in_workshop: (bookings as any[]).filter((b) => bookInStage(b) === "in_workshop"),
-    booked: (bookings as any[]).filter((b) => bookInStage(b) === "booked"),
+    booked: (bookings as any[]).filter((b) => {
+      const s = bookInStage(b);
+      return s === "booked" || s === "in_workshop";
+    }),
+
   };
 
   function invalidate() {
