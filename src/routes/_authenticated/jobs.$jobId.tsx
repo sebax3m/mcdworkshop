@@ -162,7 +162,31 @@ function JobDetail() {
   );
 
   const [previewOpen, setPreviewOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const jobRef = useRef<HTMLDivElement>(null);
+
+  /** Admin-only: permanently delete this job card and unlink it from its booking. */
+  async function deleteJob() {
+    if (!confirm("Delete this job card permanently? This cannot be undone.")) return;
+    setDeleting(true);
+    // Unlink the booking first so it returns to the day board instead of dangling.
+    await supabase.from("bookings").update({ job_id: null }).eq("job_id", jobId);
+    const { error } = await supabase.from("jobs").delete().eq("id", jobId);
+    setDeleting(false);
+    if (error) {
+      return toast.error(
+        error.message.includes("violates foreign key")
+          ? "This job has an invoice linked. Delete the invoice first."
+          : error.message,
+      );
+    }
+    toast.success("Job card deleted");
+    qc.invalidateQueries({ queryKey: ["jobs"] });
+    qc.invalidateQueries({ queryKey: ["dashboard-jobs"] });
+    qc.invalidateQueries({ queryKey: ["dashboard-counts"] });
+    nav({ to: "/jobs" });
+  }
+
 
   if (job.isLoading)
     return (
