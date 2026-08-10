@@ -287,8 +287,24 @@ function LoanBikesIndex() {
                       )}
                     </span>
                   </span>
-                  <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                  <span className="w-4" />
                 </Link>
+                <button
+                  type="button"
+                  title="Assign to a customer"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setReassignFromId(isOut ? current.id : null);
+                    setPickerMode("customer");
+                    setPickerSearch("");
+                    setPickerBikeId(b.id);
+                  }}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 grid h-8 w-8 place-items-center rounded-lg text-muted-foreground hover:text-primary hover:bg-muted"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </button>
+
                 <div className="absolute right-9 top-1/2 -translate-y-1/2 flex items-center gap-1.5">
                   {isOut && (
                     <button
