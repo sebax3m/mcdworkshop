@@ -52,6 +52,28 @@ function LoanBikesIndex() {
   const [nColor, setNColor] = useState("");
   const [nRego, setNRego] = useState("");
   const [saving, setSaving] = useState(false);
+  const [editBookingId, setEditBookingId] = useState<string | null>(null);
+  const [presetBikeId, setPresetBikeId] = useState<string | null>(null);
+  const [pickerBikeId, setPickerBikeId] = useState<string | null>(null);
+  const [pickerSearch, setPickerSearch] = useState("");
+
+  const openBookings = useQuery({
+    queryKey: ["loan-bike-open-bookings"],
+    enabled: !!pickerBikeId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("bookings")
+        .select(
+          "id, scheduled_date, service_type, customers(first_name,last_name,phone), motorcycles(make,model,year,rego)",
+        )
+        .is("loan_bike_id", null)
+        .not("status", "in", '("cancelled","deleted","no_show")')
+        .order("scheduled_date", { ascending: false })
+        .limit(200);
+      if (error) throw error;
+      return (data ?? []) as any[];
+    },
+  });
 
   const bikes = useQuery({
     queryKey: ["loan-bikes"],
