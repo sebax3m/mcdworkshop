@@ -804,10 +804,16 @@ function BikeDetailDialog({
     <Dialog open={!!bike} onOpenChange={(v) => !v && onClose()}>
       <DialogContent className="sm:max-w-2xl max-h-[85vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
+          <DialogTitle className="flex flex-wrap items-center gap-2">
             <BikeIcon className="h-4 w-4 text-primary" /> {bikeLabel(bike)}
+            {bike.rego && (
+              <span className="rounded-md border border-border bg-muted px-2 py-0.5 font-mono text-xs uppercase tracking-wider">
+                {bike.rego}
+              </span>
+            )}
           </DialogTitle>
         </DialogHeader>
+
 
         <div className="grid gap-3 sm:grid-cols-3">
           <label className="space-y-1">
