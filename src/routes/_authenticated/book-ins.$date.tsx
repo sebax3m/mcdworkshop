@@ -121,7 +121,7 @@ function DayView() {
       .update({ assigned_tech_id: techId })
       .eq("id", bookingId);
     if (error) return toast.error(error.message);
-    const booking = (bookings.data ?? []).find((b: any) => b.id === bookingId) as any;
+    const booking = (bookings as any[]).find((b: any) => b.id === bookingId) as any;
     if (booking?.job_id) {
       await supabase
         .from("jobs")
