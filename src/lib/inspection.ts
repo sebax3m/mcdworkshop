@@ -129,4 +129,5 @@ export const FINDING_PRESETS: { title: string; category: FindingCategory; severi
   { title: "Fork seals leaking", category: "suspension", severity: "important" },
   { title: "Coolant low / due for change", category: "cooling", severity: "recommended" },
   { title: "Battery weak", category: "electrical", severity: "recommended" },
+  { title: "Steering head bearing worn", category: "safety", severity: "safety_critical" },
 ];
