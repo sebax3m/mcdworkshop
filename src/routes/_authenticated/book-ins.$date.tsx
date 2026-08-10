@@ -247,9 +247,9 @@ function DayView() {
               ["waiting_inspection", "Awaiting inspection", groups.waiting_inspection, true],
               ["arrived", "Arrived", groups.arrived, false],
               ["in_workshop", "In workshop", groups.in_workshop, false],
-              ["booked", "Booked in (upcoming)", groups.booked, true],
             ] as const
           ).map(([key, label, list, showCheckIn]) => (
+
             <section
               key={key}
               onDragOver={(e) => {
