@@ -992,6 +992,13 @@ function CalendarPage() {
                             <span
                               className={`shrink-0 rounded-full ${c.bg} ring-1 ${c.ring} ${b.bike_arrived ? "h-2 w-2 !ring-2 !ring-orange-500" : "h-1.5 w-1.5"}`}
                             />
+                            {b.loan_bike && (
+                              <span
+                                className="shrink-0 h-1.5 w-1.5 rounded-full bg-fuchsia-500 shadow-[0_0_6px_rgba(217,70,239,0.9)]"
+                                title="Loan bike"
+                              />
+                            )}
+
                             <span className="truncate text-[0.5625rem] font-semibold">
                               {b.motorcycles
                                 ? `${b.motorcycles.make ?? ""} ${b.motorcycles.model ?? ""}`.trim()
