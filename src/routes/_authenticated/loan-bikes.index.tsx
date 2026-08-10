@@ -217,22 +217,40 @@ function LoanBikesIndex() {
                   </span>
                   <ChevronRight className="h-4 w-4 text-muted-foreground" />
                 </Link>
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    if (isOut) {
-                      setEditBookingId(current.id);
-                      setPresetBikeId(b.id);
-                    } else {
-                      setPickerBikeId(b.id);
-                    }
-                  }}
-                  className="absolute right-9 top-1/2 -translate-y-1/2 rounded-lg border border-border bg-background px-3 h-8 text-xs font-semibold hover:border-primary/50"
-                >
-                  {isOut ? "Edit out" : "Give out"}
-                </button>
+                <div className="absolute right-9 top-1/2 -translate-y-1/2 flex items-center gap-1.5">
+                  {isOut && (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setReassignFromId(current.id);
+                        setPickerBikeId(b.id);
+                      }}
+                      className="rounded-lg border border-border bg-background px-3 h-8 text-xs font-semibold hover:border-primary/50"
+                      title="Move this loan bike to a different customer"
+                    >
+                      Change customer
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      if (isOut) {
+                        setEditBookingId(current.id);
+                        setPresetBikeId(b.id);
+                      } else {
+                        setPickerBikeId(b.id);
+                      }
+                    }}
+                    className="rounded-lg border border-border bg-background px-3 h-8 text-xs font-semibold hover:border-primary/50"
+                  >
+                    {isOut ? "Edit out" : "Give out"}
+                  </button>
+                </div>
+
               </div>
             );
           })}
