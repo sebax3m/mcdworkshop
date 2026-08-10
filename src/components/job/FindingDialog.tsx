@@ -22,6 +22,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
+import { Trash2 } from "lucide-react";
 
 type Props = {
   open: boolean;
