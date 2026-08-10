@@ -1,6 +1,6 @@
 /* Shared semantic status system for the workshop workflow. */
 
-export type BookInStage = "booked" | "arrived" | "waiting_inspection";
+export type BookInStage = "booked" | "waiting_inspection" | "arrived" | "in_workshop";
 
 export type StageMeta = {
   key: string;
