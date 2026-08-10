@@ -17,6 +17,8 @@ import { NoteDialog } from "@/components/booking/NoteDialog";
 import { useDailyNotesForDate, type DailyNote } from "@/hooks/useDailyNotes";
 import { useWorkshopCapacity } from "@/hooks/useWorkshopCapacity";
 import { bookInStage } from "@/lib/workshop-status";
+import { TechnicianLoad } from "@/components/booking/TechnicianLoad";
+
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/book-ins/$date")({
