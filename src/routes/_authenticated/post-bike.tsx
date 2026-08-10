@@ -14,6 +14,10 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
+/** Formats kilometres with dot thousand separators, e.g. 1000 -> "1.000" */
+const fmtKm = (n: number | null | undefined) =>
+  n == null ? "" : new Intl.NumberFormat("de-DE").format(n);
+
 
 type Branch = {
   id: string;
