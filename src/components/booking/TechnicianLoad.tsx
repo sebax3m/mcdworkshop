@@ -13,6 +13,8 @@ type Props = {
   droppable?: boolean;
   /** Click a booking row. */
   onOpenBooking?: (bookingId: string) => void;
+  /** Panel heading. */
+  title?: string;
   className?: string;
 };
 
@@ -26,9 +28,14 @@ export function TechnicianLoad({
   onAssign,
   droppable,
   onOpenBooking,
+  title = "Technician load",
   className = "",
 }: Props) {
-  const { technicians, loading } = useTechnicians();
+  const { technicians: allTechs, loading } = useTechnicians();
+  // The generic shared "Admin" account is not a technician.
+  const technicians = allTechs.filter(
+    (t) => t.full_name.trim().toLowerCase() !== "admin" && t.email !== "services@mcdr.co.nz",
+  );
   const [openId, setOpenId] = useState<string | null>(null);
   const [overId, setOverId] = useState<string | null>(null);
 
@@ -39,7 +46,7 @@ export function TechnicianLoad({
     <section className={"card-surface p-3 space-y-2 " + className}>
       <div className="flex items-center justify-between">
         <h2 className="text-[0.6875rem] font-bold uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-1.5">
-          <Users className="h-3.5 w-3.5" /> Technician load
+          <Users className="h-3.5 w-3.5" /> {title}
         </h2>
         <span className="text-xs font-bold tabular-nums text-muted-foreground">
           {bookings.length - unassigned.length}/{bookings.length}
