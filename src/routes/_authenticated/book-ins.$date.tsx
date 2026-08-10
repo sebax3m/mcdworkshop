@@ -72,6 +72,8 @@ function DayView() {
   const [editNote, setEditNote] = useState<DailyNote | null>(null);
   const [dragId, setDragId] = useState<string | null>(null);
   const [overCol, setOverCol] = useState<string | null>(null);
+  const [overIdx, setOverIdx] = useState<number | null>(null);
+
 
   const groups = {
     booked: (bookings as any[]).filter((b) => bookInStage(b) === "booked"),
