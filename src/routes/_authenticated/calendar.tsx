@@ -804,10 +804,11 @@ function CalendarPage() {
     if (viewMode !== "month") return [];
     const start = startOfWeek(startOfMonth(monthStart), { weekStartsOn: 1 });
     const end = endOfWeek(endOfMonth(monthStart), { weekStartsOn: 1 });
-    return eachDayOfInterval({ start, end });
+    // Exclude Sundays so the calendar shows Mon–Sat only
+    return eachDayOfInterval({ start, end }).filter((d) => !isSunday(d));
   }, [viewMode, monthStart]);
 
-  const monthWeeks = useMemo(() => chunk(monthDays, 7), [monthDays]);
+  const monthWeeks = useMemo(() => chunk(monthDays, 6), [monthDays]);
 
   const dayNames = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
