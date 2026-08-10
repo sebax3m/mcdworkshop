@@ -710,6 +710,169 @@ export type Database = {
           },
         ]
       }
+      job_approval_requests: {
+        Row: {
+          created_at: string
+          customer_contact_method: string | null
+          decision: string | null
+          id: string
+          job_id: string
+          requested_at: string
+          requested_by: string | null
+          resolution_note: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          customer_contact_method?: string | null
+          decision?: string | null
+          id?: string
+          job_id: string
+          requested_at?: string
+          requested_by?: string | null
+          resolution_note?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          customer_contact_method?: string | null
+          decision?: string | null
+          id?: string
+          job_id?: string
+          requested_at?: string
+          requested_by?: string | null
+          resolution_note?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_approval_requests_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      job_events: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          detail: Json
+          event_type: string
+          id: string
+          job_id: string
+          summary: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          detail?: Json
+          event_type: string
+          id?: string
+          job_id: string
+          summary: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          detail?: Json
+          event_type?: string
+          id?: string
+          job_id?: string
+          summary?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_events_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      job_inspection_findings: {
+        Row: {
+          approval_request_id: string | null
+          category: string
+          created_at: string
+          created_by: string | null
+          decision_note: string | null
+          description: string | null
+          estimated_labour: number | null
+          estimated_parts_cost: number | null
+          id: string
+          job_id: string
+          photo_path: string | null
+          recommended_action: string | null
+          severity: string
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          approval_request_id?: string | null
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          decision_note?: string | null
+          description?: string | null
+          estimated_labour?: number | null
+          estimated_parts_cost?: number | null
+          id?: string
+          job_id: string
+          photo_path?: string | null
+          recommended_action?: string | null
+          severity?: string
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          approval_request_id?: string | null
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          decision_note?: string | null
+          description?: string | null
+          estimated_labour?: number | null
+          estimated_parts_cost?: number | null
+          id?: string
+          job_id?: string
+          photo_path?: string | null
+          recommended_action?: string | null
+          severity?: string
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_inspection_findings_approval_request_id_fkey"
+            columns: ["approval_request_id"]
+            isOneToOne: false
+            referencedRelation: "job_approval_requests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_inspection_findings_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       job_notes: {
         Row: {
           author_id: string
@@ -1156,33 +1319,66 @@ export type Database = {
       }
       notifications: {
         Row: {
+          approval_request_id: string | null
           body: string | null
           created_at: string
           created_by: string | null
           id: string
+          job_id: string | null
           kind: string
           link: string | null
+          requires_action: boolean
+          resolved_at: string | null
+          resolved_by: string | null
+          target_role: string | null
           title: string
         }
         Insert: {
+          approval_request_id?: string | null
           body?: string | null
           created_at?: string
           created_by?: string | null
           id?: string
+          job_id?: string | null
           kind: string
           link?: string | null
+          requires_action?: boolean
+          resolved_at?: string | null
+          resolved_by?: string | null
+          target_role?: string | null
           title: string
         }
         Update: {
+          approval_request_id?: string | null
           body?: string | null
           created_at?: string
           created_by?: string | null
           id?: string
+          job_id?: string | null
           kind?: string
           link?: string | null
+          requires_action?: boolean
+          resolved_at?: string | null
+          resolved_by?: string | null
+          target_role?: string | null
           title?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "notifications_approval_request_id_fkey"
+            columns: ["approval_request_id"]
+            isOneToOne: false
+            referencedRelation: "job_approval_requests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       parts: {
         Row: {
@@ -1597,6 +1793,7 @@ export type Database = {
         | "waiting_parts"
         | "ready_for_pickup"
         | "completed"
+        | "waiting_approval"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1745,6 +1942,7 @@ export const Constants = {
         "waiting_parts",
         "ready_for_pickup",
         "completed",
+        "waiting_approval",
       ],
     },
   },

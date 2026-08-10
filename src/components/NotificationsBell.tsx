@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useMemo, useState } from "react";
-import { Bell, Check, CheckCheck, Inbox } from "lucide-react";
+import { Bell, Check, CheckCheck, Inbox, TriangleAlert } from "lucide-react";
 import { useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { formatDistanceToNow } from "date-fns";
@@ -16,10 +16,13 @@ type Notification = {
   body: string | null;
   link: string | null;
   created_at: string;
+  requires_action: boolean;
+  resolved_at: string | null;
+  target_role: string | null;
 };
 
 export function NotificationsBell() {
-  const { user } = useCurrentUser();
+  const { user, isAdmin } = useCurrentUser();
   const qc = useQueryClient();
   const nav = useNavigate();
   const [open, setOpen] = useState(false);
@@ -31,7 +34,9 @@ export function NotificationsBell() {
     queryFn: async () => {
       const { data } = await supabase
         .from("notifications")
-        .select("id, kind, title, body, link, created_at")
+        .select(
+          "id, kind, title, body, link, created_at, requires_action, resolved_at, target_role",
+        )
         .order("created_at", { ascending: false })
         .limit(30);
       return (data ?? []) as Notification[];
@@ -51,10 +56,26 @@ export function NotificationsBell() {
     },
   });
 
-  const notifs = notifsQ.data ?? [];
+  // Approval requests are reception/admin business — technicians never see the queue.
+  const notifs = useMemo(
+    () =>
+      (notifsQ.data ?? []).filter(
+        (n) => isAdmin || !(n.requires_action && n.target_role === "admin"),
+      ),
+    [notifsQ.data, isAdmin],
+  );
   const readSet = readsQ.data ?? new Set<string>();
-  const unread = useMemo(() => notifs.filter((n) => !readSet.has(n.id)), [notifs, readSet]);
+  const actionRequired = useMemo(
+    () => notifs.filter((n) => n.requires_action && !n.resolved_at),
+    [notifs],
+  );
+  const rest = useMemo(
+    () => notifs.filter((n) => !(n.requires_action && !n.resolved_at)),
+    [notifs],
+  );
+  const unread = useMemo(() => rest.filter((n) => !readSet.has(n.id)), [rest, readSet]);
   const unreadCount = unread.length;
+  const badgeCount = unreadCount + actionRequired.length;
 
   useEffect(() => {
     if (!user) return;
@@ -99,9 +120,16 @@ export function NotificationsBell() {
           title="Notifications"
         >
           <Bell className="h-4 w-4" />
-          {unreadCount > 0 && (
-            <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-primary text-primary-foreground text-[0.625rem] font-bold grid place-items-center shadow-[0_0_10px_-2px_hsl(var(--primary))]">
-              {unreadCount > 9 ? "9+" : unreadCount}
+          {badgeCount > 0 && (
+            <span
+              className={cn(
+                "absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full text-[0.625rem] font-bold grid place-items-center",
+                actionRequired.length > 0
+                  ? "bg-amber-500 text-black shadow-[0_0_10px_-2px_theme(colors.amber.500)]"
+                  : "bg-primary text-primary-foreground shadow-[0_0_10px_-2px_hsl(var(--primary))]",
+              )}
+            >
+              {badgeCount > 9 ? "9+" : badgeCount}
             </span>
           )}
         </button>
@@ -131,6 +159,34 @@ export function NotificationsBell() {
           )}
         </div>
         <div className="max-h-[70vh] overflow-y-auto">
+          {actionRequired.length > 0 && (
+            <div className="border-b border-amber-500/30">
+              <div className="px-3 py-1.5 bg-amber-500/10 text-[0.625rem] font-bold uppercase tracking-wider text-amber-400">
+                Action required · {actionRequired.length}
+              </div>
+              {actionRequired.map((n) => (
+                <button
+                  key={n.id}
+                  onClick={() => onOpenNotif(n)}
+                  className="w-full text-left px-3 py-2.5 border-b border-border/40 last:border-b-0 bg-amber-500/[0.06] hover:bg-amber-500/10 transition-colors flex gap-3 items-start"
+                >
+                  <TriangleAlert className="h-4 w-4 mt-0.5 shrink-0 text-amber-400" />
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-bold truncate">{n.title}</div>
+                    {n.body && (
+                      <div className="text-[0.6875rem] text-muted-foreground line-clamp-2 mt-0.5">
+                        {n.body}
+                      </div>
+                    )}
+                    <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground/70 mt-1">
+                      {formatDistanceToNow(new Date(n.created_at), { addSuffix: true })} · open job
+                      to action
+                    </div>
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
           {notifsQ.isLoading ? (
             <div className="p-6 text-center text-xs text-muted-foreground">Loading…</div>
           ) : notifs.length === 0 ? (
@@ -139,7 +195,7 @@ export function NotificationsBell() {
               No notifications yet
             </div>
           ) : (
-            notifs.map((n) => {
+            rest.map((n) => {
               const isRead = readSet.has(n.id);
               return (
                 <button

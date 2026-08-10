@@ -14,6 +14,11 @@ export const STATUS_META: Record<string, { label: string; cls: string; dot: stri
     cls: "bg-status-progress/15 text-status-progress border-status-progress/30",
     dot: "bg-status-progress",
   },
+  waiting_approval: {
+    label: "Waiting Approval",
+    cls: "bg-amber-500/15 text-amber-400 border-amber-500/40",
+    dot: "bg-amber-500",
+  },
   waiting_parts: {
     label: "Waiting Parts",
     cls: "bg-status-parts/15 text-status-parts border-status-parts/30",
@@ -35,6 +40,7 @@ export const STATUS_ORDER = [
   "new",
   "assigned",
   "in_progress",
+  "waiting_approval",
   "waiting_parts",
   "ready_for_pickup",
   "completed",

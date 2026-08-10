@@ -44,7 +44,14 @@ function JobsList() {
         )
         .order("created_at", { ascending: false });
       if (filter === "active")
-        q = q.in("status", ["new", "assigned", "in_progress", "waiting_parts", "ready_for_pickup"]);
+        q = q.in("status", [
+          "new",
+          "assigned",
+          "in_progress",
+          "waiting_approval",
+          "waiting_parts",
+          "ready_for_pickup",
+        ]);
       else if (filter !== "all") q = q.eq("status", filter as any);
       const { data, error } = await q;
       if (error) throw error;
