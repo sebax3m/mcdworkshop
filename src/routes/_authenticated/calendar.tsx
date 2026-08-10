@@ -432,6 +432,7 @@ function CalendarPage() {
     setQBikeModel("");
     setQBikeYear("");
     setQBikeRego("");
+    setQNoRego(false);
     setQService("Standard Service");
     setQServiceOther("");
     setQEstHours("1");
