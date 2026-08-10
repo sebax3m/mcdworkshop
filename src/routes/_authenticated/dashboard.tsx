@@ -1,5 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { toast } from "sonner";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { addDays, format, isToday } from "date-fns";
 import { TechnicianLoad } from "@/components/booking/TechnicianLoad";
@@ -186,6 +188,8 @@ function KpiCard({
  */
 function TodayBookIns() {
   const nav = useNavigate();
+  const qc = useQueryClient();
+  const [dragId, setDragId] = useState<string | null>(null);
   const { capacityFor } = useWorkshopCapacity();
   const start = new Date();
   start.setHours(0, 0, 0, 0);
@@ -213,6 +217,19 @@ function TodayBookIns() {
   const todayKey = format(start, "yyyy-MM-dd");
   const todays = rows.filter((b) => b.scheduled_date === todayKey);
   const assignedToday = todays.filter((b: any) => b.assigned_tech_id);
+
+  async function assignTech(bookingId: string, techId: string | null) {
+    const { error } = await supabase
+      .from("bookings")
+      .update({ assigned_tech_id: techId })
+      .eq("id", bookingId);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    toast.success(techId ? "Assigned" : "Unassigned");
+    qc.invalidateQueries({ queryKey: ["today-bookings"] });
+  }
 
   const arrived = todays.filter((b) => b.bike_arrived).length;
   const cap = capacityFor(start);
@@ -251,6 +268,14 @@ function TodayBookIns() {
             <BookInCard
               key={b.id}
               booking={b}
+              draggable
+              onDragStart={(e) => {
+                e.dataTransfer.setData("text/plain", b.id);
+                e.dataTransfer.effectAllowed = "move";
+                setDragId(b.id);
+              }}
+              onDragEnd={() => setDragId(null)}
+              className={dragId === b.id ? "opacity-50" : undefined}
               onClick={() => nav({ to: "/book-ins/$date", params: { date: todayKey } })}
             />
           ))}
@@ -275,9 +300,12 @@ function TodayBookIns() {
         </div>
       )}
 
-      {/* Technician load for today */}
+      {/* Active techs — drop a book-in on a name to assign it */}
       <TechnicianLoad
+        title="Active techs"
         bookings={todays}
+        droppable
+        onAssign={assignTech}
         onOpenBooking={(id) => nav({ to: "/bookings/$bookingId", params: { bookingId: id } })}
       />
 
