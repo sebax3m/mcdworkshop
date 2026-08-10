@@ -6,12 +6,20 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { addDays, format, isToday } from "date-fns";
 import { TechnicianLoad } from "@/components/booking/TechnicianLoad";
 import { supabase } from "@/integrations/supabase/client";
-import { Bike, Wrench, Clock, AlertCircle, CheckCircle2, Plus, CalendarDays, Search } from "lucide-react";
+import {
+  Bike,
+  Wrench,
+  Clock,
+  AlertCircle,
+  CheckCircle2,
+  Plus,
+  CalendarDays,
+  Search,
+} from "lucide-react";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { BookInCard, CapacityBadge } from "@/components/booking/BookInCard";
 import { useWorkshopCapacity } from "@/hooks/useWorkshopCapacity";
 import { TechnicianDashboard } from "./my-work";
-
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
@@ -43,30 +51,36 @@ function Dashboard() {
       const startOfDay = new Date();
       startOfDay.setHours(0, 0, 0, 0);
       const todayKey = new Date().toISOString().slice(0, 10);
-      const [todayJobs, inShop, waitingParts, ready, awaiting] = await Promise.all([
-        supabase
-          .from("jobs")
-          .select("id", { count: "exact", head: true })
-          .gte("created_at", startOfDay.toISOString()),
-        supabase
-          .from("jobs")
-          .select("id", { count: "exact", head: true })
-          .in("status", ["new", "assigned", "in_progress", "waiting_parts", "ready_for_pickup"]),
-        supabase
-          .from("jobs")
-          .select("id", { count: "exact", head: true })
-          .eq("status", "waiting_parts"),
-        supabase
-          .from("jobs")
-          .select("id", { count: "exact", head: true })
-          .eq("status", "ready_for_pickup"),
-        supabase
-          .from("bookings")
-          .select("id", { count: "exact", head: true })
-          .lte("scheduled_date", todayKey)
-          .is("job_id", null)
-          .neq("status", "cancelled"),
-      ]);
+      const [todayJobs, inShop, waitingParts, waitingApproval, ready, awaiting] = await Promise.all(
+        [
+          supabase
+            .from("jobs")
+            .select("id", { count: "exact", head: true })
+            .gte("created_at", startOfDay.toISOString()),
+          supabase
+            .from("jobs")
+            .select("id", { count: "exact", head: true })
+            .in("status", ["new", "assigned", "in_progress", "waiting_parts", "ready_for_pickup"]),
+          supabase
+            .from("jobs")
+            .select("id", { count: "exact", head: true })
+            .eq("status", "waiting_parts"),
+          supabase
+            .from("jobs")
+            .select("id", { count: "exact", head: true })
+            .eq("status", "waiting_approval"),
+          supabase
+            .from("jobs")
+            .select("id", { count: "exact", head: true })
+            .eq("status", "ready_for_pickup"),
+          supabase
+            .from("bookings")
+            .select("id", { count: "exact", head: true })
+            .lte("scheduled_date", todayKey)
+            .is("job_id", null)
+            .neq("status", "cancelled"),
+        ],
+      );
       const { data: clockData } = await supabase
         .from("clock_events")
         .select("user_id, event_type, occurred_at")
@@ -83,6 +97,7 @@ function Dashboard() {
         jobsToday: todayJobs.count ?? 0,
         bikesIn: inShop.count ?? 0,
         waitingParts: waitingParts.count ?? 0,
+        waitingApproval: waitingApproval.count ?? 0,
         ready: ready.count ?? 0,
         awaiting: awaiting.count ?? 0,
         activeTechs: onClock,
@@ -112,7 +127,7 @@ function Dashboard() {
         )}
       </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-6 gap-3">
+      <div className="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 gap-3">
         <KpiCard
           label="Jobs Today"
           value={counts.data?.jobsToday ?? 0}
@@ -124,6 +139,12 @@ function Dashboard() {
           value={counts.data?.bikesIn ?? 0}
           icon={Bike}
           accent="blue"
+        />
+        <KpiCard
+          label="Waiting Approval"
+          value={counts.data?.waitingApproval ?? 0}
+          icon={AlertCircle}
+          accent="amber"
         />
         <KpiCard
           label="Waiting Parts"
@@ -150,7 +171,6 @@ function Dashboard() {
           accent="primary"
         />
       </div>
-
     </div>
   );
 }
@@ -164,14 +184,16 @@ function KpiCard({
   label: string;
   value: number;
   icon: any;
-  accent: "primary" | "blue" | "red" | "green";
+  accent: "primary" | "blue" | "red" | "green" | "amber";
 }) {
   const accentCls = {
     primary: "text-primary",
     blue: "text-status-new",
     red: "text-status-parts",
     green: "text-status-ready",
+    amber: "text-amber-400",
   }[accent];
+
   return (
     <div className="card-surface p-4">
       <div className="flex items-center justify-between">
@@ -244,7 +266,6 @@ function TodayBookIns() {
     qc.invalidateQueries({ queryKey: ["today-bookings"] });
     qc.invalidateQueries({ queryKey: ["jobs"] });
   }
-
 
   const arrived = todays.filter((b) => b.bike_arrived).length;
   const cap = capacityFor(start);

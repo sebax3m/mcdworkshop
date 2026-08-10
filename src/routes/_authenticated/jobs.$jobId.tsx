@@ -9,6 +9,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { STATUS_META, STATUS_ORDER, formatMinutes, fullBike, initials } from "@/lib/format";
 import { useCurrentUser } from "@/hooks/use-current-user";
+import { logJobEvent } from "@/lib/job-events";
+import { InspectionPanel } from "@/components/job/InspectionPanel";
+import { JobTimeline } from "@/components/job/JobTimeline";
+import { displayCustomerName } from "@/lib/display";
+
 import { toast } from "sonner";
 import {
   ArrowLeft,
@@ -26,7 +31,6 @@ import {
   FileText,
   Printer,
   Trash2,
-
 } from "lucide-react";
 import { detectServiceKind, KIND_META, SERVICE_PARTS } from "@/lib/service-kinds";
 import { getValveSpec, formatRange, type ValveSpec } from "@/lib/valve-specs";
@@ -142,6 +146,19 @@ function JobDetail() {
           .maybeSingle()
       ).data,
   });
+  const pendingApproval = useQuery({
+    queryKey: ["job-approval-pending", jobId],
+    queryFn: async () =>
+      (
+        await supabase
+          .from("job_approval_requests")
+          .select("id")
+          .eq("job_id", jobId)
+          .eq("status", "pending")
+          .maybeSingle()
+      ).data,
+  });
+  const hasPendingApproval = !!pendingApproval.data;
 
   const activeTimer = useMemo(
     () => (time.data ?? []).find((t) => !t.ended_at && t.technician_id === user?.id),
@@ -187,7 +204,6 @@ function JobDetail() {
     nav({ to: "/jobs" });
   }
 
-
   if (job.isLoading)
     return (
       <div className="card-surface p-8 text-center text-sm text-muted-foreground">Loading…</div>
@@ -221,6 +237,9 @@ function JobDetail() {
   }
 
   async function setStatus(status: string) {
+    if (status === "completed" && hasPendingApproval) {
+      return toast.error("Customer approval is still pending — record the decision first.");
+    }
     const patch: any = { status };
     if (status === "in_progress" && !j.started_at) patch.started_at = new Date().toISOString();
     if (status === "completed") patch.completed_at = new Date().toISOString();
@@ -237,7 +256,15 @@ function JobDetail() {
       );
     }
     toast.success(`Marked ${STATUS_META[status].label}`);
+    logJobEvent(
+      jobId,
+      "status_changed",
+      `Status changed to ${STATUS_META[status].label}`,
+      { from: j.status, to: status },
+      user?.id ?? null,
+    );
     qc.invalidateQueries({ queryKey: ["job", jobId] });
+    qc.invalidateQueries({ queryKey: ["job-events", jobId] });
     qc.invalidateQueries({ queryKey: ["jobs"] });
     qc.invalidateQueries({ queryKey: ["dashboard-jobs"] });
     qc.invalidateQueries({ queryKey: ["dashboard-counts"] });
@@ -402,7 +429,6 @@ function JobDetail() {
             )}
             <StatusDropdown current={j.status} onChange={setStatus} />
           </div>
-
         </div>
         <div className="min-w-0">
           <div className="text-[0.625rem] uppercase tracking-[0.25em] text-muted-foreground flex flex-wrap items-center gap-2">
@@ -750,6 +776,30 @@ function JobDetail() {
         />
       )}
 
+      {canEdit && user && (
+        <div className="no-print">
+          <InspectionPanel
+            jobId={jobId}
+            jobNumber={j.job_number}
+            jobStartedAt={j.started_at}
+            customerName={displayCustomerName(j.customers as any)}
+            isAdmin={isAdmin}
+            userId={user.id}
+            onJobChanged={() => {
+              qc.invalidateQueries({ queryKey: ["job", jobId] });
+              qc.invalidateQueries({ queryKey: ["job-approval-pending", jobId] });
+              qc.invalidateQueries({ queryKey: ["job-events", jobId] });
+              qc.invalidateQueries({ queryKey: ["notifications"] });
+              qc.invalidateQueries({ queryKey: ["dashboard-counts"] });
+            }}
+          />
+        </div>
+      )}
+
+      <div className="no-print">
+        <JobTimeline jobId={jobId} />
+      </div>
+
       <section data-print-section="notes" className="card-surface p-4">
         <h2 className="font-display text-lg font-semibold mb-3">Notes</h2>
         {canEdit && (
@@ -847,7 +897,6 @@ function JobDetail() {
               }),
           },
         ]}
-
         sections={[
           { id: "instructions", label: "Book-in instructions" },
           { id: "notes", label: "Job notes" },
