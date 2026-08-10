@@ -309,6 +309,177 @@ function BikeCard({
   );
 }
 
+type CalBike = {
+  motorcycle_id: string;
+  make: string | null;
+  model: string | null;
+  year: number | null;
+  rego: string | null;
+  mileage: number | null;
+  lastDate: string;
+  count: number;
+};
+
+function CalendarPostBikes({
+  branches,
+  existing,
+  onImported,
+}: {
+  branches: Branch[];
+  existing: PostBike[];
+  onImported: () => void;
+}) {
+  const [busy, setBusy] = useState<string | null>(null);
+  const [sel, setSel] = useState<Record<string, string>>({});
+
+  const { data: calBikes = [], isLoading } = useQuery({
+    queryKey: ["post-bike-bookings"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("bookings")
+        .select("motorcycle_id,scheduled_date,motorcycles(id,make,model,year,rego,mileage)")
+        .ilike("service_type", "%post%")
+        .order("scheduled_date", { ascending: false })
+        .limit(500);
+      if (error) throw error;
+      const map = new Map<string, CalBike>();
+      for (const row of (data ?? []) as unknown as {
+        motorcycle_id: string | null;
+        scheduled_date: string;
+        motorcycles: {
+          id: string;
+          make: string | null;
+          model: string | null;
+          year: number | null;
+          rego: string | null;
+          mileage: number | null;
+        } | null;
+      }[]) {
+        const m = row.motorcycles;
+        if (!m || !row.motorcycle_id) continue;
+        const prev = map.get(m.id);
+        if (prev) {
+          prev.count += 1;
+          continue;
+        }
+        map.set(m.id, {
+          motorcycle_id: m.id,
+          make: m.make,
+          model: m.model,
+          year: m.year,
+          rego: m.rego,
+          mileage: m.mileage,
+          lastDate: row.scheduled_date,
+          count: 1,
+        });
+      }
+      return [...map.values()];
+    },
+  });
+
+  const takenRegos = new Set(
+    existing.map((b) => (b.rego ?? "").trim().toUpperCase()).filter(Boolean),
+  );
+
+  async function assign(bike: CalBike, branchId: string | null) {
+    setBusy(bike.motorcycle_id);
+    const { error } = await supabase.from("post_bikes").insert({
+      branch_id: branchId,
+      name: null,
+      rego: bike.rego?.trim().toUpperCase() || null,
+      make: bike.make,
+      model: bike.model,
+      year: bike.year,
+      current_km: bike.mileage,
+      service_interval_km: 5000,
+    });
+    setBusy(null);
+    if (error) return toast.error(error.message);
+    toast.success("Bike added to fleet");
+    onImported();
+  }
+
+  return (
+    <section className="card-surface p-3 space-y-3">
+      <header className="flex flex-wrap items-center justify-between gap-2">
+        <h2 className="text-[0.6875rem] font-bold uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-1.5">
+          <BikeIcon className="h-3.5 w-3.5" /> Post bikes from the calendar
+        </h2>
+        <span className="text-[0.6875rem] text-muted-foreground">
+          {calBikes.length} bike{calBikes.length === 1 ? "" : "s"} booked as Post Bike
+        </span>
+      </header>
+
+      {isLoading ? (
+        <div className="text-sm text-muted-foreground">Loading book-ins…</div>
+      ) : calBikes.length === 0 ? (
+        <div className="rounded-lg border border-dashed border-border py-6 text-center text-xs text-muted-foreground">
+          No Post Bike book-ins found in the calendar yet.
+        </div>
+      ) : (
+        <div className="space-y-1.5">
+          {calBikes.map((b) => {
+            const already = !!b.rego && takenRegos.has(b.rego.trim().toUpperCase());
+            const label =
+              [b.year ? String(b.year) : "", b.make ?? "", b.model ?? ""].filter(Boolean).join(" ") ||
+              b.rego ||
+              "Bike";
+            return (
+              <div
+                key={b.motorcycle_id}
+                className="flex flex-wrap items-center gap-2 rounded-lg border border-border bg-card p-2.5"
+              >
+                <div className="min-w-0 flex-1">
+                  <div className="truncate text-sm font-semibold">{label}</div>
+                  <div className="mt-0.5 flex flex-wrap items-center gap-x-2 text-[0.6875rem] text-muted-foreground">
+                    {b.rego && <span className="font-mono uppercase">{b.rego}</span>}
+                    {b.mileage != null && <span>{b.mileage.toLocaleString()} km</span>}
+                    <span>Last book-in: {format(new Date(b.lastDate), "d MMM yy")}</span>
+                    {b.count > 1 && <span>{b.count} book-ins</span>}
+                  </div>
+                </div>
+                {already ? (
+                  <span className="text-[0.6875rem] font-semibold uppercase tracking-wide text-muted-foreground">
+                    In fleet
+                  </span>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <select
+                      className="h-8 rounded-lg border border-border bg-background px-2 text-xs outline-none focus:border-primary"
+                      value={sel[b.motorcycle_id] ?? branches[0]?.id ?? ""}
+                      onChange={(e) =>
+                        setSel((s) => ({ ...s, [b.motorcycle_id]: e.target.value }))
+                      }
+                    >
+                      <option value="">Unassigned</option>
+                      {branches.map((br) => (
+                        <option key={br.id} value={br.id}>
+                          {br.name}
+                        </option>
+                      ))}
+                    </select>
+                    <button
+                      type="button"
+                      disabled={busy === b.motorcycle_id}
+                      onClick={() =>
+                        assign(b, (sel[b.motorcycle_id] ?? branches[0]?.id ?? "") || null)
+                      }
+                      className="h-8 rounded-lg bg-primary px-3 text-xs font-semibold text-primary-foreground disabled:opacity-60"
+                    >
+                      {busy === b.motorcycle_id ? "Adding…" : "Assign"}
+                    </button>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </section>
+  );
+}
+
+
 const inputCls =
   "w-full rounded-lg border border-border bg-background px-2.5 h-9 text-sm focus:border-primary outline-none";
 
