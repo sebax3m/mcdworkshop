@@ -88,14 +88,25 @@ export function stageMeta(key: string | null | undefined): StageMeta {
   return STAGE_META[key ?? "booked"] ?? STAGE_META.booked;
 }
 
-/** Derive the customer-arrival stage of a booking row. */
+/**
+ * Derive the stage of a booking row.
+ * - A booking whose day has arrived automatically falls into "waiting_inspection".
+ * - Checking the bike in moves it to "arrived".
+ * - Once a job card exists it leaves the book-in board ("in_workshop").
+ */
 export function bookInStage(b: {
   bike_arrived?: boolean | null;
   job_id?: string | null;
+  scheduled_date?: string | null;
 }): BookInStage {
-  if (!b?.bike_arrived) return "booked";
-  return b.job_id ? "waiting_inspection" : "arrived";
+  if (b?.job_id) return "in_workshop";
+  if (b?.bike_arrived) return "arrived";
+  const today = new Date();
+  const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+  if (b?.scheduled_date && b.scheduled_date <= todayStr) return "waiting_inspection";
+  return "booked";
 }
+
 
 /** Capacity state for a given day. */
 export function capacityState(booked: number, capacity: number) {
