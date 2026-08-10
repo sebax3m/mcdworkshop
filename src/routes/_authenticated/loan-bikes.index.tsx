@@ -281,6 +281,88 @@ function LoanBikesIndex() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Pick which existing book-in gets this loan bike */}
+      <Dialog
+        open={!!pickerBikeId}
+        onOpenChange={(v) => {
+          if (!v) {
+            setPickerBikeId(null);
+            setPickerSearch("");
+          }
+        }}
+      >
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Give loan bike to a book-in</DialogTitle>
+          </DialogHeader>
+          <Input
+            value={pickerSearch}
+            onChange={(e) => setPickerSearch(e.target.value)}
+            placeholder="Search customer, rego or bike…"
+          />
+          <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
+            {(openBookings.data ?? [])
+              .filter((bk: any) => {
+                const q = pickerSearch.trim().toLowerCase();
+                if (!q) return true;
+                const hay = [
+                  displayCustomerName(bk.customers, ""),
+                  bk.motorcycles?.rego,
+                  bk.motorcycles?.make,
+                  bk.motorcycles?.model,
+                  bk.service_type,
+                ]
+                  .filter(Boolean)
+                  .join(" ")
+                  .toLowerCase();
+                return hay.includes(q);
+              })
+              .slice(0, 60)
+              .map((bk: any) => (
+                <button
+                  key={bk.id}
+                  type="button"
+                  onClick={() => {
+                    setPresetBikeId(pickerBikeId);
+                    setEditBookingId(bk.id);
+                    setPickerBikeId(null);
+                    setPickerSearch("");
+                  }}
+                  className="w-full text-left rounded-lg border border-border px-3 py-2 text-sm hover:border-primary/50"
+                >
+                  <div className="font-semibold truncate">
+                    {displayCustomerName(bk.customers, "Customer")}
+                  </div>
+                  <div className="text-xs text-muted-foreground truncate">
+                    {bk.scheduled_date} · {bk.service_type}
+                    {bk.motorcycles?.rego ? ` · ${bk.motorcycles.rego}` : ""}
+                  </div>
+                </button>
+              ))}
+            {openBookings.isLoading && (
+              <p className="text-sm text-muted-foreground">Loading book-ins…</p>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <LoanBikeDialog
+        bookingId={editBookingId}
+        presetBikeId={presetBikeId}
+        open={!!editBookingId}
+        onOpenChange={(v) => {
+          if (!v) {
+            setEditBookingId(null);
+            setPresetBikeId(null);
+          }
+        }}
+        onSaved={() => {
+          bikes.refetch();
+          assignments.refetch();
+          openBookings.refetch();
+        }}
+      />
     </div>
   );
 }
