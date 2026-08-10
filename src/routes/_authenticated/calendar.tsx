@@ -2300,25 +2300,41 @@ function CalendarPage() {
                     </div>
                     <div className="col-span-1">
                       <label className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">
-                        Rego
+                        Rego (optional)
                       </label>
                       <div className="flex gap-1 mt-1">
                         <input
-                          value={qBikeRego}
-                          onChange={(e) => setQBikeRego(e.target.value.toUpperCase())}
-                          placeholder="ABC123"
-                          className="flex-1 min-w-0 rounded-lg border border-border bg-background/60 px-3 py-2 text-sm uppercase tracking-wider focus:border-primary/60 focus:outline-none"
+                          value={qNoRego ? "" : qBikeRego}
+                          onChange={(e) => {
+                            setQBikeRego(e.target.value.toUpperCase());
+                            if (e.target.value.trim()) setQNoRego(false);
+                          }}
+                          placeholder={qNoRego ? "No rego" : "ABC123"}
+                          disabled={qNoRego}
+                          className="flex-1 min-w-0 rounded-lg border border-border bg-background/60 px-3 py-2 text-sm uppercase tracking-wider focus:border-primary/60 focus:outline-none disabled:opacity-50"
                         />
                         <button
                           type="button"
                           onClick={fetchQuickFromRego}
-                          disabled={lookingUpRego || !qBikeRego.trim()}
+                          disabled={lookingUpRego || !qBikeRego.trim() || qNoRego}
                           title="Fetch from Carjam"
                           className="shrink-0 rounded-lg border border-border bg-background/60 px-2 text-xs hover:bg-primary/10 disabled:opacity-50"
                         >
                           <Sparkles className="h-3.5 w-3.5" />
                         </button>
                       </div>
+                      <label className="mt-1.5 flex items-center gap-2 text-xs text-muted-foreground cursor-pointer">
+                        <input
+                          type="checkbox"
+                          className="h-3.5 w-3.5 accent-primary"
+                          checked={qNoRego}
+                          onChange={(e) => {
+                            setQNoRego(e.target.checked);
+                            if (e.target.checked) setQBikeRego("");
+                          }}
+                        />
+                        Bike has no rego plate
+                      </label>
                     </div>
                     <div className="col-span-1">
                       <label className="text-[0.625rem] uppercase tracking-wider text-muted-foreground flex items-center gap-1">
