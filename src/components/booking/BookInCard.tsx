@@ -62,7 +62,7 @@ export function BookInCard({
         }
       }}
       className={cn(
-        "group w-full rounded-lg border border-l-4 text-left transition-colors",
+        "group relative w-full rounded-lg border border-l-4 text-left transition-colors",
         svc.border,
         svc.fill,
         "hover:brightness-110 focus:outline-none focus:ring-2 focus:ring-primary/40",
@@ -72,6 +72,13 @@ export function BookInCard({
         className,
       )}
     >
+      {b.loan_bike && (
+        <span
+          className="absolute -top-1 -right-1 z-10 h-2.5 w-2.5 rounded-full bg-fuchsia-500 ring-2 ring-background shadow-[0_0_8px_rgba(217,70,239,0.9)] animate-pulse"
+          title="Loan bike"
+        />
+      )}
+
       {/* Ultra-compact mobile view: bike + customer + tiny status dots */}
       <div className="sm:hidden flex items-start gap-1">
         {photo ? (
