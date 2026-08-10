@@ -122,6 +122,8 @@ const DAILY_CAPACITY_HOURS = 16;
 type ViewMode = "month" | "week";
 
 import { serviceColor, SERVICE_LEGEND, SERVICE_COLORS } from "@/lib/service-colors";
+import { changeBookingServiceType, changeBookingServiceOther } from "@/lib/service-sync";
+
 import { initialsOf } from "@/hooks/use-technician-names";
 
 const FALLBACK_SERVICE_TYPES = [
@@ -1559,16 +1561,26 @@ function CalendarPage() {
                         value={b.service_type ?? ""}
                         onChange={async (e) => {
                           const s = e.target.value;
-                          const sc = serviceColor(s);
-                          const { error } = await supabase
-                            .from("bookings")
-                            .update({ service_type: s, color: sc.hex })
-                            .eq("id", b.id);
-                          if (error) return toast.error(error.message);
-                          patchSelected({ service_type: s, color: sc.hex });
+                          const isOther = s.toLowerCase() === "other";
+                          const other = isOther ? b.service_type_other ?? null : null;
+                          const { error, color } = await changeBookingServiceType({
+                            bookingId: b.id,
+                            serviceType: s,
+                            serviceTypeOther: other,
+                          });
+                          if (error) return toast.error(error);
+                          patchSelected({
+                            service_type: s,
+                            service_type_other: other,
+                            color,
+                          });
                           qc.invalidateQueries({ queryKey: ["calendar-bookings"] });
+                          qc.invalidateQueries({ queryKey: ["jobs"] });
+                          qc.invalidateQueries({ queryKey: ["job"] });
+                          qc.invalidateQueries({ queryKey: ["book-ins"] });
                           toast.success(`Set to ${s}`);
                         }}
+
                         className="w-full mt-1 rounded-lg border border-border bg-background/60 px-3 py-2 text-sm focus:border-primary/60 focus:outline-none"
                       >
                         {Array.from(
@@ -1595,15 +1607,20 @@ function CalendarPage() {
                             onBlur={async (e) => {
                               const v = e.target.value.trim();
                               if (v === (b.service_type_other ?? "")) return;
-                              const { error } = await supabase
-                                .from("bookings")
-                                .update({ service_type_other: v || null })
-                                .eq("id", b.id);
-                              if (error) return toast.error(error.message);
+                              const { error } = await changeBookingServiceOther({
+                                bookingId: b.id,
+                                serviceType: b.service_type,
+                                serviceTypeOther: v || null,
+                              });
+                              if (error) return toast.error(error);
                               patchSelected({ service_type_other: v || null });
                               qc.invalidateQueries({ queryKey: ["calendar-bookings"] });
+                              qc.invalidateQueries({ queryKey: ["jobs"] });
+                              qc.invalidateQueries({ queryKey: ["job"] });
+                              qc.invalidateQueries({ queryKey: ["book-ins"] });
                               toast.success("Service details updated");
                             }}
+
                             className="mt-1 w-full min-h-[64px] rounded-lg border border-border bg-background/60 px-3 py-2 text-sm focus:border-primary/60 focus:outline-none resize-y"
                           />
                         </div>
