@@ -18,6 +18,12 @@ import {
 const fmtKm = (n: number | null | undefined) =>
   n == null ? "" : new Intl.NumberFormat("de-DE").format(n);
 
+/** Parses a possibly dot-formatted km string back to a number */
+const parseKm = (v: string): number | null => {
+  const digits = v.replace(/\D/g, "");
+  return digits ? Number(digits) : null;
+};
+
 
 type Branch = {
   id: string;
@@ -667,21 +673,24 @@ function NewBikeDialog({
           <label className="space-y-1">
             <span className="text-xs font-semibold text-muted-foreground">Current km</span>
             <input
-              type="number"
+              type="text"
+              inputMode="numeric"
               className={inputCls}
-              value={form.current_km}
-              onChange={(e) => set("current_km", e.target.value)}
+              value={fmtKm(parseKm(form.current_km))}
+              onChange={(e) => set("current_km", String(parseKm(e.target.value) ?? ""))}
             />
           </label>
           <label className="space-y-1">
             <span className="text-xs font-semibold text-muted-foreground">Service every (km)</span>
             <input
-              type="number"
+              type="text"
+              inputMode="numeric"
               className={inputCls}
-              value={form.service_interval_km}
-              onChange={(e) => set("service_interval_km", e.target.value)}
+              value={fmtKm(parseKm(form.service_interval_km))}
+              onChange={(e) => set("service_interval_km", String(parseKm(e.target.value) ?? ""))}
             />
           </label>
+
           <label className="space-y-1 sm:col-span-2">
             <span className="text-xs font-semibold text-muted-foreground">Notes</span>
             <textarea
@@ -737,7 +746,6 @@ function BikeDetailDialog({
   const [logForm, setLogForm] = useState({
     service_date: format(new Date(), "yyyy-MM-dd"),
     km: "",
-    service_type: "",
     description: "",
     cost: "",
     performed_by: "",
@@ -769,7 +777,6 @@ function BikeDetailDialog({
       post_bike_id: bike.id,
       service_date: logForm.service_date,
       km,
-      service_type: logForm.service_type.trim() || null,
       description: logForm.description.trim(),
       cost: logForm.cost ? Number(logForm.cost) : null,
       performed_by: logForm.performed_by.trim() || null,
@@ -791,7 +798,6 @@ function BikeDetailDialog({
     setLogForm({
       service_date: format(new Date(), "yyyy-MM-dd"),
       km: "",
-      service_type: "",
       description: "",
       cost: "",
       performed_by: "",
@@ -856,25 +862,32 @@ function BikeDetailDialog({
           <label className="space-y-1">
             <span className="text-xs font-semibold text-muted-foreground">Current km</span>
             <input
-              type="number"
+              type="text"
+              inputMode="numeric"
               className={inputCls}
-              defaultValue={bike.current_km ?? ""}
-              onBlur={(e) =>
-                updateBike({ current_km: e.target.value ? Number(e.target.value) : null })
-              }
+              defaultValue={fmtKm(bike.current_km)}
+              onBlur={(e) => {
+                const v = parseKm(e.target.value);
+                e.target.value = fmtKm(v);
+                updateBike({ current_km: v });
+              }}
             />
           </label>
           <label className="space-y-1">
             <span className="text-xs font-semibold text-muted-foreground">Service every (km)</span>
             <input
-              type="number"
+              type="text"
+              inputMode="numeric"
               className={inputCls}
-              defaultValue={bike.service_interval_km}
-              onBlur={(e) =>
-                updateBike({ service_interval_km: Number(e.target.value || 5000) })
-              }
+              defaultValue={fmtKm(bike.service_interval_km)}
+              onBlur={(e) => {
+                const v = parseKm(e.target.value) ?? 5000;
+                e.target.value = fmtKm(v);
+                updateBike({ service_interval_km: v });
+              }}
             />
           </label>
+
         </div>
 
         <section className="space-y-2">
@@ -885,24 +898,22 @@ function BikeDetailDialog({
             <div className="grid gap-2 sm:grid-cols-6">
               <input
                 type="date"
-                className={`${inputCls} sm:col-span-2`}
+                className={`${inputCls} sm:col-span-3`}
                 value={logForm.service_date}
                 onChange={(e) => setLogForm((f) => ({ ...f, service_date: e.target.value }))}
               />
               <input
-                type="number"
+                type="text"
+                inputMode="numeric"
                 placeholder="km"
-                className={`${inputCls} sm:col-span-1`}
-                value={logForm.km}
-                onChange={(e) => setLogForm((f) => ({ ...f, km: e.target.value }))}
-              />
-              <input
-                placeholder="Type (oil, tyres…)"
                 className={`${inputCls} sm:col-span-3`}
-                value={logForm.service_type}
-                onChange={(e) => setLogForm((f) => ({ ...f, service_type: e.target.value }))}
+                value={fmtKm(parseKm(logForm.km))}
+                onChange={(e) =>
+                  setLogForm((f) => ({ ...f, km: String(parseKm(e.target.value) ?? "") }))
+                }
               />
             </div>
+
 
             <div className="space-y-1">
               <span className="text-xs font-semibold text-muted-foreground">What was done</span>
@@ -986,9 +997,9 @@ function BikeDetailDialog({
                       )}
                     </div>
                     <div className="whitespace-pre-wrap text-xs text-muted-foreground">
-                      {l.service_type ? `${l.service_type} — ` : ""}
                       {l.description}
                     </div>
+
                   </div>
 
                   <button
