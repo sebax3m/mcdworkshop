@@ -109,7 +109,19 @@ function DayView() {
     invalidate();
   }
 
+  /** Assign (or unassign) a book-in to a technician via drag & drop. */
+  async function assignTech(bookingId: string, techId: string | null) {
+    const { error } = await supabase
+      .from("bookings")
+      .update({ assigned_tech_id: techId })
+      .eq("id", bookingId);
+    if (error) return toast.error(error.message);
+    toast.success(techId ? "Assigned to technician" : "Unassigned");
+    invalidate();
+  }
+
   /** Move a booking between the day columns via drag & drop. */
+
   async function moveTo(
     b: any,
     target: "booked" | "arrived" | "waiting_inspection" | "in_workshop",
