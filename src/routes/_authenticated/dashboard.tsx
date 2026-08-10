@@ -359,6 +359,24 @@ function TodayBookIns() {
         </div>
       )}
 
+      {/* Assigned jobs today */}
+      {assignedToday.length > 0 && (
+        <div className="card-surface p-3 space-y-2">
+          <div className="text-[0.625rem] font-bold uppercase tracking-wider text-muted-foreground">
+            Assigned today · {assignedToday.length}
+          </div>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-2">
+            {assignedToday.map((b: any) => (
+              <BookInCard
+                key={b.id}
+                booking={b}
+                onClick={() => nav({ to: "/bookings/$bookingId", params: { bookingId: b.id } })}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Technician load for today */}
       <TechnicianLoad
         bookings={todays}

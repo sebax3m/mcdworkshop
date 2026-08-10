@@ -121,6 +121,7 @@ const DAILY_CAPACITY_HOURS = 16;
 type ViewMode = "month" | "week";
 
 import { serviceColor, SERVICE_LEGEND, SERVICE_COLORS } from "@/lib/service-colors";
+import { initialsOf } from "@/hooks/use-technician-names";
 
 const FALLBACK_SERVICE_TYPES = [
   "Basic Service",
@@ -996,6 +997,14 @@ function CalendarPage() {
                                 ? `${b.motorcycles.make ?? ""} ${b.motorcycles.model ?? ""}`.trim()
                                 : (b.customers?.first_name ?? "Booking")}
                             </span>
+                            {b.assigned_tech_id && (
+                              <span
+                                className="ml-auto shrink-0 grid h-3 w-3 place-items-center rounded-full bg-primary text-[0.5rem] font-black text-primary-foreground"
+                                title={`Assigned to ${b.tech_name ?? "technician"}`}
+                              >
+                                {initialsOf(b.tech_name).charAt(0)}
+                              </span>
+                            )}
                           </div>
                         );
                       })}
