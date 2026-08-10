@@ -10,6 +10,8 @@ import { Bike, Wrench, Clock, AlertCircle, CheckCircle2, Plus, CalendarDays, Sea
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { BookInCard, CapacityBadge } from "@/components/booking/BookInCard";
 import { useWorkshopCapacity } from "@/hooks/useWorkshopCapacity";
+import { TechnicianDashboard } from "./my-work";
+
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
@@ -31,7 +33,10 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
 });
 
 function Dashboard() {
-  const { fullName, isAdmin } = useCurrentUser();
+  const { fullName, isAdmin, loading } = useCurrentUser();
+  // Technicians get their own focused dashboard (only their assigned work).
+  if (!loading && !isAdmin) return <TechnicianDashboard />;
+
   const counts = useQuery({
     queryKey: ["dashboard-counts"],
     queryFn: async () => {

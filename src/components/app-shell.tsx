@@ -93,8 +93,9 @@ export function AppShell() {
         { to: "/settings", label: "Settings", icon: SettingsIcon, color: "#94a3b8" },
       ]
     : [
-        { to: "/dashboard", label: "Today", icon: LayoutDashboard, color: "#f87171" },
+        { to: "/my-work", label: "My Work", icon: LayoutDashboard, color: "#f87171" },
         { to: "/calendar", label: "Book-ins", icon: CalendarDays, color: "#60a5fa" },
+
         { to: "/post-bike", label: "Post Bike", icon: Truck, color: "#38bdf8" },
         { to: "/jobs", label: "Job Cards", icon: Wrench, color: "#fb923c" },
         { to: "/motorcycles", label: "Bikes", icon: Bike, color: "#facc15" },

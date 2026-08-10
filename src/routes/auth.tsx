@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -37,22 +37,32 @@ function AuthPage() {
     staleTime: 60_000,
   });
 
+  /** Admins land on the calendar; technicians land on their own dashboard. */
+  const goHome = useCallback(
+    async (userId: string) => {
+      const { data } = await supabase.from("user_roles").select("role").eq("user_id", userId);
+      const isAdmin = (data ?? []).some((r) => r.role === "admin");
+      nav({ to: isAdmin ? "/calendar" : "/my-work", replace: true });
+    },
+    [nav],
+  );
+
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
-      if (data.session) nav({ to: "/calendar", replace: true });
+      if (data.session) goHome(data.session.user.id);
     });
-  }, [nav]);
+  }, [goHome]);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email: email.trim(),
         password,
       });
       if (error) throw error;
-      nav({ to: "/calendar", replace: true });
+      await goHome(data.user.id);
     } catch (err: any) {
       // Return a generic message: never confirm whether an email exists.
       toast.error("Invalid email or password");
@@ -61,6 +71,7 @@ function AuthPage() {
       setLoading(false);
     }
   }
+
 
   async function onReset(e: React.FormEvent) {
     e.preventDefault();
