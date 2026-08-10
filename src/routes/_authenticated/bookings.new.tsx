@@ -593,10 +593,26 @@ function NewBooking() {
                       onChange={(e) => setNbYear(e.target.value)}
                     />
                     <Input
-                      placeholder="Rego (plate)"
-                      value={nbRego}
-                      onChange={(e) => setNbRego(e.target.value)}
+                      placeholder={nbNoRego ? "No rego" : "Rego (plate)"}
+                      value={nbNoRego ? "" : nbRego}
+                      onChange={(e) => {
+                        setNbRego(e.target.value);
+                        if (e.target.value.trim()) setNbNoRego(false);
+                      }}
+                      disabled={nbNoRego}
                     />
+                    <label className="col-span-2 flex items-center gap-2 text-xs text-muted-foreground cursor-pointer">
+                      <input
+                        type="checkbox"
+                        className="h-3.5 w-3.5 accent-primary"
+                        checked={nbNoRego}
+                        onChange={(e) => {
+                          setNbNoRego(e.target.checked);
+                          if (e.target.checked) setNbRego("");
+                        }}
+                      />
+                      Motorcycle has no rego plate
+                    </label>
                     <Input
                       placeholder="Colour (optional)"
                       value={nbColor}
