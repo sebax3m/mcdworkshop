@@ -137,7 +137,6 @@ function DayView() {
     invalidate();
   }
 
-
   const go = (delta: number) =>
     nav({
       to: "/book-ins/$date",
@@ -250,7 +249,6 @@ function DayView() {
               ["booked", "Booked in (upcoming)", groups.booked, true],
             ] as const
           ).map(([key, label, list, showCheckIn]) => (
-
             <section
               key={key}
               onDragOver={(e) => {

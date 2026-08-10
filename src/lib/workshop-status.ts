@@ -115,7 +115,6 @@ export function bookInStage(b: {
   return "booked";
 }
 
-
 /** Capacity state for a given day. */
 export function capacityState(booked: number, capacity: number) {
   if (capacity <= 0) return booked > 0 ? ("over" as const) : ("closed" as const);
