@@ -243,11 +243,17 @@ function DayView() {
                 e.preventDefault();
                 e.dataTransfer.dropEffect = "move";
                 setOverCol(key);
+                setOverIdx((i) => (i === null ? list.length : i));
               }}
-              onDragLeave={() => setOverCol((c) => (c === key ? null : c))}
+              onDragLeave={(e) => {
+                if (e.currentTarget.contains(e.relatedTarget as Node)) return;
+                setOverCol((c) => (c === key ? null : c));
+                setOverIdx(null);
+              }}
               onDrop={(e) => {
                 e.preventDefault();
                 setOverCol(null);
+                setOverIdx(null);
                 const id = e.dataTransfer.getData("text/plain") || dragId;
                 setDragId(null);
                 const b = (bookings as any[]).find((x) => x.id === id);
@@ -268,11 +274,26 @@ function DayView() {
               </div>
               {list.length === 0 ? (
                 <div className="text-xs text-muted-foreground py-4 text-center">
-                  {dragId ? "Drop here" : "Nothing here yet"}
+                  {dragId && overCol === key ? (
+                    <DropLine />
+                  ) : dragId ? (
+                    "Drop here"
+                  ) : (
+                    "Nothing here yet"
+                  )}
                 </div>
               ) : (
-                list.map((b: any) => (
-                  <div key={b.id} className="space-y-1.5">
+                list.map((b: any, idx: number) => (
+                  <div
+                    key={b.id}
+                    className="space-y-1.5"
+                    onDragOver={(e) => {
+                      if (!dragId) return;
+                      const r = e.currentTarget.getBoundingClientRect();
+                      setOverIdx(e.clientY < r.top + r.height / 2 ? idx : idx + 1);
+                    }}
+                  >
+                    {dragId && overCol === key && overIdx === idx && <DropLine />}
                     <BookInCard
                       booking={b}
                       draggable
@@ -284,12 +305,17 @@ function DayView() {
                       onDragEnd={() => {
                         setDragId(null);
                         setOverCol(null);
+                        setOverIdx(null);
                       }}
                       className={dragId === b.id ? "opacity-50" : ""}
                       onClick={() =>
                         nav({ to: "/bookings/$bookingId", params: { bookingId: b.id } })
                       }
                     />
+                    {dragId && overCol === key && overIdx === idx + 1 && idx === list.length - 1 && (
+                      <DropLine />
+                    )}
+
                     <div className="flex gap-1.5">
                       {showCheckIn && (
                         <button
