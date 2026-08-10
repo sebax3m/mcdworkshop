@@ -44,6 +44,7 @@ export function FindingDialog({ open, onOpenChange, jobId, userId, finding, onSa
   const [photoPath, setPhotoPath] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     if (!open) return;
