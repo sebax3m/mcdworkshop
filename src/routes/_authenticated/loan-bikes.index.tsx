@@ -58,6 +58,8 @@ function LoanBikesIndex() {
   const [pickerBikeId, setPickerBikeId] = useState<string | null>(null);
   const [pickerSearch, setPickerSearch] = useState("");
   const [reassignFromId, setReassignFromId] = useState<string | null>(null);
+  const [pickerMode, setPickerMode] = useState<"booking" | "customer">("booking");
+  const [assigning, setAssigning] = useState(false);
 
   const openBookings = useQuery({
     queryKey: ["loan-bike-open-bookings"],
@@ -76,6 +78,75 @@ function LoanBikesIndex() {
       return (data ?? []) as any[];
     },
   });
+
+  const customerResults = useQuery({
+    queryKey: ["loan-bike-customer-search", pickerSearch],
+    enabled: !!pickerBikeId && pickerMode === "customer",
+    queryFn: async () => {
+      const q = pickerSearch.trim();
+      let sel = supabase
+        .from("customers")
+        .select("id, first_name, last_name, phone, email")
+        .eq("is_archived", false)
+        .order("first_name")
+        .limit(40);
+      if (q) sel = sel.or(`first_name.ilike.%${q}%,last_name.ilike.%${q}%,phone.ilike.%${q}%`);
+      const { data, error } = await sel;
+      if (error) throw error;
+      return (data ?? []) as any[];
+    },
+  });
+
+  /** Assign this loan bike straight to a customer. Uses their most recent
+   *  open book-in when there is one, otherwise creates a loan-only book-in. */
+  async function assignToCustomer(customerId: string) {
+    if (!pickerBikeId) return;
+    setAssigning(true);
+    try {
+      if (reassignFromId) {
+        const { error } = await supabase
+          .from("bookings")
+          .update({ loan_bike: false, loan_bike_id: null, loan_bike_expected_return: null })
+          .eq("id", reassignFromId);
+        if (error) throw error;
+      }
+      const { data: existing } = await supabase
+        .from("bookings")
+        .select("id")
+        .eq("customer_id", customerId)
+        .is("loan_bike_id", null)
+        .not("status", "in", '("cancelled","deleted","no_show")')
+        .order("scheduled_date", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      let bookingId = existing?.id as string | undefined;
+      if (!bookingId) {
+        const { data: created, error } = await supabase
+          .from("bookings")
+          .insert({
+            customer_id: customerId,
+            service_type: "Loan bike",
+            scheduled_date: format(new Date(), "yyyy-MM-dd"),
+            status: "booked",
+          })
+          .select("id")
+          .single();
+        if (error) throw error;
+        bookingId = created.id;
+      }
+      setPresetBikeId(pickerBikeId);
+      setEditBookingId(bookingId!);
+      setPickerBikeId(null);
+      setPickerSearch("");
+      setReassignFromId(null);
+    } catch (e: any) {
+      toast.error(e.message ?? "Failed to assign");
+    } finally {
+      setAssigning(false);
+    }
+  }
+
 
   const bikes = useQuery({
     queryKey: ["loan-bikes"],
@@ -216,8 +287,24 @@ function LoanBikesIndex() {
                       )}
                     </span>
                   </span>
-                  <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                  <span className="w-4" />
                 </Link>
+                <button
+                  type="button"
+                  title="Assign to a customer"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setReassignFromId(isOut ? current.id : null);
+                    setPickerMode("customer");
+                    setPickerSearch("");
+                    setPickerBikeId(b.id);
+                  }}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 grid h-8 w-8 place-items-center rounded-lg text-muted-foreground hover:text-primary hover:bg-muted"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </button>
+
                 <div className="absolute right-9 top-1/2 -translate-y-1/2 flex items-center gap-1.5">
                   {isOut && (
                     <button
@@ -226,7 +313,9 @@ function LoanBikesIndex() {
                         e.preventDefault();
                         e.stopPropagation();
                         setReassignFromId(current.id);
+                        setPickerMode("customer");
                         setPickerBikeId(b.id);
+
                       }}
                       className="rounded-lg border border-border bg-background px-3 h-8 text-xs font-semibold hover:border-primary/50"
                       title="Move this loan bike to a different customer"
@@ -243,8 +332,10 @@ function LoanBikesIndex() {
                         setEditBookingId(current.id);
                         setPresetBikeId(b.id);
                       } else {
+                        setPickerMode("booking");
                         setPickerBikeId(b.id);
                       }
+
                     }}
                     className="rounded-lg border border-border bg-background px-3 h-8 text-xs font-semibold hover:border-primary/50"
                   >
@@ -315,14 +406,58 @@ function LoanBikesIndex() {
       >
         <DialogContent className="max-w-lg">
           <DialogHeader>
-            <DialogTitle>{reassignFromId ? "Move loan bike to another book-in" : "Give loan bike to a book-in"}</DialogTitle>
+            <DialogTitle>
+              {reassignFromId ? "Move loan bike to another customer" : "Give out loan bike"}
+            </DialogTitle>
           </DialogHeader>
+          <div className="flex gap-1 rounded-lg bg-muted p-1">
+            {(["customer", "booking"] as const).map((m) => (
+              <button
+                key={m}
+                type="button"
+                onClick={() => setPickerMode(m)}
+                className={`flex-1 rounded-md h-8 text-xs font-semibold ${
+                  pickerMode === m ? "bg-background shadow" : "text-muted-foreground"
+                }`}
+              >
+                {m === "customer" ? "By customer" : "By book-in"}
+              </button>
+            ))}
+          </div>
           <Input
             value={pickerSearch}
             onChange={(e) => setPickerSearch(e.target.value)}
-            placeholder="Search customer, rego or bike…"
+            placeholder={
+              pickerMode === "customer" ? "Search customer name or phone…" : "Search customer, rego or bike…"
+            }
           />
+          {pickerMode === "customer" && (
+            <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
+              {customerResults.isLoading && (
+                <p className="text-sm text-muted-foreground">Loading customers…</p>
+              )}
+              {(customerResults.data ?? []).map((c: any) => (
+                <button
+                  key={c.id}
+                  type="button"
+                  disabled={assigning}
+                  onClick={() => assignToCustomer(c.id)}
+                  className="w-full text-left rounded-lg border border-border px-3 py-2 text-sm hover:border-primary/50 disabled:opacity-50"
+                >
+                  <div className="font-semibold truncate">{displayCustomerName(c, "Customer")}</div>
+                  <div className="text-xs text-muted-foreground truncate">
+                    {c.phone || c.email || "—"}
+                  </div>
+                </button>
+              ))}
+              {!customerResults.isLoading && (customerResults.data ?? []).length === 0 && (
+                <p className="text-sm text-muted-foreground">No customers found.</p>
+              )}
+            </div>
+          )}
+          {pickerMode === "booking" && (
           <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
+
             {(openBookings.data ?? [])
               .filter((bk: any) => {
                 const q = pickerSearch.trim().toLowerCase();
@@ -377,6 +512,8 @@ function LoanBikesIndex() {
               <p className="text-sm text-muted-foreground">Loading book-ins…</p>
             )}
           </div>
+          )}
+
         </DialogContent>
       </Dialog>
 
