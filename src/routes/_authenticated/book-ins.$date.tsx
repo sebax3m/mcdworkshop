@@ -232,12 +232,33 @@ function DayView() {
         <div className="grid gap-4 md:grid-cols-3">
           {(
             [
-              ["Booked in", groups.booked, true],
-              ["Arrived", groups.arrived, false],
-              ["Waiting inspection", groups.waiting_inspection, false],
+              ["booked", "Booked in", groups.booked, true],
+              ["arrived", "Arrived", groups.arrived, false],
+              ["waiting_inspection", "Waiting inspection", groups.waiting_inspection, false],
             ] as const
-          ).map(([label, list, showCheckIn]) => (
-            <section key={label} className="card-surface p-3 space-y-2">
+          ).map(([key, label, list, showCheckIn]) => (
+            <section
+              key={key}
+              onDragOver={(e) => {
+                if (!dragId) return;
+                e.preventDefault();
+                e.dataTransfer.dropEffect = "move";
+                setOverCol(key);
+              }}
+              onDragLeave={() => setOverCol((c) => (c === key ? null : c))}
+              onDrop={(e) => {
+                e.preventDefault();
+                setOverCol(null);
+                const id = e.dataTransfer.getData("text/plain") || dragId;
+                setDragId(null);
+                const b = (bookings as any[]).find((x) => x.id === id);
+                if (b) void moveTo(b, key);
+              }}
+              className={
+                "card-surface p-3 space-y-2 transition-colors " +
+                (overCol === key ? "ring-2 ring-primary/60 bg-primary/5" : "")
+              }
+            >
               <div className="flex items-center justify-between">
                 <h2 className="text-[0.6875rem] font-bold uppercase tracking-[0.2em] text-muted-foreground">
                   {label}
@@ -248,18 +269,30 @@ function DayView() {
               </div>
               {list.length === 0 ? (
                 <div className="text-xs text-muted-foreground py-4 text-center">
-                  Nothing here yet
+                  {dragId ? "Drop here" : "Nothing here yet"}
                 </div>
               ) : (
                 list.map((b: any) => (
                   <div key={b.id} className="space-y-1.5">
                     <BookInCard
                       booking={b}
+                      draggable
+                      onDragStart={(e) => {
+                        e.dataTransfer.setData("text/plain", b.id);
+                        e.dataTransfer.effectAllowed = "move";
+                        setDragId(b.id);
+                      }}
+                      onDragEnd={() => {
+                        setDragId(null);
+                        setOverCol(null);
+                      }}
+                      className={dragId === b.id ? "opacity-50" : ""}
                       onClick={() =>
                         nav({ to: "/bookings/$bookingId", params: { bookingId: b.id } })
                       }
                     />
                     <div className="flex gap-1.5">
+
                       {showCheckIn && (
                         <button
                           onClick={() => checkIn(b)}
