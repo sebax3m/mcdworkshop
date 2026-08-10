@@ -14,6 +14,10 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
+/** Formats kilometres with dot thousand separators, e.g. 1000 -> "1.000" */
+const fmtKm = (n: number | null | undefined) =>
+  n == null ? "" : new Intl.NumberFormat("de-DE").format(n);
+
 
 type Branch = {
   id: string;
@@ -291,7 +295,7 @@ function BikeCard({
           </div>
           <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[0.6875rem] text-muted-foreground">
             {bike.rego && <span className="font-mono uppercase">{bike.rego}</span>}
-            {bike.current_km != null && <span>{bike.current_km.toLocaleString()} km</span>}
+            {bike.current_km != null && <span>{fmtKm(bike.current_km)} km</span>}
             {bike.last_service_date && (
               <span>Last: {format(new Date(bike.last_service_date), "d MMM yy")}</span>
             )}
@@ -302,7 +306,7 @@ function BikeCard({
                 dueKm <= 0 ? "text-destructive" : "text-muted-foreground"
               }`}
             >
-              {dueKm <= 0 ? "Service due" : `${dueKm.toLocaleString()} km to service`}
+              {dueKm <= 0 ? "Service due" : `${fmtKm(dueKm)} km to service`}
             </div>
           )}
         </div>
@@ -435,7 +439,7 @@ function CalendarPostBikes({
                   <div className="truncate text-sm font-semibold">{label}</div>
                   <div className="mt-0.5 flex flex-wrap items-center gap-x-2 text-[0.6875rem] text-muted-foreground">
                     {b.rego && <span className="font-mono uppercase">{b.rego}</span>}
-                    {b.mileage != null && <span>{b.mileage.toLocaleString()} km</span>}
+                    {b.mileage != null && <span>{fmtKm(b.mileage)} km</span>}
                     <span>Last book-in: {format(new Date(b.lastDate), "d MMM yy")}</span>
                     {b.count > 1 && <span>{b.count} book-ins</span>}
                   </div>
@@ -967,18 +971,26 @@ function BikeDetailDialog({
             <ul className="divide-y divide-border rounded-lg border border-border">
               {logs.map((l) => (
                 <li key={l.id} className="flex items-start gap-2 p-2.5 text-sm">
-                  <div className="min-w-0 flex-1">
-                    <div className="font-medium whitespace-pre-wrap">
+                  <div className="min-w-0 flex-1 space-y-1">
+                    <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+                      <span className="text-base font-bold tracking-tight">
+                        {l.km != null ? `${fmtKm(l.km)} kms` : "— kms"}
+                      </span>
+                      <span className="text-sm font-semibold text-muted-foreground">
+                        {format(new Date(l.service_date), "d MMM yyyy")}
+                      </span>
+                      {l.performed_by && (
+                        <span className="text-[0.6875rem] text-muted-foreground">
+                          by {l.performed_by}
+                        </span>
+                      )}
+                    </div>
+                    <div className="whitespace-pre-wrap text-xs text-muted-foreground">
                       {l.service_type ? `${l.service_type} — ` : ""}
                       {l.description}
                     </div>
-                    <div className="text-[0.6875rem] text-muted-foreground flex flex-wrap gap-x-2">
-                      <span>{format(new Date(l.service_date), "d MMM yyyy")}</span>
-                      {l.km != null && <span>{l.km.toLocaleString()} km</span>}
-                      {l.performed_by && <span>by {l.performed_by}</span>}
-                    </div>
-
                   </div>
+
                   <button
                     onClick={() => removeLog(l.id)}
                     className="text-muted-foreground hover:text-destructive"
