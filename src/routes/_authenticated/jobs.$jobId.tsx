@@ -924,7 +924,7 @@ function JobDetail() {
         </section>
       )}
 
-      {canEdit && (
+      {isAdmin && (
         <section className="card-surface p-4 print:hidden">
           <div className="flex items-center justify-between gap-3 flex-wrap">
             <div>
