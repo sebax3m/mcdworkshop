@@ -553,7 +553,7 @@ function CalendarPage() {
 
   const visibleRange = useMemo(() => {
     if (viewMode === "week") {
-      return { start: weekStart, end: addDays(weekStart, 6) };
+      return { start: weekStart, end: addDays(weekStart, 5) };
     }
     const start = startOfWeek(startOfMonth(monthStart), { weekStartsOn: 1 });
     const end = endOfWeek(endOfMonth(monthStart), { weekStartsOn: 1 });
@@ -794,9 +794,9 @@ function CalendarPage() {
     setMonthStart(startOfMonth(now));
   };
 
-  const weekEnd = addDays(weekStart, 6);
+  const weekEnd = addDays(weekStart, 5);
   const weekDays = useMemo(
-    () => Array.from({ length: 7 }, (_, i) => addDays(weekStart, i)),
+    () => Array.from({ length: 6 }, (_, i) => addDays(weekStart, i)),
     [weekStart],
   );
 
@@ -804,12 +804,13 @@ function CalendarPage() {
     if (viewMode !== "month") return [];
     const start = startOfWeek(startOfMonth(monthStart), { weekStartsOn: 1 });
     const end = endOfWeek(endOfMonth(monthStart), { weekStartsOn: 1 });
-    return eachDayOfInterval({ start, end });
+    // Exclude Sundays so the calendar shows Mon–Sat only
+    return eachDayOfInterval({ start, end }).filter((d) => !isSunday(d));
   }, [viewMode, monthStart]);
 
-  const monthWeeks = useMemo(() => chunk(monthDays, 7), [monthDays]);
+  const monthWeeks = useMemo(() => chunk(monthDays, 6), [monthDays]);
 
-  const dayNames = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+  const dayNames = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
   return (
     <div className="flex flex-col gap-3 h-full">
@@ -891,15 +892,13 @@ function CalendarPage() {
           <div className="space-y-1 min-w-[720px]">
             {/* Day headers */}
             <div
-              className="grid grid-cols-7 gap-2"
-              style={{ gridTemplateColumns: "repeat(7, minmax(0, 1fr))" }}
+              className="grid grid-cols-6 gap-2"
+              style={{ gridTemplateColumns: "repeat(6, minmax(0, 1fr))" }}
             >
               {dayNames.map((name) => (
                 <div
                   key={name}
-                  className={`text-center text-[0.625rem] font-bold uppercase tracking-wider py-1 rounded ${
-                    name === "Sunday" ? "bg-primary/[0.05] text-primary" : "text-muted-foreground"
-                  }`}
+                  className="text-center text-xs font-bold uppercase tracking-wider py-1 rounded text-muted-foreground"
                 >
                   {name}
                 </div>
@@ -907,8 +906,8 @@ function CalendarPage() {
             </div>
 
             <div
-              className="grid grid-cols-7 gap-2"
-              style={{ gridTemplateColumns: "repeat(7, minmax(0, 1fr))" }}
+              className="grid grid-cols-6 gap-2"
+              style={{ gridTemplateColumns: "repeat(6, minmax(0, 1fr))" }}
             >
               {monthDays.map((day, idx) => {
                 const dayKey = format(day, "yyyy-MM-dd");
@@ -988,7 +987,7 @@ function CalendarPage() {
                         return (
                           <div
                             key={b.id}
-                            className="flex items-center gap-1 min-w-0"
+                            className="flex items-center gap-1 w-full min-w-0 rounded-md bg-muted/30 px-1 py-0.5"
                             title={`${b.service_type} — ${b.motorcycles?.make ?? ""} ${b.motorcycles?.model ?? ""}`}
                           >
                             <span
@@ -1001,7 +1000,7 @@ function CalendarPage() {
                               />
                             )}
 
-                            <span className="truncate text-[0.5625rem] font-semibold">
+                            <span className="flex-1 min-w-0 truncate text-[0.5rem] font-semibold leading-tight">
                               {b.motorcycles
                                 ? `${b.motorcycles.make ?? ""} ${b.motorcycles.model ?? ""}`.trim()
                                 : (b.customers?.first_name ?? "Booking")}
@@ -1056,7 +1055,7 @@ function CalendarPage() {
       {/* WEEK VIEW — motorcycles booked in per day (no hourly slots) */}
       {viewMode === "week" && (
         <div className="overflow-x-auto min-w-full">
-          <div className="grid gap-1.5 sm:gap-2 min-w-[600px] sm:min-w-[980px] grid-cols-7 items-start">
+          <div className="grid gap-1.5 sm:gap-2 min-w-[600px] sm:min-w-[980px] grid-cols-6 items-start">
             {weekDays.map((day) => {
               const dayKey = format(day, "yyyy-MM-dd");
               const dayBookings = sortBookIns(
