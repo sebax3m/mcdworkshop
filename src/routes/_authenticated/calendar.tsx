@@ -183,6 +183,7 @@ function CalendarPage() {
   const [qBikeModel, setQBikeModel] = useState("");
   const [qBikeYear, setQBikeYear] = useState("");
   const [qBikeRego, setQBikeRego] = useState("");
+  const [qNoRego, setQNoRego] = useState(false);
   const [qService, setQService] = useState<string>("Standard Service");
   const [qServiceOther, setQServiceOther] = useState<string>("");
   const [qEstHours, setQEstHours] = useState<string>("1");
