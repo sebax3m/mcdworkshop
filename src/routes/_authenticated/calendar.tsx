@@ -892,15 +892,13 @@ function CalendarPage() {
           <div className="space-y-1 min-w-[720px]">
             {/* Day headers */}
             <div
-              className="grid grid-cols-7 gap-2"
-              style={{ gridTemplateColumns: "repeat(7, minmax(0, 1fr))" }}
+              className="grid grid-cols-6 gap-2"
+              style={{ gridTemplateColumns: "repeat(6, minmax(0, 1fr))" }}
             >
               {dayNames.map((name) => (
                 <div
                   key={name}
-                  className={`text-center text-[0.625rem] font-bold uppercase tracking-wider py-1 rounded ${
-                    name === "Sunday" ? "bg-primary/[0.05] text-primary" : "text-muted-foreground"
-                  }`}
+                  className="text-center text-xs font-bold uppercase tracking-wider py-1 rounded text-muted-foreground"
                 >
                   {name}
                 </div>
@@ -908,8 +906,8 @@ function CalendarPage() {
             </div>
 
             <div
-              className="grid grid-cols-7 gap-2"
-              style={{ gridTemplateColumns: "repeat(7, minmax(0, 1fr))" }}
+              className="grid grid-cols-6 gap-2"
+              style={{ gridTemplateColumns: "repeat(6, minmax(0, 1fr))" }}
             >
               {monthDays.map((day, idx) => {
                 const dayKey = format(day, "yyyy-MM-dd");
