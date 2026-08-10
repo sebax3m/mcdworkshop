@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { ArrowLeft, Search, ShieldCheck, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { fullBike } from "@/lib/format";
+import { displayCustomerName } from "@/lib/display";
 import { NZ_INSURERS } from "@/lib/nz-insurers";
 import { BikeMakeModelYear } from "@/components/BikeMakeModelYear";
 

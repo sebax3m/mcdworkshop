@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { ArrowLeft, Trash2, Save, Bike, Plus, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
+import { displayCustomerName } from "@/lib/display";
 import {
   AlertDialog,
   AlertDialogAction,

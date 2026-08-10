@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import { useState, useMemo } from "react";
+import { displayCustomerName } from "@/lib/display";
 
 export const Route = createFileRoute("/_authenticated/bookings/")({
   component: BookingsList,

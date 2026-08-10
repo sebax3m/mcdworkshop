@@ -6,6 +6,7 @@ import { Plus, ShieldCheck, Search, Phone, Bike as BikeIcon, ChevronRight } from
 import { useMemo, useState } from "react";
 import { format } from "date-fns";
 import { CLAIM_STATUS_META, type ClaimStatus } from "@/lib/insurance";
+import { displayCustomerName } from "@/lib/display";
 
 export const Route = createFileRoute("/_authenticated/insurance/")({
   component: InsuranceList,

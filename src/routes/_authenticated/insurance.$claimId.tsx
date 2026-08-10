@@ -36,6 +36,7 @@ import {
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { fullBike } from "@/lib/format";
+import { displayCustomerName } from "@/lib/display";
 import { CLAIM_PIPELINE, CLAIM_STATUS_META, type ClaimStatus, nextStatus } from "@/lib/insurance";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { ClaimDamageSection } from "@/components/ClaimDamageSection";
