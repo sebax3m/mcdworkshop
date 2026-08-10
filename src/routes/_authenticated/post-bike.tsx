@@ -971,18 +971,26 @@ function BikeDetailDialog({
             <ul className="divide-y divide-border rounded-lg border border-border">
               {logs.map((l) => (
                 <li key={l.id} className="flex items-start gap-2 p-2.5 text-sm">
-                  <div className="min-w-0 flex-1">
-                    <div className="font-medium whitespace-pre-wrap">
+                  <div className="min-w-0 flex-1 space-y-1">
+                    <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+                      <span className="text-base font-bold tracking-tight">
+                        {l.km != null ? `${fmtKm(l.km)} kms` : "— kms"}
+                      </span>
+                      <span className="text-sm font-semibold text-muted-foreground">
+                        {format(new Date(l.service_date), "d MMM yyyy")}
+                      </span>
+                      {l.performed_by && (
+                        <span className="text-[0.6875rem] text-muted-foreground">
+                          by {l.performed_by}
+                        </span>
+                      )}
+                    </div>
+                    <div className="whitespace-pre-wrap text-xs text-muted-foreground">
                       {l.service_type ? `${l.service_type} — ` : ""}
                       {l.description}
                     </div>
-                    <div className="text-[0.6875rem] text-muted-foreground flex flex-wrap gap-x-2">
-                      <span>{format(new Date(l.service_date), "d MMM yyyy")}</span>
-                      {l.km != null && <span>{l.km.toLocaleString()} km</span>}
-                      {l.performed_by && <span>by {l.performed_by}</span>}
-                    </div>
-
                   </div>
+
                   <button
                     onClick={() => removeLog(l.id)}
                     className="text-muted-foreground hover:text-destructive"
