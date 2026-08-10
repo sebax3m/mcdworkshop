@@ -867,6 +867,17 @@ function CalendarPage() {
             >
               Week
             </button>
+            <button
+              onClick={() =>
+                nav({
+                  to: "/book-ins/$date",
+                  params: { date: format(new Date(), "yyyy-MM-dd") },
+                })
+              }
+              className="px-3 h-8 text-xs font-semibold uppercase tracking-wider transition-colors hover:bg-primary/5"
+            >
+              Day
+            </button>
           </div>
         </div>
       </div>

@@ -65,7 +65,6 @@ function DropLine() {
 }
 
 function DayView() {
-
   const { date } = Route.useParams();
   const nav = useNavigate();
   const qc = useQueryClient();
@@ -83,7 +82,6 @@ function DayView() {
   const [dragId, setDragId] = useState<string | null>(null);
   const [overCol, setOverCol] = useState<string | null>(null);
   const [overIdx, setOverIdx] = useState<number | null>(null);
-
 
   const groups = {
     booked: (bookings as any[]).filter((b) => bookInStage(b) === "booked"),
@@ -193,12 +191,17 @@ function DayView() {
           >
             <Plus className="h-4 w-4" /> New book-in
           </Link>
-          <Link
-            to="/calendar"
-            className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 h-9 text-xs font-semibold uppercase tracking-wider hover:border-primary/50"
-          >
-            <CalendarDays className="h-4 w-4" /> Calendar
-          </Link>
+          <div className="inline-flex items-center rounded-lg border border-border p-0.5">
+            <span className="inline-flex items-center gap-1.5 rounded-md bg-primary/15 text-primary px-3 h-8 text-xs font-bold uppercase tracking-wider">
+              <ClipboardCheck className="h-4 w-4" /> Day
+            </span>
+            <Link
+              to="/calendar"
+              className="inline-flex items-center gap-1.5 rounded-md px-3 h-8 text-xs font-semibold uppercase tracking-wider text-muted-foreground hover:text-foreground hover:bg-muted"
+            >
+              <CalendarDays className="h-4 w-4" /> Calendar
+            </Link>
+          </div>
         </div>
       </div>
 
@@ -324,9 +327,10 @@ function DayView() {
                         nav({ to: "/bookings/$bookingId", params: { bookingId: b.id } })
                       }
                     />
-                    {dragId && overCol === key && overIdx === idx + 1 && idx === list.length - 1 && (
-                      <DropLine />
-                    )}
+                    {dragId &&
+                      overCol === key &&
+                      overIdx === idx + 1 &&
+                      idx === list.length - 1 && <DropLine />}
 
                     <div className="flex gap-1.5">
                       {showCheckIn && (
