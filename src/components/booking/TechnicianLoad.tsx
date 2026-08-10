@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { User2, Users } from "lucide-react";
 import { useTechnicians } from "@/hooks/use-active-technician";
-import { bikeLabel } from "@/lib/format";
+import { fullBike } from "@/lib/format";
 
 type Props = {
   /** Bookings for the day being displayed. */
@@ -112,7 +112,7 @@ export function TechnicianLoad({
                           className="w-full text-left rounded-md px-2 py-1 hover:bg-muted"
                         >
                           <div className="text-xs font-semibold truncate">
-                            {bikeLabel(b.motorcycles) || b.rego || "Bike"}
+                            {fullBike(b.motorcycles) || b.rego || "Bike"}
                           </div>
                           <div className="text-[0.625rem] text-muted-foreground truncate">
                             {b.service_type === "other"
