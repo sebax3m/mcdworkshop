@@ -84,9 +84,10 @@ function DayView() {
   const [overIdx, setOverIdx] = useState<number | null>(null);
 
   const groups = {
-    booked: (bookings as any[]).filter((b) => bookInStage(b) === "booked"),
-    arrived: (bookings as any[]).filter((b) => bookInStage(b) === "arrived"),
     waiting_inspection: (bookings as any[]).filter((b) => bookInStage(b) === "waiting_inspection"),
+    arrived: (bookings as any[]).filter((b) => bookInStage(b) === "arrived"),
+    in_workshop: (bookings as any[]).filter((b) => bookInStage(b) === "in_workshop"),
+    booked: (bookings as any[]).filter((b) => bookInStage(b) === "booked"),
   };
 
   function invalidate() {
@@ -105,39 +106,35 @@ function DayView() {
     invalidate();
   }
 
-  /** Move a booking between the three day columns via drag & drop. */
-  async function moveTo(b: any, target: "booked" | "arrived" | "waiting_inspection") {
+  /** Move a booking between the day columns via drag & drop. */
+  async function moveTo(
+    b: any,
+    target: "booked" | "arrived" | "waiting_inspection" | "in_workshop",
+  ) {
     if (bookInStage(b) === target) return;
 
-    if (target === "booked") {
-      if (b.job_id) return toast.error("This book-in already has a job card");
-      const { error } = await supabase
-        .from("bookings")
-        .update({ bike_arrived: false, bike_arrived_at: null })
-        .eq("id", b.id);
-      if (error) return toast.error(error.message);
-      toast.success("Moved back to Booked in");
-      invalidate();
+    if (target === "in_workshop") {
+      if (b.job_id) return;
+      toast.info("Create the job card to move it into the workshop");
+      nav({ to: "/jobs/new", search: { bookingId: b.id } as never });
       return;
     }
 
+    if (b.job_id) return toast.error("This book-in already has a job card");
+
     if (target === "arrived") {
-      if (b.job_id) return toast.error("This book-in already has a job card");
       await checkIn(b);
       return;
     }
 
-    // waiting_inspection needs a job card
-    if (!b.bike_arrived) {
-      const { error } = await supabase
-        .from("bookings")
-        .update({ bike_arrived: true, bike_arrived_at: new Date().toISOString() })
-        .eq("id", b.id);
-      if (error) return toast.error(error.message);
-      invalidate();
-    }
-    toast.info("Create the job card to move it to Waiting inspection");
-    nav({ to: "/jobs/new", search: { bookingId: b.id } as never });
+    // booked / waiting_inspection: both mean "not checked in yet"
+    const { error } = await supabase
+      .from("bookings")
+      .update({ bike_arrived: false, bike_arrived_at: null })
+      .eq("id", b.id);
+    if (error) return toast.error(error.message);
+    toast.success("Check-in undone");
+    invalidate();
   }
 
   const go = (delta: number) =>
@@ -243,12 +240,13 @@ function DayView() {
           </Link>
         </div>
       ) : (
-        <div className="grid gap-4 md:grid-cols-3">
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
           {(
             [
-              ["booked", "Booked in", groups.booked, true],
+              ["waiting_inspection", "Awaiting inspection", groups.waiting_inspection, true],
               ["arrived", "Arrived", groups.arrived, false],
-              ["waiting_inspection", "Waiting inspection", groups.waiting_inspection, false],
+              ["in_workshop", "In workshop", groups.in_workshop, false],
+              ["booked", "Booked in (upcoming)", groups.booked, true],
             ] as const
           ).map(([key, label, list, showCheckIn]) => (
             <section
