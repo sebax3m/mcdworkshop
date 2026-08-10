@@ -132,7 +132,7 @@ function BookingDetail() {
         <InfoRow
           icon={User}
           label="Customer"
-          value={b.customers ? `${b.customers.first_name} ${b.customers.last_name}` : "—"}
+          value={displayCustomerName(b.customers)}
           sub={b.customers?.phone || b.customers?.email}
         />
         <InfoRow
