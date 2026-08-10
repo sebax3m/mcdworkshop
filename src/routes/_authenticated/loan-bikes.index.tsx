@@ -332,8 +332,10 @@ function LoanBikesIndex() {
                         setEditBookingId(current.id);
                         setPresetBikeId(b.id);
                       } else {
+                        setPickerMode("booking");
                         setPickerBikeId(b.id);
                       }
+
                     }}
                     className="rounded-lg border border-border bg-background px-3 h-8 text-xs font-semibold hover:border-primary/50"
                   >
