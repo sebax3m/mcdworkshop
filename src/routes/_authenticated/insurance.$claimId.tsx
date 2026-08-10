@@ -282,7 +282,7 @@ function ClaimDetail() {
             Customer
           </div>
           <div className="font-bold">
-            {c.customers?.first_name} {c.customers?.last_name}
+            {displayCustomerName(c.customers, "")}
           </div>
           <div className="text-xs text-muted-foreground mt-0.5">{c.customers?.email ?? "—"}</div>
           {phone && (
@@ -1025,7 +1025,7 @@ function PrintQuoteHeader({ c, bikeText }: { c: any; bikeText: string }) {
         <div className="border border-gray-400 rounded p-2">
           <div className="text-[0.5625rem] uppercase tracking-wider text-gray-500 mb-1">Customer</div>
           <div className="font-bold">
-            {c.customers?.first_name} {c.customers?.last_name}
+            {displayCustomerName(c.customers, "")}
           </div>
           <div>
             {c.customers?.phone ?? "—"} · {c.customers?.email ?? "—"}

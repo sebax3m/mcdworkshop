@@ -144,7 +144,7 @@ function CustomerProfile() {
       <header>
         <div className="text-xs uppercase tracking-[0.25em] text-muted-foreground">Customer</div>
         <h1 className="font-display text-2xl sm:text-3xl font-bold">
-          {f.first_name} {f.last_name}
+          {displayCustomerName(f, "")}
         </h1>
       </header>
 
@@ -201,7 +201,7 @@ function CustomerProfile() {
           <AlertDialogHeader>
             <AlertDialogTitle>Delete this customer?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently remove {f.first_name} {f.last_name}. Related bookings, bikes, or
+              This will permanently remove {displayCustomerName(f, "")}. Related bookings, bikes, or
               invoices may block deletion.
             </AlertDialogDescription>
           </AlertDialogHeader>

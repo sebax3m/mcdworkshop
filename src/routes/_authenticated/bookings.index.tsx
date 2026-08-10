@@ -217,7 +217,7 @@ function BookingsList() {
               ? `${b.motorcycles.year ?? ""} ${b.motorcycles.make} ${b.motorcycles.model}`.trim()
               : "—";
             const customer = b.customers
-              ? `${b.customers.first_name} ${b.customers.last_name}`
+              ? displayCustomerName(b.customers, "")
               : "—";
             const phone = b.customers?.phone ?? "";
             const pLabel = (b.priority ?? "normal").toLowerCase();
