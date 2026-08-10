@@ -983,6 +983,7 @@ function JobDetail() {
         ]}
         sections={[
           { id: "instructions", label: "Book-in instructions" },
+          { id: "approvals", label: "Customer-approved work" },
           { id: "notes", label: "Job notes" },
           { id: "parts", label: "Parts used" },
           { id: "checklist", label: "Service checklist" },
