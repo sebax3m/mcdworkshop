@@ -434,7 +434,7 @@ function LoanBikeDetail() {
             <li key={a.id} className="rounded-lg border border-border p-3 text-sm">
               <div className="flex items-center justify-between gap-2 flex-wrap">
                 <span className="font-semibold">
-                  {a.customers ? `${a.customers.first_name} ${a.customers.last_name}` : "—"}
+                  {displayCustomerName(a.customers)}
                 </span>
                 <span className="text-xs text-muted-foreground">
                   {format(new Date(a.scheduled_date + "T00:00:00"), "d MMM yyyy")}

@@ -52,7 +52,7 @@ function NewJob() {
     const s = search.toLowerCase().trim();
     if (!s) return bookings.data ?? [];
     return (bookings.data ?? []).filter((b) => {
-      const cust = b.customers ? `${b.customers.first_name} ${b.customers.last_name}` : "";
+      const cust = displayCustomerName(b.customers, "");
       const bike = b.motorcycles
         ? `${b.motorcycles.make} ${b.motorcycles.model} ${b.motorcycles.rego ?? ""}`
         : "";

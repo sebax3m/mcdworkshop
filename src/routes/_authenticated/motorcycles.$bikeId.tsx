@@ -517,7 +517,7 @@ function BikeProfile() {
                   <User className="h-3 w-3" /> Owner
                 </div>
                 <div className="font-semibold">
-                  {b.customers.first_name} {b.customers.last_name}
+                  {displayCustomerName(b.customers, "")}
                 </div>
                 <div className="text-sm text-muted-foreground">
                   {b.customers.phone || b.customers.email || ""}
