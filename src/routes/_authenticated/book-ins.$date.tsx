@@ -55,7 +55,17 @@ export function useDayBookings(dateStr: string) {
   });
 }
 
+/** Insertion indicator shown while dragging a book-in. */
+function DropLine() {
+  return (
+    <div className="relative h-0.5 my-1 rounded-full bg-primary">
+      <span className="absolute -left-1 -top-[3px] h-2 w-2 rounded-full bg-primary" />
+    </div>
+  );
+}
+
 function DayView() {
+
   const { date } = Route.useParams();
   const nav = useNavigate();
   const qc = useQueryClient();
