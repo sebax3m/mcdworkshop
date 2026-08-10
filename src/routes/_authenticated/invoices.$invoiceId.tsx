@@ -991,6 +991,14 @@ function InvoiceDetail() {
                       >
                         <Plus className="h-3 w-3" /> Add line item
                       </button>
+                      {(inv.snapshot as any)?.labour_hidden && (
+                        <button
+                          onClick={restoreLabourLine}
+                          className="ml-4 text-xs text-primary hover:underline inline-flex items-center gap-1"
+                        >
+                          <Plus className="h-3 w-3" /> Add workshop labour
+                        </button>
+                      )}
                     </td>
                   </tr>
                 )}
