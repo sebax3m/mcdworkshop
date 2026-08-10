@@ -700,6 +700,17 @@ function NewBikeDialog({
   );
 }
 
+const QUICK_ITEMS = [
+  "WOF done",
+  "Oil & filter change",
+  "Chain & sprockets",
+  "Brake pads",
+  "Tyres",
+  "Battery",
+  "General service",
+  "Wash & check",
+];
+
 function BikeDetailDialog({
   bike,
   branches,
@@ -712,6 +723,11 @@ function BikeDetailDialog({
   onChanged: () => void;
 }) {
   const qc = useQueryClient();
+  const { technicians: allTechs } = useTechnicians();
+  const technicians = allTechs.filter(
+    (t) => t.full_name.trim().toLowerCase() !== "admin" && t.email !== "services@mcdr.co.nz",
+  );
+
   const [logForm, setLogForm] = useState({
     service_date: format(new Date(), "yyyy-MM-dd"),
     km: "",
