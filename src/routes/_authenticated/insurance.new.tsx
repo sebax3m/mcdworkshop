@@ -61,7 +61,7 @@ function NewClaim() {
     const list = customers.data ?? [];
     if (!s) return list;
     return list.filter((c: any) =>
-      `${c.first_name} ${c.last_name} ${c.phone ?? ""} ${c.email ?? ""}`.toLowerCase().includes(s),
+      `${displayCustomerName(c, "")} ${c.phone ?? ""} ${c.email ?? ""}`.toLowerCase().includes(s),
     );
   }, [customers.data, search]);
 
@@ -196,7 +196,7 @@ function NewClaim() {
                 <div className="flex items-center justify-between gap-2 flex-wrap">
                   <span>
                     <b>
-                      {c?.first_name} {c?.last_name}
+                      {displayCustomerName(c, "")}
                     </b>
                     {b ? (
                       <span className="text-muted-foreground">
@@ -295,7 +295,7 @@ function NewClaim() {
                   }}
                   className={`w-full text-left px-3 py-2 text-sm hover:bg-muted/50 ${customerId === c.id ? "bg-primary/10 text-primary" : ""}`}
                 >
-                  {c.first_name} {c.last_name}{" "}
+                  {displayCustomerName(c, "")}{" "}
                   <span className="text-muted-foreground">· {c.phone ?? "—"}</span>
                 </button>
               ))}
