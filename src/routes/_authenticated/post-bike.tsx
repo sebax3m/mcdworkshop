@@ -746,7 +746,6 @@ function BikeDetailDialog({
   const [logForm, setLogForm] = useState({
     service_date: format(new Date(), "yyyy-MM-dd"),
     km: "",
-    service_type: "",
     description: "",
     cost: "",
     performed_by: "",
@@ -778,7 +777,6 @@ function BikeDetailDialog({
       post_bike_id: bike.id,
       service_date: logForm.service_date,
       km,
-      service_type: logForm.service_type.trim() || null,
       description: logForm.description.trim(),
       cost: logForm.cost ? Number(logForm.cost) : null,
       performed_by: logForm.performed_by.trim() || null,
@@ -800,7 +798,6 @@ function BikeDetailDialog({
     setLogForm({
       service_date: format(new Date(), "yyyy-MM-dd"),
       km: "",
-      service_type: "",
       description: "",
       cost: "",
       performed_by: "",
