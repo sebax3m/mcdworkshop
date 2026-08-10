@@ -41,9 +41,18 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
 });
 
 function Dashboard() {
-  const { fullName, isAdmin, loading } = useCurrentUser();
+  const { isAdmin, loading } = useCurrentUser();
   // Technicians get their own focused dashboard (only their assigned work).
-  if (!loading && !isAdmin) return <TechnicianDashboard />;
+  if (loading) return null;
+  if (!isAdmin) return <TechnicianDashboard />;
+  return <AdminDashboard />;
+}
+
+function AdminDashboard() {
+  const { fullName, isAdmin } = useCurrentUser();
+
+
+
 
   const counts = useQuery({
     queryKey: ["dashboard-counts"],
