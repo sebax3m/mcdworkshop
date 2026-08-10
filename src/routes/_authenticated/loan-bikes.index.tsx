@@ -406,14 +406,58 @@ function LoanBikesIndex() {
       >
         <DialogContent className="max-w-lg">
           <DialogHeader>
-            <DialogTitle>{reassignFromId ? "Move loan bike to another book-in" : "Give loan bike to a book-in"}</DialogTitle>
+            <DialogTitle>
+              {reassignFromId ? "Move loan bike to another customer" : "Give out loan bike"}
+            </DialogTitle>
           </DialogHeader>
+          <div className="flex gap-1 rounded-lg bg-muted p-1">
+            {(["customer", "booking"] as const).map((m) => (
+              <button
+                key={m}
+                type="button"
+                onClick={() => setPickerMode(m)}
+                className={`flex-1 rounded-md h-8 text-xs font-semibold ${
+                  pickerMode === m ? "bg-background shadow" : "text-muted-foreground"
+                }`}
+              >
+                {m === "customer" ? "By customer" : "By book-in"}
+              </button>
+            ))}
+          </div>
           <Input
             value={pickerSearch}
             onChange={(e) => setPickerSearch(e.target.value)}
-            placeholder="Search customer, rego or bike…"
+            placeholder={
+              pickerMode === "customer" ? "Search customer name or phone…" : "Search customer, rego or bike…"
+            }
           />
+          {pickerMode === "customer" && (
+            <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
+              {customerResults.isLoading && (
+                <p className="text-sm text-muted-foreground">Loading customers…</p>
+              )}
+              {(customerResults.data ?? []).map((c: any) => (
+                <button
+                  key={c.id}
+                  type="button"
+                  disabled={assigning}
+                  onClick={() => assignToCustomer(c.id)}
+                  className="w-full text-left rounded-lg border border-border px-3 py-2 text-sm hover:border-primary/50 disabled:opacity-50"
+                >
+                  <div className="font-semibold truncate">{displayCustomerName(c, "Customer")}</div>
+                  <div className="text-xs text-muted-foreground truncate">
+                    {c.phone || c.email || "—"}
+                  </div>
+                </button>
+              ))}
+              {!customerResults.isLoading && (customerResults.data ?? []).length === 0 && (
+                <p className="text-sm text-muted-foreground">No customers found.</p>
+              )}
+            </div>
+          )}
+          {pickerMode === "booking" && (
           <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
+
             {(openBookings.data ?? [])
               .filter((bk: any) => {
                 const q = pickerSearch.trim().toLowerCase();
