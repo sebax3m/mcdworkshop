@@ -6,6 +6,7 @@ import { Plus, ShieldCheck, Search, Phone, Bike as BikeIcon, ChevronRight } from
 import { useMemo, useState } from "react";
 import { format } from "date-fns";
 import { CLAIM_STATUS_META, type ClaimStatus } from "@/lib/insurance";
+import { displayCustomerName } from "@/lib/display";
 
 export const Route = createFileRoute("/_authenticated/insurance/")({
   component: InsuranceList,
@@ -41,7 +42,7 @@ function InsuranceList() {
         c.claim_number,
         c.insurer_name,
         c.insurer_claim_ref,
-        c.customers ? `${c.customers.first_name} ${c.customers.last_name}` : "",
+        c.customers ? displayCustomerName(c.customers, "") : "",
         c.motorcycles
           ? `${c.motorcycles.make} ${c.motorcycles.model} ${c.motorcycles.rego ?? ""}`
           : "",
@@ -129,7 +130,7 @@ function InsuranceList() {
             const bike = c.motorcycles
               ? `${c.motorcycles.year ?? ""} ${c.motorcycles.make ?? ""} ${c.motorcycles.model ?? ""}`.trim()
               : "—";
-            const cust = c.customers ? `${c.customers.first_name} ${c.customers.last_name}` : "—";
+            const cust = displayCustomerName(c.customers);
             return (
               <Link
                 key={c.id}

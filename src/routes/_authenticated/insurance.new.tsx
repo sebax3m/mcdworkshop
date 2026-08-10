@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { ArrowLeft, Search, ShieldCheck, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { fullBike } from "@/lib/format";
+import { displayCustomerName } from "@/lib/display";
 import { NZ_INSURERS } from "@/lib/nz-insurers";
 import { BikeMakeModelYear } from "@/components/BikeMakeModelYear";
 
@@ -46,13 +47,26 @@ function NewClaim() {
   const customers = useQuery({
     queryKey: ["ins-customers"],
     queryFn: async () =>
-      (await (supabase as any).from("customers").select("*").eq("is_archived", false).order("first_name").range(0, 49999)).data ?? [],
+      (
+        await (supabase as any)
+          .from("customers")
+          .select("*")
+          .eq("is_archived", false)
+          .order("first_name")
+          .range(0, 49999)
+      ).data ?? [],
   });
   const bikes = useQuery({
     queryKey: ["ins-bikes", customerId],
     enabled: !!customerId,
     queryFn: async () =>
-      (await (supabase as any).from("motorcycles").select("*").eq("customer_id", customerId!).eq("is_archived", false)).data ?? [],
+      (
+        await (supabase as any)
+          .from("motorcycles")
+          .select("*")
+          .eq("customer_id", customerId!)
+          .eq("is_archived", false)
+      ).data ?? [],
   });
 
   const filteredCust = useMemo(() => {
@@ -60,7 +74,7 @@ function NewClaim() {
     const list = customers.data ?? [];
     if (!s) return list;
     return list.filter((c: any) =>
-      `${c.first_name} ${c.last_name} ${c.phone ?? ""} ${c.email ?? ""}`.toLowerCase().includes(s),
+      `${displayCustomerName(c, "")} ${c.phone ?? ""} ${c.email ?? ""}`.toLowerCase().includes(s),
     );
   }, [customers.data, search]);
 
@@ -194,9 +208,7 @@ function NewClaim() {
               return (
                 <div className="flex items-center justify-between gap-2 flex-wrap">
                   <span>
-                    <b>
-                      {c?.first_name} {c?.last_name}
-                    </b>
+                    <b>{displayCustomerName(c, "")}</b>
                     {b ? (
                       <span className="text-muted-foreground">
                         {" "}
@@ -294,7 +306,7 @@ function NewClaim() {
                   }}
                   className={`w-full text-left px-3 py-2 text-sm hover:bg-muted/50 ${customerId === c.id ? "bg-primary/10 text-primary" : ""}`}
                 >
-                  {c.first_name} {c.last_name}{" "}
+                  {displayCustomerName(c, "")}{" "}
                   <span className="text-muted-foreground">· {c.phone ?? "—"}</span>
                 </button>
               ))}

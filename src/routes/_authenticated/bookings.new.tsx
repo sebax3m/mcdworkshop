@@ -14,6 +14,7 @@ import { ArrowLeft, Plus, Search, Bike as BikeIcon, Camera, X } from "lucide-rea
 import { toast } from "sonner";
 import { hasPhone } from "@/lib/data-quality";
 import { fullBike, initials } from "@/lib/format";
+import { displayCustomerName } from "@/lib/display";
 import { uploadPhoto } from "@/lib/photos";
 import { useBookingTypes } from "@/hooks/useBookingTypes";
 import { TimeSlotFields } from "@/components/booking/TimeSlotFields";
@@ -409,12 +410,10 @@ function NewBooking() {
         {customer ? (
           <div className="flex items-center gap-3 rounded-xl bg-muted/60 p-3">
             <span className="grid h-10 w-10 place-items-center rounded-full gold-surface font-semibold text-sm">
-              {initials(`${customer.first_name} ${customer.last_name}`)}
+              {initials(displayCustomerName(customer, ""))}
             </span>
             <div className="min-w-0">
-              <div className="font-semibold truncate">
-                {customer.first_name} {customer.last_name}
-              </div>
+              <div className="font-semibold truncate">{displayCustomerName(customer, "")}</div>
               <div className="text-xs text-muted-foreground truncate">
                 {customer.phone || customer.email || "—"}
               </div>
@@ -917,7 +916,7 @@ function NewBooking() {
                               {lb.current_km?.toLocaleString?.() ?? 0} km
                               {busy &&
                                 outWith?.customers &&
-                                ` · Out with ${outWith.customers.first_name} ${outWith.customers.last_name}`}
+                                ` · Out with ${displayCustomerName(outWith.customers, "")}`}
                               {busy &&
                                 outWith?.loan_bike_expected_return &&
                                 ` · back ${outWith.loan_bike_expected_return}`}

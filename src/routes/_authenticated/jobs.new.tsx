@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { fullBike, initials } from "@/lib/format";
+import { displayCustomerName } from "@/lib/display";
 import { format } from "date-fns";
 import { useCurrentUser } from "@/hooks/use-current-user";
 
@@ -51,15 +52,13 @@ function NewJob() {
     const s = search.toLowerCase().trim();
     if (!s) return bookings.data ?? [];
     return (bookings.data ?? []).filter((b) => {
-      const cust = b.customers ? `${b.customers.first_name} ${b.customers.last_name}` : "";
+      const cust = displayCustomerName(b.customers, "");
       const bike = b.motorcycles
         ? `${b.motorcycles.make} ${b.motorcycles.model} ${b.motorcycles.rego ?? ""}`
         : "";
       return `${cust} ${bike} ${b.service_type}`.toLowerCase().includes(s);
     });
   }, [bookings.data, search]);
-
-
 
   // If we arrive with ?bookingId=..., allocate that booking straight away
   useEffect(() => {
@@ -218,7 +217,7 @@ function NewJob() {
       ) : (
         <div className="space-y-2">
           {filtered.map((b, i) => {
-            const cust = b.customers ? `${b.customers.first_name} ${b.customers.last_name}` : "—";
+            const cust = displayCustomerName(b.customers);
             const busy = busyId === b.id;
             return (
               <motion.button

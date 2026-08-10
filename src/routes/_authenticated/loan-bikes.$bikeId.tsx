@@ -15,6 +15,7 @@ import {
   Plus,
 } from "lucide-react";
 import { format } from "date-fns";
+import { displayCustomerName } from "@/lib/display";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -310,11 +311,7 @@ function LoanBikeDetail() {
             </div>
             <div className="flex items-center gap-2 flex-wrap">
               <UserIcon className="h-3.5 w-3.5" />
-              <span className="font-semibold">
-                {active.customers
-                  ? `${active.customers.first_name} ${active.customers.last_name}`
-                  : "—"}
-              </span>
+              <span className="font-semibold">{displayCustomerName(active.customers, "")}</span>
               <span className="text-xs text-muted-foreground">
                 · Given {format(new Date(active.scheduled_date + "T00:00:00"), "d MMM")}
               </span>
@@ -434,9 +431,7 @@ function LoanBikeDetail() {
           {(assignmentsQ.data ?? []).map((a) => (
             <li key={a.id} className="rounded-lg border border-border p-3 text-sm">
               <div className="flex items-center justify-between gap-2 flex-wrap">
-                <span className="font-semibold">
-                  {a.customers ? `${a.customers.first_name} ${a.customers.last_name}` : "—"}
-                </span>
+                <span className="font-semibold">{displayCustomerName(a.customers)}</span>
                 <span className="text-xs text-muted-foreground">
                   {format(new Date(a.scheduled_date + "T00:00:00"), "d MMM yyyy")}
                   {a.loan_bike_returned_at

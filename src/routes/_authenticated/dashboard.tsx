@@ -5,6 +5,7 @@ import { addDays, format, isToday } from "date-fns";
 import { TechnicianLoad } from "@/components/booking/TechnicianLoad";
 import { supabase } from "@/integrations/supabase/client";
 import { STATUS_META, fullBike, initials } from "@/lib/format";
+import { displayCustomerName } from "@/lib/display";
 import { Bike, Wrench, Clock, AlertCircle, CheckCircle2, Plus, CalendarDays } from "lucide-react";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { BookInCard, CapacityBadge } from "@/components/booking/BookInCard";
@@ -221,9 +222,7 @@ function KpiCard({
 
 function JobCard({ job }: { job: any }) {
   const meta = STATUS_META[job.status];
-  const customer = job.customers
-    ? `${job.customers.first_name} ${job.customers.last_name}`.trim()
-    : "—";
+  const customer = job.customers ? displayCustomerName(job.customers, "") : "—";
   const bike = job.motorcycles ? fullBike(job.motorcycles) : "—";
   const tech = job.technician_name;
   return (

@@ -36,6 +36,7 @@ import {
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { fullBike } from "@/lib/format";
+import { displayCustomerName } from "@/lib/display";
 import { CLAIM_PIPELINE, CLAIM_STATUS_META, type ClaimStatus, nextStatus } from "@/lib/insurance";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { ClaimDamageSection } from "@/components/ClaimDamageSection";
@@ -280,9 +281,7 @@ function ClaimDetail() {
           <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground font-bold mb-1">
             Customer
           </div>
-          <div className="font-bold">
-            {c.customers?.first_name} {c.customers?.last_name}
-          </div>
+          <div className="font-bold">{displayCustomerName(c.customers, "")}</div>
           <div className="text-xs text-muted-foreground mt-0.5">{c.customers?.email ?? "—"}</div>
           {phone && (
             <div className="mt-2 flex gap-2">
@@ -1022,16 +1021,18 @@ function PrintQuoteHeader({ c, bikeText }: { c: any; bikeText: string }) {
       </div>
       <div className="grid grid-cols-2 gap-4 text-xs mb-3">
         <div className="border border-gray-400 rounded p-2">
-          <div className="text-[0.5625rem] uppercase tracking-wider text-gray-500 mb-1">Customer</div>
-          <div className="font-bold">
-            {c.customers?.first_name} {c.customers?.last_name}
+          <div className="text-[0.5625rem] uppercase tracking-wider text-gray-500 mb-1">
+            Customer
           </div>
+          <div className="font-bold">{displayCustomerName(c.customers, "")}</div>
           <div>
             {c.customers?.phone ?? "—"} · {c.customers?.email ?? "—"}
           </div>
         </div>
         <div className="border border-gray-400 rounded p-2">
-          <div className="text-[0.5625rem] uppercase tracking-wider text-gray-500 mb-1">Vehicle</div>
+          <div className="text-[0.5625rem] uppercase tracking-wider text-gray-500 mb-1">
+            Vehicle
+          </div>
           <div className="font-bold">{bikeText}</div>
           <div>
             Rego {c.motorcycles?.rego ?? "—"} · VIN {c.motorcycles?.vin ?? "—"}

@@ -19,6 +19,7 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import { fullBike } from "@/lib/format";
+import { displayCustomerName } from "@/lib/display";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -515,9 +516,7 @@ function BikeProfile() {
                 <div className="text-[0.625rem] uppercase tracking-[0.25em] text-muted-foreground flex items-center gap-1">
                   <User className="h-3 w-3" /> Owner
                 </div>
-                <div className="font-semibold">
-                  {b.customers.first_name} {b.customers.last_name}
-                </div>
+                <div className="font-semibold">{displayCustomerName(b.customers, "")}</div>
                 <div className="text-sm text-muted-foreground">
                   {b.customers.phone || b.customers.email || ""}
                 </div>
@@ -672,7 +671,9 @@ function Stat({ icon, label, value }: { icon: React.ReactNode; label: string; va
 function Field({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <div className="text-[0.625rem] uppercase tracking-[0.25em] text-muted-foreground">{label}</div>
+      <div className="text-[0.625rem] uppercase tracking-[0.25em] text-muted-foreground">
+        {label}
+      </div>
       <div className="text-sm whitespace-pre-wrap">{value}</div>
     </div>
   );

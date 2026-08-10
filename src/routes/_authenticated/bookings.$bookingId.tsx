@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Calendar, Clock, Wrench, User, Bike as BikeIcon, FileText } from "lucide-react";
 import { toast } from "sonner";
+import { displayCustomerName } from "@/lib/display";
 import { fullBike } from "@/lib/format";
 import { getSignedUrls } from "@/lib/photos";
 import { format } from "date-fns";
@@ -131,7 +132,7 @@ function BookingDetail() {
         <InfoRow
           icon={User}
           label="Customer"
-          value={b.customers ? `${b.customers.first_name} ${b.customers.last_name}` : "—"}
+          value={displayCustomerName(b.customers)}
           sub={b.customers?.phone || b.customers?.email}
         />
         <InfoRow
@@ -218,7 +219,9 @@ function InfoRow({
         <Icon className="h-4 w-4 text-primary" />
       </span>
       <div className="min-w-0">
-        <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">{label}</div>
+        <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">
+          {label}
+        </div>
         <div className="text-sm font-semibold truncate">{value || "—"}</div>
         {sub && <div className="text-xs text-muted-foreground truncate">{sub}</div>}
       </div>

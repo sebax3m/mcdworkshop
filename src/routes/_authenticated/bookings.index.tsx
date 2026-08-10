@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import { useState, useMemo } from "react";
+import { displayCustomerName } from "@/lib/display";
 
 export const Route = createFileRoute("/_authenticated/bookings/")({
   component: BookingsList,
@@ -215,9 +216,7 @@ function BookingsList() {
             const bike = b.motorcycles
               ? `${b.motorcycles.year ?? ""} ${b.motorcycles.make} ${b.motorcycles.model}`.trim()
               : "—";
-            const customer = b.customers
-              ? `${b.customers.first_name} ${b.customers.last_name}`
-              : "—";
+            const customer = b.customers ? displayCustomerName(b.customers, "") : "—";
             const phone = b.customers?.phone ?? "";
             const pLabel = (b.priority ?? "normal").toLowerCase();
             const pColor =

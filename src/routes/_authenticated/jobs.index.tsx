@@ -4,6 +4,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { STATUS_META, STATUS_ORDER, fullBike } from "@/lib/format";
+import { displayCustomerName } from "@/lib/display";
 import { Plus, Search, Trash2, X } from "lucide-react";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import {
@@ -199,7 +200,7 @@ function JobsList() {
                 <div className="min-w-0 flex-1">
                   <div className="font-semibold truncate">{j.title}</div>
                   <div className="text-xs text-muted-foreground truncate">
-                    {j.customers ? `${j.customers.first_name} ${j.customers.last_name}` : "—"} ·{" "}
+                    {displayCustomerName(j.customers)} ·{" "}
                     {j.motorcycles ? fullBike(j.motorcycles) : "—"}
                     {j.motorcycles?.rego ? ` · ${j.motorcycles.rego}` : ""}
                   </div>

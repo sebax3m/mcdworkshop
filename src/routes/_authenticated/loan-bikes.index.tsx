@@ -13,6 +13,7 @@ import {
 import { format } from "date-fns";
 import { useState } from "react";
 import { toast } from "sonner";
+import { displayCustomerName } from "@/lib/display";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -175,9 +176,7 @@ function LoanBikesIndex() {
                       <>
                         <span className="inline-flex items-center gap-1">
                           <UserIcon className="h-3 w-3" />
-                          {current.customers
-                            ? `${current.customers.first_name} ${current.customers.last_name}`
-                            : "—"}
+                          {displayCustomerName(current.customers, "")}
                         </span>
                         {current.loan_bike_expected_return && (
                           <span className="inline-flex items-center gap-1 text-amber-400">
