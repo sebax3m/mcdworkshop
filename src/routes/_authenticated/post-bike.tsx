@@ -4,6 +4,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { Truck, MapPin, Plus, Bike as BikeIcon, Wrench, Trash2, GripVertical } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useTechnicians } from "@/hooks/use-active-technician";
+
 import { toast } from "sonner";
 import {
   Dialog,
@@ -700,6 +702,17 @@ function NewBikeDialog({
   );
 }
 
+const QUICK_ITEMS = [
+  "WOF done",
+  "Oil & filter change",
+  "Chain & sprockets",
+  "Brake pads",
+  "Tyres",
+  "Battery",
+  "General service",
+  "Wash & check",
+];
+
 function BikeDetailDialog({
   bike,
   branches,
@@ -712,6 +725,11 @@ function BikeDetailDialog({
   onChanged: () => void;
 }) {
   const qc = useQueryClient();
+  const { technicians: allTechs } = useTechnicians();
+  const technicians = allTechs.filter(
+    (t) => t.full_name.trim().toLowerCase() !== "admin" && t.email !== "services@mcdr.co.nz",
+  );
+
   const [logForm, setLogForm] = useState({
     service_date: format(new Date(), "yyyy-MM-dd"),
     km: "",
@@ -804,10 +822,16 @@ function BikeDetailDialog({
     <Dialog open={!!bike} onOpenChange={(v) => !v && onClose()}>
       <DialogContent className="sm:max-w-2xl max-h-[85vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
+          <DialogTitle className="flex flex-wrap items-center gap-2">
             <BikeIcon className="h-4 w-4 text-primary" /> {bikeLabel(bike)}
+            {bike.rego && (
+              <span className="rounded-md border border-border bg-muted px-2 py-0.5 font-mono text-xs uppercase tracking-wider">
+                {bike.rego}
+              </span>
+            )}
           </DialogTitle>
         </DialogHeader>
+
 
         <div className="grid gap-3 sm:grid-cols-3">
           <label className="space-y-1">
@@ -853,53 +877,87 @@ function BikeDetailDialog({
           <h3 className="text-[0.6875rem] font-bold uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-1.5">
             <Wrench className="h-3.5 w-3.5" /> Service history ({logs.length})
           </h3>
-          <div className="grid gap-2 sm:grid-cols-6 rounded-lg border border-border p-2.5">
-            <input
-              type="date"
-              className={`${inputCls} sm:col-span-2`}
-              value={logForm.service_date}
-              onChange={(e) => setLogForm((f) => ({ ...f, service_date: e.target.value }))}
-            />
-            <input
-              type="number"
-              placeholder="km"
-              className={`${inputCls} sm:col-span-1`}
-              value={logForm.km}
-              onChange={(e) => setLogForm((f) => ({ ...f, km: e.target.value }))}
-            />
-            <input
-              placeholder="Type (oil, tyres…)"
-              className={`${inputCls} sm:col-span-3`}
-              value={logForm.service_type}
-              onChange={(e) => setLogForm((f) => ({ ...f, service_type: e.target.value }))}
-            />
-            <input
-              placeholder="What was done"
-              className={`${inputCls} sm:col-span-3`}
-              value={logForm.description}
-              onChange={(e) => setLogForm((f) => ({ ...f, description: e.target.value }))}
-            />
-            <input
-              placeholder="By"
-              className={`${inputCls} sm:col-span-2`}
-              value={logForm.performed_by}
-              onChange={(e) => setLogForm((f) => ({ ...f, performed_by: e.target.value }))}
-            />
-            <input
-              type="number"
-              placeholder="$"
-              className={`${inputCls} sm:col-span-1`}
-              value={logForm.cost}
-              onChange={(e) => setLogForm((f) => ({ ...f, cost: e.target.value }))}
-            />
-            <button
-              onClick={addLog}
-              disabled={saving}
-              className="sm:col-span-6 h-9 rounded-lg bg-primary text-xs font-semibold text-primary-foreground disabled:opacity-60"
-            >
-              {saving ? "Saving…" : "Add service record"}
-            </button>
+          <div className="space-y-2 rounded-lg border border-border p-2.5">
+            <div className="grid gap-2 sm:grid-cols-6">
+              <input
+                type="date"
+                className={`${inputCls} sm:col-span-2`}
+                value={logForm.service_date}
+                onChange={(e) => setLogForm((f) => ({ ...f, service_date: e.target.value }))}
+              />
+              <input
+                type="number"
+                placeholder="km"
+                className={`${inputCls} sm:col-span-1`}
+                value={logForm.km}
+                onChange={(e) => setLogForm((f) => ({ ...f, km: e.target.value }))}
+              />
+              <input
+                placeholder="Type (oil, tyres…)"
+                className={`${inputCls} sm:col-span-3`}
+                value={logForm.service_type}
+                onChange={(e) => setLogForm((f) => ({ ...f, service_type: e.target.value }))}
+              />
+            </div>
+
+            <div className="space-y-1">
+              <span className="text-xs font-semibold text-muted-foreground">What was done</span>
+              <div className="flex flex-wrap gap-1.5">
+                {QUICK_ITEMS.map((q) => (
+                  <button
+                    key={q}
+                    type="button"
+                    onClick={() =>
+                      setLogForm((f) => ({
+                        ...f,
+                        description: f.description.trim()
+                          ? `${f.description.replace(/\s*$/, "")}\n• ${q}`
+                          : `• ${q}`,
+                      }))
+                    }
+                    className="rounded-full border border-border px-2.5 py-1 text-[0.6875rem] font-semibold hover:border-primary/60 hover:text-primary"
+                  >
+                    + {q}
+                  </button>
+                ))}
+              </div>
+              <textarea
+                rows={6}
+                placeholder={"List everything done, one per line:\n• WOF done\n• Oil and filter changed\n• Chain adjusted"}
+                className="w-full rounded-lg border border-border bg-background px-2.5 py-2 text-sm leading-relaxed outline-none focus:border-primary"
+                value={logForm.description}
+                onChange={(e) => setLogForm((f) => ({ ...f, description: e.target.value }))}
+              />
+            </div>
+
+            <div className="grid gap-2 sm:grid-cols-6">
+              <label className="space-y-1 sm:col-span-3">
+                <span className="text-xs font-semibold text-muted-foreground">By</span>
+                <select
+                  className={inputCls}
+                  value={logForm.performed_by}
+                  onChange={(e) => setLogForm((f) => ({ ...f, performed_by: e.target.value }))}
+                >
+                  <option value="">Select technician…</option>
+                  {technicians.map((t) => (
+                    <option key={t.id} value={t.full_name}>
+                      {t.full_name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <div className="sm:col-span-3 flex items-end">
+                <button
+                  onClick={addLog}
+                  disabled={saving}
+                  className="w-full h-9 rounded-lg bg-primary text-xs font-semibold text-primary-foreground disabled:opacity-60"
+                >
+                  {saving ? "Saving…" : "Add service record"}
+                </button>
+              </div>
+            </div>
           </div>
+
 
           {logs.length === 0 ? (
             <div className="py-4 text-center text-xs text-muted-foreground">
@@ -910,7 +968,7 @@ function BikeDetailDialog({
               {logs.map((l) => (
                 <li key={l.id} className="flex items-start gap-2 p-2.5 text-sm">
                   <div className="min-w-0 flex-1">
-                    <div className="font-medium">
+                    <div className="font-medium whitespace-pre-wrap">
                       {l.service_type ? `${l.service_type} — ` : ""}
                       {l.description}
                     </div>
@@ -918,8 +976,8 @@ function BikeDetailDialog({
                       <span>{format(new Date(l.service_date), "d MMM yyyy")}</span>
                       {l.km != null && <span>{l.km.toLocaleString()} km</span>}
                       {l.performed_by && <span>by {l.performed_by}</span>}
-                      {l.cost != null && <span>${Number(l.cost).toFixed(2)}</span>}
                     </div>
+
                   </div>
                   <button
                     onClick={() => removeLog(l.id)}
