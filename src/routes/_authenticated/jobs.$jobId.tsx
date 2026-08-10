@@ -362,8 +362,21 @@ function JobDetail() {
               <Printer className="h-4 w-4" />
               <span className="hidden sm:inline">Preview & print</span>
             </Button>
+            {isAdmin && (
+              <Button
+                onClick={deleteJob}
+                variant="outline"
+                size="sm"
+                disabled={deleting}
+                className="gap-1.5 h-8 px-2.5 border-destructive/50 text-destructive hover:bg-destructive/10 hover:text-destructive"
+              >
+                <Trash2 className="h-4 w-4" />
+                <span className="hidden sm:inline">{deleting ? "Deleting…" : "Delete"}</span>
+              </Button>
+            )}
             <StatusDropdown current={j.status} onChange={setStatus} />
           </div>
+
         </div>
         <div className="min-w-0">
           <div className="text-[0.625rem] uppercase tracking-[0.25em] text-muted-foreground flex flex-wrap items-center gap-2">
