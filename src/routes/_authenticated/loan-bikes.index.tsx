@@ -58,6 +58,8 @@ function LoanBikesIndex() {
   const [pickerBikeId, setPickerBikeId] = useState<string | null>(null);
   const [pickerSearch, setPickerSearch] = useState("");
   const [reassignFromId, setReassignFromId] = useState<string | null>(null);
+  const [pickerMode, setPickerMode] = useState<"booking" | "customer">("booking");
+  const [assigning, setAssigning] = useState(false);
 
   const openBookings = useQuery({
     queryKey: ["loan-bike-open-bookings"],
@@ -76,6 +78,75 @@ function LoanBikesIndex() {
       return (data ?? []) as any[];
     },
   });
+
+  const customerResults = useQuery({
+    queryKey: ["loan-bike-customer-search", pickerSearch],
+    enabled: !!pickerBikeId && pickerMode === "customer",
+    queryFn: async () => {
+      const q = pickerSearch.trim();
+      let sel = supabase
+        .from("customers")
+        .select("id, first_name, last_name, phone, email")
+        .eq("is_archived", false)
+        .order("first_name")
+        .limit(40);
+      if (q) sel = sel.or(`first_name.ilike.%${q}%,last_name.ilike.%${q}%,phone.ilike.%${q}%`);
+      const { data, error } = await sel;
+      if (error) throw error;
+      return (data ?? []) as any[];
+    },
+  });
+
+  /** Assign this loan bike straight to a customer. Uses their most recent
+   *  open book-in when there is one, otherwise creates a loan-only book-in. */
+  async function assignToCustomer(customerId: string) {
+    if (!pickerBikeId) return;
+    setAssigning(true);
+    try {
+      if (reassignFromId) {
+        const { error } = await supabase
+          .from("bookings")
+          .update({ loan_bike: false, loan_bike_id: null, loan_bike_expected_return: null })
+          .eq("id", reassignFromId);
+        if (error) throw error;
+      }
+      const { data: existing } = await supabase
+        .from("bookings")
+        .select("id")
+        .eq("customer_id", customerId)
+        .is("loan_bike_id", null)
+        .not("status", "in", '("cancelled","deleted","no_show")')
+        .order("scheduled_date", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      let bookingId = existing?.id as string | undefined;
+      if (!bookingId) {
+        const { data: created, error } = await supabase
+          .from("bookings")
+          .insert({
+            customer_id: customerId,
+            service_type: "Loan bike",
+            scheduled_date: format(new Date(), "yyyy-MM-dd"),
+            status: "booked",
+          })
+          .select("id")
+          .single();
+        if (error) throw error;
+        bookingId = created.id;
+      }
+      setPresetBikeId(pickerBikeId);
+      setEditBookingId(bookingId!);
+      setPickerBikeId(null);
+      setPickerSearch("");
+      setReassignFromId(null);
+    } catch (e: any) {
+      toast.error(e.message ?? "Failed to assign");
+    } finally {
+      setAssigning(false);
+    }
+  }
+
 
   const bikes = useQuery({
     queryKey: ["loan-bikes"],
