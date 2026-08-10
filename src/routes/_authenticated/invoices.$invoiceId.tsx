@@ -400,6 +400,29 @@ function InvoiceDetail() {
     await recomputeInvoiceTotals(nextAmount);
   }
 
+  async function saveSnapshotMeta(patch: Record<string, unknown>) {
+    const newSnap = { ...((inv.snapshot as any) ?? {}), ...patch };
+    const { error } = await supabase
+      .from("invoices")
+      .update({ snapshot: newSnap })
+      .eq("id", invoiceId);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    qc.invalidateQueries({ queryKey: ["invoice", invoiceId] });
+  }
+
+  async function removeLabourLine() {
+    await saveSnapshotMeta({ labour_hidden: true });
+    await recomputeInvoiceTotals(0);
+  }
+
+  async function restoreLabourLine() {
+    await saveSnapshotMeta({ labour_hidden: false });
+    await recomputeInvoiceTotals(defaultHours * LABOUR_RATE);
+  }
+
   async function updatePart(
     id: string,
     patch: {
@@ -777,20 +800,35 @@ function InvoiceDetail() {
               </thead>
               <tbody>
                 {inv.job_id &&
+                  !(inv.snapshot as any)?.labour_hidden &&
                   (() => {
                     const rate = LABOUR_RATE;
                     const hours = Number(inv.labour_total) / rate;
                     const delta = hours - defaultHours;
+                    const snap = (inv.snapshot as any) ?? {};
+                    const title = snap.labour_title ?? "Workshop labour";
+                    const desc =
+                      snap.labour_desc ?? `Diagnostics, service & repair · $${rate}/hr (incl. GST)`;
                     const deltaLabel =
                       Math.abs(delta) < 0.01
                         ? null
                         : `${delta > 0 ? "+" : ""}${delta.toFixed(2)}h vs tracked`;
                     return (
-                      <tr className="border-b border-border/40">
+                      <tr className="border-b border-border/40 group">
                         <td className="py-3">
-                          <div className="font-medium">Workshop labour</div>
+                          <EditableText
+                            value={title}
+                            onCommit={(v) =>
+                              saveSnapshotMeta({ labour_title: v || "Workshop labour" })
+                            }
+                            className="font-medium"
+                          />
                           <div className="text-xs text-muted-foreground">
-                            Diagnostics, service & repair · $130/hr (incl. GST)
+                            <EditableText
+                              value={desc}
+                              onCommit={(v) => saveSnapshotMeta({ labour_desc: v })}
+                              className="text-xs text-muted-foreground"
+                            />
                             {defaultHours > 0 && (
                               <span className="no-print">
                                 {" "}
@@ -829,6 +867,13 @@ function InvoiceDetail() {
                             onCommit={(n) => updateLabour({ amount: n })}
                             prefix="$"
                           />
+                          <button
+                            onClick={removeLabourLine}
+                            className="ml-2 no-print opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive"
+                            title="Remove labour line"
+                          >
+                            <Trash2 className="h-3.5 w-3.5 inline" />
+                          </button>
                         </td>
                       </tr>
                     );
@@ -946,6 +991,14 @@ function InvoiceDetail() {
                       >
                         <Plus className="h-3 w-3" /> Add line item
                       </button>
+                      {(inv.snapshot as any)?.labour_hidden && (
+                        <button
+                          onClick={restoreLabourLine}
+                          className="ml-4 text-xs text-primary hover:underline inline-flex items-center gap-1"
+                        >
+                          <Plus className="h-3 w-3" /> Add workshop labour
+                        </button>
+                      )}
                     </td>
                   </tr>
                 )}
