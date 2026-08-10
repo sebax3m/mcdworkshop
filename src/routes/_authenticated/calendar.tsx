@@ -53,6 +53,7 @@ import { useBookingTypes } from "@/hooks/useBookingTypes";
 import { useDailyNotesRange, useUpdateDailyNote, type DailyNote } from "@/hooks/useDailyNotes";
 import { NoteDialog } from "@/components/booking/NoteDialog";
 import { BookInCard, CapacityBadge } from "@/components/booking/BookInCard";
+import { LoanBikeDialog } from "@/components/booking/LoanBikeDialog";
 import { useWorkshopCapacity } from "@/hooks/useWorkshopCapacity";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { StickyNote } from "lucide-react";
@@ -159,6 +160,7 @@ function CalendarPage() {
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [dropHint, setDropHint] = useState<{ dayKey: string; index: number } | null>(null);
   const [selectedBooking, setSelectedBooking] = useState<any | null>(null);
+  const [loanEditBookingId, setLoanEditBookingId] = useState<string | null>(null);
   // View mode for the selected booking modal: quick summary vs full editor
   const [bookingView, setBookingView] = useState<"summary" | "edit">("summary");
   // Notes edit buffer for the summary view (independent from the edit view's textarea)
@@ -992,6 +994,13 @@ function CalendarPage() {
                             <span
                               className={`shrink-0 rounded-full ${c.bg} ring-1 ${c.ring} ${b.bike_arrived ? "h-2 w-2 !ring-2 !ring-orange-500" : "h-1.5 w-1.5"}`}
                             />
+                            {b.loan_bike && (
+                              <span
+                                className="shrink-0 h-1.5 w-1.5 rounded-full bg-fuchsia-500 shadow-[0_0_6px_rgba(217,70,239,0.9)]"
+                                title="Loan bike"
+                              />
+                            )}
+
                             <span className="truncate text-[0.5625rem] font-semibold">
                               {b.motorcycles
                                 ? `${b.motorcycles.make ?? ""} ${b.motorcycles.model ?? ""}`.trim()
@@ -1333,11 +1342,22 @@ function CalendarPage() {
                           {b.confirmed ? "Confirmed" : "Confirm"}
                         </button>
 
-                        {b.loan_bike && (
-                          <span className="inline-flex items-center gap-1 rounded-full bg-amber-400/20 border border-amber-400/60 px-2 py-0.5 text-[0.625rem] font-bold uppercase tracking-wider text-amber-300">
-                            🏍️ Loan{b.loan_bikes?.name ? ` · ${b.loan_bikes.name}` : ""}
-                          </span>
-                        )}
+                        <button
+                          type="button"
+                          onClick={() => setLoanEditBookingId(b.id)}
+                          className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[0.625rem] font-bold uppercase tracking-wider border transition-colors ${
+                            b.loan_bike
+                              ? "bg-fuchsia-500/20 border-fuchsia-500/60 text-fuchsia-300"
+                              : "bg-background/40 border-border text-muted-foreground hover:border-fuchsia-500/50 hover:text-fuchsia-300"
+                          }`}
+                          title="Assign or edit loan bike"
+                        >
+                          🏍️{" "}
+                          {b.loan_bike
+                            ? `Loan${b.loan_bikes?.name ? ` · ${b.loan_bikes.name}` : ""}`
+                            : "Add loan bike"}
+                        </button>
+
                         <button
                           type="button"
                           onClick={async () => {
@@ -2597,6 +2617,18 @@ function CalendarPage() {
           onOpenChange={(o) => !o && setEditNote(null)}
         />
       )}
+
+      <LoanBikeDialog
+        bookingId={loanEditBookingId}
+        open={!!loanEditBookingId}
+        onOpenChange={(o) => !o && setLoanEditBookingId(null)}
+        onSaved={() => {
+          qc.invalidateQueries({ queryKey: ["calendar-bookings"] });
+          setSelectedBooking(null);
+        }}
+      />
+
+
 
       {/* Slot chooser: Booking or Note */}
       <AnimatePresence>
