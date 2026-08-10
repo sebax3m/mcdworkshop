@@ -862,25 +862,32 @@ function BikeDetailDialog({
           <label className="space-y-1">
             <span className="text-xs font-semibold text-muted-foreground">Current km</span>
             <input
-              type="number"
+              type="text"
+              inputMode="numeric"
               className={inputCls}
-              defaultValue={bike.current_km ?? ""}
-              onBlur={(e) =>
-                updateBike({ current_km: e.target.value ? Number(e.target.value) : null })
-              }
+              defaultValue={fmtKm(bike.current_km)}
+              onBlur={(e) => {
+                const v = parseKm(e.target.value);
+                e.target.value = fmtKm(v);
+                updateBike({ current_km: v });
+              }}
             />
           </label>
           <label className="space-y-1">
             <span className="text-xs font-semibold text-muted-foreground">Service every (km)</span>
             <input
-              type="number"
+              type="text"
+              inputMode="numeric"
               className={inputCls}
-              defaultValue={bike.service_interval_km}
-              onBlur={(e) =>
-                updateBike({ service_interval_km: Number(e.target.value || 5000) })
-              }
+              defaultValue={fmtKm(bike.service_interval_km)}
+              onBlur={(e) => {
+                const v = parseKm(e.target.value) ?? 5000;
+                e.target.value = fmtKm(v);
+                updateBike({ service_interval_km: v });
+              }}
             />
           </label>
+
         </div>
 
         <section className="space-y-2">
