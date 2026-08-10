@@ -25,6 +25,8 @@ import {
   X,
   FileText,
   Printer,
+  Trash2,
+
 } from "lucide-react";
 import { detectServiceKind, KIND_META, SERVICE_PARTS } from "@/lib/service-kinds";
 import { getValveSpec, formatRange, type ValveSpec } from "@/lib/valve-specs";
