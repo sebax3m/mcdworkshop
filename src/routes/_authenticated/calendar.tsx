@@ -794,9 +794,9 @@ function CalendarPage() {
     setMonthStart(startOfMonth(now));
   };
 
-  const weekEnd = addDays(weekStart, 6);
+  const weekEnd = addDays(weekStart, 5);
   const weekDays = useMemo(
-    () => Array.from({ length: 7 }, (_, i) => addDays(weekStart, i)),
+    () => Array.from({ length: 6 }, (_, i) => addDays(weekStart, i)),
     [weekStart],
   );
 
