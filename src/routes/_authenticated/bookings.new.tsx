@@ -78,25 +78,44 @@ function NewBooking() {
   const [nbModel, setNbModel] = useState("");
   const [nbYear, setNbYear] = useState("");
   const [nbRego, setNbRego] = useState("");
+  const [nbNoRego, setNbNoRego] = useState(false);
   const [nbColor, setNbColor] = useState("");
   const [creatingBike, setCreatingBike] = useState(false);
 
   const customers = useQuery({
     queryKey: ["bk-customers"],
     queryFn: async () =>
-      (await (supabase as any).from("customers").select("*").eq("is_archived", false).order("first_name").range(0, 49999)).data ?? [],
+      (
+        await (supabase as any)
+          .from("customers")
+          .select("*")
+          .eq("is_archived", false)
+          .order("first_name")
+          .range(0, 49999)
+      ).data ?? [],
   });
   const bikes = useQuery({
     queryKey: ["bk-bikes", customerId],
     enabled: !!customerId,
     queryFn: async () =>
-      (await (supabase as any).from("motorcycles").select("*").eq("customer_id", customerId!).eq("is_archived", false)).data ?? [],
+      (
+        await (supabase as any)
+          .from("motorcycles")
+          .select("*")
+          .eq("customer_id", customerId!)
+          .eq("is_archived", false)
+      ).data ?? [],
   });
   const allBikes = useQuery({
     queryKey: ["bk-all-bikes"],
     queryFn: async () =>
-      (await (supabase as any).from("motorcycles").select("id, customer_id, rego, year, make, model").eq("is_archived", false).range(0, 49999))
-        .data ?? [],
+      (
+        await (supabase as any)
+          .from("motorcycles")
+          .select("id, customer_id, rego, year, make, model")
+          .eq("is_archived", false)
+          .range(0, 49999)
+      ).data ?? [],
   });
   const techs = useQuery({
     queryKey: ["bk-techs"],
@@ -215,6 +234,7 @@ function NewBooking() {
       setNbModel("");
       setNbYear("");
       setNbRego("");
+      setNbNoRego(false);
       setNbColor("");
       setShowNewBike(false);
       toast.success("Motorcycle added");
@@ -592,10 +612,26 @@ function NewBooking() {
                       onChange={(e) => setNbYear(e.target.value)}
                     />
                     <Input
-                      placeholder="Rego (plate)"
-                      value={nbRego}
-                      onChange={(e) => setNbRego(e.target.value)}
+                      placeholder={nbNoRego ? "No rego" : "Rego (plate)"}
+                      value={nbNoRego ? "" : nbRego}
+                      onChange={(e) => {
+                        setNbRego(e.target.value);
+                        if (e.target.value.trim()) setNbNoRego(false);
+                      }}
+                      disabled={nbNoRego}
                     />
+                    <label className="col-span-2 flex items-center gap-2 text-xs text-muted-foreground cursor-pointer">
+                      <input
+                        type="checkbox"
+                        className="h-3.5 w-3.5 accent-primary"
+                        checked={nbNoRego}
+                        onChange={(e) => {
+                          setNbNoRego(e.target.checked);
+                          if (e.target.checked) setNbRego("");
+                        }}
+                      />
+                      Motorcycle has no rego plate
+                    </label>
                     <Input
                       placeholder="Colour (optional)"
                       value={nbColor}
