@@ -316,6 +316,8 @@ function TodayBookIns() {
   const rows = (q.data ?? []) as any[];
   const todayKey = format(start, "yyyy-MM-dd");
   const todays = rows.filter((b) => b.scheduled_date === todayKey);
+  const assignedToday = todays.filter((b: any) => b.assigned_tech_id);
+
   const arrived = todays.filter((b) => b.bike_arrived).length;
   const cap = capacityFor(start);
 
