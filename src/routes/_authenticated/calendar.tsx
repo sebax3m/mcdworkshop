@@ -1605,15 +1605,20 @@ function CalendarPage() {
                             onBlur={async (e) => {
                               const v = e.target.value.trim();
                               if (v === (b.service_type_other ?? "")) return;
-                              const { error } = await supabase
-                                .from("bookings")
-                                .update({ service_type_other: v || null })
-                                .eq("id", b.id);
-                              if (error) return toast.error(error.message);
+                              const { error } = await changeBookingServiceOther({
+                                bookingId: b.id,
+                                serviceType: b.service_type,
+                                serviceTypeOther: v || null,
+                              });
+                              if (error) return toast.error(error);
                               patchSelected({ service_type_other: v || null });
                               qc.invalidateQueries({ queryKey: ["calendar-bookings"] });
+                              qc.invalidateQueries({ queryKey: ["jobs"] });
+                              qc.invalidateQueries({ queryKey: ["job"] });
+                              qc.invalidateQueries({ queryKey: ["book-ins"] });
                               toast.success("Service details updated");
                             }}
+
                             className="mt-1 w-full min-h-[64px] rounded-lg border border-border bg-background/60 px-3 py-2 text-sm focus:border-primary/60 focus:outline-none resize-y"
                           />
                         </div>
