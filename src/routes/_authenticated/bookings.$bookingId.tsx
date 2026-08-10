@@ -32,6 +32,7 @@ function BookingDetail() {
   const nav = useNavigate();
   const [converting, setConverting] = useState(false);
   const [photoUrls, setPhotoUrls] = useState<string[]>([]);
+  const [loanOpen, setLoanOpen] = useState(false);
 
   const { data: b, isLoading } = useQuery({
     queryKey: ["booking", bookingId],
@@ -39,7 +40,7 @@ function BookingDetail() {
       const { data, error } = await supabase
         .from("bookings")
         .select(
-          "*, customers(first_name,last_name,phone,email), motorcycles(year,make,model,rego,vin,mileage)",
+          "*, customers(first_name,last_name,phone,email), motorcycles(year,make,model,rego,vin,mileage), loan_bikes(name,rego)",
         )
         .eq("id", bookingId)
         .single();
