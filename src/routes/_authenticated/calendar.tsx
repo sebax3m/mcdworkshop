@@ -879,7 +879,6 @@ function CalendarPage() {
               Day
             </button>
           </div>
-
         </div>
       </div>
 

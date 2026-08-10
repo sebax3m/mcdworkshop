@@ -65,7 +65,6 @@ function DropLine() {
 }
 
 function DayView() {
-
   const { date } = Route.useParams();
   const nav = useNavigate();
   const qc = useQueryClient();
@@ -83,7 +82,6 @@ function DayView() {
   const [dragId, setDragId] = useState<string | null>(null);
   const [overCol, setOverCol] = useState<string | null>(null);
   const [overIdx, setOverIdx] = useState<number | null>(null);
-
 
   const groups = {
     booked: (bookings as any[]).filter((b) => bookInStage(b) === "booked"),
@@ -204,7 +202,6 @@ function DayView() {
               <CalendarDays className="h-4 w-4" /> Calendar
             </Link>
           </div>
-
         </div>
       </div>
 
@@ -330,9 +327,10 @@ function DayView() {
                         nav({ to: "/bookings/$bookingId", params: { bookingId: b.id } })
                       }
                     />
-                    {dragId && overCol === key && overIdx === idx + 1 && idx === list.length - 1 && (
-                      <DropLine />
-                    )}
+                    {dragId &&
+                      overCol === key &&
+                      overIdx === idx + 1 &&
+                      idx === list.length - 1 && <DropLine />}
 
                     <div className="flex gap-1.5">
                       {showCheckIn && (
