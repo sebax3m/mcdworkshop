@@ -5,7 +5,17 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Calendar, Clock, Wrench, User, Bike as BikeIcon, FileText } from "lucide-react";
+import {
+  ArrowLeft,
+  Calendar,
+  Clock,
+  Wrench,
+  User,
+  Bike as BikeIcon,
+  FileText,
+  KeyRound,
+} from "lucide-react";
+import { LoanBikeDialog } from "@/components/booking/LoanBikeDialog";
 import { toast } from "sonner";
 import { displayCustomerName } from "@/lib/display";
 import { fullBike } from "@/lib/format";
