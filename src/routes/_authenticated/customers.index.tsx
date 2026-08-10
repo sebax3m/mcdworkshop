@@ -4,6 +4,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchAllRows } from "@/lib/fetch-all";
+import { adminDeleteCustomer, adminMergeCustomers } from "@/lib/admin-data-ops.functions";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -168,11 +169,12 @@ function Customers() {
     let ok = 0;
     const blocked: string[] = [];
     for (const id of ids) {
-      const { error } = await (supabase as any).rpc("delete_customer_safe", {
-        p_customer_id: id,
-      });
-      if (error) blocked.push(id);
-      else ok++;
+      try {
+        await adminDeleteCustomer({ data: { customerId: id } });
+        ok++;
+      } catch {
+        blocked.push(id);
+      }
     }
     setSelected(new Set());
     if (ok) toast.success(`${ok} permanently deleted`);
@@ -643,12 +645,13 @@ function MergeDialog({
 
   async function run() {
     setBusy(true);
-    const { error } = await (supabase as any).rpc("merge_customers", {
-      p_keep_id: keep.id,
-      p_merge_id: merge.id,
-    });
+    try {
+      await adminMergeCustomers({ data: { keepId: keep.id, mergeId: merge.id } });
+    } catch (err: any) {
+      setBusy(false);
+      return toast.error(err?.message ?? "Merge failed");
+    }
     setBusy(false);
-    if (error) return toast.error(error.message);
     toast.success("Customers merged");
     onDone();
   }
