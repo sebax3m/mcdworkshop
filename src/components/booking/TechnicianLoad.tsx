@@ -38,6 +38,8 @@ export function TechnicianLoad({
   );
   const [openId, setOpenId] = useState<string | null>(null);
   const [overId, setOverId] = useState<string | null>(null);
+  const [dragId, setDragId] = useState<string | null>(null);
+
 
   const forTech = (id: string) => bookings.filter((b) => b.assigned_tech_id === id);
   const unassigned = bookings.filter((b) => !b.assigned_tech_id);
@@ -112,11 +114,25 @@ export function TechnicianLoad({
                       <div className="text-xs text-muted-foreground">Nothing assigned yet</div>
                     ) : (
                       list.map((b) => (
-                        <button
+                        <div
                           key={b.id}
-                          type="button"
+                          role="button"
+                          tabIndex={0}
+                          draggable
+                          onDragStart={(e) => {
+                            e.dataTransfer.setData("text/plain", b.id);
+                            e.dataTransfer.effectAllowed = "move";
+                            setDragId(b.id);
+                          }}
+                          onDragEnd={() => setDragId(null)}
                           onClick={() => onOpenBooking?.(b.id)}
-                          className="w-full text-left rounded-md px-2 py-1 hover:bg-muted"
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter" || e.key === " ") onOpenBooking?.(b.id);
+                          }}
+                          className={
+                            "w-full text-left rounded-md px-2 py-1 hover:bg-muted cursor-grab active:cursor-grabbing " +
+                            (dragId === b.id ? "opacity-40" : "")
+                          }
                         >
                           <div className="text-xs font-semibold truncate">
                             {fullBike(b.motorcycles) || b.rego || "Bike"}
@@ -126,8 +142,9 @@ export function TechnicianLoad({
                               ? b.service_type_other || "Other"
                               : b.service_type}
                           </div>
-                        </button>
+                        </div>
                       ))
+
                     )}
                   </div>
                 )}
