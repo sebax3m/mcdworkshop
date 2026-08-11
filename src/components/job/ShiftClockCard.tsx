@@ -64,11 +64,11 @@ export function ShiftClockCard({ userId, jobId }: { userId: string; jobId: strin
         .eq("id", jobId)
         .maybeSingle();
       if (current && (current.technician_id !== userId || current.assigned_tech_id !== userId)) {
-        const patch: Record<string, unknown> = {
+        const patch = {
           technician_id: userId,
           assigned_tech_id: userId,
+          ...(current.status === "new" ? { status: "assigned" as const } : {}),
         };
-        if (current.status === "new") patch.status = "assigned";
         const { error: assignError } = await supabase.from("jobs").update(patch).eq("id", jobId);
         if (!assignError) {
           toast.success("Job reassigned to you");
