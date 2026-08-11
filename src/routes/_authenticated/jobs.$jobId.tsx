@@ -738,7 +738,7 @@ function JobDetail() {
       </div>
 
       {/* Parts used (service-kind aware) */}
-      {SERVICE_PARTS[kind].length > 0 && (
+      {(SERVICE_PARTS[kind].length > 0 || canEdit || (partsUsed.data ?? []).length > 0) && (
         <div data-print-section="parts">
           <div className="print:hidden">
             <PartsSection
