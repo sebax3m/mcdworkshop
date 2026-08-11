@@ -571,12 +571,13 @@ function EditUserDialog({ user, onClose }: { user: UserLoginRow; onClose: () => 
           <label className="block text-xs">
             <span className="text-muted-foreground uppercase tracking-wider">Role</span>
             <select
-              value={role}
-              onChange={(e) => setRole(e.target.value as "admin" | "technician")}
+              value={roleMode}
+              onChange={(e) => setRoleMode(e.target.value as "admin" | "technician" | "both")}
               className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
             >
               <option value="technician">Technician</option>
               <option value="admin">Admin</option>
+              <option value="both">Admin + Technician</option>
             </select>
           </label>
         </div>
