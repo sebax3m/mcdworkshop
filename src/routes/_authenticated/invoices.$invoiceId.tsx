@@ -876,9 +876,12 @@ function InvoiceDetail() {
                           <div className="text-xs text-muted-foreground">
                             <EditableText
                               value={desc}
+                              multiline
+                              placeholder="Describe the work performed…"
                               onCommit={(v) => saveSnapshotMeta({ labour_desc: v })}
                               className="text-xs text-muted-foreground"
                             />
+
                             {defaultHours > 0 && (
                               <span className="no-print">
                                 {" "}
