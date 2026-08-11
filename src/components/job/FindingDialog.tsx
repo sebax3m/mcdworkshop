@@ -30,10 +30,11 @@ type Props = {
   jobId: string;
   userId: string;
   finding: InspectionFinding | null;
+  onDelete?: (f: InspectionFinding) => Promise<void>;
   onSaved: () => void;
 };
 
-export function FindingDialog({ open, onOpenChange, jobId, userId, finding, onSaved }: Props) {
+export function FindingDialog({ open, onOpenChange, jobId, userId, finding, onSaved, onDelete }: Props) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState<string>("other");
@@ -92,19 +93,21 @@ export function FindingDialog({ open, onOpenChange, jobId, userId, finding, onSa
           .insert({ ...payload, job_id: jobId, created_by: userId, status: "draft" });
     setSaving(false);
     if (error) return toast.error(error.message);
-    onSaved();
-    onOpenChange(false);
   }
 
   async function remove() {
-    if (!finding) return;
+    if (!finding || !onDelete) return;
     setDeleting(true);
-    const { error } = await supabase.from("job_inspection_findings").delete().eq("id", finding.id);
+    try {
+      await onDelete(finding);
+      onOpenChange(false);
+    } finally {
+      setDeleting(false);
+    }
+  }
+    setDeleting(true);
     setDeleting(false);
     if (error) return toast.error(error.message);
-    toast.success("Finding deleted");
-    onSaved();
-    onOpenChange(false);
   }
 
   return (

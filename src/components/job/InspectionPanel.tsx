@@ -164,7 +164,29 @@ export function InspectionPanel({
       if (!ok) return;
     }
     const { error } = await supabase.from("job_inspection_findings").delete().eq("id", f.id);
-    if (error) return toast.error(error.message);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+
+    // Clean up approval request if this was the last finding for it
+    if (f.approval_request_id) {
+      const { data: others } = await supabase
+        .from("job_inspection_findings")
+        .select("id")
+        .eq("approval_request_id", f.approval_request_id);
+
+      if (!others || others.length === 0) {
+        await supabase.from("job_approval_requests").delete().eq("id", f.approval_request_id);
+        
+        // If it was the pending one, revert job status
+        if (f.status === "pending_approval") {
+          const nextStatus = jobStartedAt ? "in_progress" : "assigned";
+          await supabase.from("jobs").update({ status: nextStatus }).eq("id", jobId);
+        }
+      }
+    }
+
     await logJobEvent(
       jobId,
       "finding_deleted",
@@ -293,6 +315,7 @@ export function InspectionPanel({
         userId={userId}
         finding={editing}
         onSaved={refresh}
+        onDelete={removeFinding}
       />
 
       {pendingRequest && isAdmin && (
