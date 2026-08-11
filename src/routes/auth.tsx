@@ -20,12 +20,7 @@ function AuthPage() {
   const [resetEmail, setResetEmail] = useState("");
   const [showReset, setShowReset] = useState(false);
 
-  const fetchStaff = useServerFn(listStaffEmails);
-  const { data: staff = [] } = useQuery({
-    queryKey: ["auth", "staff-emails"],
-    queryFn: () => fetchStaff(),
-    staleTime: 60_000,
-  });
+
 
   /** Admins land on the calendar; technicians land on their own dashboard. */
   const goHome = useCallback(
