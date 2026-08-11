@@ -155,9 +155,24 @@ export function InspectionPanel({
     }
   }
 
-  async function removeDraft(f: InspectionFinding) {
+  async function removeFinding(f: InspectionFinding) {
+    const isDraft = f.status === "draft";
+    if (!isDraft) {
+      const ok = window.confirm(
+        `Delete "${f.title}"?\n\nThis finding has already been ${f.status.replace("_", " ")}. Deleting it removes it from the record and cannot be undone.`,
+      );
+      if (!ok) return;
+    }
     const { error } = await supabase.from("job_inspection_findings").delete().eq("id", f.id);
     if (error) return toast.error(error.message);
+    await logJobEvent(
+      jobId,
+      "finding_deleted",
+      `Deleted finding "${f.title}" (${f.status})`,
+      { finding_id: f.id, title: f.title, status: f.status },
+      userId,
+    );
+    toast.success("Finding deleted");
     refresh();
   }
 
@@ -223,7 +238,7 @@ export function InspectionPanel({
       {pending.length > 0 && (
         <Section title={`Awaiting approval (${pending.length})`} total={totals.pending}>
           {pending.map((f) => (
-            <FindingRow key={f.id} f={f} />
+            <FindingRow key={f.id} f={f} onDelete={() => removeFinding(f)} />
           ))}
         </Section>
       )}
@@ -238,7 +253,7 @@ export function InspectionPanel({
                 setEditing(f);
                 setDialogOpen(true);
               }}
-              onDelete={() => removeDraft(f)}
+              onDelete={() => removeFinding(f)}
             />
           ))}
         </Section>
@@ -247,7 +262,15 @@ export function InspectionPanel({
       {decided.length > 0 && (
         <Section title={`Customer decisions (${decided.length})`}>
           {decided.map((f) => (
-            <FindingRow key={f.id} f={f} />
+            <FindingRow
+              key={f.id}
+              f={f}
+              onEdit={() => {
+                setEditing(f);
+                setDialogOpen(true);
+              }}
+              onDelete={() => removeFinding(f)}
+            />
           ))}
         </Section>
       )}
