@@ -85,7 +85,7 @@ export function AppShell() {
         { to: "/bookings", label: "List", icon: ClipboardList, color: "#f472b6" },
         { to: "/jobs", label: "Jobs", icon: Wrench, color: "#fb923c" },
         { to: "/motorcycles", label: "Bikes", icon: Bike, color: "#facc15" },
-        { to: "/clock", label: "Clock", icon: Timer, color: "#34d399" },
+        { to: "/clock", label: "Team Clock", icon: Timer, color: "#34d399" },
         { to: "/invoices", label: "Invoices", icon: FileText, color: "#22d3ee" },
         { to: "/insurance", label: "Insurance", icon: ShieldCheck, color: "#a78bfa" },
         { to: "/loan-bikes", label: "Loan Bikes", icon: KeyRound, color: "#f59e0b" },
@@ -287,7 +287,7 @@ export function AppShell() {
         <Outlet />
       </main>
 
-      <FloatingClockWidget />
+      {!isAdmin && <FloatingClockWidget />}
 
       {/* ===== MOBILE BOTTOM NAV ===== */}
       <nav className="fixed bottom-0 inset-x-0 z-40 sm:hidden border-t border-border bg-background/95 backdrop-blur-xl">
