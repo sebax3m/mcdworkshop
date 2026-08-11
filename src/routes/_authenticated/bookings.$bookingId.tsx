@@ -49,6 +49,14 @@ function BookingDetail() {
     },
   });
 
+  const customerBikes = useQuery({
+    queryKey: ["booking-customer-bikes", b?.customer_id],
+    enabled: !!b?.customer_id,
+    queryFn: () => fetchCustomerBikes(b?.customer_id),
+  });
+
+
+
   useEffect(() => {
     const photos = b?.arrival_photos as string[] | undefined;
     if (photos?.length) getSignedUrls(photos).then(setPhotoUrls);
