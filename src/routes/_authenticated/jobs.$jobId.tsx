@@ -13,6 +13,7 @@ import { logJobEvent } from "@/lib/job-events";
 import { InspectionPanel } from "@/components/job/InspectionPanel";
 import { JobTimeline } from "@/components/job/JobTimeline";
 import { ServiceTypeEditor } from "@/components/job/ServiceTypeEditor";
+import { ShiftClockCard } from "@/components/job/ShiftClockCard";
 import { displayCustomerName } from "@/lib/display";
 
 import { toast } from "sonner";
@@ -66,7 +67,7 @@ function JobDetail() {
   const { jobId } = Route.useParams();
   const nav = useNavigate();
   const qc = useQueryClient();
-  const { user, isAdmin } = useCurrentUser();
+  const { user, isAdmin, isTechnician } = useCurrentUser();
 
   const job = useQuery({
     queryKey: ["job", jobId],
@@ -247,6 +248,8 @@ function JobDetail() {
   const j = job.data;
   const meta = STATUS_META[j.status];
   const canEdit = isAdmin || j.technician_id === user?.id;
+  // Any technician may record bike data (km, rego, WOF) even if the job isn't assigned to them.
+  const canEditBike = canEdit || isTechnician;
   const kind = detectServiceKind(j.title);
   const kindMeta = KIND_META[kind];
   const cylinders = Math.max(1, Math.min(6, (j.motorcycles as any)?.cylinders ?? 4));
@@ -631,10 +634,18 @@ function JobDetail() {
           bikeId={(j.motorcycles as any)?.id}
           currentOdo={j.odometer ?? null}
           bikeMileage={(j.motorcycles as any)?.mileage ?? null}
-          canEdit={canEdit}
+          canEdit={canEditBike}
           onSaved={() => {
             qc.invalidateQueries({ queryKey: ["job", jobId] });
           }}
+        />
+
+        {/* REGO plate — technician entry */}
+        <RegoPlateSection
+          bikeId={(j.motorcycles as any)?.id}
+          currentValue={(j.motorcycles as any)?.rego ?? null}
+          canEdit={canEditBike}
+          onSaved={() => qc.invalidateQueries({ queryKey: ["job", jobId] })}
         />
 
         {/* REGO expiry & WOF expiry — technician entry */}
@@ -644,7 +655,7 @@ function JobDetail() {
           bikeId={(j.motorcycles as any)?.id}
           field="rego_expiry"
           currentValue={(j.motorcycles as any)?.rego_expiry ?? null}
-          canEdit={canEdit}
+          canEdit={canEditBike}
           onSaved={() => qc.invalidateQueries({ queryKey: ["job", jobId] })}
         />
         <ExpirySection
@@ -653,9 +664,13 @@ function JobDetail() {
           bikeId={(j.motorcycles as any)?.id}
           field="wof_expiry"
           currentValue={(j.motorcycles as any)?.wof_expiry ?? null}
-          canEdit={canEdit}
+          canEdit={canEditBike}
           onSaved={() => qc.invalidateQueries({ queryKey: ["job", jobId] })}
         />
+
+        {/* Shift clock — technicians can clock in without leaving the job card */}
+        {isTechnician && user && <ShiftClockCard userId={user.id} jobId={jobId} />}
+
 
         {/* Live timer */}
         <div className="card-surface p-4">
@@ -2308,6 +2323,84 @@ function ExpirySection({
             }}
             disabled={!canEdit || saving}
             className="w-48 h-11 font-mono text-base"
+          />
+          <span className="text-[0.625rem] uppercase tracking-wider text-muted-foreground min-w-[52px]">
+            {saving || dirty ? "saving…" : savedTick ? "✓ saved" : "\u00A0"}
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function RegoPlateSection({
+  bikeId,
+  currentValue,
+  canEdit,
+  onSaved,
+}: {
+  bikeId?: string;
+  currentValue: string | null;
+  canEdit: boolean;
+  onSaved: () => void;
+}) {
+  const [value, setValue] = useState<string>(currentValue ?? "");
+  const [saving, setSaving] = useState(false);
+  const [dirty, setDirty] = useState(false);
+  const [savedTick, setSavedTick] = useState(false);
+
+  useEffect(() => {
+    setValue(currentValue ?? "");
+    setDirty(false);
+  }, [currentValue]);
+
+  async function save(silent = false) {
+    if (!bikeId) {
+      if (!silent) toast.error("No bike linked to this job");
+      return;
+    }
+    setSaving(true);
+    try {
+      const { error } = await supabase
+        .from("motorcycles")
+        .update({ rego: value.trim().toUpperCase() || null })
+        .eq("id", bikeId);
+      if (error) throw error;
+      if (!silent) toast.success("REGO saved");
+      setDirty(false);
+      setSavedTick(true);
+      setTimeout(() => setSavedTick(false), 1500);
+      onSaved();
+    } catch (e: any) {
+      toast.error(e?.message ?? "Failed to save");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  useAutoSave(value, dirty && canEdit, () => save(true));
+
+  return (
+    <div className="card-surface p-4 print:hidden">
+      <div className="flex items-center justify-between gap-3 flex-wrap">
+        <div>
+          <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">
+            REGO plate
+          </div>
+          <div className="text-xs text-muted-foreground mt-0.5">
+            Technician — check the plate on the bike and correct it here if needed.
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <Input
+            value={value}
+            placeholder="e.g. 12ABC"
+            onChange={(e) => {
+              setValue(e.target.value.toUpperCase());
+              setDirty(true);
+            }}
+            disabled={!canEdit || saving}
+            className="w-44 h-11 font-mono text-base tracking-widest"
           />
           <span className="text-[0.625rem] uppercase tracking-wider text-muted-foreground min-w-[52px]">
             {saving || dirty ? "saving…" : savedTick ? "✓ saved" : "\u00A0"}

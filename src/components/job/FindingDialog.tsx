@@ -93,6 +93,9 @@ export function FindingDialog({ open, onOpenChange, jobId, userId, finding, onSa
           .insert({ ...payload, job_id: jobId, created_by: userId, status: "draft" });
     setSaving(false);
     if (error) return toast.error(error.message);
+    toast.success(finding ? "Finding updated" : "Finding added");
+    onSaved();
+    onOpenChange(false);
   }
 
   async function remove() {
@@ -104,10 +107,6 @@ export function FindingDialog({ open, onOpenChange, jobId, userId, finding, onSa
     } finally {
       setDeleting(false);
     }
-  }
-    setDeleting(true);
-    setDeleting(false);
-    if (error) return toast.error(error.message);
   }
 
   return (
