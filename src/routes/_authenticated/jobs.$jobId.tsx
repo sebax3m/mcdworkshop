@@ -2318,6 +2318,84 @@ function ExpirySection({
   );
 }
 
+function RegoPlateSection({
+  bikeId,
+  currentValue,
+  canEdit,
+  onSaved,
+}: {
+  bikeId?: string;
+  currentValue: string | null;
+  canEdit: boolean;
+  onSaved: () => void;
+}) {
+  const [value, setValue] = useState<string>(currentValue ?? "");
+  const [saving, setSaving] = useState(false);
+  const [dirty, setDirty] = useState(false);
+  const [savedTick, setSavedTick] = useState(false);
+
+  useEffect(() => {
+    setValue(currentValue ?? "");
+    setDirty(false);
+  }, [currentValue]);
+
+  async function save(silent = false) {
+    if (!bikeId) {
+      if (!silent) toast.error("No bike linked to this job");
+      return;
+    }
+    setSaving(true);
+    try {
+      const { error } = await supabase
+        .from("motorcycles")
+        .update({ rego: value.trim().toUpperCase() || null })
+        .eq("id", bikeId);
+      if (error) throw error;
+      if (!silent) toast.success("REGO saved");
+      setDirty(false);
+      setSavedTick(true);
+      setTimeout(() => setSavedTick(false), 1500);
+      onSaved();
+    } catch (e: any) {
+      toast.error(e?.message ?? "Failed to save");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  useAutoSave(value, dirty && canEdit, () => save(true));
+
+  return (
+    <div className="card-surface p-4 print:hidden">
+      <div className="flex items-center justify-between gap-3 flex-wrap">
+        <div>
+          <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">
+            REGO plate
+          </div>
+          <div className="text-xs text-muted-foreground mt-0.5">
+            Technician — check the plate on the bike and correct it here if needed.
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <Input
+            value={value}
+            placeholder="e.g. 12ABC"
+            onChange={(e) => {
+              setValue(e.target.value.toUpperCase());
+              setDirty(true);
+            }}
+            disabled={!canEdit || saving}
+            className="w-44 h-11 font-mono text-base tracking-widest"
+          />
+          <span className="text-[0.625rem] uppercase tracking-wider text-muted-foreground min-w-[52px]">
+            {saving || dirty ? "saving…" : savedTick ? "✓ saved" : "\u00A0"}
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // Convert an ISO timestamp to a value usable in <input type="datetime-local"> (local time, no seconds).
 function isoToLocalInput(iso: string | null | undefined): string {
   if (!iso) return "";
