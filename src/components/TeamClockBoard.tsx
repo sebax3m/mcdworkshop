@@ -56,14 +56,18 @@ export function TeamClockBoard() {
         if (e.event_type === "clock_in" && !lastIn.has(e.user_id)) lastIn.set(e.user_id, e);
       }
 
-      const roleByUser = new Map<string, string>();
+      const rolesByUser = new Map<string, string[]>();
       (roles ?? []).forEach((r: any) => {
-        const cur = roleByUser.get(r.user_id);
-        if (!cur || r.role === "admin") roleByUser.set(r.user_id, r.role);
+        const cur = rolesByUser.get(r.user_id) ?? [];
+        cur.push(r.role);
+        rolesByUser.set(r.user_id, cur);
       });
+      const roleByUser = new Map<string, string>();
+      rolesByUser.forEach((rs, id) => roleByUser.set(id, rs.includes("admin") ? "admin" : rs[0]!));
 
       return (profiles ?? [])
-        .filter((p: any) => roleByUser.get(p.id) === "technician")
+        // anyone holding the technician role clocks in — including dual admin+tech users
+        .filter((p: any) => (rolesByUser.get(p.id) ?? []).includes("technician"))
         .map((p: any) => {
           const last = latest.get(p.id);
           const status: Status = !last

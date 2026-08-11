@@ -107,7 +107,7 @@ function UsersPage() {
 
   const raw = data ?? [];
   const filtered = raw.filter((u) => {
-    if (roleFilter !== "all" && u.role !== roleFilter) return false;
+    if (roleFilter !== "all" && !(u.roles ?? [u.role]).includes(roleFilter)) return false;
     return true;
   });
   const sorted = [...filtered].sort((a, b) => {
@@ -300,18 +300,22 @@ function UsersPage() {
                     <Mail className="h-3.5 w-3.5 shrink-0" />
                     <span className="truncate">{u.email ?? "—"}</span>
                   </div>
-                  <div>
-                    <span
-                      className={cn(
-                        "inline-flex rounded-full border px-2 py-0.5 text-[0.625rem] uppercase tracking-wider",
-                        u.role === "admin"
-                          ? "border-primary/40 bg-primary/10 text-primary"
-                          : "border-border text-muted-foreground",
-                      )}
-                    >
-                      {u.role}
-                    </span>
+                  <div className="flex flex-wrap gap-1">
+                    {(u.roles?.length ? u.roles : [u.role]).map((r) => (
+                      <span
+                        key={r}
+                        className={cn(
+                          "inline-flex rounded-full border px-2 py-0.5 text-[0.625rem] uppercase tracking-wider",
+                          r === "admin"
+                            ? "border-primary/40 bg-primary/10 text-primary"
+                            : "border-border text-muted-foreground",
+                        )}
+                      >
+                        {r}
+                      </span>
+                    ))}
                   </div>
+
                   <div className="flex items-center gap-1.5 text-sm">
                     <Clock className="h-3.5 w-3.5 text-muted-foreground" />
                     <span title={fullDate(u.last_sign_in_at)}>{formatWhen(u.last_sign_in_at)}</span>
@@ -466,8 +470,13 @@ function EditUserDialog({ user, onClose }: { user: UserLoginRow; onClose: () => 
   const deleteFn = useServerFn(deleteUser);
   const [fullName, setFullName] = useState(user.full_name ?? "");
   const [email, setEmail] = useState(user.email ?? "");
-  const [role, setRole] = useState<"admin" | "technician">(
-    user.role === "admin" ? "admin" : "technician",
+  const initialRoles = user.roles?.length ? user.roles : [user.role];
+  const [roleMode, setRoleMode] = useState<"admin" | "technician" | "both">(
+    initialRoles.includes("admin") && initialRoles.includes("technician")
+      ? "both"
+      : initialRoles.includes("admin")
+        ? "admin"
+        : "technician",
   );
   const [newPassword, setNewPassword] = useState("");
   const [saving, setSaving] = useState(false);
@@ -484,7 +493,10 @@ function EditUserDialog({ user, onClose }: { user: UserLoginRow; onClose: () => 
           userId: user.id,
           full_name: fullName,
           email: email || undefined,
-          role,
+          roles:
+            roleMode === "both"
+              ? (["admin", "technician"] as Array<"admin" | "technician">)
+              : [roleMode],
         },
       });
       await qc.invalidateQueries({ queryKey: ["users-login-logs"] });
@@ -559,12 +571,13 @@ function EditUserDialog({ user, onClose }: { user: UserLoginRow; onClose: () => 
           <label className="block text-xs">
             <span className="text-muted-foreground uppercase tracking-wider">Role</span>
             <select
-              value={role}
-              onChange={(e) => setRole(e.target.value as "admin" | "technician")}
+              value={roleMode}
+              onChange={(e) => setRoleMode(e.target.value as "admin" | "technician" | "both")}
               className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
             >
               <option value="technician">Technician</option>
               <option value="admin">Admin</option>
+              <option value="both">Admin + Technician</option>
             </select>
           </label>
         </div>

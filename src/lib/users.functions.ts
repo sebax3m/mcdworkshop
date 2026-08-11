@@ -5,10 +5,14 @@ export type UserLoginRow = {
   id: string;
   email: string | null;
   full_name: string;
+  /** Primary role (admin wins) — kept for sorting/filtering compatibility. */
   role: string;
+  /** All roles held by the user, e.g. ["admin","technician"]. */
+  roles: string[];
   last_sign_in_at: string | null;
   created_at: string | null;
 };
+
 
 export const listUsersWithLogins = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
@@ -54,20 +58,23 @@ export const listUsersWithLogins = createServerFn({ method: "GET" })
     ]);
 
     const profById = new Map((profiles ?? []).map((p) => [p.id, p]));
-    const roleById = new Map<string, string>();
+    const rolesById = new Map<string, string[]>();
     for (const r of roles ?? []) {
-      const existing = roleById.get(r.user_id);
-      if (!existing || r.role === "admin") roleById.set(r.user_id, r.role);
+      const cur = rolesById.get(r.user_id) ?? [];
+      cur.push(r.role);
+      rolesById.set(r.user_id, cur);
     }
 
     return authUsers
       .map((u) => {
         const p = profById.get(u.id);
+        const rs = rolesById.get(u.id) ?? [];
         return {
           id: u.id,
           email: u.email ?? p?.email ?? null,
           full_name: p?.full_name || p?.email || u.email || "Unnamed",
-          role: roleById.get(u.id) ?? "user",
+          role: rs.includes("admin") ? "admin" : (rs[0] ?? "user"),
+          roles: rs,
           last_sign_in_at: u.last_sign_in_at,
           created_at: u.created_at,
         };
@@ -87,6 +94,7 @@ export const updateUserDetails = createServerFn({ method: "POST" })
       full_name?: string;
       email?: string;
       role?: "admin" | "technician";
+      roles?: Array<"admin" | "technician">;
     }) => input,
   )
   .handler(async ({ data, context }) => {
@@ -117,11 +125,14 @@ export const updateUserDetails = createServerFn({ method: "POST" })
       if (error) throw new Error(error.message);
     }
 
-    if (data.role) {
+    const nextRoles = data.roles ?? (data.role ? [data.role] : null);
+    if (nextRoles) {
+      const unique = Array.from(new Set(nextRoles));
+      if (unique.length === 0) throw new Error("A user must have at least one role");
       await supabaseAdmin.from("user_roles").delete().eq("user_id", data.userId);
       const { error } = await supabaseAdmin
         .from("user_roles")
-        .insert({ user_id: data.userId, role: data.role });
+        .insert(unique.map((role) => ({ user_id: data.userId, role })));
       if (error) throw new Error(error.message);
     }
 
