@@ -247,7 +247,7 @@ function JobDetail() {
 
   const j = job.data;
   const meta = STATUS_META[j.status];
-  const canEdit = isAdmin || j.technician_id === user?.id;
+  const canEdit = isAdmin || isTechnician || j.technician_id === user?.id;
   // Any technician may record bike data (km, rego, WOF) even if the job isn't assigned to them.
   const canEditBike = canEdit || isTechnician;
   const kind = detectServiceKind(j.title);
