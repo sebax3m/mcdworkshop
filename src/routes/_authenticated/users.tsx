@@ -107,7 +107,7 @@ function UsersPage() {
 
   const raw = data ?? [];
   const filtered = raw.filter((u) => {
-    if (roleFilter !== "all" && u.role !== roleFilter) return false;
+    if (roleFilter !== "all" && !(u.roles ?? [u.role]).includes(roleFilter)) return false;
     return true;
   });
   const sorted = [...filtered].sort((a, b) => {
