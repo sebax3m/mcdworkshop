@@ -738,7 +738,7 @@ function JobDetail() {
       </div>
 
       {/* Parts used (service-kind aware) */}
-      {SERVICE_PARTS[kind].length > 0 && (
+      {(SERVICE_PARTS[kind].length > 0 || canEdit || (partsUsed.data ?? []).length > 0) && (
         <div data-print-section="parts">
           <div className="print:hidden">
             <PartsSection
@@ -1534,6 +1534,11 @@ function PartsSection({
         <Droplet className="h-4 w-4 text-primary" />
         <h2 className="font-display text-lg font-semibold">Parts & Fluids Used</h2>
       </div>
+      {fields.length === 0 && (
+        <p className="mb-3 text-xs text-muted-foreground">
+          No preset fluids for this service type — add any parts or extra service items used below.
+        </p>
+      )}
       <div className="space-y-2">
         {fields.map((f) => {
           const u = used[f.key];
