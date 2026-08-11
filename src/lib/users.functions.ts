@@ -125,11 +125,14 @@ export const updateUserDetails = createServerFn({ method: "POST" })
       if (error) throw new Error(error.message);
     }
 
-    if (data.role) {
+    const nextRoles = data.roles ?? (data.role ? [data.role] : null);
+    if (nextRoles) {
+      const unique = Array.from(new Set(nextRoles));
+      if (unique.length === 0) throw new Error("A user must have at least one role");
       await supabaseAdmin.from("user_roles").delete().eq("user_id", data.userId);
       const { error } = await supabaseAdmin
         .from("user_roles")
-        .insert({ user_id: data.userId, role: data.role });
+        .insert(unique.map((role) => ({ user_id: data.userId, role })));
       if (error) throw new Error(error.message);
     }
 
