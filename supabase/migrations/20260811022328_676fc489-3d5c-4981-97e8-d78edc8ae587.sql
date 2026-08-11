@@ -1,0 +1,2 @@
+DROP POLICY IF EXISTS "Admins delete draft findings" ON public.job_inspection_findings;
+CREATE POLICY "Admins delete any finding" ON public.job_inspection_findings FOR DELETE TO authenticated USING (private.has_role(auth.uid(), 'admin'::app_role));
