@@ -16,6 +16,7 @@ import {
   KeyRound,
 } from "lucide-react";
 import { LoanBikeDialog } from "@/components/booking/LoanBikeDialog";
+import { changeBookingMotorcycle, fetchCustomerBikes } from "@/lib/bike-assign";
 import { toast } from "sonner";
 import { displayCustomerName } from "@/lib/display";
 import { fullBike } from "@/lib/format";
