@@ -470,8 +470,13 @@ function EditUserDialog({ user, onClose }: { user: UserLoginRow; onClose: () => 
   const deleteFn = useServerFn(deleteUser);
   const [fullName, setFullName] = useState(user.full_name ?? "");
   const [email, setEmail] = useState(user.email ?? "");
-  const [role, setRole] = useState<"admin" | "technician">(
-    user.role === "admin" ? "admin" : "technician",
+  const initialRoles = user.roles?.length ? user.roles : [user.role];
+  const [roleMode, setRoleMode] = useState<"admin" | "technician" | "both">(
+    initialRoles.includes("admin") && initialRoles.includes("technician")
+      ? "both"
+      : initialRoles.includes("admin")
+        ? "admin"
+        : "technician",
   );
   const [newPassword, setNewPassword] = useState("");
   const [saving, setSaving] = useState(false);
@@ -488,7 +493,10 @@ function EditUserDialog({ user, onClose }: { user: UserLoginRow; onClose: () => 
           userId: user.id,
           full_name: fullName,
           email: email || undefined,
-          role,
+          roles:
+            roleMode === "both"
+              ? (["admin", "technician"] as Array<"admin" | "technician">)
+              : [roleMode],
         },
       });
       await qc.invalidateQueries({ queryKey: ["users-login-logs"] });
