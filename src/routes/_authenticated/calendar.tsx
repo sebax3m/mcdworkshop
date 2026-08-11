@@ -592,6 +592,8 @@ function CalendarPage() {
       return rows.map((r: any) => ({
         ...r,
         tech_name: r.assigned_tech_id ? techMap.get(r.assigned_tech_id) : null,
+        job_status: r.jobs?.status ?? null,
+        job_completed: r.jobs?.status === "completed",
       }));
     },
   });
