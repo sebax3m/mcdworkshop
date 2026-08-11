@@ -94,6 +94,7 @@ export const updateUserDetails = createServerFn({ method: "POST" })
       full_name?: string;
       email?: string;
       role?: "admin" | "technician";
+      roles?: Array<"admin" | "technician">;
     }) => input,
   )
   .handler(async ({ data, context }) => {
