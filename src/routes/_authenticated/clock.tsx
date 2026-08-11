@@ -214,6 +214,21 @@ function ClockPage() {
     );
   });
 
+  if (isAdmin) {
+    return (
+      <div className="space-y-5 max-w-2xl mx-auto">
+        <header>
+          <div className="text-xs uppercase tracking-[0.25em] text-muted-foreground">Team Clock</div>
+          <h1 className="font-display text-2xl sm:text-3xl font-bold">Who&apos;s on the tools</h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            Live status of the workshop technicians.
+          </p>
+        </header>
+        <TeamClockBoard />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-5 max-w-2xl mx-auto">
       <header>
@@ -233,6 +248,7 @@ function ClockPage() {
         jobId={activeJobId ?? undefined}
         jobNumber={(activeJob.data as any)?.job_number}
       />
+
 
       {activeJobId && activeJob.data && state !== "off" && (
         <Link
