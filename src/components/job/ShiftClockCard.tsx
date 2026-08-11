@@ -52,8 +52,32 @@ export function ShiftClockCard({ userId, jobId }: { userId: string; jobId: strin
     const { error } = await supabase
       .from("clock_events")
       .insert({ user_id: userId, event_type, job_id: jobId });
+    if (error) {
+      setBusy(false);
+      return toast.error(error.message);
+    }
+    // Clocking in on a job takes it over: the job is reassigned to whoever is working on it now.
+    if (event_type === "clock_in") {
+      const { data: current } = await supabase
+        .from("jobs")
+        .select("technician_id, assigned_tech_id, status")
+        .eq("id", jobId)
+        .maybeSingle();
+      if (current && (current.technician_id !== userId || current.assigned_tech_id !== userId)) {
+        const patch = {
+          technician_id: userId,
+          assigned_tech_id: userId,
+          ...(current.status === "new" ? { status: "assigned" as const } : {}),
+        };
+        const { error: assignError } = await supabase.from("jobs").update(patch).eq("id", jobId);
+        if (!assignError) {
+          toast.success("Job reassigned to you");
+          qc.invalidateQueries({ queryKey: ["job", jobId] });
+          qc.invalidateQueries({ queryKey: ["jobs"] });
+        }
+      }
+    }
     setBusy(false);
-    if (error) return toast.error(error.message);
     toast.success(
       event_type === "clock_in"
         ? "Clocked in"
@@ -68,6 +92,7 @@ export function ShiftClockCard({ userId, jobId }: { userId: string; jobId: strin
     qc.invalidateQueries({ queryKey: ["clock-events"] });
     qc.invalidateQueries({ queryKey: ["clock-floating-job"] });
   }
+
 
   return (
     <div className="card-surface p-4 print:hidden">
