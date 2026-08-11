@@ -885,6 +885,8 @@ function JobDetail() {
             onJobChanged={() => {
               qc.invalidateQueries({ queryKey: ["job", jobId] });
               qc.invalidateQueries({ queryKey: ["job-approval-pending", jobId] });
+              qc.invalidateQueries({ queryKey: ["job-approved-findings", jobId] });
+              qc.invalidateQueries({ queryKey: ["job-approval-approved", jobId] });
               qc.invalidateQueries({ queryKey: ["job-events", jobId] });
               qc.invalidateQueries({ queryKey: ["notifications"] });
               qc.invalidateQueries({ queryKey: ["dashboard-counts"] });
