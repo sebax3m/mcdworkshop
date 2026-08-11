@@ -467,7 +467,19 @@ function JobDetail() {
               {kindMeta.label}
             </span>
           </div>
-          <h1 className="font-display text-xl sm:text-2xl font-bold mt-1 break-words">{j.title}</h1>
+          <ServiceTypeEditor
+            jobId={jobId}
+            title={j.title}
+            bookingId={(booking.data as any)?.id ?? null}
+            bookingServiceType={(booking.data as any)?.service_type ?? null}
+            bookingServiceTypeOther={(booking.data as any)?.service_type_other ?? null}
+            canEdit={canEdit}
+            onSaved={() => {
+              qc.invalidateQueries({ queryKey: ["job", jobId] });
+              qc.invalidateQueries({ queryKey: ["job-booking", jobId] });
+              qc.invalidateQueries({ queryKey: ["calendar-bookings"] });
+            }}
+          />
         </div>
       </header>
 
