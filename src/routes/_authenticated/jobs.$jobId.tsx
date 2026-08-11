@@ -66,7 +66,7 @@ function JobDetail() {
   const { jobId } = Route.useParams();
   const nav = useNavigate();
   const qc = useQueryClient();
-  const { user, isAdmin } = useCurrentUser();
+  const { user, isAdmin, isTechnician } = useCurrentUser();
 
   const job = useQuery({
     queryKey: ["job", jobId],
@@ -247,6 +247,8 @@ function JobDetail() {
   const j = job.data;
   const meta = STATUS_META[j.status];
   const canEdit = isAdmin || j.technician_id === user?.id;
+  // Any technician may record bike data (km, rego, WOF) even if the job isn't assigned to them.
+  const canEditBike = canEdit || isTechnician;
   const kind = detectServiceKind(j.title);
   const kindMeta = KIND_META[kind];
   const cylinders = Math.max(1, Math.min(6, (j.motorcycles as any)?.cylinders ?? 4));
