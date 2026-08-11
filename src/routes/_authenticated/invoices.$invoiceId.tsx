@@ -114,26 +114,70 @@ function EditableText({
   value,
   onCommit,
   className = "",
+  multiline = false,
+  placeholder,
 }: {
   value: string;
   onCommit: (v: string) => void | Promise<void>;
   className?: string;
+  multiline?: boolean;
+  placeholder?: string;
 }) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(value);
   const inputRef = useRef<HTMLInputElement>(null);
+  const areaRef = useRef<HTMLTextAreaElement>(null);
   useEffect(() => {
     if (!editing) setDraft(value);
   }, [value, editing]);
   useEffect(() => {
-    if (editing) inputRef.current?.select();
-  }, [editing]);
+    if (!editing) return;
+    if (multiline) {
+      const el = areaRef.current;
+      if (el) {
+        el.focus();
+        el.setSelectionRange(el.value.length, el.value.length);
+        el.style.height = "auto";
+        el.style.height = `${el.scrollHeight}px`;
+      }
+    } else {
+      inputRef.current?.select();
+    }
+  }, [editing, multiline]);
 
   function commit() {
     setEditing(false);
-    const v = draft.trim();
-    if (v && v !== value) onCommit(v);
+    const v = multiline ? draft.replace(/\s+$/, "") : draft.trim();
+    if (v !== value) onCommit(v);
     else setDraft(value);
+  }
+
+  if (editing && multiline) {
+    return (
+      <textarea
+        ref={areaRef}
+        value={draft}
+        rows={3}
+        onChange={(e) => {
+          setDraft(e.target.value);
+          e.currentTarget.style.height = "auto";
+          e.currentTarget.style.height = `${e.currentTarget.scrollHeight}px`;
+        }}
+        onBlur={commit}
+        onKeyDown={(e) => {
+          if (e.key === "Escape") {
+            setDraft(value);
+            setEditing(false);
+          }
+          if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+            e.preventDefault();
+            commit();
+          }
+        }}
+        placeholder={placeholder}
+        className="w-full min-h-24 resize-y rounded-md border border-primary/60 bg-background px-2 py-1 text-sm leading-relaxed outline-none"
+      />
+    );
   }
 
   if (editing) {
@@ -154,6 +198,7 @@ function EditableText({
             setEditing(false);
           }
         }}
+        placeholder={placeholder}
         className="w-full rounded-md border border-primary/60 bg-background px-2 py-0.5 text-sm outline-none"
       />
     );
@@ -162,14 +207,19 @@ function EditableText({
     <button
       type="button"
       onClick={() => setEditing(true)}
-      className={`group inline-flex items-start gap-1 text-left rounded-md px-1 -mx-1 hover:bg-primary/10 transition-colors ${className}`}
-      title="Click to edit"
+      className={`group inline-flex items-start gap-1 text-left rounded-md px-1 -mx-1 hover:bg-primary/10 transition-colors ${
+        multiline ? "w-full" : ""
+      } ${className}`}
+      title={multiline ? "Click to edit (Enter for new line, Esc to cancel)" : "Click to edit"}
     >
-      <span>{value}</span>
+      <span className={multiline ? "whitespace-pre-wrap flex-1" : ""}>
+        {value || <span className="opacity-50">{placeholder ?? "Add details…"}</span>}
+      </span>
       <Pencil className="h-3 w-3 mt-1 opacity-0 group-hover:opacity-60 no-print flex-none" />
     </button>
   );
 }
+
 
 export const Route = createFileRoute("/_authenticated/invoices/$invoiceId")({
   validateSearch: (s: Record<string, unknown>): { action?: "print" | "email" } =>
@@ -826,9 +876,12 @@ function InvoiceDetail() {
                           <div className="text-xs text-muted-foreground">
                             <EditableText
                               value={desc}
+                              multiline
+                              placeholder="Describe the work performed…"
                               onCommit={(v) => saveSnapshotMeta({ labour_desc: v })}
                               className="text-xs text-muted-foreground"
                             />
+
                             {defaultHours > 0 && (
                               <span className="no-print">
                                 {" "}
