@@ -104,61 +104,17 @@ function AuthPage() {
           <form onSubmit={onSubmit} className="card-surface p-6 space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
-              {staff.length > 0 ? (
-                <Select value={email} onValueChange={setEmail}>
-                  <SelectTrigger id="email" autoFocus>
-                    <SelectValue placeholder="Select a user" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {(() => {
-                      const admins = staff.filter((s) => s.role === "admin");
-                      const techs = staff.filter((s) => s.role !== "admin");
-                      return (
-                        <>
-                          {admins.length > 0 && (
-                            <>
-                              <div className="px-2 py-1.5 text-[0.625rem] font-semibold uppercase tracking-wider text-muted-foreground">
-                                Admins
-                              </div>
-                              {admins.map((s) => (
-                                <SelectItem key={s.id} value={s.email}>
-                                  <span className="font-medium">{s.full_name}</span>
-                                  <span className="text-muted-foreground"> — {s.email}</span>
-                                </SelectItem>
-                              ))}
-                            </>
-                          )}
-                          {techs.length > 0 && (
-                            <>
-                              {admins.length > 0 && <div className="my-1 h-px bg-border" />}
-                              <div className="px-2 py-1.5 text-[0.625rem] font-semibold uppercase tracking-wider text-muted-foreground">
-                                Technicians
-                              </div>
-                              {techs.map((s) => (
-                                <SelectItem key={s.id} value={s.email}>
-                                  <span className="font-medium">{s.full_name}</span>
-                                  <span className="text-muted-foreground"> — {s.email}</span>
-                                </SelectItem>
-                              ))}
-                            </>
-                          )}
-                        </>
-                      );
-                    })()}
-                  </SelectContent>
-                </Select>
-              ) : (
-                <Input
-                  id="email"
-                  type="email"
-                  autoComplete="username"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  autoFocus
-                />
-              )}
+              <Input
+                id="email"
+                type="email"
+                autoComplete="username"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                autoFocus
+              />
             </div>
+
 
             <div className="space-y-2">
               <Label htmlFor="pwd">Password</Label>
