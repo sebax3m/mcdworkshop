@@ -992,8 +992,12 @@ function CalendarPage() {
                         return (
                           <div
                             key={b.id}
-                            className="flex items-center gap-1 w-full min-w-0 rounded-md bg-muted/30 px-1 py-0.5"
-                            title={`${b.service_type} — ${b.motorcycles?.make ?? ""} ${b.motorcycles?.model ?? ""}`}
+                            className={`flex items-center gap-1 w-full min-w-0 rounded-md px-1 py-0.5 ${
+                              b.job_completed
+                                ? "job-complete-stripes border border-green-500/60"
+                                : "bg-muted/30"
+                            }`}
+                            title={`${b.service_type} — ${b.motorcycles?.make ?? ""} ${b.motorcycles?.model ?? ""}${b.job_completed ? " — Job completed" : ""}`}
                           >
                             <span
                               className={`shrink-0 rounded-full ${c.bg} ring-1 ${c.ring} ${b.bike_arrived ? "h-2 w-2 !ring-2 !ring-orange-500" : "h-1.5 w-1.5"}`}
