@@ -123,6 +123,7 @@ type ViewMode = "month" | "week";
 
 import { serviceColor, SERVICE_LEGEND, SERVICE_COLORS } from "@/lib/service-colors";
 import { changeBookingServiceType, changeBookingServiceOther } from "@/lib/service-sync";
+import { changeBookingMotorcycle } from "@/lib/bike-assign";
 
 import { initialsOf } from "@/hooks/use-technician-names";
 
