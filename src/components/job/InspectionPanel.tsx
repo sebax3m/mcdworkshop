@@ -155,9 +155,24 @@ export function InspectionPanel({
     }
   }
 
-  async function removeDraft(f: InspectionFinding) {
+  async function removeFinding(f: InspectionFinding) {
+    const isDraft = f.status === "draft";
+    if (!isDraft) {
+      const ok = window.confirm(
+        `Delete "${f.title}"?\n\nThis finding has already been ${f.status.replace("_", " ")}. Deleting it removes it from the record and cannot be undone.`,
+      );
+      if (!ok) return;
+    }
     const { error } = await supabase.from("job_inspection_findings").delete().eq("id", f.id);
     if (error) return toast.error(error.message);
+    await logJobEvent(
+      jobId,
+      "finding_deleted",
+      `Deleted finding "${f.title}" (${f.status})`,
+      { finding_id: f.id, title: f.title, status: f.status },
+      userId,
+    );
+    toast.success("Finding deleted");
     refresh();
   }
 
