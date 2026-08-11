@@ -16,6 +16,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { TeamClockBoard } from "@/components/TeamClockBoard";
 
 export const Route = createFileRoute("/_authenticated/clock")({
   component: ClockPage,
