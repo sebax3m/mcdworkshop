@@ -16,6 +16,7 @@ import {
   KeyRound,
 } from "lucide-react";
 import { LoanBikeDialog } from "@/components/booking/LoanBikeDialog";
+import { changeBookingMotorcycle, fetchCustomerBikes } from "@/lib/bike-assign";
 import { toast } from "sonner";
 import { displayCustomerName } from "@/lib/display";
 import { fullBike } from "@/lib/format";
@@ -48,6 +49,14 @@ function BookingDetail() {
       return data as any;
     },
   });
+
+  const customerBikes = useQuery({
+    queryKey: ["booking-customer-bikes", b?.customer_id],
+    enabled: !!b?.customer_id,
+    queryFn: () => fetchCustomerBikes(b?.customer_id),
+  });
+
+
 
   useEffect(() => {
     const photos = b?.arrival_photos as string[] | undefined;
@@ -157,6 +166,45 @@ function BookingDetail() {
         <InfoRow icon={Wrench} label="Est. hours" value={`${b.estimated_hours ?? "—"}h`} />
         <InfoRow icon={FileText} label="Status" value={b.status} />
       </div>
+
+      <div className="card-surface p-4 space-y-2">
+        <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+          <BikeIcon className="h-3 w-3" /> Change motorcycle for this customer
+        </div>
+        <select
+          value={b.motorcycle_id || ""}
+          onChange={async (e) => {
+            const newBikeId = e.target.value || null;
+            if (newBikeId === b.motorcycle_id) return;
+            const pick = (customerBikes.data ?? []).find((x) => x.id === newBikeId);
+            const { error } = await changeBookingMotorcycle({
+              bookingId,
+              motorcycleId: newBikeId,
+              bike: pick ?? null,
+            });
+            if (error) return toast.error(error);
+            qc.invalidateQueries({ queryKey: ["booking", bookingId] });
+            qc.invalidateQueries({ queryKey: ["calendar-bookings"] });
+            toast.success("Motorcycle updated everywhere");
+          }}
+          className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-sm focus:border-primary/60 outline-none"
+        >
+          <option value="">— Select motorcycle —</option>
+          {(customerBikes.data ?? []).map((m) => (
+            <option key={m.id} value={m.id}>
+              {`${m.year ?? ""} ${m.make ?? ""} ${m.model ?? ""}`.trim()}
+              {m.rego ? ` · ${m.rego}` : ""}
+            </option>
+          ))}
+        </select>
+        {(customerBikes.data ?? []).length <= 1 && (
+          <p className="text-xs text-muted-foreground">
+            This customer has only one bike on file. Add more from their customer profile.
+          </p>
+        )}
+      </div>
+
+
 
       <div className="card-surface p-4 flex items-center gap-3">
         <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-muted">

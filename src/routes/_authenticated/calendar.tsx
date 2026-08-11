@@ -123,6 +123,7 @@ type ViewMode = "month" | "week";
 
 import { serviceColor, SERVICE_LEGEND, SERVICE_COLORS } from "@/lib/service-colors";
 import { changeBookingServiceType, changeBookingServiceOther } from "@/lib/service-sync";
+import { changeBookingMotorcycle } from "@/lib/bike-assign";
 
 import { initialsOf } from "@/hooks/use-technician-names";
 
@@ -1807,11 +1808,16 @@ function CalendarPage() {
                             onChange={async (e) => {
                               const newBikeId = e.target.value || null;
                               if (newBikeId === b.motorcycle_id) return;
-                              const { error } = await supabase
-                                .from("bookings")
-                                .update({ motorcycle_id: newBikeId ?? null })
-                                .eq("id", b.id);
-                              if (error) return toast.error(error.message);
+                              const pickBike = (editBikes.data ?? []).find(
+                                (x: any) => x.id === newBikeId,
+                              );
+                              const { error } = await changeBookingMotorcycle({
+                                bookingId: b.id,
+                                motorcycleId: newBikeId,
+                                bike: pickBike ?? null,
+                              });
+                              if (error) return toast.error(error);
+
                               const pick = (editBikes.data ?? []).find(
                                 (x: any) => x.id === newBikeId,
                               );
