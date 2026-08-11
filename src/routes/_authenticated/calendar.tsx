@@ -573,7 +573,7 @@ function CalendarPage() {
       const { data, error } = await supabase
         .from("bookings")
         .select(
-          "id, service_type, service_type_other, scheduled_date, drop_off_time, scheduled_end_time, estimated_hours, status, color, complaints, notes, assigned_tech_id, customer_id, motorcycle_id, confirmed, loan_bike, loan_bike_id, loan_bike_expected_return, bike_arrived, bike_arrived_at, job_id, customers(first_name,last_name,phone,email), motorcycles(year,make,model,rego), loan_bikes(id,name)",
+          "id, service_type, service_type_other, scheduled_date, drop_off_time, scheduled_end_time, estimated_hours, status, color, complaints, notes, assigned_tech_id, customer_id, motorcycle_id, confirmed, loan_bike, loan_bike_id, loan_bike_expected_return, bike_arrived, bike_arrived_at, job_id, customers(first_name,last_name,phone,email), motorcycles(year,make,model,rego), loan_bikes(id,name), jobs(id,status)",
         )
         .gte("scheduled_date", format(visibleRange.start, "yyyy-MM-dd"))
         .lte("scheduled_date", format(visibleRange.end, "yyyy-MM-dd"))
@@ -592,6 +592,8 @@ function CalendarPage() {
       return rows.map((r: any) => ({
         ...r,
         tech_name: r.assigned_tech_id ? techMap.get(r.assigned_tech_id) : null,
+        job_status: r.jobs?.status ?? null,
+        job_completed: r.jobs?.status === "completed",
       }));
     },
   });
@@ -990,8 +992,12 @@ function CalendarPage() {
                         return (
                           <div
                             key={b.id}
-                            className="flex items-center gap-1 w-full min-w-0 rounded-md bg-muted/30 px-1 py-0.5"
-                            title={`${b.service_type} — ${b.motorcycles?.make ?? ""} ${b.motorcycles?.model ?? ""}`}
+                            className={`flex items-center gap-1 w-full min-w-0 rounded-md px-1 py-0.5 ${
+                              b.job_completed
+                                ? "job-complete-stripes border border-green-500/60"
+                                : "bg-muted/30"
+                            }`}
+                            title={`${b.service_type} — ${b.motorcycles?.make ?? ""} ${b.motorcycles?.model ?? ""}${b.job_completed ? " — Job completed" : ""}`}
                           >
                             <span
                               className={`shrink-0 rounded-full ${c.bg} ring-1 ${c.ring} ${b.bike_arrived ? "h-2 w-2 !ring-2 !ring-orange-500" : "h-1.5 w-1.5"}`}

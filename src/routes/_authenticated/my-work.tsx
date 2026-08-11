@@ -26,7 +26,7 @@ export function TechnicianDashboard() {
       const { data, error } = await supabase
         .from("bookings")
         .select(
-          "id, scheduled_date, service_type, service_type_other, status, confirmed, bike_arrived, loan_bike, assigned_tech_id, job_id, rego, customers(first_name,last_name,phone), motorcycles(make,model,year,rego,photos)",
+          "id, scheduled_date, service_type, service_type_other, status, confirmed, bike_arrived, loan_bike, assigned_tech_id, job_id, rego, customers(first_name,last_name,phone), motorcycles(make,model,year,rego,photos), jobs(id,status)",
         )
         .eq("assigned_tech_id", userId!)
         .gte("scheduled_date", todayKey)
