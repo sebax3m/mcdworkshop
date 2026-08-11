@@ -141,6 +141,7 @@ function JobDetail() {
       (
         await supabase
           .from("bookings")
+          // eslint-disable-next-line @typescript-eslint/no-unused-expressions
           .select("notes, complaints, instructions")
           .eq("job_id", jobId)
           .maybeSingle()
