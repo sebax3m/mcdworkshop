@@ -631,10 +631,18 @@ function JobDetail() {
           bikeId={(j.motorcycles as any)?.id}
           currentOdo={j.odometer ?? null}
           bikeMileage={(j.motorcycles as any)?.mileage ?? null}
-          canEdit={canEdit}
+          canEdit={canEditBike}
           onSaved={() => {
             qc.invalidateQueries({ queryKey: ["job", jobId] });
           }}
+        />
+
+        {/* REGO plate — technician entry */}
+        <RegoPlateSection
+          bikeId={(j.motorcycles as any)?.id}
+          currentValue={(j.motorcycles as any)?.rego ?? null}
+          canEdit={canEditBike}
+          onSaved={() => qc.invalidateQueries({ queryKey: ["job", jobId] })}
         />
 
         {/* REGO expiry & WOF expiry — technician entry */}
@@ -644,7 +652,7 @@ function JobDetail() {
           bikeId={(j.motorcycles as any)?.id}
           field="rego_expiry"
           currentValue={(j.motorcycles as any)?.rego_expiry ?? null}
-          canEdit={canEdit}
+          canEdit={canEditBike}
           onSaved={() => qc.invalidateQueries({ queryKey: ["job", jobId] })}
         />
         <ExpirySection
@@ -653,9 +661,13 @@ function JobDetail() {
           bikeId={(j.motorcycles as any)?.id}
           field="wof_expiry"
           currentValue={(j.motorcycles as any)?.wof_expiry ?? null}
-          canEdit={canEdit}
+          canEdit={canEditBike}
           onSaved={() => qc.invalidateQueries({ queryKey: ["job", jobId] })}
         />
+
+        {/* Shift clock — technicians can clock in without leaving the job card */}
+        {isTechnician && user && <ShiftClockCard userId={user.id} jobId={jobId} />}
+
 
         {/* Live timer */}
         <div className="card-surface p-4">
