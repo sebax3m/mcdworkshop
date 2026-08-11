@@ -58,20 +58,23 @@ export const listUsersWithLogins = createServerFn({ method: "GET" })
     ]);
 
     const profById = new Map((profiles ?? []).map((p) => [p.id, p]));
-    const roleById = new Map<string, string>();
+    const rolesById = new Map<string, string[]>();
     for (const r of roles ?? []) {
-      const existing = roleById.get(r.user_id);
-      if (!existing || r.role === "admin") roleById.set(r.user_id, r.role);
+      const cur = rolesById.get(r.user_id) ?? [];
+      cur.push(r.role);
+      rolesById.set(r.user_id, cur);
     }
 
     return authUsers
       .map((u) => {
         const p = profById.get(u.id);
+        const rs = rolesById.get(u.id) ?? [];
         return {
           id: u.id,
           email: u.email ?? p?.email ?? null,
           full_name: p?.full_name || p?.email || u.email || "Unnamed",
-          role: roleById.get(u.id) ?? "user",
+          role: rs.includes("admin") ? "admin" : (rs[0] ?? "user"),
+          roles: rs,
           last_sign_in_at: u.last_sign_in_at,
           created_at: u.created_at,
         };
