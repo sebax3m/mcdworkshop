@@ -158,6 +158,45 @@ function BookingDetail() {
         <InfoRow icon={FileText} label="Status" value={b.status} />
       </div>
 
+      <div className="card-surface p-4 space-y-2">
+        <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+          <BikeIcon className="h-3 w-3" /> Change motorcycle for this customer
+        </div>
+        <select
+          value={b.motorcycle_id || ""}
+          onChange={async (e) => {
+            const newBikeId = e.target.value || null;
+            if (newBikeId === b.motorcycle_id) return;
+            const pick = (customerBikes.data ?? []).find((x) => x.id === newBikeId);
+            const { error } = await changeBookingMotorcycle({
+              bookingId,
+              motorcycleId: newBikeId,
+              bike: pick ?? null,
+            });
+            if (error) return toast.error(error);
+            qc.invalidateQueries({ queryKey: ["booking", bookingId] });
+            qc.invalidateQueries({ queryKey: ["calendar-bookings"] });
+            toast.success("Motorcycle updated everywhere");
+          }}
+          className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-sm focus:border-primary/60 outline-none"
+        >
+          <option value="">— Select motorcycle —</option>
+          {(customerBikes.data ?? []).map((m) => (
+            <option key={m.id} value={m.id}>
+              {`${m.year ?? ""} ${m.make ?? ""} ${m.model ?? ""}`.trim()}
+              {m.rego ? ` · ${m.rego}` : ""}
+            </option>
+          ))}
+        </select>
+        {(customerBikes.data ?? []).length <= 1 && (
+          <p className="text-xs text-muted-foreground">
+            This customer has only one bike on file. Add more from their customer profile.
+          </p>
+        )}
+      </div>
+
+
+
       <div className="card-surface p-4 flex items-center gap-3">
         <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-muted">
           <KeyRound className="h-4 w-4 text-primary" />
