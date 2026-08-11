@@ -105,10 +105,6 @@ export function FindingDialog({ open, onOpenChange, jobId, userId, finding, onSa
       setDeleting(false);
     }
   }
-    setDeleting(true);
-    setDeleting(false);
-    if (error) return toast.error(error.message);
-  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
