@@ -5,10 +5,14 @@ export type UserLoginRow = {
   id: string;
   email: string | null;
   full_name: string;
+  /** Primary role (admin wins) — kept for sorting/filtering compatibility. */
   role: string;
+  /** All roles held by the user, e.g. ["admin","technician"]. */
+  roles: string[];
   last_sign_in_at: string | null;
   created_at: string | null;
 };
+
 
 export const listUsersWithLogins = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
