@@ -897,7 +897,7 @@ function JobDetail() {
             jobNumber={j.job_number}
             jobStartedAt={j.started_at}
             customerName={displayCustomerName(j.customers as any)}
-            isAdmin={isAdmin}
+            isAdmin={isAdmin || isTechnician}
             userId={user.id}
             onJobChanged={() => {
               qc.invalidateQueries({ queryKey: ["job", jobId] });
