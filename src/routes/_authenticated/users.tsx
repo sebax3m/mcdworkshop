@@ -300,18 +300,22 @@ function UsersPage() {
                     <Mail className="h-3.5 w-3.5 shrink-0" />
                     <span className="truncate">{u.email ?? "—"}</span>
                   </div>
-                  <div>
-                    <span
-                      className={cn(
-                        "inline-flex rounded-full border px-2 py-0.5 text-[0.625rem] uppercase tracking-wider",
-                        u.role === "admin"
-                          ? "border-primary/40 bg-primary/10 text-primary"
-                          : "border-border text-muted-foreground",
-                      )}
-                    >
-                      {u.role}
-                    </span>
+                  <div className="flex flex-wrap gap-1">
+                    {(u.roles?.length ? u.roles : [u.role]).map((r) => (
+                      <span
+                        key={r}
+                        className={cn(
+                          "inline-flex rounded-full border px-2 py-0.5 text-[0.625rem] uppercase tracking-wider",
+                          r === "admin"
+                            ? "border-primary/40 bg-primary/10 text-primary"
+                            : "border-border text-muted-foreground",
+                        )}
+                      >
+                        {r}
+                      </span>
+                    ))}
                   </div>
+
                   <div className="flex items-center gap-1.5 text-sm">
                     <Clock className="h-3.5 w-3.5 text-muted-foreground" />
                     <span title={fullDate(u.last_sign_in_at)}>{formatWhen(u.last_sign_in_at)}</span>
