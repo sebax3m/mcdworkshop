@@ -33,6 +33,8 @@ export async function aiChat(opts: {
   system: string;
   user: string;
   model?: string;
+  /** Prior turns of the same conversation, oldest first. */
+  history?: Array<{ role: "user" | "assistant"; content: string }>;
 }): Promise<string> {
   const res = await fetch(`${GATEWAY}/chat/completions`, {
     method: "POST",
