@@ -78,8 +78,8 @@ function AnalyticsPage() {
 
   const serviceCounts = new Map<string, number>();
   for (const j of (data?.jobs ?? []) as any[]) {
-    if (!j.service_type) continue;
-    serviceCounts.set(j.service_type, (serviceCounts.get(j.service_type) ?? 0) + 1);
+    if (!j.title) continue;
+    serviceCounts.set(j.title, (serviceCounts.get(j.title) ?? 0) + 1);
   }
   const topServices = [...serviceCounts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 8);
 
