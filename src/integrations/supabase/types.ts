@@ -1712,6 +1712,60 @@ export type Database = {
         }
         Relationships: []
       }
+      valve_clearance_specs: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          cylinders: number
+          exhaust_max: number
+          exhaust_min: number
+          id: string
+          intake_max: number
+          intake_min: number
+          intake_on_top: boolean
+          make: string
+          model: string
+          note: string | null
+          updated_at: string
+          year_from: number | null
+          year_to: number | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          cylinders?: number
+          exhaust_max?: number
+          exhaust_min?: number
+          id?: string
+          intake_max?: number
+          intake_min?: number
+          intake_on_top?: boolean
+          make: string
+          model: string
+          note?: string | null
+          updated_at?: string
+          year_from?: number | null
+          year_to?: number | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          cylinders?: number
+          exhaust_max?: number
+          exhaust_min?: number
+          id?: string
+          intake_max?: number
+          intake_min?: number
+          intake_on_top?: boolean
+          make?: string
+          model?: string
+          note?: string | null
+          updated_at?: string
+          year_from?: number | null
+          year_to?: number | null
+        }
+        Relationships: []
+      }
       workshop_capacity: {
         Row: {
           max_bookins: number
