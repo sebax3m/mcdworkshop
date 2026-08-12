@@ -1,4 +1,5 @@
 import { format } from "date-fns";
+import { Check } from "lucide-react";
 
 import { DailyCapacity } from "@/components/booking/DailyCapacity";
 import { cn } from "@/lib/utils";
@@ -24,19 +25,19 @@ export function CalendarDayHeader({
   onToggleCompleted?: () => void;
 }) {
   return (
-    <div className="space-y-1.5">
+    <div className="space-y-1">
       <button type="button" onClick={onClick} className="group w-full text-left" title="Open day view">
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0">
             <div
               className={cn(
-                "text-[0.8rem] font-bold uppercase tracking-wider truncate",
-                today ? "text-primary" : "text-muted-foreground",
+                "text-[0.6875rem] font-semibold uppercase tracking-[0.18em] truncate",
+                today ? "text-primary" : "text-muted-foreground/70",
               )}
             >
               {format(day, "EEEE")}
             </div>
-            <div className="font-display text-lg font-bold leading-none transition-colors group-hover:text-primary">
+            <div className="font-display text-[1.05rem] font-bold leading-none transition-colors group-hover:text-primary">
               {format(day, "d MMM").toUpperCase()}
             </div>
           </div>
@@ -48,8 +49,9 @@ export function CalendarDayHeader({
         <button
           type="button"
           onClick={onToggleCompleted}
-          className="text-[0.55rem] font-bold uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors"
+          className="inline-flex items-center gap-1 text-[0.5625rem] font-semibold uppercase tracking-wider text-muted-foreground/60 hover:text-foreground transition-colors"
         >
+          <Check className="h-2.5 w-2.5" />
           {hideCompleted ? `Show completed (${completedCount})` : "Hide completed"}
         </button>
       )}
