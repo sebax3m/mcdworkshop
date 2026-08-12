@@ -1126,7 +1126,7 @@ function CalendarPage() {
                     if (id) moveBookingToDate(id, day);
                     setDraggingId(null);
                   }}
-                  className={`rounded-[10px] border border-[color:var(--bookin-line)] bg-[color:var(--bookin-column)] p-2 flex flex-col gap-2 min-h-[220px] sm:min-h-[280px] ${
+                  className={`rounded-[10px] border border-[color:var(--bookin-line)] bg-[color:var(--bookin-column)] p-2 flex flex-col gap-2 min-h-[260px] sm:min-h-[340px] ${
                     today ? "border-[#DC2626]" : ""
                   } ${draggingId ? "border-dashed border-primary/40" : ""}`}
                 >
