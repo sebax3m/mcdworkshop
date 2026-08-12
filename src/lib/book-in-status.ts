@@ -163,7 +163,7 @@ export const BOOK_IN_STATUS: Record<BookInStatusKey, BookInStatusMeta> = {
   completed: {
     key: "completed",
     label: "Completed",
-    short: "DONE",
+    short: "COMPLETED",
     icon: CheckCircle2,
     dot: "bg-muted-foreground/60",
     accent: "border-l-zinc-700",

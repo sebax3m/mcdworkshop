@@ -31,7 +31,7 @@ export function CalendarDayHeader({
           <div className="min-w-0">
             <div
               className={cn(
-                "text-[0.6875rem] font-semibold uppercase tracking-[0.18em] truncate",
+                "text-[0.625rem] font-semibold uppercase tracking-[0.06em] truncate",
                 today ? "text-primary" : "text-muted-foreground/70",
               )}
             >
