@@ -238,6 +238,15 @@ function BookingDetail() {
         )}
       </div>
 
+      <TransportCard
+        bookingId={bookingId}
+        booking={b}
+        onSaved={() => {
+          qc.invalidateQueries({ queryKey: ["booking", bookingId] });
+          qc.invalidateQueries({ queryKey: ["calendar-bookings"] });
+        }}
+      />
+
 
 
       <div className="card-surface p-4 flex items-center gap-3">
