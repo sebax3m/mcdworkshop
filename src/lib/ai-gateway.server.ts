@@ -52,6 +52,11 @@ export async function aiChat(opts: {
     }),
   });
   if (!res.ok) throw gatewayError(res.status, await res.text().catch(() => ""));
+  const json = (await res.json()) as { choices?: Array<{ message?: { content?: string } }> };
+  return json.choices?.[0]?.message?.content?.trim() ?? "";
+}
+
+
 
 /**
  * Deep reasoning answer (OpenAI Responses API, streamed server-side).
