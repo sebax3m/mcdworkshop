@@ -455,6 +455,10 @@ function CalendarPage() {
     setQLoanBike(false);
     setQLoanBikeId(null);
     setQLoanBikeReturn("");
+    setQPickup(false);
+    setQDelivery(false);
+    setQTransportAddress("");
+    setQTransportNotes("");
   }
 
   async function createQuickBooking() {
