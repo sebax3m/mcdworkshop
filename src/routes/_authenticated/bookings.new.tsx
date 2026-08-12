@@ -316,6 +316,12 @@ function NewBooking() {
           loan_bike_id: loanBike ? loanBikeId : null,
           loan_bike_expected_return: loanBike && loanBikeReturn ? loanBikeReturn : null,
           loan_bike_start_km: loanBike && loanBikeStartKm ? parseInt(loanBikeStartKm) : null,
+          pickup_required: pickupRequired,
+          delivery_required: deliveryRequired,
+          transport_address:
+            pickupRequired || deliveryRequired ? transportAddress.trim() || null : null,
+          transport_notes:
+            pickupRequired || deliveryRequired ? transportNotes.trim() || null : null,
           status: openJobCard ? "checked_in" : "booked",
         } as any)
         .select("id")
