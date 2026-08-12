@@ -377,10 +377,15 @@ function BookingDetail() {
           </Link>
         )}
         {b.status === "completed" ? (
-          <div className="flex items-center justify-center gap-2 rounded-xl bg-green-500/15 border border-green-500/40 h-12 text-green-400 font-bold">
-            <CheckCircle className="h-5 w-5" />
-            Completed
-          </div>
+          <Button
+            onClick={reverseComplete}
+            disabled={reversing}
+            variant="outline"
+            className="w-full h-12 border-amber-500/50 text-amber-400 hover:bg-amber-500/10 hover:text-amber-300 font-bold"
+          >
+            <RotateCcw className="h-4 w-4 mr-2" />
+            {reversing ? "Reversing…" : "Reverse completion"}
+          </Button>
         ) : (
           <Button
             onClick={markCompleted}
