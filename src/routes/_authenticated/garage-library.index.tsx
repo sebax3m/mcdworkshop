@@ -197,7 +197,7 @@ function GarageLibraryIndex() {
     );
   }, [models, term]);
 
-  const modelById = useMemo(() => new Map(models.map((m) => [m.id, m])), [models]);
+  const modelById = useMemo(() => new Map(allModels.map((m) => [m.id, m])), [allModels]);
   const searching = term.length >= 2;
 
   return (
