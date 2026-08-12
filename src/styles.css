@@ -59,6 +59,11 @@
   --color-status-done: var(--status-done);
   --color-status-dyno: var(--status-dyno);
   --color-status-insurance: var(--status-insurance);
+  --color-service-light-blue: var(--service-light-blue);
+  --color-service-gold: var(--service-gold);
+  --color-service-red: var(--service-red);
+  --color-service-orange: var(--service-orange);
+  --color-service-light-green: var(--service-light-green);
   --font-display: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
 }
