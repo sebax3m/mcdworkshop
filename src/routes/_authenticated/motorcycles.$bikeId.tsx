@@ -486,7 +486,7 @@ function BikeProfile() {
 
           <BikeKnowledgePanel motorcycleId={b.id} />
 
-          <BikeOverridesCard motorcycleId={b.id} modelId={b.library_model_id ?? null} />
+          <BikeOverridesCard motorcycleId={b.id} />
 
           {editing && form && b.customer_id ? (
             <div className="card-surface p-4 space-y-2">

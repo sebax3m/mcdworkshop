@@ -24,6 +24,19 @@ export function BikeOverridesCard({
 }) {
   const { isAdmin } = useCurrentUser();
   const qc = useQueryClient();
+  const { data: linkedModelId } = useQuery({
+    queryKey: ["bike-model-link", motorcycleId],
+    enabled: !modelId,
+    queryFn: async () =>
+      (
+        await supabase
+          .from("motorcycle_model_links")
+          .select("model_id")
+          .eq("motorcycle_id", motorcycleId)
+          .maybeSingle()
+      ).data?.model_id ?? null,
+  });
+  const effectiveModelId = modelId ?? linkedModelId ?? null;
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({
     category: "engine_oil",
@@ -56,7 +69,7 @@ export function BikeOverridesCard({
       const { error } = await supabase.from("garage_bike_overrides").upsert(
         {
           motorcycle_id: motorcycleId,
-          model_id: modelId ?? null,
+          model_id: effectiveModelId,
           category: form.category,
           subject: form.subject,
           field: form.field,
