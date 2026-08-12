@@ -279,7 +279,7 @@ export function BookInCard({
         <div className="min-w-0 flex-1">
           <div className="flex items-start justify-between gap-1.5 sm:gap-2">
             <div className="font-semibold text-xs sm:text-sm truncate">{bike}</div>
-            <div className="hidden sm:flex flex-col items-end gap-1 shrink-0">
+            <div className="hidden sm:flex flex-col items-end gap-0.5 shrink-0">
               {rego && (
                 <span className="shrink-0 rounded bg-background/60 px-1.5 py-0.5 text-[0.625rem] font-bold uppercase tracking-wider tabular-nums">
                   {rego}
@@ -287,15 +287,10 @@ export function BookInCard({
               )}
               {transportLabel && (
                 <span
-                  className="inline-flex items-center gap-1 rounded bg-sky-500 px-1.5 py-0.5 text-[0.65rem] font-bold uppercase tracking-wider text-white shadow"
+                  className="grid h-4 w-4 place-items-center rounded bg-sky-500 text-white shadow"
                   title={transportTitle}
                 >
-                  <Truck className="h-3 w-3" />
-                  {b.pickup_required && b.delivery_required
-                    ? "P/D"
-                    : b.pickup_required
-                      ? "P/U"
-                      : "D/O"}
+                  <Truck className="h-2.5 w-2.5" />
                 </span>
               )}
             </div>
