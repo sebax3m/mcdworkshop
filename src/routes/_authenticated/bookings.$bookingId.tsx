@@ -15,6 +15,7 @@ import {
   FileText,
   KeyRound,
   CheckCircle,
+  RotateCcw,
 } from "lucide-react";
 import { LoanBikeDialog } from "@/components/booking/LoanBikeDialog";
 import { TransportCard } from "@/components/booking/TransportCard";
@@ -24,7 +25,6 @@ import { displayCustomerName } from "@/lib/display";
 import { fullBike } from "@/lib/format";
 import { getSignedUrls } from "@/lib/photos";
 import { format } from "date-fns";
-
 
 export const Route = createFileRoute("/_authenticated/bookings/$bookingId")({
   component: BookingDetail,
@@ -36,9 +36,9 @@ function BookingDetail() {
   const nav = useNavigate();
   const [converting, setConverting] = useState(false);
   const [completing, setCompleting] = useState(false);
+  const [reversing, setReversing] = useState(false);
   const [photoUrls, setPhotoUrls] = useState<string[]>([]);
   const [loanOpen, setLoanOpen] = useState(false);
-
 
   const { data: b, isLoading } = useQuery({
     queryKey: ["booking", bookingId],
@@ -60,8 +60,6 @@ function BookingDetail() {
     enabled: !!b?.customer_id,
     queryFn: () => fetchCustomerBikes(b?.customer_id),
   });
-
-
 
   useEffect(() => {
     const photos = b?.arrival_photos as string[] | undefined;
@@ -148,8 +146,40 @@ function BookingDetail() {
     }
   }
 
-  if (isLoading || !b)
+  async function reverseComplete() {
+    if (!b) return;
+    if (!confirm("Reverse completion? This will set the booking and job back to In progress."))
+      return;
+    setReversing(true);
+    try {
+      const updates: any = { status: "in_progress" };
+      if (b.job_id) {
+        const { error: jobError } = await supabase
+          .from("jobs")
+          .update({ status: "in_progress", completed_at: null })
+          .eq("id", b.job_id);
+        if (jobError) throw jobError;
+      }
+      if (b.loan_bike_id && b.loan_bike_returned_at) {
+        updates.loan_bike_returned_at = null;
+      }
+      const { error } = await supabase.from("bookings").update(updates).eq("id", b.id);
+      if (error) throw error;
+      qc.invalidateQueries({ queryKey: ["booking", bookingId] });
+      qc.invalidateQueries({ queryKey: ["calendar-bookings"] });
+      qc.invalidateQueries({ queryKey: ["my-bookings"] });
+      qc.invalidateQueries({ queryKey: ["my-jobs"] });
+      qc.invalidateQueries({ queryKey: ["loan-bikes"] });
+      qc.invalidateQueries({ queryKey: ["loan-bikes-active-assignments"] });
+      toast.success("Completion reversed");
+    } catch (err: any) {
+      toast.error(err.message ?? "Failed to reverse completion");
+    } finally {
+      setReversing(false);
+    }
+  }
 
+  if (isLoading || !b)
     return (
       <div className="card-surface p-8 text-center text-sm text-muted-foreground">Loading…</div>
     );
@@ -248,8 +278,6 @@ function BookingDetail() {
         }}
       />
 
-
-
       <div className="card-surface p-4 flex items-center gap-3">
         <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-muted">
           <KeyRound className="h-4 w-4 text-primary" />
@@ -342,10 +370,15 @@ function BookingDetail() {
           </Link>
         )}
         {b.status === "completed" ? (
-          <div className="flex items-center justify-center gap-2 rounded-xl bg-green-500/15 border border-green-500/40 h-12 text-green-400 font-bold">
-            <CheckCircle className="h-5 w-5" />
-            Completed
-          </div>
+          <Button
+            onClick={reverseComplete}
+            disabled={reversing}
+            variant="outline"
+            className="w-full h-12 border-amber-500/50 text-amber-400 hover:bg-amber-500/10 hover:text-amber-300 font-bold"
+          >
+            <RotateCcw className="h-4 w-4 mr-2" />
+            {reversing ? "Reversing…" : "Reverse completion"}
+          </Button>
         ) : (
           <Button
             onClick={markCompleted}
@@ -358,8 +391,6 @@ function BookingDetail() {
           </Button>
         )}
       </div>
-
-
     </motion.div>
   );
 }

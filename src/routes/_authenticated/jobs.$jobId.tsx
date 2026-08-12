@@ -35,6 +35,7 @@ import {
   Trash2,
   Pencil,
   CheckCircle2,
+  RotateCcw,
 } from "lucide-react";
 import { detectServiceKind, KIND_META, SERVICE_PARTS } from "@/lib/service-kinds";
 import { getValveSpec, formatRange, type ValveSpec } from "@/lib/valve-specs";
@@ -218,6 +219,7 @@ function JobDetail() {
   const [previewOpen, setPreviewOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [completingAll, setCompletingAll] = useState(false);
+  const [reversingAll, setReversingAll] = useState(false);
   const jobRef = useRef<HTMLDivElement>(null);
 
   /** Mark the job, its booking and any loan bike as fully completed everywhere. */
@@ -262,6 +264,49 @@ function JobDetail() {
       toast.error(err instanceof Error ? err.message : "Failed to complete job");
     } finally {
       setCompletingAll(false);
+    }
+  }
+
+  /** Reverse the completed status in case it was pressed by mistake. */
+  async function reverseCompleteEverything() {
+    setReversingAll(true);
+    try {
+      const { error } = await supabase
+        .from("jobs")
+        .update({ status: "in_progress", completed_at: null })
+        .eq("id", jobId);
+      if (error) throw error;
+      const { data: bk } = await supabase
+        .from("bookings")
+        .select("id, loan_bike_id, loan_bike_returned_at")
+        .eq("job_id", jobId)
+        .maybeSingle();
+      if (bk?.id) {
+        await supabase
+          .from("bookings")
+          .update({
+            status: "in_progress",
+            ...(bk.loan_bike_id && bk.loan_bike_returned_at ? { loan_bike_returned_at: null } : {}),
+          })
+          .eq("id", bk.id);
+      }
+      [
+        ["job", jobId],
+        ["jobs"],
+        ["my-jobs"],
+        ["my-bookings"],
+        ["dashboard-jobs"],
+        ["dashboard-counts"],
+        ["calendar-bookings"],
+        ["bookings"],
+        ["loan-bikes"],
+        ["loan-bikes-active-assignments"],
+      ].forEach((key) => qc.invalidateQueries({ queryKey: key as string[] }));
+      toast.success("Completion reversed");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to reverse completion");
+    } finally {
+      setReversingAll(false);
     }
   }
 
@@ -503,9 +548,26 @@ function JobDetail() {
               <span className="hidden sm:inline">Preview & print</span>
             </Button>
             {j.status === "completed" ? (
-              <span className="inline-flex items-center gap-1.5 rounded-lg border border-green-500/40 bg-green-500/15 px-2.5 h-8 text-xs font-bold text-green-400">
-                <CheckCircle2 className="h-4 w-4" /> Completed
-              </span>
+              <Button
+                onClick={() => {
+                  if (
+                    confirm(
+                      "Reverse completion? This will set the job and booking back to In progress.",
+                    )
+                  ) {
+                    void reverseCompleteEverything();
+                  }
+                }}
+                size="sm"
+                disabled={reversingAll}
+                variant="outline"
+                className="gap-1.5 h-8 px-2.5 border-amber-500/50 text-amber-400 hover:bg-amber-500/10 hover:text-amber-300"
+              >
+                <RotateCcw className="h-4 w-4" />
+                <span className="hidden sm:inline">
+                  {reversingAll ? "Reversing…" : "Reverse complete"}
+                </span>
+              </Button>
             ) : (
               <Button
                 onClick={completeEverything}
@@ -741,7 +803,6 @@ function JobDetail() {
         {/* Shift clock — technicians can clock in without leaving the job card */}
         {isTechnician && user && <ShiftClockCard userId={user.id} jobId={jobId} />}
 
-
         {/* Live timer */}
         <div className="card-surface p-4">
           <div className="flex items-center justify-between gap-3 flex-wrap">
@@ -900,15 +961,15 @@ function JobDetail() {
                     <span className="text-[0.6875rem] text-muted-foreground whitespace-nowrap">
                       {f.estimated_labour ? `${f.estimated_labour} h` : ""}
                       {f.estimated_labour && f.estimated_parts_cost ? " · " : ""}
-                      {f.estimated_parts_cost ? `$${Number(f.estimated_parts_cost).toFixed(2)} parts` : ""}
+                      {f.estimated_parts_cost
+                        ? `$${Number(f.estimated_parts_cost).toFixed(2)} parts`
+                        : ""}
                     </span>
                   )}
                 </div>
                 {f.description && <p className="text-sm whitespace-pre-wrap">{f.description}</p>}
                 {f.recommended_action && (
-                  <p className="text-xs text-muted-foreground">
-                    Action: {f.recommended_action}
-                  </p>
+                  <p className="text-xs text-muted-foreground">Action: {f.recommended_action}</p>
                 )}
                 {f.decision_note && (
                   <p className="text-xs italic text-muted-foreground">Note: {f.decision_note}</p>
@@ -922,8 +983,7 @@ function JobDetail() {
                 .filter((d) => d.decision !== "declined_all")
                 .map((d) => (
                   <p key={d.id} className="text-[0.6875rem] text-muted-foreground">
-                    Approved{" "}
-                    {d.resolved_at ? new Date(d.resolved_at).toLocaleString() : ""}
+                    Approved {d.resolved_at ? new Date(d.resolved_at).toLocaleString() : ""}
                     {d.customer_contact_method ? ` · via ${d.customer_contact_method}` : ""}
                     {d.resolution_note ? ` · ${d.resolution_note}` : ""}
                   </p>
@@ -932,8 +992,6 @@ function JobDetail() {
           )}
         </section>
       )}
-
-
 
       {/* Damage report (collision repair jobs) */}
       {kind === "collision" && (
@@ -1053,9 +1111,7 @@ function JobDetail() {
             defaultOn: kind === "full",
             orientation: "landscape",
             variantLabel: "Cylinders",
-            defaultVariant: String(
-              ((j.service_data as any) ?? {}).valves?._cylinders || cylinders,
-            ),
+            defaultVariant: String(((j.service_data as any) ?? {}).valves?._cylinders || cylinders),
             variants: [1, 2, 3, 4, 6].map((n) => ({ value: String(n), label: `${n} cylinder` })),
             getHtml: (v) =>
               valveSheetHtml({
@@ -1959,7 +2015,9 @@ function ValveClearanceSection({
     Math.min(6, Number(values._cylinders) || saved?.cylinders || cylinders),
   );
   const intakeOnTop =
-    values._intakeOnTop !== undefined ? Boolean(values._intakeOnTop) : (saved?.intake_on_top ?? true);
+    values._intakeOnTop !== undefined
+      ? Boolean(values._intakeOnTop)
+      : (saved?.intake_on_top ?? true);
 
   const intakePerCyl = 2;
   const exhaustPerCyl = 2;
@@ -2332,8 +2390,8 @@ function ValveClearancePrintSheet({
       )}
 
       <div className="text-[0.625rem] uppercase tracking-[0.2em] text-gray-600 text-center mb-2">
-        Top-down · {intakeOnTop ? "INTAKE top / EXHAUST bottom" : "EXHAUST top / INTAKE bottom"} · write
-        measured mm inside each circle
+        Top-down · {intakeOnTop ? "INTAKE top / EXHAUST bottom" : "EXHAUST top / INTAKE bottom"} ·
+        write measured mm inside each circle
       </div>
       <div className="flex gap-4 justify-center items-stretch mb-3">
         {Array.from({ length: cylinders }).map((_, c) => {
@@ -2512,7 +2570,6 @@ function InstructionsSection({
   );
 }
 
-
 function OdometerSection({
   jobId,
   bikeId,
@@ -2602,7 +2659,12 @@ function OdometerSection({
               km
             </span>
           </div>
-          <Button size="sm" className="h-11" onClick={() => save()} disabled={!canEdit || saving || !dirty}>
+          <Button
+            size="sm"
+            className="h-11"
+            onClick={() => save()}
+            disabled={!canEdit || saving || !dirty}
+          >
             {saving ? "Saving…" : "Save"}
           </Button>
           <span className="text-[0.625rem] uppercase tracking-wider text-muted-foreground min-w-[52px]">

@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState } from "react";
-import { Bike as BikeIcon, CheckCircle, User as UserIcon, Wrench } from "lucide-react";
+import { Bike as BikeIcon, CheckCircle, RotateCcw, User as UserIcon, Wrench } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -55,6 +55,7 @@ export function BookInCard({
 
   const qc = useQueryClient();
   const [completing, setCompleting] = useState(false);
+  const [reversing, setReversing] = useState(false);
 
   async function markCompleted(e: React.MouseEvent) {
     e.stopPropagation();
@@ -90,6 +91,44 @@ export function BookInCard({
     }
   }
 
+  async function reverseComplete(e: React.MouseEvent) {
+    e.stopPropagation();
+    if (reversing) return;
+    if (!confirm("Reverse completion? This will set the booking and job back to In progress."))
+      return;
+    setReversing(true);
+    try {
+      const updates: { status: string; loan_bike_returned_at?: null } = {
+        status: "in_progress",
+      };
+      if (b.job_id) {
+        const { error: jobError } = await supabase
+          .from("jobs")
+          .update({ status: "in_progress", completed_at: null })
+          .eq("id", b.job_id);
+        if (jobError) throw jobError;
+      }
+      if (b.loan_bike_id && b.loan_bike_returned_at) {
+        updates.loan_bike_returned_at = null;
+      }
+      const { error } = await supabase.from("bookings").update(updates).eq("id", b.id);
+      if (error) throw error;
+      qc.invalidateQueries({ queryKey: ["booking", b.id] });
+      qc.invalidateQueries({ queryKey: ["calendar-bookings"] });
+      qc.invalidateQueries({ queryKey: ["my-bookings"] });
+      qc.invalidateQueries({ queryKey: ["my-jobs"] });
+      qc.invalidateQueries({ queryKey: ["day-bookings"] });
+      qc.invalidateQueries({ queryKey: ["today-bookings"] });
+      qc.invalidateQueries({ queryKey: ["loan-bikes"] });
+      qc.invalidateQueries({ queryKey: ["loan-bikes-active-assignments"] });
+      toast.success("Completion reversed");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to reverse completion");
+    } finally {
+      setReversing(false);
+    }
+  }
+
   return (
     <div
       role="button"
@@ -119,7 +158,17 @@ export function BookInCard({
         className,
       )}
     >
-      {!jobCompleted && (
+      {jobCompleted ? (
+        <button
+          type="button"
+          onClick={reverseComplete}
+          disabled={reversing}
+          title="Reverse completion"
+          className="absolute bottom-1 right-1 z-10 grid h-5 w-5 place-items-center rounded-full border border-amber-500/60 bg-background/90 text-amber-400 opacity-0 transition-opacity hover:bg-amber-500/20 group-hover:opacity-100 focus:opacity-100"
+        >
+          <RotateCcw className="h-3 w-3" />
+        </button>
+      ) : (
         <button
           type="button"
           onClick={markCompleted}
