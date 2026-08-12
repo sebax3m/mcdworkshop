@@ -75,11 +75,12 @@ export async function buildJobContext(jobId: string): Promise<McdContext> {
   const { data: job } = await supabase
     .from("jobs")
     .select(
-      "id, job_number, title, description, service_type, status, odometer, motorcycle_id, motorcycles(id, make, model, year, mileage, modifications)",
+      "id, job_number, title, description, complaint, status, odometer, service_data, motorcycle_id, motorcycles(id, make, model, year, rego, mileage, modifications)",
     )
     .eq("id", jobId)
     .maybeSingle();
   const bike = (job as any)?.motorcycles ?? null;
+  const serviceType = (job as any)?.service_data?.service_type ?? (job as any)?.service_data?.type ?? null;
   const modelId = await matchModel(bike?.make, bike?.model, bike?.year ?? null);
   const meta = await modelMeta(modelId);
   return {
@@ -98,9 +99,10 @@ export async function buildJobContext(jobId: string): Promise<McdContext> {
     mileage: (job as any)?.odometer ?? bike?.mileage ?? null,
     modifications: bike?.modifications ?? null,
     jobNumber: (job as any)?.job_number ?? null,
-    jobLabel: [(job as any)?.service_type, (job as any)?.title].filter(Boolean).join(" · ") || null,
+    jobLabel: [serviceType, (job as any)?.title].filter(Boolean).join(" · ") || null,
   };
 }
+
 
 export async function buildModelContext(modelId: string): Promise<McdContext> {
   const meta = await modelMeta(modelId);
