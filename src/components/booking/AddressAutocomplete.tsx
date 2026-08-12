@@ -1,7 +1,13 @@
 import { useEffect, useRef, useState } from "react";
-import { MapPin } from "lucide-react";
+import { MapPin, Navigation } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { suggestAddresses, type AddressSuggestion } from "@/lib/maps.functions";
+import {
+  suggestAddresses,
+  travelFromWorkshop,
+  type AddressSuggestion,
+  type TravelEta,
+} from "@/lib/maps.functions";
+import { WORKSHOP_ADDRESS, WORKSHOP_SHORT } from "@/lib/workshop-location";
 
 /** Address input with Auckland-biased Google suggestions. */
 export function AddressAutocomplete({
