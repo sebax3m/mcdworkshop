@@ -466,6 +466,94 @@ function InvoiceDetail() {
     qc.invalidateQueries({ queryKey: ["invoice", invoiceId] });
   }
 
+  // ---- Drag & drop reordering of line items -------------------------------
+  const [dragKey, setDragKey] = useState<string | null>(null);
+  const [overKey, setOverKey] = useState<string | null>(null);
+  const [dragArmed, setDragArmed] = useState<string | null>(null);
+
+  function rowDragProps(key: string, onReorder: (from: string, to: string) => void) {
+    return {
+      draggable: dragArmed === key,
+      onDragStart: (e: React.DragEvent) => {
+        setDragKey(key);
+        e.dataTransfer.effectAllowed = "move";
+        e.dataTransfer.setData("text/plain", key);
+      },
+      onDragOver: (e: React.DragEvent) => {
+        if (!dragKey) return;
+        e.preventDefault();
+        e.dataTransfer.dropEffect = "move";
+        if (overKey !== key) setOverKey(key);
+      },
+      onDrop: (e: React.DragEvent) => {
+        e.preventDefault();
+        if (dragKey && dragKey !== key) onReorder(dragKey, key);
+        setDragKey(null);
+        setOverKey(null);
+        setDragArmed(null);
+      },
+      onDragEnd: () => {
+        setDragKey(null);
+        setOverKey(null);
+        setDragArmed(null);
+      },
+      className: `border-b border-border/40 group ${dragKey === key ? "opacity-40" : ""} ${
+        overKey === key && dragKey !== key ? "bg-primary/5 outline outline-1 outline-primary/50" : ""
+      }`,
+    };
+  }
+
+  function DragHandle({ rowKey }: { rowKey: string }) {
+    return (
+      <button
+        type="button"
+        onMouseDown={() => setDragArmed(rowKey)}
+        onMouseUp={() => setDragArmed(null)}
+        onTouchStart={() => setDragArmed(rowKey)}
+        className="no-print shrink-0 cursor-grab active:cursor-grabbing text-muted-foreground/50 hover:text-foreground opacity-0 group-hover:opacity-100"
+        title="Drag to reorder"
+        aria-label="Drag to reorder line"
+      >
+        <GripVertical className="h-4 w-4" />
+      </button>
+    );
+  }
+
+  async function persistPartOrder(keys: string[]) {
+    const labourIdx = keys.indexOf("labour");
+    if (labourIdx >= 0) {
+      const newSnap = { ...((inv.snapshot as any) ?? {}), labour_sort: labourIdx };
+      await supabase.from("invoices").update({ snapshot: newSnap }).eq("id", invoiceId);
+    }
+    await Promise.all(
+      keys
+        .map((k, i) => ({ k, i }))
+        .filter(({ k }) => k !== "labour")
+        .map(({ k, i }) => supabase.from("parts").update({ sort_order: i } as any).eq("id", k)),
+    );
+    qc.invalidateQueries({ queryKey: ["invoice", invoiceId] });
+    qc.invalidateQueries({ queryKey: ["invoice-parts", invoiceId] });
+  }
+
+  function reorderKeys(keys: string[], from: string, to: string) {
+    const next = [...keys];
+    const fromIdx = next.indexOf(from);
+    const toIdx = next.indexOf(to);
+    if (fromIdx < 0 || toIdx < 0) return next;
+    next.splice(toIdx, 0, next.splice(fromIdx, 1)[0]!);
+    return next;
+  }
+
+  async function moveSnapshotLine(from: string, to: string) {
+    const items = currentSnapshotLines();
+    const fromIdx = Number(from);
+    const toIdx = Number(to);
+    if (Number.isNaN(fromIdx) || Number.isNaN(toIdx)) return;
+    const next = [...items];
+    next.splice(toIdx, 0, next.splice(fromIdx, 1)[0]!);
+    await saveSnapshotLines(next);
+  }
+
   async function removeLabourLine() {
     await saveSnapshotMeta({ labour_hidden: true });
     await recomputeInvoiceTotals(0);
