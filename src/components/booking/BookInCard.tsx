@@ -204,13 +204,13 @@ export function BookInCard({
         </button>
       )}
 
-      <div className="min-w-0 space-y-[3px]">
+      <div className="min-w-0 space-y-1">
         {/* ROW 1 — status icon + motorcycle + rego */}
-        <div className="flex items-center gap-1">
-          <BookInStatusIcon meta={status} />
+        <div className="flex items-center gap-1.5">
+          <BookInStatusIcon meta={status} size="md" />
           <div
             className={cn(
-              "min-w-0 flex-1 truncate text-[0.75rem] font-bold leading-tight",
+              "min-w-0 flex-1 truncate text-[0.8125rem] font-bold leading-tight",
               jobCompleted ? "text-muted-foreground" : "text-foreground",
             )}
           >
@@ -219,13 +219,13 @@ export function BookInCard({
           <div className="flex shrink-0 items-center gap-1">
             <TransportIndicator kind={kind} address={b.transport_address} />
             {b.loan_bike && (
-              <span className="h-1.5 w-1.5 rounded-full bg-fuchsia-500" title="Loan bike" />
+              <span className="h-2 w-2 rounded-full bg-fuchsia-500" title="Loan bike" />
             )}
             {b.notes && (
-              <span className="h-1.5 w-1.5 rounded-full bg-muted-foreground/70" title="Has notes" />
+              <span className="h-2 w-2 rounded-full bg-muted-foreground/70" title="Has notes" />
             )}
             {rego && (
-              <span className="rounded-[4px] bg-white/[0.07] px-1 py-[1px] font-mono text-[0.5rem] font-bold uppercase tracking-wide tabular-nums text-foreground/70">
+              <span className="rounded-[4px] bg-white/[0.07] px-1.5 py-[2px] font-mono text-[0.625rem] font-bold uppercase tracking-wide tabular-nums text-foreground/70">
                 {rego}
               </span>
             )}
