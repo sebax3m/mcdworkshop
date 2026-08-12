@@ -305,18 +305,6 @@ export function BookInCard({
 
       {/* Desktop / tablet view */}
       <div className="hidden sm:flex items-start gap-2">
-        {photo ? (
-          <img
-            src={typeof photo === "string" ? photo : photo?.url}
-            alt=""
-            loading="lazy"
-            className="h-7 w-7 sm:h-9 sm:w-9 rounded-md object-cover border border-border shrink-0"
-          />
-        ) : (
-          <div className="h-7 w-7 sm:h-9 sm:w-9 rounded-md grid place-items-center bg-background/50 text-foreground/70 shrink-0">
-            <BikeIcon className="h-3 w-3 sm:h-4 sm:w-4" />
-          </div>
-        )}
         <div className="min-w-0 flex-1">
           <div className="flex items-start justify-between gap-1.5 sm:gap-2">
             <div className="font-semibold text-xs sm:text-sm truncate">{bike}</div>
