@@ -194,16 +194,16 @@
   }
 }
 
-/* Completed job marker: green diagonal gradient shading over a booking chip */
+/* Completed job marker: darker red diagonal gradient shading over a booking chip */
 @utility job-complete-stripes {
   background-image: repeating-linear-gradient(
     135deg,
-    rgb(34 197 94 / 0.32) 0px,
-    rgb(34 197 94 / 0.32) 6px,
-    rgb(34 197 94 / 0.08) 6px,
-    rgb(34 197 94 / 0.08) 14px
+    rgb(185 28 28 / 0.38) 0px,
+    rgb(185 28 28 / 0.38) 6px,
+    rgb(185 28 28 / 0.1) 6px,
+    rgb(185 28 28 / 0.1) 14px
   );
-  border-color: rgb(34 197 94 / 0.7);
+  border-color: rgb(185 28 28 / 0.75);
 }
 
 /* ============ Appearance themes (per-user, set on <html data-theme>) ============ */
