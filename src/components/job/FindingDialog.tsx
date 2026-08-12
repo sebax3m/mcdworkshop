@@ -6,10 +6,13 @@ import {
   CATEGORY_LABEL,
   FINDING_CATEGORIES,
   FINDING_PRESETS,
+  INSPECTION_LABOUR_RATE,
   SEVERITIES,
   SEVERITY_META,
+  findingDefaults,
   type InspectionFinding,
 } from "@/lib/inspection";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
