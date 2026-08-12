@@ -119,7 +119,7 @@ export type ApprovalRequest = {
   resolution_note: string | null;
 };
 
-/** Workshop labour rate (ex GST) used for inspection quote estimates. */
+/** Workshop labour rate (GST inclusive) used for inspection quote estimates. */
 export const INSPECTION_LABOUR_RATE = 130;
 
 /** Quick-add templates shown to technicians. Each preset carries its own
