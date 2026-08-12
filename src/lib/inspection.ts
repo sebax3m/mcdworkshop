@@ -122,25 +122,9 @@ export type ApprovalRequest = {
 /** Workshop labour rate (ex GST) used for inspection quote estimates. */
 export const INSPECTION_LABOUR_RATE = 130;
 
-/** Fallback estimate when nothing more specific is known. */
-export const DEFAULT_FINDING_ESTIMATE = { labour: 1, parts: 100 };
-
-/** Category-level fallbacks (used when no preset matches). */
-export const CATEGORY_DEFAULTS: Record<string, { labour: number; parts: number }> = {
-  brakes: { labour: 1, parts: 120 },
-  chain_sprockets: { labour: 1.5, parts: 320 },
-  tyres: { labour: 1, parts: 320 },
-  suspension: { labour: 2.5, parts: 350 },
-  electrical: { labour: 1, parts: 150 },
-  engine: { labour: 3, parts: 400 },
-  cooling: { labour: 1, parts: 90 },
-  transmission: { labour: 2.5, parts: 350 },
-  service_item: { labour: 0.5, parts: 60 },
-  safety: { labour: 2, parts: 200 },
-  other: { labour: 1, parts: 100 },
-};
-
-/** Quick-add templates shown to technicians, with default labour + parts estimates. */
+/** Quick-add templates shown to technicians. Each preset carries its own
+ *  labour + parts estimate that is only applied when the technician explicitly
+ *  taps the preset; new blank findings start with no defaults. */
 export const FINDING_PRESETS: {
   title: string;
   category: FindingCategory;
@@ -294,15 +278,6 @@ export const FINDING_PRESETS: {
     action: "Adjust valve clearances / fit shims.",
   },
 ];
-
-/** Default labour hours + parts cost for a finding, by preset title then category. */
-export function findingDefaults(title: string, category: string) {
-  const preset = FINDING_PRESETS.find(
-    (p) => p.title.toLowerCase() === title.trim().toLowerCase(),
-  );
-  if (preset) return { labour: preset.labour, parts: preset.parts };
-  return CATEGORY_DEFAULTS[category] ?? DEFAULT_FINDING_ESTIMATE;
-}
 
 /** Quote roll-up for a list of findings. */
 export function quoteTotals(list: { estimated_labour: number | null; estimated_parts_cost: number | null }[]) {

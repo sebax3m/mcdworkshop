@@ -9,7 +9,6 @@ import {
   INSPECTION_LABOUR_RATE,
   SEVERITIES,
   SEVERITY_META,
-  findingDefaults,
   type InspectionFinding,
 } from "@/lib/inspection";
 
@@ -57,11 +56,8 @@ export function FindingDialog({ open, onOpenChange, jobId, userId, finding, onSa
     setCategory(finding?.category ?? "other");
     setSeverity(finding?.severity ?? "recommended");
     setAction(finding?.recommended_action ?? "");
-    const d = findingDefaults(finding?.title ?? "", finding?.category ?? "other");
-    setLabour(finding?.estimated_labour != null ? String(finding.estimated_labour) : String(d.labour));
-    setPartsCost(
-      finding?.estimated_parts_cost != null ? String(finding.estimated_parts_cost) : String(d.parts),
-    );
+    setLabour(finding?.estimated_labour != null ? String(finding.estimated_labour) : "");
+    setPartsCost(finding?.estimated_parts_cost != null ? String(finding.estimated_parts_cost) : "");
     setPhotoPath(finding?.photo_path ?? null);
   }, [open, finding]);
 
@@ -162,12 +158,7 @@ export function FindingDialog({ open, onOpenChange, jobId, userId, finding, onSa
                 <button
                   key={c}
                   type="button"
-                  onClick={() => {
-                    setCategory(c);
-                    const d = findingDefaults(title, c);
-                    if (!labour) setLabour(String(d.labour));
-                    if (!partsCost) setPartsCost(String(d.parts));
-                  }}
+                  onClick={() => setCategory(c)}
                   className={cn(
                     "rounded-full border px-2.5 py-1 text-[0.6875rem] font-semibold",
                     category === c
@@ -269,17 +260,6 @@ export function FindingDialog({ open, onOpenChange, jobId, userId, finding, onSa
                 ).toFixed(2)}
               </span>
             </div>
-            <button
-              type="button"
-              className="mt-1.5 text-[0.6875rem] text-primary hover:underline"
-              onClick={() => {
-                const d = findingDefaults(title, category);
-                setLabour(String(d.labour));
-                setPartsCost(String(d.parts));
-              }}
-            >
-              Reset to default estimate
-            </button>
           </div>
 
           <div>
