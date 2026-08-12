@@ -14,7 +14,7 @@ export function TechnicianIndicator({
   if (!name) return null;
   return (
     <span
-      title={`Assigned to ${name}`}
+      title={name}
       className={cn(
         "inline-flex items-center gap-1 text-[0.5625rem] font-semibold text-muted-foreground",
         className,

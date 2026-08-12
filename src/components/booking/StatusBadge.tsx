@@ -19,13 +19,13 @@ export function StatusBadge({
     <span
       title={s.label}
       className={cn(
-        "inline-flex items-center gap-1 rounded-md border px-1.5 py-0.5 font-bold uppercase tracking-wider",
-        compact ? "text-[0.5rem]" : "text-[0.5625rem]",
+        "inline-flex items-center gap-1 rounded border px-1 py-[1px] font-bold uppercase leading-none tracking-[0.08em]",
+        compact ? "text-[0.5625rem]" : "text-[0.625rem]",
         s.badge,
         className,
       )}
     >
-      <Icon className="h-2.5 w-2.5 shrink-0" />
+      <Icon className="h-[0.7rem] w-[0.7rem] shrink-0" />
       <span className="truncate">{compact ? s.short : s.label}</span>
     </span>
   );
