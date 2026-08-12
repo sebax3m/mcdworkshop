@@ -2121,6 +2121,29 @@ function ValveClearanceSection({
   const topRow = rowFor(intakeOnTop ? "intake" : "exhaust");
   const bottomRow = rowFor(intakeOnTop ? "exhaust" : "intake");
 
+  // Orientation arrow + cylinder ordering (drag to rearrange)
+  const frontDeg = Number(values._frontDeg ?? 0) || 0;
+  const order: number[] = (() => {
+    const raw: number[] = Array.isArray(values._order)
+      ? (values._order as unknown[]).map(Number).filter((n) => n >= 1 && n <= cylCount)
+      : [];
+    const uniq = Array.from(new Set(raw));
+    for (let i = 1; i <= cylCount; i++) if (!uniq.includes(i)) uniq.push(i);
+    return uniq.slice(0, cylCount);
+  })();
+  const [dragCyl, setDragCyl] = useState<number | null>(null);
+  const [overIdx, setOverIdx] = useState<number | null>(null);
+  function moveCyl(cyl: number | null, toIdx: number) {
+    if (cyl === null || !canEdit) return;
+    const from = order.indexOf(cyl);
+    if (from === -1 || from === toIdx) return;
+    const next = [...order];
+    next.splice(from, 1);
+    next.splice(toIdx, 0, cyl);
+    setMeta({ _order: next });
+  }
+
+
   return (
     <>
       {/* Screen / on-card section */}
