@@ -832,7 +832,7 @@ function CalendarPage() {
   const dayNames = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
   return (
-    <div className="flex flex-col gap-3 h-full">
+    <div className="flex flex-col gap-3 h-full pt-5">
       {/* NAV + TOGGLE */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
