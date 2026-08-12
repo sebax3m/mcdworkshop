@@ -12,8 +12,8 @@ export type ServiceColor = {
 
 export const SERVICE_COLORS: Record<string, ServiceColor> = {
   basic: {
-    bg: "bg-service-light-blue/70",
-    fill: "bg-service-light-blue/25",
+    bg: "bg-service-light-blue/90",
+    fill: "bg-service-light-blue/50",
     ring: "ring-service-light-blue",
     label: "text-service-light-blue",
     text: "text-white",
@@ -21,8 +21,8 @@ export const SERVICE_COLORS: Record<string, ServiceColor> = {
     hex: "#60a5fa",
   },
   standard: {
-    bg: "bg-service-light-blue/70",
-    fill: "bg-service-light-blue/25",
+    bg: "bg-service-light-blue/90",
+    fill: "bg-service-light-blue/50",
     ring: "ring-service-light-blue",
     label: "text-service-light-blue",
     text: "text-white",
@@ -30,8 +30,8 @@ export const SERVICE_COLORS: Record<string, ServiceColor> = {
     hex: "#60a5fa",
   },
   full: {
-    bg: "bg-service-light-blue/70",
-    fill: "bg-service-light-blue/25",
+    bg: "bg-service-light-blue/90",
+    fill: "bg-service-light-blue/50",
     ring: "ring-service-light-blue",
     label: "text-service-light-blue",
     text: "text-white",
@@ -39,8 +39,8 @@ export const SERVICE_COLORS: Record<string, ServiceColor> = {
     hex: "#60a5fa",
   },
   dyno: {
-    bg: "bg-service-gold/70",
-    fill: "bg-service-gold/25",
+    bg: "bg-service-gold/90",
+    fill: "bg-service-gold/50",
     ring: "ring-service-gold",
     label: "text-service-gold",
     text: "text-black",
@@ -48,8 +48,8 @@ export const SERVICE_COLORS: Record<string, ServiceColor> = {
     hex: "#fbbf24",
   },
   diagnostic: {
-    bg: "bg-service-orange/70",
-    fill: "bg-service-orange/25",
+    bg: "bg-service-orange/90",
+    fill: "bg-service-orange/50",
     ring: "ring-service-orange",
     label: "text-service-orange",
     text: "text-black",
@@ -57,8 +57,8 @@ export const SERVICE_COLORS: Record<string, ServiceColor> = {
     hex: "#fb923c",
   },
   insurance: {
-    bg: "bg-service-light-green/70",
-    fill: "bg-service-light-green/25",
+    bg: "bg-service-light-green/90",
+    fill: "bg-service-light-green/50",
     ring: "ring-service-light-green",
     label: "text-service-light-green",
     text: "text-black",
@@ -66,8 +66,8 @@ export const SERVICE_COLORS: Record<string, ServiceColor> = {
     hex: "#86efac",
   },
   postbike: {
-    bg: "bg-service-red/70",
-    fill: "bg-service-red/25",
+    bg: "bg-service-red/90",
+    fill: "bg-service-red/50",
     ring: "ring-service-red",
     label: "text-service-red",
     text: "text-white",
@@ -75,8 +75,8 @@ export const SERVICE_COLORS: Record<string, ServiceColor> = {
     hex: "#ef4444",
   },
   other: {
-    bg: "bg-service-light-blue/70",
-    fill: "bg-service-light-blue/25",
+    bg: "bg-service-light-blue/90",
+    fill: "bg-service-light-blue/50",
     ring: "ring-service-light-blue",
     label: "text-service-light-blue",
     text: "text-white",
@@ -84,8 +84,8 @@ export const SERVICE_COLORS: Record<string, ServiceColor> = {
     hex: "#60a5fa",
   },
   default: {
-    bg: "bg-service-light-blue/70",
-    fill: "bg-service-light-blue/25",
+    bg: "bg-service-light-blue/90",
+    fill: "bg-service-light-blue/50",
     ring: "ring-service-light-blue",
     label: "text-service-light-blue",
     text: "text-white",

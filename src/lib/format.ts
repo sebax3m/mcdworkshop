@@ -70,5 +70,5 @@ export function fullBike(
   b?: { year?: number | null; make?: string | null; model?: string | null } | null,
 ) {
   if (!b) return "No bike";
-  return [b.year, b.make, b.model].filter(Boolean).join(" ") || "No bike";
+  return [b.make, b.model, b.year].filter(Boolean).join(" ") || "No bike";
 }
