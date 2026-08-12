@@ -2279,32 +2279,57 @@ function ValveClearanceSection({
         <div className="rounded-xl border border-border bg-background/40 p-4 overflow-x-auto">
           <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground text-center mb-3">
             Top-down view ·{" "}
-            {intakeOnTop ? "INTAKE (top) / EXHAUST (bottom)" : "EXHAUST (top) / INTAKE (bottom)"}
+            {intakeOnTop ? "INTAKE (top) / EXHAUST (bottom)" : "EXHAUST (top) / INTAKE (bottom)"} ·
+            drag cylinders to reorder
           </div>
-          <div className="flex gap-4 min-w-fit justify-center">
-            {Array.from({ length: cylCount }).map((_, c) => {
-              const cyl = c + 1;
-              return (
-                <div
-                  key={cyl}
-                  className="rounded-2xl border-2 border-border bg-card/60 p-3 flex flex-col items-center gap-2"
-                  style={{ minWidth: 150 }}
-                >
-                  <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground font-bold">
-                    Cyl {cyl}
-                  </div>
-                  {topRow(cyl)}
-                  {/* Spark plug center */}
-                  <div
-                    className="h-4 w-4 rounded-full bg-muted-foreground/30 border border-muted-foreground/50"
-                    title="Spark plug"
-                  />
-                  {bottomRow(cyl)}
+          <div className="flex gap-4 min-w-fit justify-center items-center">
+            <FrontArrow
+              deg={frontDeg}
+              disabled={!canEdit}
+              onChange={(d) => setMeta({ _frontDeg: d })}
+            />
+            {order.map((cyl, idx) => (
+              <div
+                key={cyl}
+                draggable={canEdit}
+                onDragStart={() => setDragCyl(cyl)}
+                onDragEnd={() => {
+                  setDragCyl(null);
+                  setOverIdx(null);
+                }}
+                onDragOver={(e) => {
+                  if (!canEdit || dragCyl === null) return;
+                  e.preventDefault();
+                  setOverIdx(idx);
+                }}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  moveCyl(dragCyl, idx);
+                  setDragCyl(null);
+                  setOverIdx(null);
+                }}
+                className={`rounded-2xl border-2 bg-card/60 p-3 flex flex-col items-center gap-2 transition-colors ${
+                  overIdx === idx && dragCyl !== null && dragCyl !== cyl
+                    ? "border-primary"
+                    : "border-border"
+                } ${dragCyl === cyl ? "opacity-50" : ""} ${canEdit ? "cursor-grab active:cursor-grabbing" : ""}`}
+                style={{ minWidth: 150 }}
+              >
+                <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground font-bold">
+                  Cyl {cyl}
                 </div>
-              );
-            })}
+                {topRow(cyl)}
+                {/* Spark plug center */}
+                <div
+                  className="h-4 w-4 rounded-full bg-muted-foreground/30 border border-muted-foreground/50"
+                  title="Spark plug"
+                />
+                {bottomRow(cyl)}
+              </div>
+            ))}
           </div>
         </div>
+
         <div className="mt-3 flex items-center gap-3 text-[0.625rem] text-muted-foreground flex-wrap">
           <span className="inline-flex items-center gap-1">
             <span className="h-3 w-3 rounded-full bg-status-progress/40 border border-status-progress/60" />{" "}
