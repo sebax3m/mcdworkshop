@@ -943,197 +943,228 @@ function InvoiceDetail() {
               </thead>
               <tbody>
                 {inv.job_id &&
-                  !(inv.snapshot as any)?.labour_hidden &&
                   (() => {
-                    const rate = LABOUR_RATE;
-                    const hours = Number(inv.labour_total) / rate;
-                    const delta = hours - defaultHours;
-                    const snap = (inv.snapshot as any) ?? {};
-                    const title = snap.labour_title ?? "Workshop labour";
-                    const desc =
-                      snap.labour_desc ?? `Diagnostics, service & repair · $${rate}/hr (incl. GST)`;
-                    const deltaLabel =
-                      Math.abs(delta) < 0.01
-                        ? null
-                        : `${delta > 0 ? "+" : ""}${delta.toFixed(2)}h vs tracked`;
-                    return (
-                      <tr className="border-b border-border/40 group">
-                        <td className="py-3">
-                          <EditableText
-                            value={title}
-                            onCommit={(v) =>
-                              saveSnapshotMeta({ labour_title: v || "Workshop labour" })
-                            }
-                            className="font-medium"
-                          />
-                          <div className="text-xs text-muted-foreground">
-                            <EditableText
-                              value={desc}
-                              multiline
-                              placeholder="Describe the work performed…"
-                              onCommit={(v) => saveSnapshotMeta({ labour_desc: v })}
-                              className="text-xs text-muted-foreground"
-                            />
-
-                            {defaultHours > 0 && (
-                              <span className="no-print">
-                                {" "}
-                                · tracked {defaultHours.toFixed(2)}h
-                              </span>
-                            )}
-                          </div>
-                        </td>
-                        <td className="py-3 text-right">
-                          <EditableNumber
-                            value={hours}
-                            onCommit={(n) => updateLabour({ qty: n })}
-                            suffix="h"
-                          />
-                          {deltaLabel && (
-                            <div
-                              className={`text-[0.625rem] mt-0.5 no-print ${delta > 0 ? "text-amber-500" : "text-emerald-500"}`}
-                            >
-                              {deltaLabel}
-                            </div>
-                          )}
-                        </td>
-                        <td className="py-3 text-right">
-                          <EditableNumber
-                            value={rate}
-                            onCommit={(n) => updateLabour({ unit: n })}
-                            prefix="$"
-                          />
-                        </td>
-                        {hasDiscount && (
-                          <td className="py-3 text-right text-muted-foreground">—</td>
-                        )}
-                        <td className="py-3 text-right font-semibold">
-                          <EditableNumber
-                            value={Number(inv.labour_total)}
-                            onCommit={(n) => updateLabour({ amount: n })}
-                            prefix="$"
-                          />
-                          <button
-                            onClick={removeLabourLine}
-                            className="ml-2 no-print opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive"
-                            title="Remove labour line"
-                          >
-                            <Trash2 className="h-3.5 w-3.5 inline" />
-                          </button>
-                        </td>
-                      </tr>
+                    const labourVisible = !(inv.snapshot as any)?.labour_hidden;
+                    const partList: any[] = parts.data ?? [];
+                    const refs: { key: string; sort: number }[] = [];
+                    if (labourVisible)
+                      refs.push({
+                        key: "labour",
+                        sort: Number((inv.snapshot as any)?.labour_sort ?? -1),
+                      });
+                    partList.forEach((p, i) =>
+                      refs.push({ key: p.id, sort: Number(p.sort_order ?? i) }),
                     );
-                  })()}
-                {inv.job_id &&
-                  (parts.data ?? []).map((p: any) => {
-                    const unit = Number(p.retail ?? 0);
-                    const qty = Number(p.quantity ?? 1);
-                    const disc = Number(p.discount_pct ?? 0);
-                    const gross = unit * qty;
-                    const net = gross * (1 - disc / 100);
-                    return (
-                      <tr key={p.id} className="border-b border-border/40 group">
-                        <td className="py-3">
-                          <div className="flex items-start gap-2">
-                            <div className="flex-1">
-                              <EditableText
-                                value={p.name ?? ""}
-                                onCommit={(v) => updatePart(p.id, { name: v })}
-                                className="font-medium"
-                              />
-                              <EditableText
-                                value={p.supplier ?? ""}
-                                onCommit={(v) => updatePart(p.id, { supplier: v })}
-                                multiline={(p.name ?? "").toLowerCase().includes("consumable")}
-                                placeholder={
-                                  (p.name ?? "").toLowerCase().includes("consumable")
-                                    ? "Washers, lubricants, cleaners, degreaser, rags…"
-                                    : undefined
-                                }
-                                className="text-xs text-muted-foreground block whitespace-pre-wrap"
-                              />
-                            </div>
-                            <button
-                              onClick={() => {
-                                setLibrarySearch("");
-                                setLibraryTarget({ kind: "part", id: p.id });
-                              }}
-                              className="no-print shrink-0 rounded border border-border p-1 text-muted-foreground hover:text-foreground hover:border-primary"
-                              title="Pick from inventory library"
-                            >
-                              <BookOpen className="h-3.5 w-3.5" />
-                            </button>
-                          </div>
-                        </td>
-                        <td className="py-3 text-right">
-                          <EditableNumber
-                            value={qty}
-                            decimals={0}
-                            onCommit={(n) => updatePart(p.id, { quantity: n })}
-                          />
-                        </td>
-                        <td className="py-3 text-right">
-                          <EditableNumber
-                            value={unit}
-                            prefix="$"
-                            onCommit={(n) => updatePart(p.id, { retail: n })}
-                          />
-                          {!hasDiscount && (
-                            <button
-                              onClick={() => updatePart(p.id, { discount_pct: 10 })}
-                              className="no-print block ml-auto mt-0.5 text-[0.625rem] text-muted-foreground hover:text-primary opacity-0 group-hover:opacity-100"
-                              title="Add a discount on this line"
-                            >
-                              + Disc
-                            </button>
-                          )}
-                        </td>
-                        {hasDiscount && (
-                          <td className="py-3 text-right">
-                            <div className="inline-flex items-center gap-1">
-                              <EditableNumber
-                                value={disc}
-                                suffix="%"
-                                onCommit={(n) =>
-                                  updatePart(p.id, { discount_pct: Math.max(0, Math.min(100, n)) })
-                                }
-                                className={disc > 0 ? "text-emerald-500 font-semibold" : ""}
-                              />
-                              {disc > 0 && (
-                                <button
-                                  onClick={() => updatePart(p.id, { discount_pct: 0 })}
-                                  className="no-print text-muted-foreground hover:text-destructive"
-                                  title="Remove discount"
-                                >
-                                  <X className="h-3.5 w-3.5" />
-                                </button>
-                              )}
+                    refs.sort((a, b) => a.sort - b.sort);
+                    const keys = refs.map((r) => r.key);
+                    const onReorder = (from: string, to: string) =>
+                      persistPartOrder(reorderKeys(keys, from, to));
+
+                    const renderLabour = () => {
+                      const rate = LABOUR_RATE;
+                      const hours = Number(inv.labour_total) / rate;
+                      const delta = hours - defaultHours;
+                      const snap = (inv.snapshot as any) ?? {};
+                      const title = snap.labour_title ?? "Workshop labour";
+                      const desc =
+                        snap.labour_desc ??
+                        `Diagnostics, service & repair · $${rate}/hr (incl. GST)`;
+                      const deltaLabel =
+                        Math.abs(delta) < 0.01
+                          ? null
+                          : `${delta > 0 ? "+" : ""}${delta.toFixed(2)}h vs tracked`;
+                      return (
+                        <tr key="labour" {...rowDragProps("labour", onReorder)}>
+                          <td className="py-3">
+                            <div className="flex items-start gap-2">
+                              <DragHandle rowKey="labour" />
+                              <div className="flex-1">
+                                <EditableText
+                                  value={title}
+                                  onCommit={(v) =>
+                                    saveSnapshotMeta({ labour_title: v || "Workshop labour" })
+                                  }
+                                  className="font-medium"
+                                />
+                                <div className="text-xs text-muted-foreground">
+                                  <EditableText
+                                    value={desc}
+                                    multiline
+                                    placeholder="Describe the work performed…"
+                                    onCommit={(v) => saveSnapshotMeta({ labour_desc: v })}
+                                    className="text-xs text-muted-foreground"
+                                  />
+                                  {defaultHours > 0 && (
+                                    <span className="no-print">
+                                      {" "}
+                                      · tracked {defaultHours.toFixed(2)}h
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
                             </div>
                           </td>
-                        )}
-                        <td className="py-3 text-right font-semibold">
-                          {disc > 0 && (
-                            <div className="text-[0.625rem] text-muted-foreground line-through tabular-nums">
-                              ${gross.toFixed(2)}
-                            </div>
+                          <td className="py-3 text-right">
+                            <EditableNumber
+                              value={hours}
+                              onCommit={(n) => updateLabour({ qty: n })}
+                              suffix="h"
+                            />
+                            {deltaLabel && (
+                              <div
+                                className={`text-[0.625rem] mt-0.5 no-print ${delta > 0 ? "text-amber-500" : "text-emerald-500"}`}
+                              >
+                                {deltaLabel}
+                              </div>
+                            )}
+                          </td>
+                          <td className="py-3 text-right">
+                            <EditableNumber
+                              value={rate}
+                              onCommit={(n) => updateLabour({ unit: n })}
+                              prefix="$"
+                            />
+                          </td>
+                          {hasDiscount && (
+                            <td className="py-3 text-right text-muted-foreground">—</td>
                           )}
-                          <span className="tabular-nums">${net.toFixed(2)}</span>
-                          {disc > 0 && (
-                            <div className="text-[0.625rem] text-emerald-500 font-semibold">
-                              −${(gross - net).toFixed(2)} ({disc}% off)
+                          <td className="py-3 text-right font-semibold">
+                            <EditableNumber
+                              value={Number(inv.labour_total)}
+                              onCommit={(n) => updateLabour({ amount: n })}
+                              prefix="$"
+                            />
+                            <button
+                              onClick={removeLabourLine}
+                              className="ml-2 no-print opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive"
+                              title="Remove labour line"
+                            >
+                              <Trash2 className="h-3.5 w-3.5 inline" />
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    };
+
+                    const renderPart = (p: any) => {
+                      const unit = Number(p.retail ?? 0);
+                      const qty = Number(p.quantity ?? 1);
+                      const disc = Number(p.discount_pct ?? 0);
+                      const gross = unit * qty;
+                      const net = gross * (1 - disc / 100);
+                      return (
+                        <tr key={p.id} {...rowDragProps(p.id, onReorder)}>
+                          <td className="py-3">
+                            <div className="flex items-start gap-2">
+                              <DragHandle rowKey={p.id} />
+                              <div className="flex-1">
+                                <EditableText
+                                  value={p.name ?? ""}
+                                  onCommit={(v) => updatePart(p.id, { name: v })}
+                                  className="font-medium"
+                                />
+                                <EditableText
+                                  value={p.supplier ?? ""}
+                                  onCommit={(v) => updatePart(p.id, { supplier: v })}
+                                  multiline={(p.name ?? "").toLowerCase().includes("consumable")}
+                                  placeholder={
+                                    (p.name ?? "").toLowerCase().includes("consumable")
+                                      ? "Washers, lubricants, cleaners, degreaser, rags…"
+                                      : undefined
+                                  }
+                                  className="text-xs text-muted-foreground block whitespace-pre-wrap"
+                                />
+                              </div>
+                              <button
+                                onClick={() => {
+                                  setLibrarySearch("");
+                                  setLibraryTarget({ kind: "part", id: p.id });
+                                }}
+                                className="no-print shrink-0 rounded border border-border p-1 text-muted-foreground hover:text-foreground hover:border-primary"
+                                title="Pick from inventory library"
+                              >
+                                <BookOpen className="h-3.5 w-3.5" />
+                              </button>
                             </div>
+                          </td>
+                          <td className="py-3 text-right">
+                            <EditableNumber
+                              value={qty}
+                              decimals={0}
+                              onCommit={(n) => updatePart(p.id, { quantity: n })}
+                            />
+                          </td>
+                          <td className="py-3 text-right">
+                            <EditableNumber
+                              value={unit}
+                              prefix="$"
+                              onCommit={(n) => updatePart(p.id, { retail: n })}
+                            />
+                            {!hasDiscount && (
+                              <button
+                                onClick={() => updatePart(p.id, { discount_pct: 10 })}
+                                className="no-print block ml-auto mt-0.5 text-[0.625rem] text-muted-foreground hover:text-primary opacity-0 group-hover:opacity-100"
+                                title="Add a discount on this line"
+                              >
+                                + Disc
+                              </button>
+                            )}
+                          </td>
+                          {hasDiscount && (
+                            <td className="py-3 text-right">
+                              <div className="inline-flex items-center gap-1">
+                                <EditableNumber
+                                  value={disc}
+                                  suffix="%"
+                                  onCommit={(n) =>
+                                    updatePart(p.id, {
+                                      discount_pct: Math.max(0, Math.min(100, n)),
+                                    })
+                                  }
+                                  className={disc > 0 ? "text-emerald-500 font-semibold" : ""}
+                                />
+                                {disc > 0 && (
+                                  <button
+                                    onClick={() => updatePart(p.id, { discount_pct: 0 })}
+                                    className="no-print text-muted-foreground hover:text-destructive"
+                                    title="Remove discount"
+                                  >
+                                    <X className="h-3.5 w-3.5" />
+                                  </button>
+                                )}
+                              </div>
+                            </td>
                           )}
-                          <button
-                            onClick={() => deletePart(p.id)}
-                            className="ml-2 no-print opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive"
-                            title="Remove line"
-                          >
-                            <Trash2 className="h-3.5 w-3.5 inline" />
-                          </button>
-                        </td>
-                      </tr>
+                          <td className="py-3 text-right font-semibold">
+                            {disc > 0 && (
+                              <div className="text-[0.625rem] text-muted-foreground line-through tabular-nums">
+                                ${gross.toFixed(2)}
+                              </div>
+                            )}
+                            <span className="tabular-nums">${net.toFixed(2)}</span>
+                            {disc > 0 && (
+                              <div className="text-[0.625rem] text-emerald-500 font-semibold">
+                                −${(gross - net).toFixed(2)} ({disc}% off)
+                              </div>
+                            )}
+                            <button
+                              onClick={() => deletePart(p.id)}
+                              className="ml-2 no-print opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive"
+                              title="Remove line"
+                            >
+                              <Trash2 className="h-3.5 w-3.5 inline" />
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    };
+
+                    return refs.map((r) =>
+                      r.key === "labour"
+                        ? renderLabour()
+                        : renderPart(partList.find((p) => p.id === r.key)),
                     );
-                  })}
+                  })()}
                 {inv.job_id && (
                   <tr className="no-print">
                     <td colSpan={hasDiscount ? 5 : 4} className="pt-2">
