@@ -256,6 +256,15 @@ export function BookInCard({
           >
             {work}
           </span>
+          {highlighted && (
+            <span
+              className={cn(
+                "ml-auto h-2 w-3 shrink-0 rounded-[3px] border border-white/25 shadow-sm",
+                svc.bg,
+              )}
+              title={b.service_type}
+            />
+          )}
         </div>
 
         {/* ROW 4 — workflow detail + status badge */}
