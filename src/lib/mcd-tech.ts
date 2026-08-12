@@ -245,7 +245,7 @@ async function structuredLookup(topic: TechTopic, question: string, bike: BikeCo
       specs.unshift({
         label: `${k.label} (this bike)`,
         value: [k.value, k.unit].filter(Boolean).join(" ") || "—",
-        note: k.note,
+        note: k.notes,
       });
       badges.unshift({
         kind: "structured",
