@@ -6,7 +6,7 @@ export function capacityTone(booked: number, capacity: number): CapacityTone {
   if (capacity <= 0) return booked > 0 ? "over" : "closed";
   if (booked > capacity) return "over";
   if (booked === capacity) return "full";
-  if (booked >= capacity - 1) return "nearly";
+  if (booked / capacity >= 0.75) return "nearly";
   return "ok";
 }
 
@@ -19,7 +19,7 @@ const BAR: Record<CapacityTone, string> = {
 };
 
 const TEXT: Record<CapacityTone, string> = {
-  ok: "text-muted-foreground",
+  ok: "text-emerald-400/80",
   nearly: "text-amber-400",
   full: "text-red-400",
   over: "text-red-400",
@@ -53,7 +53,7 @@ export function DailyCapacity({
         )}
       </div>
       {!hideBar && (
-        <div className="mt-1 h-1 w-full overflow-hidden rounded-full bg-muted">
+        <div className="mt-1 h-[3px] w-full overflow-hidden rounded-full bg-muted/60">
           <div
             className={cn("h-full rounded-full transition-all", BAR[tone])}
             style={{ width: `${pct}%` }}
