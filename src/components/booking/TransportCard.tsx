@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Truck } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { AddressAutocomplete, AddressMap } from "@/components/booking/AddressAutocomplete";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 
@@ -89,11 +89,8 @@ export function TransportCard({
       </label>
       {(pickup || delivery) && (
         <div className="space-y-2">
-          <Input
-            value={address}
-            onChange={(e) => setAddress(e.target.value)}
-            placeholder="Pick-up / drop-off address"
-          />
+          <AddressAutocomplete value={address} onChange={setAddress} />
+          <AddressMap address={address} />
           <Textarea
             value={notes}
             onChange={(e) => setNotes(e.target.value)}

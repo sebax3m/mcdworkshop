@@ -18,6 +18,8 @@ import { displayCustomerName } from "@/lib/display";
 import { uploadPhoto } from "@/lib/photos";
 import { useBookingTypes } from "@/hooks/useBookingTypes";
 import { TimeSlotFields } from "@/components/booking/TimeSlotFields";
+import { AddressAutocomplete, AddressMap } from "@/components/booking/AddressAutocomplete";
+
 import {
   addMinutesToTime,
   findBookingConflicts,
@@ -905,11 +907,11 @@ function NewBooking() {
               </label>
               {(pickupRequired || deliveryRequired) && (
                 <div className="space-y-2 pt-1">
-                  <Input
+                  <AddressAutocomplete
                     value={transportAddress}
-                    onChange={(e) => setTransportAddress(e.target.value)}
-                    placeholder="Pick-up / drop-off address"
+                    onChange={setTransportAddress}
                   />
+                  <AddressMap address={transportAddress} />
                   <Textarea
                     value={transportNotes}
                     onChange={(e) => setTransportNotes(e.target.value)}
@@ -918,6 +920,7 @@ function NewBooking() {
                   />
                 </div>
               )}
+
             </div>
             <label className="flex items-center gap-3 rounded-xl border border-border p-3 cursor-pointer hover:border-primary/50">
               <input
