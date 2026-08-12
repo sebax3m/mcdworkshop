@@ -42,7 +42,7 @@ export function displayBike(
     | undefined,
 ): string {
   if (!m) return "—";
-  const parts = [m.year, m.make, m.model]
+  const parts = [m.make, m.model, m.year]
     .map((p) => (p === null || p === undefined ? "" : String(p).trim()))
     .filter((s) => s && s !== "null" && s !== "undefined" && s !== "NaN");
   return parts.length ? parts.join(" ") : "—";
