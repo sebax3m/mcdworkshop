@@ -501,6 +501,23 @@ function JobDetail() {
               <Printer className="h-4 w-4" />
               <span className="hidden sm:inline">Preview & print</span>
             </Button>
+            {j.status === "completed" ? (
+              <span className="inline-flex items-center gap-1.5 rounded-lg border border-green-500/40 bg-green-500/15 px-2.5 h-8 text-xs font-bold text-green-400">
+                <CheckCircle2 className="h-4 w-4" /> Completed
+              </span>
+            ) : (
+              <Button
+                onClick={completeEverything}
+                size="sm"
+                disabled={completingAll}
+                className="gap-1.5 h-8 px-2.5 bg-green-600 hover:bg-green-500 text-white"
+              >
+                <CheckCircle2 className="h-4 w-4" />
+                <span className="hidden sm:inline">
+                  {completingAll ? "Completing…" : "Mark completed"}
+                </span>
+              </Button>
+            )}
             {isAdmin && (
               <Button
                 onClick={deleteJob}
