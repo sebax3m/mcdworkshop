@@ -210,10 +210,10 @@
 @utility job-complete-stripes {
   background-image: repeating-linear-gradient(
     135deg,
-    rgb(185 28 28 / 0.38) 0px,
-    rgb(185 28 28 / 0.38) 6px,
-    rgb(185 28 28 / 0.1) 6px,
-    rgb(185 28 28 / 0.1) 14px
+    rgb(127 29 29 / 0.65) 0px,
+    rgb(127 29 29 / 0.65) 6px,
+    rgb(127 29 29 / 0.22) 6px,
+    rgb(127 29 29 / 0.22) 14px
   );
 }
 
