@@ -833,6 +833,86 @@ export type Database = {
           },
         ]
       }
+      garage_observations: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          detail: string | null
+          id: string
+          invoice_id: string | null
+          job_id: string | null
+          key_norm: string
+          kind: string
+          label: string
+          model_id: string | null
+          motorcycle_id: string | null
+          source: string
+          unit: string | null
+          value_num: number | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          detail?: string | null
+          id?: string
+          invoice_id?: string | null
+          job_id?: string | null
+          key_norm: string
+          kind: string
+          label: string
+          model_id?: string | null
+          motorcycle_id?: string | null
+          source?: string
+          unit?: string | null
+          value_num?: number | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          detail?: string | null
+          id?: string
+          invoice_id?: string | null
+          job_id?: string | null
+          key_norm?: string
+          kind?: string
+          label?: string
+          model_id?: string | null
+          motorcycle_id?: string | null
+          source?: string
+          unit?: string | null
+          value_num?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "garage_observations_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "garage_observations_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "garage_observations_model_id_fkey"
+            columns: ["model_id"]
+            isOneToOne: false
+            referencedRelation: "bike_library_models"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "garage_observations_motorcycle_id_fkey"
+            columns: ["motorcycle_id"]
+            isOneToOne: false
+            referencedRelation: "motorcycles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       garage_revisions: {
         Row: {
           action: string
@@ -888,12 +968,16 @@ export type Database = {
       }
       garage_update_proposals: {
         Row: {
+          category: string
           created_at: string
           current_value: string | null
           entity_id: string | null
           entity_table: string
+          evidence: Json
+          evidence_count: number
           field: string | null
           id: string
+          job_id: string | null
           label: string
           model_id: string
           note: string | null
@@ -903,15 +987,20 @@ export type Database = {
           resolved_by: string | null
           source: Database["public"]["Enums"]["garage_source"]
           status: string
+          unit: string | null
           updated_at: string
         }
         Insert: {
+          category?: string
           created_at?: string
           current_value?: string | null
           entity_id?: string | null
           entity_table: string
+          evidence?: Json
+          evidence_count?: number
           field?: string | null
           id?: string
+          job_id?: string | null
           label: string
           model_id: string
           note?: string | null
@@ -921,15 +1010,20 @@ export type Database = {
           resolved_by?: string | null
           source?: Database["public"]["Enums"]["garage_source"]
           status?: string
+          unit?: string | null
           updated_at?: string
         }
         Update: {
+          category?: string
           created_at?: string
           current_value?: string | null
           entity_id?: string | null
           entity_table?: string
+          evidence?: Json
+          evidence_count?: number
           field?: string | null
           id?: string
+          job_id?: string | null
           label?: string
           model_id?: string
           note?: string | null
@@ -939,9 +1033,17 @@ export type Database = {
           resolved_by?: string | null
           source?: Database["public"]["Enums"]["garage_source"]
           status?: string
+          unit?: string | null
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "garage_update_proposals_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "garage_update_proposals_model_id_fkey"
             columns: ["model_id"]
@@ -1907,6 +2009,63 @@ export type Database = {
         }
         Relationships: []
       }
+      motorcycle_knowledge: {
+        Row: {
+          category: string
+          created_at: string
+          created_by: string | null
+          id: string
+          job_id: string | null
+          label: string
+          motorcycle_id: string
+          notes: string | null
+          unit: string | null
+          updated_at: string
+          value: string | null
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          job_id?: string | null
+          label: string
+          motorcycle_id: string
+          notes?: string | null
+          unit?: string | null
+          updated_at?: string
+          value?: string | null
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          job_id?: string | null
+          label?: string
+          motorcycle_id?: string
+          notes?: string | null
+          unit?: string | null
+          updated_at?: string
+          value?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "motorcycle_knowledge_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "motorcycle_knowledge_motorcycle_id_fkey"
+            columns: ["motorcycle_id"]
+            isOneToOne: false
+            referencedRelation: "motorcycles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       motorcycles: {
         Row: {
           brake_condition: string | null
@@ -2511,6 +2670,28 @@ export type Database = {
           service_type: string
           status: string
         }[]
+      }
+      garage_match_model: {
+        Args: { p_make: string; p_model: string; p_year?: number }
+        Returns: string
+      }
+      garage_model_experience: { Args: { p_model_id: string }; Returns: Json }
+      garage_model_jobs: {
+        Args: { p_limit?: number; p_model_id: string }
+        Returns: {
+          bike: string
+          completed_at: string
+          estimated_hours: number
+          job_id: string
+          job_number: number
+          title: string
+          tracked_minutes: number
+        }[]
+      }
+      garage_norm: { Args: { p: string }; Returns: string }
+      garage_observation_summary: {
+        Args: { p_model_id: string }
+        Returns: Json
       }
       merge_customers: {
         Args: { p_keep_id: string; p_merge_id: string }

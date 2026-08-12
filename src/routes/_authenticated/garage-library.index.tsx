@@ -194,8 +194,13 @@ function GarageLibraryIndex() {
           <h1 className="text-xl font-semibold tracking-tight">Garage Library</h1>
           <p className="text-xs text-muted-foreground">Workshop-verified knowledge from motorcycles we have actually worked on.</p>
         </div>
+        <Button size="sm" variant="outline" className="ml-auto" asChild>
+          <Link to="/garage-library/updates">
+            <Inbox className="h-4 w-4 mr-1" /> Knowledge updates{proposals.length ? ` · ${proposals.length}` : ""}
+          </Link>
+        </Button>
         {isAdmin && (
-          <Button size="sm" className="ml-auto" onClick={() => setNewOpen(true)}>
+          <Button size="sm" onClick={() => setNewOpen(true)}>
             <Plus className="h-4 w-4 mr-1" /> Add model
           </Button>
         )}

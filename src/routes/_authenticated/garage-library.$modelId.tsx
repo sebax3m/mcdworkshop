@@ -11,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { SpecMeta, SourceSelect, VerificationSelect } from "@/components/garage/SpecMeta";
+import { WorkshopDataTab } from "@/components/garage/WorkshopDataTab";
 import {
   COMMON_FASTENERS,
   FLUID_TYPES,
@@ -320,9 +321,9 @@ function GarageModelPage() {
 
       <Tabs defaultValue="overview">
         <TabsList className="flex flex-wrap h-auto">
-          {["overview", "parts", "labour", "torque", "valves", "fluids", "notes", "history"].map((t) => (
+          {["overview", "workshop", "parts", "labour", "torque", "valves", "fluids", "notes", "history"].map((t) => (
             <TabsTrigger key={t} value={t} className="text-xs uppercase tracking-wide">
-              {t === "valves" ? "Valve clearances" : t}
+              {t === "valves" ? "Valve clearances" : t === "workshop" ? "Workshop data" : t}
             </TabsTrigger>
           ))}
         </TabsList>
@@ -355,6 +356,10 @@ function GarageModelPage() {
               }}
             />
           </div>
+        </TabsContent>
+
+        <TabsContent value="workshop" className="mt-4">
+          <WorkshopDataTab modelId={modelId} />
         </TabsContent>
 
         {/* PARTS */}
