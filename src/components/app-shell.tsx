@@ -150,7 +150,7 @@ export function AppShell() {
             {isAdmin && (
               <Link
                 to="/invoices/new"
-                className="hidden sm:inline-flex items-center gap-1.5 rounded-lg red-surface px-3 py-2 text-sm font-semibold hover:scale-[1.02] transition-transform"
+                className="hidden sm:inline-flex items-center gap-1.5 rounded-lg border border-border bg-background/40 px-3 py-2 text-sm font-semibold text-muted-foreground hover:text-foreground hover:border-primary/40 transition-colors"
               >
                 Invoice
               </Link>
@@ -158,7 +158,7 @@ export function AppShell() {
             {isAdmin && (
               <Link
                 to="/jobs/new"
-                className="hidden sm:inline-flex items-center gap-1.5 rounded-lg red-surface px-3 py-2 text-sm font-semibold hover:scale-[1.02] transition-transform"
+                className="hidden sm:inline-flex items-center gap-1.5 rounded-lg border border-border bg-background/40 px-3 py-2 text-sm font-semibold text-muted-foreground hover:text-foreground hover:border-primary/40 transition-colors"
               >
                 Job Card
               </Link>

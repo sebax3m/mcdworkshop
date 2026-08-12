@@ -1108,8 +1108,8 @@ function CalendarPage() {
                     if (id) moveBookingToDate(id, day);
                     setDraggingId(null);
                   }}
-                  className={`card-surface p-1.5 sm:p-2 flex flex-col gap-1.5 sm:gap-2 min-h-[220px] sm:min-h-[280px] ${
-                    today ? "ring-[3px] ring-inset ring-primary/60" : ""
+                  className={`rounded-[14px] border border-border/40 bg-card/40 p-1.5 sm:p-2 flex flex-col gap-1.5 sm:gap-2 min-h-[220px] sm:min-h-[280px] ${
+                    today ? "border-primary/70 bg-primary/[0.04]" : ""
                   } ${isSunday(day) ? "bg-primary/[0.08]" : ""} ${
                     draggingId ? "border-dashed border-primary/40" : ""
                   }`}
@@ -1143,12 +1143,12 @@ function CalendarPage() {
                         e.stopPropagation();
                         setEditNote(n);
                       }}
-                      className="w-full text-left rounded-md border border-amber-500/40 bg-amber-500/10 px-2 py-1"
+                      className="w-full text-left rounded-md border border-amber-500/30 bg-amber-500/[0.07] px-2 py-0.5"
                     >
-                      <div className="flex items-center gap-1 text-[0.5625rem] font-bold uppercase tracking-wider text-amber-400">
+                      <div className="flex items-center gap-1 text-[0.5rem] font-bold uppercase tracking-[0.16em] text-amber-400/90">
                         <StickyNote className="h-2.5 w-2.5" /> Note
                       </div>
-                      <div className="text-xs font-semibold truncate">{n.title}</div>
+                      <div className="text-[0.6875rem] font-semibold leading-tight truncate">{n.title}</div>
                     </button>
                   ))}
 
@@ -1235,7 +1235,7 @@ function CalendarPage() {
                   <button
                     type="button"
                     onClick={() => setSlotChoice({ date: day, time: null, dayKey })}
-                    className="rounded-lg border border-dashed border-border px-2 h-7 sm:h-8 text-[0.55rem] sm:text-[0.625rem] font-bold uppercase tracking-wider text-muted-foreground hover:border-primary/50 hover:text-foreground transition-colors"
+                    className="rounded-lg border border-dashed border-border/40 px-2 h-6 sm:h-7 text-[0.55rem] sm:text-[0.5625rem] font-bold uppercase tracking-wider text-muted-foreground/50 hover:border-primary/50 hover:text-foreground transition-colors"
                   >
                     + Book-in / note
                   </button>

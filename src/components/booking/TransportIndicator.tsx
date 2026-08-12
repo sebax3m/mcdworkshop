@@ -43,23 +43,23 @@ export function TransportIndicator({
   const label = transportLabel(kind);
   const hint =
     kind === "both"
-      ? "Workshop pickup & drop-off required"
+      ? "PICK-UP & DROP-OFF"
       : kind === "pickup"
-        ? "Workshop pickup required"
-        : "Workshop drop-off required";
+        ? "PICK-UP REQUIRED"
+        : "DROP-OFF REQUIRED";
   return (
     <Popover>
       <PopoverTrigger asChild>
         <button
           type="button"
           onClick={(e) => e.stopPropagation()}
-          title={`${hint}${address ? ` — ${address}` : ""}`}
+          title={hint}
           className={cn(
-            "z-10 inline-flex h-4 w-4 shrink-0 items-center justify-center rounded bg-sky-500 text-white shadow transition-colors hover:bg-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-300",
+            "z-10 inline-flex h-[1.05rem] w-[1.05rem] shrink-0 items-center justify-center rounded bg-sky-500 text-white shadow transition-colors hover:bg-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-300",
             className,
           )}
         >
-          <Truck className="h-2.5 w-2.5" />
+          <Truck className="h-3 w-3" />
         </button>
       </PopoverTrigger>
       <PopoverContent
