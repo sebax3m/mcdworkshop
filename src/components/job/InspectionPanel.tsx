@@ -354,7 +354,7 @@ export function InspectionPanel({
               <span className="tabular-nums">${quote.total.toFixed(2)}</span>
             </div>
             <p className="text-[0.625rem] text-muted-foreground pt-1">
-              Default hours and parts prices are estimates — edit any finding to adjust.
+              Add labour hours and parts cost to each finding; totals update automatically.
             </p>
           </div>
         </div>
