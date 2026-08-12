@@ -86,11 +86,13 @@ export function InspectionPanel({
     onJobChanged();
   };
 
-  const totals = useMemo(() => {
-    const sum = (list: InspectionFinding[]) =>
-      list.reduce((n, f) => n + (Number(f.estimated_parts_cost) || 0), 0);
-    return { drafts: sum(drafts), pending: sum(pending) };
-  }, [drafts, pending]);
+  const totals = useMemo(
+    () => ({ drafts: quoteTotals(drafts), pending: quoteTotals(pending) }),
+    [drafts, pending],
+  );
+  const approved = useMemo(() => findings.filter((f) => f.status === "approved"), [findings]);
+  const quoteList = pending.length > 0 ? pending : drafts.length > 0 ? drafts : approved;
+  const quote = useMemo(() => quoteTotals(quoteList), [quoteList]);
 
   async function saveDraft() {
     await logJobEvent(
