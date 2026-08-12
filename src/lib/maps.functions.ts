@@ -56,3 +56,51 @@ export const suggestAddresses = createServerFn({ method: "POST" })
       }))
       .filter((s) => s.address);
   });
+
+const etaSchema = z.object({ destination: z.string().min(3).max(300) });
+
+export type TravelEta = { durationText: string; distanceText: string };
+
+/** Drive time from the workshop to a transport address (Routes API). */
+export const travelFromWorkshop = createServerFn({ method: "POST" })
+  .inputValidator((data: unknown) => etaSchema.parse(data))
+  .handler(async ({ data }): Promise<TravelEta> => {
+    const lovableKey = process.env["LOVABLE_API_KEY"];
+    const mapsKey = process.env["GOOGLE_MAPS_API_KEY"];
+    if (!lovableKey || !mapsKey) throw new Error("Google Maps is not connected");
+
+    const response = await fetch(`${GATEWAY_URL}/routes/directions/v2:computeRoutes`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${lovableKey}`,
+        "X-Connection-Api-Key": mapsKey,
+        "Content-Type": "application/json",
+        "X-Goog-FieldMask": "routes.duration,routes.distanceMeters",
+      },
+      body: JSON.stringify({
+        origin: { address: "94 Wairau Road, Wairau Valley, Auckland, New Zealand" },
+        destination: { address: data.destination },
+        travelMode: "DRIVE",
+        routingPreference: "TRAFFIC_AWARE",
+      }),
+    });
+
+    if (!response.ok) {
+      const body = await response.text();
+      console.error(`Routes computeRoutes failed [${response.status}]: ${body}`);
+      throw new Error(`Travel time lookup failed [${response.status}]`);
+    }
+
+    const json = (await response.json()) as {
+      routes?: Array<{ duration?: string; distanceMeters?: number }>;
+    };
+    const route = json.routes?.[0];
+    if (!route) throw new Error("No route found");
+    const seconds = Number(String(route.duration ?? "0s").replace("s", "")) || 0;
+    const mins = Math.max(1, Math.round(seconds / 60));
+    const km = (route.distanceMeters ?? 0) / 1000;
+    return {
+      durationText: mins >= 60 ? `${Math.floor(mins / 60)}h ${mins % 60}m` : `${mins} min`,
+      distanceText: `${km.toFixed(1)} km`,
+    };
+  });
