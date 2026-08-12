@@ -1872,14 +1872,49 @@ function ValveClearanceSection({
     setDirty(false);
   }, [data]);
 
+  const savedSpecQ = useQuery({
+    queryKey: ["valve-spec", bike?.make ?? "", bike?.model ?? ""],
+    queryFn: () => fetchSavedValveSpec(bike?.make, bike?.model),
+    enabled: Boolean(bike?.make && bike?.model),
+  });
+  const saved = savedSpecQ.data ?? null;
+
+  const spec = resolveValveSpec(saved, bike);
+
+  // Per-job overrides (fall back to saved spec, then the bike record).
+  const cylCount = Math.max(
+    1,
+    Math.min(6, Number(values._cylinders) || saved?.cylinders || cylinders),
+  );
+  const intakeOnTop =
+    values._intakeOnTop !== undefined ? Boolean(values._intakeOnTop) : (saved?.intake_on_top ?? true);
+
   const intakePerCyl = 2;
   const exhaustPerCyl = 2;
 
-  const spec = getValveSpec(bike?.make, bike?.model, bike?.year);
+  // Editable spec form
+  const [editing, setEditing] = useState(false);
+  const [form, setForm] = useState({ imin: "", imax: "", emin: "", emax: "", note: "" });
+  useEffect(() => {
+    setForm({
+      imin: String(spec.intake[0] ?? ""),
+      imax: String(spec.intake[1] ?? ""),
+      emin: String(spec.exhaust[0] ?? ""),
+      emax: String(spec.exhaust[1] ?? ""),
+      note: spec.note ?? "",
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [saved?.id, bike?.make, bike?.model, editing]);
+  const [savingSpec, setSavingSpec] = useState(false);
 
   function set(cyl: number, side: "intake" | "exhaust", idx: number, v: string) {
     const key = `c${cyl}_${side}_${idx}`;
     setValues((s: any) => ({ ...s, [key]: v }));
+    setDirty(true);
+  }
+
+  function setMeta(patch: Record<string, unknown>) {
+    setValues((s: any) => ({ ...s, ...patch }));
     setDirty(true);
   }
 
@@ -1901,54 +1936,223 @@ function ValveClearanceSection({
     onChanged();
   }
 
+  async function saveSpecForModel() {
+    if (!bike?.make || !bike?.model) {
+      toast.error("This bike needs a make and model before a spec can be saved");
+      return;
+    }
+    const nums = [form.imin, form.imax, form.emin, form.emax].map((n) => Number(n));
+    if (nums.some((n) => !Number.isFinite(n))) {
+      toast.error("Clearance values must be numbers (mm)");
+      return;
+    }
+    setSavingSpec(true);
+    const { error } = await upsertSavedValveSpec({
+      id: saved?.id ?? null,
+      make: bike.make,
+      model: bike.model,
+      intake: [nums[0], nums[1]],
+      exhaust: [nums[2], nums[3]],
+      cylinders: cylCount,
+      intakeOnTop,
+      note: form.note.trim() || null,
+    });
+    setSavingSpec(false);
+    if (error) return toast.error(error.message);
+    toast.success(`Spec saved for ${bike.make} ${bike.model} — it will load on future bikes`);
+    setEditing(false);
+    savedSpecQ.refetch();
+  }
+
   useAutoSave(values, dirty && canEdit, () => save(true));
+
+  const rowFor = (kind: "intake" | "exhaust") => {
+    const isIntake = kind === "intake";
+    return (cyl: number) => (
+      <div className="flex gap-2">
+        {Array.from({ length: isIntake ? intakePerCyl : exhaustPerCyl }).map((_, i) => (
+          <input
+            key={i}
+            disabled={!canEdit}
+            value={values[`c${cyl}_${kind}_${i}`] ?? ""}
+            onChange={(e) => set(cyl, kind, i, e.target.value)}
+            placeholder="mm"
+            title={`Cyl ${cyl} ${isIntake ? "Intake" : "Exhaust"} ${i + 1}`}
+            className={
+              isIntake
+                ? "h-16 w-16 rounded-full bg-status-progress/15 border-2 border-status-progress/60 text-center text-sm font-mono font-bold focus:outline-none focus:border-status-progress focus:bg-status-progress/25 placeholder:text-status-progress/50 placeholder:font-normal"
+                : "h-16 w-16 rounded-full bg-destructive/15 border-2 border-destructive/60 text-center text-sm font-mono font-bold focus:outline-none focus:border-destructive focus:bg-destructive/25 placeholder:text-destructive/50 placeholder:font-normal"
+            }
+          />
+        ))}
+      </div>
+    );
+  };
+  const topRow = rowFor(intakeOnTop ? "intake" : "exhaust");
+  const bottomRow = rowFor(intakeOnTop ? "exhaust" : "intake");
 
   return (
     <>
       {/* Screen / on-card section */}
       <section className="card-surface p-4 print:hidden">
-        <div className="flex items-center gap-2 mb-1">
+        <div className="flex items-center gap-2 mb-1 flex-wrap">
           <Wrench className="h-4 w-4 text-primary" />
           <h2 className="font-display text-lg font-semibold">Valve Clearance Check</h2>
+          {canEdit && (
+            <div className="ml-auto flex items-center gap-2 flex-wrap">
+              <div className="flex items-center gap-1">
+                <span className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">
+                  Cylinders
+                </span>
+                {[1, 2, 3, 4, 6].map((n) => (
+                  <button
+                    key={n}
+                    type="button"
+                    onClick={() => setMeta({ _cylinders: n })}
+                    className={`h-7 w-7 rounded-md border text-xs font-bold ${
+                      cylCount === n
+                        ? "bg-primary text-primary-foreground border-primary"
+                        : "border-border text-muted-foreground hover:border-primary/60"
+                    }`}
+                  >
+                    {n}
+                  </button>
+                ))}
+              </div>
+              <Button
+                size="sm"
+                variant="outline"
+                className="h-7 text-xs"
+                onClick={() => setMeta({ _intakeOnTop: !intakeOnTop })}
+              >
+                {intakeOnTop ? "Intake on top" : "Intake on bottom"}
+              </Button>
+            </div>
+          )}
         </div>
         <p className="text-xs text-muted-foreground mb-3">
-          {cylinders}-cylinder engine. Record measured clearance in mm for each valve (intake &
+          {cylCount}-cylinder engine. Record measured clearance in mm for each valve (intake &
           exhaust).
         </p>
 
-        {/* Manufacturer recommendation */}
+        {/* Manufacturer / saved recommendation */}
         <div className="mb-3 rounded-lg border border-primary/40 bg-primary/5 p-3">
-          <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground font-bold mb-1">
-            Manufacturer recommendation{" "}
-            {spec.generic && <span className="text-status-parts">· generic — verify manual</span>}
+          <div className="flex items-center gap-2 mb-1">
+            <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground font-bold">
+              {saved ? "Saved workshop spec" : "Manufacturer recommendation"}{" "}
+              {!saved && spec.generic && (
+                <span className="text-status-parts">· generic — verify manual</span>
+              )}
+            </div>
+            {canEdit && (
+              <Button
+                size="sm"
+                variant="ghost"
+                className="ml-auto h-6 px-2 text-[0.625rem] gap-1"
+                onClick={() => setEditing((v) => !v)}
+              >
+                <Pencil className="h-3 w-3" />
+                {editing ? "Cancel" : "Edit spec"}
+              </Button>
+            )}
           </div>
-          <div className="grid grid-cols-2 gap-3 text-sm">
-            <div>
-              <div className="text-[0.625rem] text-status-progress font-semibold">
-                INTAKE (cold)
+
+          {editing ? (
+            <div className="space-y-2">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <div className="text-[0.625rem] text-status-progress font-semibold mb-1">
+                    INTAKE min / max (mm)
+                  </div>
+                  <div className="flex gap-2">
+                    <Input
+                      value={form.imin}
+                      onChange={(e) => setForm((f) => ({ ...f, imin: e.target.value }))}
+                      className="h-8 font-mono"
+                      inputMode="decimal"
+                    />
+                    <Input
+                      value={form.imax}
+                      onChange={(e) => setForm((f) => ({ ...f, imax: e.target.value }))}
+                      className="h-8 font-mono"
+                      inputMode="decimal"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <div className="text-[0.625rem] text-destructive font-semibold mb-1">
+                    EXHAUST min / max (mm)
+                  </div>
+                  <div className="flex gap-2">
+                    <Input
+                      value={form.emin}
+                      onChange={(e) => setForm((f) => ({ ...f, emin: e.target.value }))}
+                      className="h-8 font-mono"
+                      inputMode="decimal"
+                    />
+                    <Input
+                      value={form.emax}
+                      onChange={(e) => setForm((f) => ({ ...f, emax: e.target.value }))}
+                      className="h-8 font-mono"
+                      inputMode="decimal"
+                    />
+                  </div>
+                </div>
               </div>
-              <div className="font-mono font-bold">{formatRange(spec.intake)}</div>
+              <Input
+                value={form.note}
+                onChange={(e) => setForm((f) => ({ ...f, note: e.target.value }))}
+                placeholder="Note (optional) — e.g. shim under bucket, cold engine"
+                className="h-8 text-xs"
+              />
+              <div className="flex items-center gap-2">
+                <Button size="sm" className="h-8" disabled={savingSpec} onClick={saveSpecForModel}>
+                  {savingSpec
+                    ? "Saving…"
+                    : `Save spec for ${bike?.make ?? ""} ${bike?.model ?? ""}`.trim()}
+                </Button>
+                <span className="text-[0.625rem] text-muted-foreground">
+                  Stored with {cylCount} cyl · {intakeOnTop ? "intake on top" : "intake on bottom"}{" "}
+                  and reused on matching models.
+                </span>
+              </div>
             </div>
-            <div>
-              <div className="text-[0.625rem] text-destructive font-semibold">EXHAUST (cold)</div>
-              <div className="font-mono font-bold">{formatRange(spec.exhaust)}</div>
-            </div>
-          </div>
-          <div className="mt-1.5 text-[0.625rem] text-muted-foreground">
-            Source: {spec.source}
-            {bike?.make
-              ? ` · ${bike.make} ${bike.model ?? ""}${bike.year ? ` ${bike.year}` : ""}`
-              : ""}
-          </div>
-          {spec.note && <div className="mt-1 text-[0.625rem] text-status-parts">{spec.note}</div>}
+          ) : (
+            <>
+              <div className="grid grid-cols-2 gap-3 text-sm">
+                <div>
+                  <div className="text-[0.625rem] text-status-progress font-semibold">
+                    INTAKE (cold)
+                  </div>
+                  <div className="font-mono font-bold">{formatRange(spec.intake)}</div>
+                </div>
+                <div>
+                  <div className="text-[0.625rem] text-destructive font-semibold">
+                    EXHAUST (cold)
+                  </div>
+                  <div className="font-mono font-bold">{formatRange(spec.exhaust)}</div>
+                </div>
+              </div>
+              <div className="mt-1.5 text-[0.625rem] text-muted-foreground">
+                Source: {spec.source}
+                {bike?.make
+                  ? ` · ${bike.make} ${bike.model ?? ""}${bike.year ? ` ${bike.year}` : ""}`
+                  : ""}
+              </div>
+              {spec.note && (
+                <div className="mt-1 text-[0.625rem] text-status-parts">{spec.note}</div>
+              )}
+            </>
+          )}
         </div>
 
         <div className="rounded-xl border border-border bg-background/40 p-4 overflow-x-auto">
           <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground text-center mb-3">
-            Top-down view · INTAKE (top) / EXHAUST (bottom)
+            Top-down view ·{" "}
+            {intakeOnTop ? "INTAKE (top) / EXHAUST (bottom)" : "EXHAUST (top) / INTAKE (bottom)"}
           </div>
           <div className="flex gap-4 min-w-fit justify-center">
-            {Array.from({ length: cylinders }).map((_, c) => {
+            {Array.from({ length: cylCount }).map((_, c) => {
               const cyl = c + 1;
               return (
                 <div
@@ -1959,39 +2163,13 @@ function ValveClearanceSection({
                   <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground font-bold">
                     Cyl {cyl}
                   </div>
-                  {/* Intake row — two big circles */}
-                  <div className="flex gap-2">
-                    {Array.from({ length: intakePerCyl }).map((_, i) => (
-                      <input
-                        key={i}
-                        disabled={!canEdit}
-                        value={values[`c${cyl}_intake_${i}`] ?? ""}
-                        onChange={(e) => set(cyl, "intake", i, e.target.value)}
-                        placeholder="mm"
-                        title={`Cyl ${cyl} Intake ${i + 1}`}
-                        className="h-16 w-16 rounded-full bg-status-progress/15 border-2 border-status-progress/60 text-center text-sm font-mono font-bold focus:outline-none focus:border-status-progress focus:bg-status-progress/25 placeholder:text-status-progress/50 placeholder:font-normal"
-                      />
-                    ))}
-                  </div>
+                  {topRow(cyl)}
                   {/* Spark plug center */}
                   <div
                     className="h-4 w-4 rounded-full bg-muted-foreground/30 border border-muted-foreground/50"
                     title="Spark plug"
                   />
-                  {/* Exhaust row — two big circles */}
-                  <div className="flex gap-2">
-                    {Array.from({ length: exhaustPerCyl }).map((_, i) => (
-                      <input
-                        key={i}
-                        disabled={!canEdit}
-                        value={values[`c${cyl}_exhaust_${i}`] ?? ""}
-                        onChange={(e) => set(cyl, "exhaust", i, e.target.value)}
-                        placeholder="mm"
-                        title={`Cyl ${cyl} Exhaust ${i + 1}`}
-                        className="h-16 w-16 rounded-full bg-destructive/15 border-2 border-destructive/60 text-center text-sm font-mono font-bold focus:outline-none focus:border-destructive focus:bg-destructive/25 placeholder:text-destructive/50 placeholder:font-normal"
-                      />
-                    ))}
-                  </div>
+                  {bottomRow(cyl)}
                 </div>
               );
             })}
@@ -2022,7 +2200,13 @@ function ValveClearanceSection({
       </section>
 
       {/* Print-only worksheet — forced onto its own page */}
-      <ValveClearancePrintSheet bike={bike} cylinders={cylinders} values={values} spec={spec} />
+      <ValveClearancePrintSheet
+        bike={bike}
+        cylinders={cylCount}
+        values={values}
+        spec={spec}
+        intakeOnTop={intakeOnTop}
+      />
     </>
   );
 }
