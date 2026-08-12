@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Library, Search, Plus, ChevronRight, History, Inbox } from "lucide-react";
+import { Library, Search, Plus, ChevronRight, History, Inbox, Upload } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { Input } from "@/components/ui/input";
@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { logRevision, modelTitle, yearLabel, type ModelRow } from "@/lib/garage-library";
+import { PRIORITY_TIERS, priorityTier } from "@/lib/garage-catalogue";
 
 export const Route = createFileRoute("/_authenticated/garage-library/")({
   component: GarageLibraryIndex,
@@ -26,28 +27,43 @@ export const Route = createFileRoute("/_authenticated/garage-library/")({
 
 type SearchHit = { modelId: string; kind: string; text: string };
 
+type LibModel = ModelRow & {
+  generation: string | null;
+  platform: string | null;
+  engine: string | null;
+  category: string | null;
+  priority: number | null;
+};
+
 function GarageLibraryIndex() {
   const { isAdmin } = useCurrentUser();
   const qc = useQueryClient();
   const [q, setQ] = useState("");
   const [openBrand, setOpenBrand] = useState<string | null>(null);
   const [newOpen, setNewOpen] = useState(false);
+  const [tier, setTier] = useState<number | null>(null);
   const [form, setForm] = useState({ make: "", model: "", variant: "", engine_cc: "", year_from: "", year_to: "" });
 
-  const { data: models = [], isLoading } = useQuery({
+  const { data: allModels = [], isLoading } = useQuery({
     queryKey: ["garage-models"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("bike_library_models")
-        .select("id, make, model, variant, engine_cc, year_from, year_to, cylinders, notes, photo_url, is_archived, updated_at")
+        .select("id, make, model, variant, engine_cc, year_from, year_to, cylinders, notes, photo_url, is_archived, updated_at, generation, platform, engine, category, priority")
         .eq("is_archived", false)
         .order("make")
         .order("model")
         .order("year_from");
       if (error) throw error;
-      return (data ?? []) as ModelRow[];
+      return (data ?? []) as LibModel[];
     },
   });
+
+  const models = useMemo(
+    () => (tier === null ? allModels : allModels.filter((m) => (m.priority ?? 2) === tier)),
+    [allModels, tier],
+  );
+
 
   const { data: hits = [] } = useQuery({
     queryKey: ["garage-search", q],
@@ -163,7 +179,7 @@ function GarageLibraryIndex() {
   });
 
   const brands = useMemo(() => {
-    const map = new Map<string, ModelRow[]>();
+    const map = new Map<string, LibModel[]>();
     for (const m of models) {
       const key = m.make.trim();
       const arr = map.get(key) ?? [];
@@ -181,7 +197,7 @@ function GarageLibraryIndex() {
     );
   }, [models, term]);
 
-  const modelById = useMemo(() => new Map(models.map((m) => [m.id, m])), [models]);
+  const modelById = useMemo(() => new Map(allModels.map((m) => [m.id, m])), [allModels]);
   const searching = term.length >= 2;
 
   return (
@@ -211,9 +227,16 @@ function GarageLibraryIndex() {
           </Button>
         </div>
         {isAdmin && (
-          <Button size="sm" onClick={() => setNewOpen(true)}>
-            <Plus className="h-4 w-4 mr-1" /> Add model
-          </Button>
+          <div className="flex gap-2">
+            <Button size="sm" variant="outline" asChild>
+              <Link to="/garage-library/import">
+                <Upload className="h-4 w-4 mr-1" /> Import
+              </Link>
+            </Button>
+            <Button size="sm" onClick={() => setNewOpen(true)}>
+              <Plus className="h-4 w-4 mr-1" /> Add model
+            </Button>
+          </div>
         )}
       </div>
 
@@ -226,6 +249,33 @@ function GarageLibraryIndex() {
           className="pl-9 h-11"
         />
       </div>
+
+      <div className="flex flex-wrap items-center gap-2">
+        <button
+          onClick={() => setTier(null)}
+          className={`rounded-full border px-3 py-1 font-mono text-[0.65rem] uppercase tracking-widest ${
+            tier === null ? "border-primary/50 bg-primary/10 text-primary" : "border-border text-muted-foreground hover:bg-muted/40"
+          }`}
+        >
+          All {allModels.length}
+        </button>
+        {PRIORITY_TIERS.map((t) => {
+          const n = allModels.filter((m) => (m.priority ?? 2) === t.value).length;
+          return (
+            <button
+              key={t.value}
+              onClick={() => setTier(tier === t.value ? null : t.value)}
+              className={`rounded-full border px-3 py-1 font-mono text-[0.65rem] uppercase tracking-widest ${
+                tier === t.value ? priorityTier(t.value).tone : "border-border text-muted-foreground hover:bg-muted/40"
+              }`}
+            >
+              {t.label} · {n}
+            </button>
+          );
+        })}
+      </div>
+
+
 
       {searching ? (
         <div className="space-y-4">
@@ -329,9 +379,13 @@ function GarageLibraryIndex() {
                         className="flex items-center gap-2 px-4 py-2 text-sm hover:bg-muted/40 border-b border-border/50 last:border-0"
                       >
                         <span className="truncate">{m.model}</span>
+                        {m.generation ? (
+                          <span className="font-mono text-[0.65rem] text-muted-foreground truncate">{m.generation}</span>
+                        ) : null}
                         <span className="ml-auto font-mono text-[0.7rem] text-muted-foreground">{yearLabel(m)}</span>
                       </Link>
                     ))}
+
                   </div>
                 )}
               </div>
