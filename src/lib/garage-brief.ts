@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { supabase } from "@/integrations/supabase/client";
 import { matchModel } from "@/lib/garage-learning";
-import { fetchAllRows } from "@/lib/fetch-all-rows";
+import { fetchAllRows } from "@/lib/fetch-all";
 
 export type ChecklistItem = {
   id: string;
@@ -190,7 +190,7 @@ export async function buildJobBrief(jobId: string): Promise<JobBrief> {
   let lastSeen: string | null = null;
   let jobCount = 0;
   if (bike?.id) {
-    const rows = await fetchAllRows((from, to) =>
+    const rows = await fetchAllRows((from: number, to: number) =>
       supabase
         .from("jobs")
         .select("id, created_at, service_type")
