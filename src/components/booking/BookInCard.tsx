@@ -153,7 +153,6 @@ export function BookInCard({
         jobCompleted ? "job-complete-stripes" : "",
         "hover:shadow-md hover:brightness-110 focus:outline-none focus:ring-2 focus:ring-primary/40",
         dense ? "p-1 sm:p-1.5" : "p-2.5",
-        b.bike_arrived && "ring-1 ring-orange-500/60",
         draggable && "cursor-grab active:cursor-grabbing",
         className,
       )}
