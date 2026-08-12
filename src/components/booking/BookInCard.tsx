@@ -43,6 +43,7 @@ export function BookInCard({
   const customer = displayCustomerName(b.customers);
   const work = displayServiceType(b.service_type, b.service_type_other);
   const svc = serviceColor(b.service_type);
+  const highlighted = isHighlightedService(b.service_type);
 
   const techNames = useTechnicianNames();
   const techName = b.assigned_tech_id
