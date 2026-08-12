@@ -833,6 +833,8 @@ function InvoiceDetail() {
               onChanged={() =>
                 qc.invalidateQueries({ queryKey: ["invoice-checks", invoiceId, inv.job_id] })
               }
+              details={String((inv.snapshot as any)?.work_details ?? "")}
+              onSaveDetails={(v) => saveSnapshotMeta({ work_details: v })}
             />
           </div>
 
@@ -1389,13 +1391,21 @@ function ServiceChecks({
   title,
   items,
   onChanged,
+  details,
+  onSaveDetails,
 }: {
   jobId: string | null;
   title: string | null;
   items: any[];
   onChanged: () => void;
+  details: string;
+  onSaveDetails: (value: string) => void | Promise<void>;
 }) {
   const [draft, setDraft] = useState("");
+  const [detailDraft, setDetailDraft] = useState(details);
+  useEffect(() => {
+    setDetailDraft(details);
+  }, [details]);
 
   async function addItem() {
     if (!jobId || !draft.trim()) return;
@@ -1495,6 +1505,29 @@ function ServiceChecks({
           <Plus className="h-4 w-4" />
         </button>
       </div>
+
+      {(detailDraft.trim() !== "" || true) && (
+        <div className="mt-3">
+          <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground mb-1">
+            Details of work performed
+          </div>
+          {detailDraft.trim() !== "" && (
+            <div className="hidden print:block text-xs leading-relaxed whitespace-pre-wrap">
+              {detailDraft}
+            </div>
+          )}
+          <textarea
+            value={detailDraft}
+            onChange={(e) => setDetailDraft(e.target.value)}
+            onBlur={() => {
+              if (detailDraft !== details) onSaveDetails(detailDraft);
+            }}
+            rows={4}
+            placeholder="Describe the work carried out — diagnostics, findings, adjustments, tests…"
+            className="no-print w-full rounded-lg border border-border bg-background/50 p-3 text-sm leading-relaxed outline-none focus:border-primary resize-y"
+          />
+        </div>
+      )}
     </div>
   );
 }
