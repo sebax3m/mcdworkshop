@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState } from "react";
 import {
   Bike as BikeIcon,
@@ -16,6 +15,8 @@ import { bookInStage, stageMeta } from "@/lib/workshop-status";
 import { serviceColor } from "@/lib/service-colors";
 import { cn } from "@/lib/utils";
 import { useTechnicianNames, initialsOf } from "@/hooks/use-technician-names";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { AddressMap } from "@/components/booking/AddressAutocomplete";
 
 type Props = {
   booking: any;
