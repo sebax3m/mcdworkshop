@@ -109,6 +109,13 @@ export function serviceColor(t: string | null | undefined): ServiceColor {
   return SERVICE_COLORS.default;
 }
 
+/** Whether the service type should show an extra highlight rectangle/frame. */
+export function isHighlightedService(t: string | null | undefined): boolean {
+  if (!t) return false;
+  const k = t.toLowerCase();
+  return k.includes("full") || k.includes("tuning") || k.includes("dyno") || k.includes("diag");
+}
+
 /** Legend entries, in display order. */
 export const SERVICE_LEGEND: { key: string; label: string }[] = [
   { key: "basic", label: "Basic Service" },

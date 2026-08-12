@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { displayBike, displayCustomerName, displayServiceType } from "@/lib/display";
 import { resolveBookInStatus, isBookInCompleted, statusStyle } from "@/lib/book-in-status";
-import { serviceColor } from "@/lib/service-colors";
+import { serviceColor, isHighlightedService } from "@/lib/service-colors";
 import { cn } from "@/lib/utils";
 import { useTechnicianNames } from "@/hooks/use-technician-names";
 import { StatusBadge, BookInStatusIcon } from "@/components/booking/StatusBadge";
@@ -43,6 +43,7 @@ export function BookInCard({
   const customer = displayCustomerName(b.customers);
   const work = displayServiceType(b.service_type, b.service_type_other);
   const svc = serviceColor(b.service_type);
+  const highlighted = isHighlightedService(b.service_type);
 
   const techNames = useTechnicianNames();
   const techName = b.assigned_tech_id
@@ -255,16 +256,27 @@ export function BookInCard({
           >
             {work}
           </span>
+          {highlighted && (
+            <span
+              className={cn(
+                "ml-auto h-2 w-3 shrink-0 rounded-[3px] border border-white/25 shadow-sm",
+                svc.bg,
+              )}
+              title={b.service_type}
+            />
+          )}
         </div>
 
-        {/* ROW 4 — workflow detail + status badge */}
-        <div className="flex items-center gap-1.5 pl-[1.4rem]">
-          {detail && (
-            <span className="truncate text-[0.5625rem] uppercase tracking-wider text-muted-foreground/70">
-              {detail}
-            </span>
-          )}
-          <TechnicianIndicator name={techName} className="ml-auto" showName={false} />
+        {/* ROW 4 — workflow detail + status badge (bottom-right aligned) */}
+        <div className="flex items-center justify-between gap-1.5">
+          <div className="flex items-center gap-1.5 min-w-0 pl-[1.4rem]">
+            {detail && (
+              <span className="truncate text-[0.5625rem] uppercase tracking-wider text-muted-foreground/70">
+                {detail}
+              </span>
+            )}
+            <TechnicianIndicator name={techName} showName={false} />
+          </div>
           <StatusBadge meta={status} compact={dense} className="shrink-0" />
         </div>
       </div>
