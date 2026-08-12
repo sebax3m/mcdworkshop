@@ -322,10 +322,18 @@ export function detectConflicts(specs: SpecRow[], sections: DocSection[]): Confl
  * ORCHESTRATION
  * ------------------------------------------------------------------ */
 
+export type TechTurn = { role: "user" | "assistant"; content: string };
+
 export async function askTech(
   question: string,
   bike: BikeContext,
-  opts: { allowExternalAi?: boolean } = {},
+  opts: {
+    allowExternalAi?: boolean;
+    /** Prior turns of this conversation, oldest first — keeps the thread. */
+    history?: TechTurn[];
+    /** Extra bike/job context injected into the AI fallback. */
+    contextNote?: string | null;
+  } = {},
 ): Promise<TechAnswer> {
   const key = cacheKey(question, bike);
   const cached = cache.get(key);
