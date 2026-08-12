@@ -1,7 +1,9 @@
-import { Truck } from "lucide-react";
+import { Clock, MapPin, Truck } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { AddressMap } from "@/components/booking/AddressAutocomplete";
+import { getEta } from "@/lib/maps.functions";
 import { cn } from "@/lib/utils";
 
 export type TransportKind = "pickup" | "dropoff" | "both" | null;
@@ -28,7 +30,7 @@ export function transportLabel(kind: TransportKind): string {
 
 /**
  * Blue transport chip — always visible, independent of workflow status.
- * Click opens the address + embedded map, so the card size never changes.
+ * Click opens the address + embedded map + ETA from the workshop, so the card size never changes.
  */
 export function TransportIndicator({
   kind,
@@ -47,6 +49,17 @@ export function TransportIndicator({
       : kind === "pickup"
         ? "PICK-UP REQUIRED"
         : "DROP-OFF REQUIRED";
+
+  const { data: eta, isLoading } = useQuery({
+    queryKey: ["transport-eta", address],
+    queryFn: async () => {
+      if (!address) return null;
+      return getEta({ data: { destination: address } });
+    },
+    enabled: !!address && address.trim().length > 5,
+    staleTime: 5 * 60 * 1000,
+  });
+
   return (
     <Popover>
       <PopoverTrigger asChild>
@@ -77,7 +90,24 @@ export function TransportIndicator({
           <p className="text-[0.6875rem] text-muted-foreground">{hint}</p>
           {address ? (
             <>
-              <p className="text-xs text-muted-foreground">{address}</p>
+              <div className="flex items-start gap-2 rounded-lg border border-border bg-muted/40 p-2">
+                <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                <p className="text-xs leading-snug text-foreground">{address}</p>
+              </div>
+              {isLoading ? (
+                <p className="text-xs text-muted-foreground">Calculating ETA…</p>
+              ) : eta ? (
+                <div className="flex items-center gap-2 rounded-lg border border-sky-500/30 bg-sky-500/10 p-2 text-xs">
+                  <Clock className="h-3.5 w-3.5 shrink-0 text-sky-400" />
+                  <span className="font-medium text-sky-100">
+                    {eta.formattedDuration}
+                  </span>
+                  <span className="text-sky-300/70">·</span>
+                  <span className="text-sky-200/80">{eta.formattedDistance}</span>
+                </div>
+              ) : (
+                <p className="text-xs text-muted-foreground">ETA unavailable for this address.</p>
+              )}
               <AddressMap address={address} />
             </>
           ) : (
