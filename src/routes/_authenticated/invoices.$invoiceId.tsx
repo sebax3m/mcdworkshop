@@ -318,6 +318,7 @@ function InvoiceDetail() {
       const { error } = await supabase.from("parts").insert({
         job_id: jobId,
         name: "Shop consumables",
+        supplier: "Washers, lubricants, cleaners, degreaser, rags & workshop supplies",
         quantity: 1,
         retail: 30,
         on_invoice: true,
@@ -953,7 +954,13 @@ function InvoiceDetail() {
                               <EditableText
                                 value={p.supplier ?? ""}
                                 onCommit={(v) => updatePart(p.id, { supplier: v })}
-                                className="text-xs text-muted-foreground block"
+                                multiline={(p.name ?? "").toLowerCase().includes("consumable")}
+                                placeholder={
+                                  (p.name ?? "").toLowerCase().includes("consumable")
+                                    ? "Washers, lubricants, cleaners, degreaser, rags…"
+                                    : undefined
+                                }
+                                className="text-xs text-muted-foreground block whitespace-pre-wrap"
                               />
                             </div>
                             <button
