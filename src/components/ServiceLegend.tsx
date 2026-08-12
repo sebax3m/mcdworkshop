@@ -22,8 +22,8 @@ export function ServiceLegend() {
           const c = SERVICE_COLORS[s.k];
           return (
             <li key={s.k} className="flex items-center gap-2 min-w-0">
-              <span className={`h-2 w-2 rounded-full shrink-0 ${c.dot}`} />
-              <span className={`text-[0.6875rem] font-medium truncate ${c.text}`}>{s.label}</span>
+              <span className={`h-2 w-2 rounded-full shrink-0 ${c.bg}`} />
+              <span className={`text-[0.6875rem] font-medium truncate ${c.label}`}>{s.label}</span>
             </li>
           );
         })}
