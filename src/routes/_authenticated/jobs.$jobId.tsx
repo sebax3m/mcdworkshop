@@ -517,7 +517,7 @@ function JobDetail() {
   }
 
   return (
-    <div ref={jobRef} className="space-y-5 max-w-3xl mx-auto jobcard-print">
+    <div ref={jobRef} className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-5 items-start jobcard-print">
       <style>{`
         @media print {
           @page { size: A4; margin: 14mm; }
