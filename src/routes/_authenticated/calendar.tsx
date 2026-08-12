@@ -53,6 +53,10 @@ import { useBookingTypes } from "@/hooks/useBookingTypes";
 import { useDailyNotesRange, useUpdateDailyNote, type DailyNote } from "@/hooks/useDailyNotes";
 import { NoteDialog } from "@/components/booking/NoteDialog";
 import { BookInCard, CapacityBadge } from "@/components/booking/BookInCard";
+import { CalendarDayHeader } from "@/components/booking/CalendarDayHeader";
+import { StatusBadge } from "@/components/booking/StatusBadge";
+import { isBookInCompleted, resolveBookInStatus } from "@/lib/book-in-status";
+
 import { LoanBikeDialog } from "@/components/booking/LoanBikeDialog";
 import { AddressAutocomplete, AddressMap } from "@/components/booking/AddressAutocomplete";
 import { useWorkshopCapacity } from "@/hooks/useWorkshopCapacity";
@@ -164,7 +168,9 @@ function CalendarPage() {
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [dropHint, setDropHint] = useState<{ dayKey: string; index: number } | null>(null);
   const [selectedBooking, setSelectedBooking] = useState<any | null>(null);
+  const [hiddenCompleted, setHiddenCompleted] = useState<Record<string, boolean>>({});
   const [loanEditBookingId, setLoanEditBookingId] = useState<string | null>(null);
+
   // View mode for the selected booking modal: quick summary vs full editor
   const [bookingView, setBookingView] = useState<"summary" | "edit">("summary");
   // Notes edit buffer for the summary view (independent from the edit view's textarea)
@@ -706,15 +712,22 @@ function CalendarPage() {
     qc.invalidateQueries({ queryKey: ["today-bookings"] });
   }
 
-  /** Sort helper: book-ins are ordered by their stored slot time, then creation. */
+  /**
+   * Sort helper: active work first (completed collapses to the bottom of the
+   * day), then by stored slot time, then creation.
+   */
   function sortBookIns(list: any[]) {
     return [...list].sort((a, b) => {
+      const ca = isBookInCompleted(a) ? 1 : 0;
+      const cb = isBookInCompleted(b) ? 1 : 0;
+      if (ca !== cb) return ca - cb;
       const ta = String(a.drop_off_time ?? "99:99");
       const tb = String(b.drop_off_time ?? "99:99");
       if (ta !== tb) return ta < tb ? -1 : 1;
       return String(a.created_at ?? "") < String(b.created_at ?? "") ? -1 : 1;
     });
   }
+
 
   /**
    * Free reordering: drop a book-in anywhere in a day's list (or another day).
@@ -1003,19 +1016,21 @@ function CalendarPage() {
                     <div className="mt-1.5 flex-1 flex flex-col gap-0.5 content-start overflow-hidden">
                       {dayBookings.slice(0, 4).map((b: any) => {
                         const c = serviceColor(b.service_type);
+                        const st = resolveBookInStatus(b);
+                        const done = isBookInCompleted(b);
                         return (
                           <div
                             key={b.id}
-                            className={`flex items-center gap-1 w-full min-w-0 rounded-md px-1 py-0.5 backdrop-blur-sm ${
-                              b.job_completed
-                                ? "job-complete-stripes"
-                                : "bg-muted/30"
+                            className={`flex items-center gap-1 w-full min-w-0 rounded-md border-l-2 px-1 py-0.5 ${st.accent} ${
+                              done ? "bg-muted/20 opacity-70 saturate-50" : st.tint
                             }`}
-                            title={`${b.service_type} — ${b.motorcycles?.make ?? ""} ${b.motorcycles?.model ?? ""}${b.job_completed ? " — Job completed" : ""}`}
+                            title={`${st.label} — ${b.service_type} — ${b.motorcycles?.make ?? ""} ${b.motorcycles?.model ?? ""}`}
                           >
                             <span
-                              className={`shrink-0 rounded-full ${c.bg} ring-1 ${c.ring} ${b.bike_arrived ? "h-2 w-2 !ring-2 !ring-orange-500" : "h-1.5 w-1.5"}`}
+                              className={`shrink-0 rounded-full ${c.bg} ${b.bike_arrived ? "h-2 w-2 ring-2 ring-orange-500" : "h-1.5 w-1.5"}`}
+                              title={b.service_type}
                             />
+
                             {b.loan_bike && (
                               <span
                                 className="shrink-0 h-1.5 w-1.5 rounded-full bg-fuchsia-500 shadow-[0_0_6px_rgba(217,70,239,0.9)]"
@@ -1067,13 +1082,17 @@ function CalendarPage() {
           <div className="grid gap-1.5 sm:gap-2 min-w-[600px] sm:min-w-[980px] grid-cols-6 items-start">
             {weekDays.map((day) => {
               const dayKey = format(day, "yyyy-MM-dd");
-              const dayBookings = sortBookIns(
+              const allDayBookings = sortBookIns(
                 (bookings as any[]).filter((b) => b.scheduled_date === dayKey),
               );
+              const completedCount = allDayBookings.filter((b) => isBookInCompleted(b)).length;
+              const dayBookings = hiddenCompleted[dayKey]
+                ? allDayBookings.filter((b) => !isBookInCompleted(b))
+                : allDayBookings;
               const dayNotes = notesByDay.get(dayKey) ?? [];
               const today = isToday(day);
               const cap = capacityFor(day);
-              const full = cap > 0 && dayBookings.length >= cap;
+
               return (
                 <div
                   key={dayKey}
@@ -1095,37 +1114,20 @@ function CalendarPage() {
                     draggingId ? "border-dashed border-primary/40" : ""
                   }`}
                 >
-                  {/* Day header */}
-                  <button
-                    type="button"
+                  {/* Day header: weekday, date, capacity + capacity bar */}
+                  <CalendarDayHeader
+                    day={day}
+                    booked={allDayBookings.length}
+                    capacity={cap}
+                    today={today}
                     onClick={() => nav({ to: "/book-ins/$date", params: { date: dayKey } })}
-                    className="text-left group"
-                    title="Open day view"
-                  >
-                    <div
-                      className={`text-[0.75rem] sm:text-[0.85rem] font-bold uppercase tracking-wider ${
-                        today || isSunday(day) ? "text-primary" : "text-muted-foreground"
-                      }`}
-                    >
-                      {format(day, "EEEE")}
-                    </div>
-                    <div className="flex items-baseline gap-1.5 sm:gap-2">
-                      <span className="font-display text-lg sm:text-xl font-bold leading-none group-hover:text-primary transition-colors">
-                        {format(day, "d")}
-                      </span>
-                      <CapacityBadge booked={dayBookings.length} capacity={cap} compact />
-                    </div>
-                  </button>
+                    completedCount={completedCount}
+                    hideCompleted={!!hiddenCompleted[dayKey]}
+                    onToggleCompleted={() =>
+                      setHiddenCompleted((s) => ({ ...s, [dayKey]: !s[dayKey] }))
+                    }
+                  />
 
-                  {/* Capacity bar */}
-                  <div className="h-1 rounded-full bg-muted overflow-hidden">
-                    <div
-                      className={`h-full rounded-full ${full ? "bg-amber-500" : "bg-primary"}`}
-                      style={{
-                        width: `${cap > 0 ? Math.min(100, (dayBookings.length / cap) * 100) : dayBookings.length ? 100 : 0}%`,
-                      }}
-                    />
-                  </div>
 
                   {/* Day notes */}
                   {dayNotes.map((n: any) => (
@@ -1316,12 +1318,14 @@ function CalendarPage() {
                   return (
                     <div className="space-y-4">
                       <div className="flex items-center gap-2 flex-wrap">
+                        <StatusBadge booking={b} />
                         <span
                           className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 ring-1 text-[0.6875rem] font-bold uppercase tracking-wider ${c.bg} ${c.ring} ${c.text}`}
                         >
                           <span className="h-1.5 w-1.5 rounded-full bg-current" />
                           {displayServiceType(b.service_type, b.service_type_other)}
                         </span>
+
                         <button
                           type="button"
                           onClick={async () => {
