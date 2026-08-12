@@ -17,6 +17,7 @@ import {
   CheckCircle,
 } from "lucide-react";
 import { LoanBikeDialog } from "@/components/booking/LoanBikeDialog";
+import { TransportCard } from "@/components/booking/TransportCard";
 import { changeBookingMotorcycle, fetchCustomerBikes } from "@/lib/bike-assign";
 import { toast } from "sonner";
 import { displayCustomerName } from "@/lib/display";
