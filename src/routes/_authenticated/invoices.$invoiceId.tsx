@@ -1263,13 +1263,13 @@ function InvoiceDetail() {
               </div>
               <div className="space-y-0.5 text-xs">
                 <div>
-                  <span className="text-muted-foreground">Account:</span> Motorcycle Doctors
+                  <span className="text-muted-foreground">Account:</span> Motorcycle Doctors LTD
                 </div>
                 <div>
-                  <span className="text-muted-foreground">BSB:</span> 000-000
+                  <span className="text-muted-foreground">Bank:</span> ASB Bank
                 </div>
                 <div>
-                  <span className="text-muted-foreground">Account #:</span> 0000 0000
+                  <span className="text-muted-foreground">Account #:</span> 12-3072-0008398-00
                 </div>
                 <div>
                   <span className="text-muted-foreground">Reference:</span> {inv.invoice_number}
