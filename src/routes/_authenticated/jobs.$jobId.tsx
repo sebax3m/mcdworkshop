@@ -530,6 +530,7 @@ function JobDetail() {
         }
         .print-cta:hover { transform: translateY(-1px); transition: transform 0.15s ease-out; }
       `}</style>
+      <div className="space-y-5 min-w-0">
       <header className="no-print space-y-3">
         <div className="flex items-center justify-between gap-2">
           <button
