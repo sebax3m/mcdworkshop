@@ -89,3 +89,25 @@ export function AddressMap({ address }: { address: string }) {
     />
   );
 }
+
+export const WORKSHOP_ADDRESS = "94 Wairau Road, Wairau Valley, Auckland, New Zealand";
+
+/** Embedded driving route from the workshop to the given address. */
+export function RouteMap({ address }: { address: string }) {
+  const key = import.meta.env["VITE_LOVABLE_CONNECTOR_GOOGLE_MAPS_BROWSER_KEY"] as
+    | string
+    | undefined;
+  const q = address.trim();
+  if (!key || q.length < 5) return <AddressMap address={address} />;
+  return (
+    <iframe
+      title="Transport route"
+      className="h-48 w-full rounded-xl border border-border"
+      loading="lazy"
+      referrerPolicy="no-referrer-when-downgrade"
+      src={`https://www.google.com/maps/embed/v1/directions?key=${key}&origin=${encodeURIComponent(
+        WORKSHOP_ADDRESS,
+      )}&destination=${encodeURIComponent(q)}&mode=driving`}
+    />
+  );
+}

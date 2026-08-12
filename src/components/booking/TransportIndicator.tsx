@@ -2,7 +2,7 @@ import { Clock, MapPin, Truck } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { AddressMap } from "@/components/booking/AddressAutocomplete";
+import { RouteMap } from "@/components/booking/AddressAutocomplete";
 import { getEta } from "@/lib/maps.functions";
 import { cn } from "@/lib/utils";
 
@@ -108,7 +108,7 @@ export function TransportIndicator({
               ) : (
                 <p className="text-xs text-muted-foreground">ETA unavailable for this address.</p>
               )}
-              <AddressMap address={address} />
+              <RouteMap address={address} />
             </>
           ) : (
             <p className="text-xs text-muted-foreground">No address provided.</p>
