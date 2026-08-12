@@ -1031,36 +1031,6 @@ function JobDetail() {
         <JobTimeline jobId={jobId} />
       </div>
 
-      <section data-print-section="notes" className="card-surface p-4">
-        <h2 className="font-display text-lg font-semibold mb-3">Notes</h2>
-        {canEdit && (
-          <div className="no-print">
-            <AddNote
-              jobId={jobId}
-              onAdded={() => qc.invalidateQueries({ queryKey: ["job-notes", jobId] })}
-            />
-          </div>
-        )}
-        <div className="space-y-2 mt-3">
-          {(notes.data ?? []).map((n: any) => (
-            <div key={n.id} className="rounded-lg border border-border bg-background/40 p-3">
-              <div className="flex items-center gap-2 mb-1">
-                <span className="grid h-6 w-6 place-items-center rounded-full bg-muted text-[0.625rem] font-semibold">
-                  {initials(n.author_name)}
-                </span>
-                <span className="text-xs font-semibold">{n.author_name}</span>
-                <span className="text-[0.625rem] text-muted-foreground">
-                  {new Date(n.created_at).toLocaleString()}
-                </span>
-              </div>
-              <p className="text-sm whitespace-pre-wrap">{n.body}</p>
-            </div>
-          ))}
-          {(!notes.data || notes.data.length === 0) && (
-            <p className="text-sm text-muted-foreground">No notes yet.</p>
-          )}
-        </div>
-      </section>
 
       {j.complaint && (
         <section className="card-surface p-4 print:hidden">
