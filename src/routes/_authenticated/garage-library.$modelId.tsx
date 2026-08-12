@@ -321,7 +321,7 @@ function GarageModelPage() {
 
       <Tabs defaultValue="overview">
         <TabsList className="flex flex-wrap h-auto">
-          {["overview", "workshop", "parts", "labour", "torque", "valves", "fluids", "notes", "history"].map((t) => (
+          {["overview", "mcd tech", "workshop", "parts", "labour", "torque", "valves", "fluids", "documents", "notes", "history"].map((t) => (
             <TabsTrigger key={t} value={t} className="text-xs uppercase tracking-wide">
               {t === "valves" ? "Valve clearances" : t === "workshop" ? "Workshop data" : t}
             </TabsTrigger>
