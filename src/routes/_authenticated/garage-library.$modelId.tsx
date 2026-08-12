@@ -358,6 +358,22 @@ function GarageModelPage() {
           </div>
         </TabsContent>
 
+        <TabsContent value="mcd tech" className="mt-4 space-y-3">
+          <KnowledgeCoverageCard modelId={modelId} />
+          <TechAskPanel
+            bike={{
+              modelId,
+              make: model.make,
+              model: model.model,
+              year: model.year_from ?? model.year_to ?? null,
+            }}
+          />
+        </TabsContent>
+
+        <TabsContent value="documents" className="mt-4">
+          <ModelDocumentsTab modelId={modelId} />
+        </TabsContent>
+
         <TabsContent value="workshop" className="mt-4">
           <WorkshopDataTab modelId={modelId} />
         </TabsContent>
