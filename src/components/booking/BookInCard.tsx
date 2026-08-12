@@ -32,12 +32,10 @@ function TransportIcon({
   label,
   title,
   address,
-  variant = "inline",
 }: {
   label: string;
   title?: string;
   address: string;
-  variant?: "inline" | "absolute";
 }) {
   return (
     <Popover>
@@ -45,11 +43,7 @@ function TransportIcon({
         <button
           type="button"
           onClick={(e) => e.stopPropagation()}
-          className={cn(
-            "z-10 inline-flex items-center justify-center rounded bg-sky-500 text-white shadow hover:bg-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-300",
-            variant === "inline" && "h-4 w-4",
-            variant === "absolute" && "absolute top-1 right-1 h-4 w-4 text-[0.55rem]",
-          )}
+          className="z-10 inline-flex h-4 w-4 items-center justify-center rounded bg-sky-500 text-white shadow hover:bg-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-300"
           title={title}
         >
           <Truck className="h-2.5 w-2.5" />
@@ -259,14 +253,6 @@ export function BookInCard({
         />
       )}
 
-      {transportLabel && (
-        <TransportIcon
-          variant="absolute"
-          label={transportLabel}
-          title={transportTitle}
-          address={b.transport_address || ""}
-        />
-      )}
 
       {b.loan_bike && (
         <span
@@ -278,7 +264,23 @@ export function BookInCard({
       {/* Ultra-compact mobile view: bike + customer + tiny status dots */}
       <div className="sm:hidden flex items-start gap-1">
         <div className="min-w-0 flex-1">
-          <div className="font-semibold text-[0.65rem] leading-tight truncate">{bike}</div>
+          <div className="flex items-start justify-between gap-1">
+            <div className="font-semibold text-[0.65rem] leading-tight truncate">{bike}</div>
+            <div className="flex items-center gap-1 shrink-0">
+              {rego && (
+                <span className="shrink-0 rounded bg-background/60 px-1 py-0 text-[0.6rem] font-bold uppercase tracking-wider tabular-nums">
+                  {rego}
+                </span>
+              )}
+              {transportLabel && (
+                <TransportIcon
+                  label={transportLabel}
+                  title={transportTitle}
+                  address={b.transport_address || ""}
+                />
+              )}
+            </div>
+          </div>
           <div className="flex items-center gap-0.5 text-[0.6rem] text-foreground/70 truncate">
             <UserIcon className="h-2 w-2 shrink-0" />
             <span className="truncate">{customer}</span>
@@ -308,7 +310,7 @@ export function BookInCard({
         <div className="min-w-0 flex-1">
           <div className="flex items-start justify-between gap-1.5 sm:gap-2">
             <div className="font-semibold text-xs sm:text-sm truncate">{bike}</div>
-            <div className="hidden sm:flex flex-col items-end gap-0.5 shrink-0">
+            <div className="hidden sm:flex items-center gap-1.5 shrink-0">
               {rego && (
                 <span className="shrink-0 rounded bg-background/60 px-1.5 py-0.5 text-[0.625rem] font-bold uppercase tracking-wider tabular-nums">
                   {rego}
@@ -316,7 +318,6 @@ export function BookInCard({
               )}
               {transportLabel && (
                 <TransportIcon
-                  variant="inline"
                   label={transportLabel}
                   title={transportTitle}
                   address={b.transport_address || ""}
