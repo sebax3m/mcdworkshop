@@ -5,6 +5,8 @@ export type ValveSheetArgs = {
   bike?: { make?: string | null; model?: string | null; year?: number | null; rego?: string | null };
   values?: Record<string, string | number | null | undefined>;
   spec: ValveSpec;
+  /** When false the exhaust valves are drawn on top. */
+  intakeOnTop?: boolean;
   /** Circle diameter in px — lets the user pick how big the diagram prints. */
   circle?: number;
 };
@@ -16,7 +18,7 @@ const esc = (s: unknown) =>
  * Standalone HTML for the valve-clearance worksheet, independent from the job
  * card DOM so the technician can print it for any cylinder count.
  */
-export function valveSheetHtml({ cylinders, bike, values, spec, circle = 92 }: ValveSheetArgs) {
+export function valveSheetHtml({ cylinders, bike, values, spec, intakeOnTop = true, circle = 92 }: ValveSheetArgs) {
   const n = Math.max(1, Math.min(6, cylinders));
   const cyls = Array.from({ length: n })
     .map((_, c) => {
@@ -36,9 +38,9 @@ export function valveSheetHtml({ cylinders, bike, values, spec, circle = 92 }: V
         circle * 2.6
       }px;">
         <div style="font-size:12px;letter-spacing:.12em;text-transform:uppercase;font-weight:700;color:#374151;">Cyl ${cyl}</div>
-        <div style="display:flex;gap:10px;">${circles("intake")}</div>
+        <div style="display:flex;gap:10px;">${circles(intakeOnTop ? "intake" : "exhaust")}</div>
         <div style="height:12px;width:12px;border-radius:9999px;border:1px solid #6b7280;background:#e5e7eb;"></div>
-        <div style="display:flex;gap:10px;">${circles("exhaust")}</div>
+        <div style="display:flex;gap:10px;">${circles(intakeOnTop ? "exhaust" : "intake")}</div>
       </div>`;
     })
     .join("");
@@ -62,7 +64,7 @@ export function valveSheetHtml({ cylinders, bike, values, spec, circle = 92 }: V
     </div>
     ${spec.note ? `<div style="font-size:11px;color:#374151;margin-bottom:8px;"><b>Note:</b> ${esc(spec.note)}</div>` : ""}
     <div style="font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:#4b5563;text-align:center;margin-bottom:10px;">
-      Top-down · INTAKE top / EXHAUST bottom · write measured mm inside each circle
+      Top-down · ${intakeOnTop ? "INTAKE top / EXHAUST bottom" : "EXHAUST top / INTAKE bottom"} · write measured mm inside each circle
     </div>
     <div style="display:flex;gap:16px;justify-content:center;align-items:stretch;margin-bottom:12px;">${cyls}</div>
     <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:11px;color:#374151;margin-top:14px;padding-top:6px;border-top:1px solid #d1d5db;">
