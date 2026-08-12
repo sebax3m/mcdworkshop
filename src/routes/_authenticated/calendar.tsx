@@ -199,6 +199,10 @@ function CalendarPage() {
   const [qLoanBike, setQLoanBike] = useState(false);
   const [qLoanBikeId, setQLoanBikeId] = useState<string | null>(null);
   const [qLoanBikeReturn, setQLoanBikeReturn] = useState<string>("");
+  const [qPickup, setQPickup] = useState(false);
+  const [qDelivery, setQDelivery] = useState(false);
+  const [qTransportAddress, setQTransportAddress] = useState<string>("");
+  const [qTransportNotes, setQTransportNotes] = useState<string>("");
   const [creatingQuick, setCreatingQuick] = useState(false);
   const [lookingUpRego, setLookingUpRego] = useState(false);
   const [qEndTime, setQEndTime] = useState<string>("");
