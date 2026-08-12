@@ -227,9 +227,16 @@ function GarageLibraryIndex() {
           </Button>
         </div>
         {isAdmin && (
-          <Button size="sm" onClick={() => setNewOpen(true)}>
-            <Plus className="h-4 w-4 mr-1" /> Add model
-          </Button>
+          <div className="flex gap-2">
+            <Button size="sm" variant="outline" asChild>
+              <Link to="/garage-library/import">
+                <Upload className="h-4 w-4 mr-1" /> Import
+              </Link>
+            </Button>
+            <Button size="sm" onClick={() => setNewOpen(true)}>
+              <Plus className="h-4 w-4 mr-1" /> Add model
+            </Button>
+          </div>
         )}
       </div>
 
@@ -242,6 +249,33 @@ function GarageLibraryIndex() {
           className="pl-9 h-11"
         />
       </div>
+
+      <div className="flex flex-wrap items-center gap-2">
+        <button
+          onClick={() => setTier(null)}
+          className={`rounded-full border px-3 py-1 font-mono text-[0.65rem] uppercase tracking-widest ${
+            tier === null ? "border-primary/50 bg-primary/10 text-primary" : "border-border text-muted-foreground hover:bg-muted/40"
+          }`}
+        >
+          All {allModels.length}
+        </button>
+        {PRIORITY_TIERS.map((t) => {
+          const n = allModels.filter((m) => (m.priority ?? 2) === t.value).length;
+          return (
+            <button
+              key={t.value}
+              onClick={() => setTier(tier === t.value ? null : t.value)}
+              className={`rounded-full border px-3 py-1 font-mono text-[0.65rem] uppercase tracking-widest ${
+                tier === t.value ? priorityTier(t.value).tone : "border-border text-muted-foreground hover:bg-muted/40"
+              }`}
+            >
+              {t.label} · {n}
+            </button>
+          );
+        })}
+      </div>
+
+
 
       {searching ? (
         <div className="space-y-4">
