@@ -263,13 +263,12 @@ export function BookInCard({
       )}
 
       {transportLabel && (
-        <span
-          className="absolute top-1 right-1 z-10 inline-flex items-center gap-0.5 rounded bg-sky-500 px-1 py-[1px] text-[0.55rem] font-bold uppercase leading-none text-white shadow sm:hidden"
+        <TransportIcon
+          variant="absolute"
+          label={transportLabel}
           title={transportTitle}
-        >
-          <Truck className="h-2.5 w-2.5" />
-          {b.pickup_required && b.delivery_required ? "P/D" : b.pickup_required ? "P" : "D"}
-        </span>
+          address={b.transport_address || ""}
+        />
       )}
 
       {b.loan_bike && (
