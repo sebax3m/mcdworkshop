@@ -17,6 +17,11 @@ import { KnowledgeCoverageCard, ModelDocumentsTab } from "@/components/garage/Mo
 import { TechSpecsTab } from "@/components/garage/TechSpecsTab";
 import { MissingKnowledgeCard, QuickTechSheetButton, TechQuickCards } from "@/components/garage/TechSheet";
 import {
+  FluidObservationsCard,
+  ModelExperienceCard,
+  PartUsageCard,
+} from "@/components/garage/WorkshopExperience";
+import {
   COMMON_FASTENERS,
   FLUID_TYPES,
   PART_CATEGORIES,
@@ -351,6 +356,9 @@ function GarageModelPage() {
               {usage?.last ? new Date(usage.last).toLocaleDateString("en-NZ", { day: "2-digit", month: "short", year: "numeric" }) : "—"}
             </div>
           </div>
+          <div className="sm:col-span-3">
+            <ModelExperienceCard modelId={modelId} />
+          </div>
           <div className={`${cardCls} p-4 sm:col-span-3`}>
             <div className="text-[0.65rem] font-mono uppercase tracking-widest text-muted-foreground mb-2">Model notes</div>
             <Textarea
@@ -387,7 +395,12 @@ function GarageModelPage() {
           <ModelDocumentsTab modelId={modelId} />
         </TabsContent>
 
-        <TabsContent value="workshop" className="mt-4">
+        <TabsContent value="workshop" className="mt-4 space-y-4">
+          <ModelExperienceCard modelId={modelId} />
+          <div className="grid gap-4 lg:grid-cols-2">
+            <PartUsageCard modelId={modelId} />
+            <FluidObservationsCard modelId={modelId} />
+          </div>
           <WorkshopDataTab modelId={modelId} />
         </TabsContent>
 
