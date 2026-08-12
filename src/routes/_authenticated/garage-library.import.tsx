@@ -128,12 +128,38 @@ function GarageImportPage() {
           </Link>
         </Button>
         <div>
-          <h1 className="text-xl font-semibold tracking-tight">Import model catalogue</h1>
+          <h1 className="text-xl font-semibold tracking-tight">Import data</h1>
           <p className="text-xs text-muted-foreground">
             Upload → validate → preview → confirm. Nothing is written until you confirm.
           </p>
         </div>
+        <Button variant="outline" size="sm" className="ml-auto" asChild>
+          <Link to="/garage-library/review">Data review</Link>
+        </Button>
       </div>
+
+      <div className="flex flex-wrap gap-1.5">
+        {([
+          { key: "models", label: "Model catalogue" },
+          { key: "tech", label: "Technical data" },
+        ] as const).map((m) => (
+          <button
+            key={m.key}
+            onClick={() => setMode(m.key)}
+            className={`rounded border px-3 py-1.5 text-xs font-mono uppercase tracking-wider transition-colors ${
+              mode === m.key ? "border-primary/60 bg-primary/10 text-foreground" : "border-border bg-muted/20 text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            {m.label}
+          </button>
+        ))}
+      </div>
+
+      {mode === "tech" ? (
+        <TechDataImport />
+      ) : (
+        <>
+
 
       <section className="space-y-3 rounded-lg border border-border bg-card p-4">
         <div className="flex flex-wrap items-center gap-2">
