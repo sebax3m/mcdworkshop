@@ -71,9 +71,7 @@ function TransportIcon({
           {address ? (
             <>
               <p className="text-xs text-muted-foreground">{address}</p>
-              <div className="overflow-hidden rounded-lg border border-border">
-                <AddressMap address={address} />
-              </div>
+              <AddressMap address={address} />
             </>
           ) : (
             <p className="text-xs text-muted-foreground">No address provided.</p>
