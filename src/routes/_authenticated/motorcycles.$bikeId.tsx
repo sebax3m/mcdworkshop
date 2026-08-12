@@ -400,6 +400,9 @@ function BikeProfile() {
                   {b.year ?? "—"}
                   {b.rego ? ` · ${b.rego}` : ""}
                 </div>
+                <div className="mt-2">
+                  <AskMcdTechButton target={{ kind: "motorcycle", motorcycleId: b.id }} />
+                </div>
               </>
             )}
           </div>
