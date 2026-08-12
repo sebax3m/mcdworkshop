@@ -18,6 +18,7 @@ import {
   Calendar,
   ShieldCheck,
 } from "lucide-react";
+import { AskMcdTechButton } from "@/components/garage/McdTechAssistant";
 import { fullBike } from "@/lib/format";
 import { displayCustomerName } from "@/lib/display";
 import { Button } from "@/components/ui/button";

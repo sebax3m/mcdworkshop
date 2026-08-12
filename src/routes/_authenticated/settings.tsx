@@ -10,6 +10,7 @@ import {
   Palette,
   KeyRound,
   Gauge,
+  Wrench,
 } from "lucide-react";
 import { useCurrentUser } from "@/hooks/use-current-user";
 
@@ -45,6 +46,12 @@ const sections = [
     desc: "Set how many motorcycles can be booked in each weekday.",
   },
 
+  {
+    to: "/settings/mcd-tech",
+    icon: Wrench,
+    title: "MCD TECH",
+    desc: "Control the AI workshop assistant, technician access and external AI fallback.",
+  },
   {
     to: "/customers",
     icon: Users,

@@ -112,6 +112,7 @@ export function AppShell() {
   }
 
   return (
+    <McdTechProvider>
     <div className="min-h-screen flex flex-col bg-background text-foreground">
       {/* ===== HEADER ===== */}
       <header className="sticky top-0 z-30 border-b border-border/60 bg-background/85 backdrop-blur-xl">
