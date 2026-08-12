@@ -116,7 +116,37 @@ function BookingDetail() {
     }
   }
 
+  async function markCompleted() {
+    if (!b) return;
+    setCompleting(true);
+    try {
+      const updates: any = { status: "completed" };
+      if (b.job_id) {
+        const { error: jobError } = await supabase
+          .from("jobs")
+          .update({ status: "completed", completed_at: new Date().toISOString() })
+          .eq("id", b.job_id);
+        if (jobError) throw jobError;
+      }
+      if (b.loan_bike_id && !b.loan_bike_returned_at) {
+        updates.loan_bike_returned_at = new Date().toISOString();
+      }
+      const { error } = await supabase.from("bookings").update(updates).eq("id", b.id);
+      if (error) throw error;
+      qc.invalidateQueries({ queryKey: ["booking", bookingId] });
+      qc.invalidateQueries({ queryKey: ["calendar-bookings"] });
+      qc.invalidateQueries({ queryKey: ["my-bookings"] });
+      qc.invalidateQueries({ queryKey: ["my-jobs"] });
+      toast.success("Booking marked as completed");
+    } catch (err: any) {
+      toast.error(err.message ?? "Failed to complete booking");
+    } finally {
+      setCompleting(false);
+    }
+  }
+
   if (isLoading || !b)
+
     return (
       <div className="card-surface p-8 text-center text-sm text-muted-foreground">Loading…</div>
     );
