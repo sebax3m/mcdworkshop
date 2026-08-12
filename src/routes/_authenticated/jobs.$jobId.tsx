@@ -1117,8 +1117,29 @@ function JobDetail() {
           Print Job Card
         </button>
       </div>
+
+      <section className="hidden print:block card-surface p-4" data-print-section="notes">
+        <h2 className="font-display text-lg font-semibold mb-3">Notes</h2>
+        <NotesList notes={notes.data ?? []} />
+      </section>
     </div>
-  );
+
+    <aside className="no-print lg:sticky lg:top-4 lg:self-start space-y-4">
+      <section className="card-surface p-4">
+        <h2 className="font-display text-lg font-semibold mb-3">Notes</h2>
+        {canEdit && (
+          <AddNote
+            jobId={jobId}
+            onAdded={() => qc.invalidateQueries({ queryKey: ["job-notes", jobId] })}
+          />
+        )}
+        <div className="mt-3">
+          <NotesList notes={notes.data ?? []} />
+        </div>
+      </section>
+    </aside>
+  </div>
+);
 }
 
 function InfoRow({
