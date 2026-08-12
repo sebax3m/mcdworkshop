@@ -32,12 +32,10 @@ function TransportIcon({
   label,
   title,
   address,
-  variant = "inline",
 }: {
   label: string;
   title?: string;
   address: string;
-  variant?: "inline" | "absolute";
 }) {
   return (
     <Popover>
@@ -45,11 +43,7 @@ function TransportIcon({
         <button
           type="button"
           onClick={(e) => e.stopPropagation()}
-          className={cn(
-            "z-10 inline-flex items-center justify-center rounded bg-sky-500 text-white shadow hover:bg-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-300",
-            variant === "inline" && "h-4 w-4",
-            variant === "absolute" && "absolute top-1 right-1 h-4 w-4 text-[0.55rem]",
-          )}
+          className="z-10 inline-flex h-4 w-4 items-center justify-center rounded bg-sky-500 text-white shadow hover:bg-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-300"
           title={title}
         >
           <Truck className="h-2.5 w-2.5" />
