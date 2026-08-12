@@ -176,7 +176,7 @@ export function BookInCard({
       className={cn(
         "group relative w-full overflow-hidden rounded-[8px] border border-[color:var(--bookin-line)] border-l-[3px] text-left transition-colors",
         "hover:border-border focus:outline-none focus:ring-2 focus:ring-primary/40",
-        dense ? "px-2 py-1.5" : "px-2.5 py-2",
+        dense ? "px-2.5 py-2" : "px-3 py-2.5",
         draggable && "cursor-grab active:cursor-grabbing",
         className,
       )}
