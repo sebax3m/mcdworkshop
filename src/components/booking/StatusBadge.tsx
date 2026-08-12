@@ -25,7 +25,7 @@ export function StatusBadge({
       style={statusStyle.badge(s.color)}
       className={cn(
         "inline-flex items-center rounded-[4px] border px-1.5 py-[2px] font-bold uppercase leading-none tracking-[0.06em]",
-        compact ? "text-[0.5rem]" : "text-[0.5625rem]",
+        compact ? "text-[0.5625rem]" : "text-[0.625rem]",
         className,
       )}
     >
