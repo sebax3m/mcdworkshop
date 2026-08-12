@@ -29,6 +29,61 @@ type Props = {
   dense?: boolean;
 };
 
+function TransportIcon({
+  label,
+  title,
+  address,
+  variant = "inline",
+}: {
+  label: string;
+  title: string;
+  address: string;
+  variant?: "inline" | "absolute";
+}) {
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <button
+          type="button"
+          onClick={(e) => e.stopPropagation()}
+          className={cn(
+            "z-10 inline-flex items-center justify-center rounded bg-sky-500 text-white shadow hover:bg-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-300",
+            variant === "inline" && "h-4 w-4",
+            variant === "absolute" && "absolute top-1 right-1 h-4 w-4 text-[0.55rem]",
+          )}
+          title={title}
+        >
+          <Truck className="h-2.5 w-2.5" />
+        </button>
+      </PopoverTrigger>
+      <PopoverContent
+        side="top"
+        align="end"
+        sideOffset={6}
+        className="w-80 p-3 sm:w-96"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="space-y-2">
+          <div className="flex items-center gap-2 text-sm font-semibold">
+            <Truck className="h-4 w-4 text-sky-500" />
+            {label}
+          </div>
+          {address ? (
+            <>
+              <p className="text-xs text-muted-foreground">{address}</p>
+              <div className="overflow-hidden rounded-lg border border-border">
+                <AddressMap address={address} />
+              </div>
+            </>
+          ) : (
+            <p className="text-xs text-muted-foreground">No address provided.</p>
+          )}
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
 /**
  * Compact book-in card: motorcycle → rego → customer → requested work → status.
  * Used by the book-in calendar, the day view and the Today dashboard.
