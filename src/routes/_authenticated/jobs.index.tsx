@@ -27,12 +27,19 @@ function JobsList() {
   const { isAdmin } = useCurrentUser();
   const qc = useQueryClient();
   const [filter, setFilter] = useState<string>("active");
+  const [techFilter, setTechFilter] = useState<string>("all");
   const [search, setSearch] = useState("");
   const [selectMode, setSelectMode] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [deleteJobId, setDeleteJobId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
+
+  const { technicians: allTechs } = useTechnicians();
+  const technicians = allTechs.filter(
+    (t) => t.full_name.trim().toLowerCase() !== "admin" && t.email !== "services@mcdr.co.nz",
+  );
+
 
   const { data: jobs = [], isLoading } = useQuery({
     queryKey: ["jobs", filter],
