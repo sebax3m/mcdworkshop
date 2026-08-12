@@ -313,30 +313,30 @@ function BookingDetail() {
         </div>
       )}
 
-      {b.status === "completed" ? (
-        <div className="flex items-center justify-center gap-2 rounded-xl bg-green-500/15 border border-green-500/40 h-14 text-green-400 font-bold">
-          <CheckCircle className="h-5 w-5" />
-          Completed
-        </div>
-      ) : (
-        <div className="flex flex-col gap-2">
-          {!b.job_id ? (
-            <Button
-              onClick={createJob}
-              disabled={converting}
-              className="w-full h-14 gold-surface text-base font-bold"
-            >
-              {converting ? "Creating job…" : "→ Create Job Card from Booking"}
-            </Button>
-          ) : (
-            <Link
-              to="/jobs/$jobId"
-              params={{ jobId: b.job_id }}
-              className="block w-full text-center rounded-xl gold-surface h-14 leading-[3.5rem] font-bold"
-            >
-              Open Job Card →
-            </Link>
-          )}
+      <div className="flex flex-col gap-2">
+        {!b.job_id ? (
+          <Button
+            onClick={createJob}
+            disabled={converting}
+            className="w-full h-14 gold-surface text-base font-bold"
+          >
+            {converting ? "Creating job…" : "→ Create Job Card from Booking"}
+          </Button>
+        ) : (
+          <Link
+            to="/jobs/$jobId"
+            params={{ jobId: b.job_id }}
+            className="block w-full text-center rounded-xl gold-surface h-14 leading-[3.5rem] font-bold"
+          >
+            Open Job Card →
+          </Link>
+        )}
+        {b.status === "completed" ? (
+          <div className="flex items-center justify-center gap-2 rounded-xl bg-green-500/15 border border-green-500/40 h-12 text-green-400 font-bold">
+            <CheckCircle className="h-5 w-5" />
+            Completed
+          </div>
+        ) : (
           <Button
             onClick={markCompleted}
             disabled={completing}
@@ -346,8 +346,9 @@ function BookingDetail() {
             <CheckCircle className="h-4 w-4 mr-2" />
             {completing ? "Completing…" : "Mark booking as completed"}
           </Button>
-        </div>
-      )}
+        )}
+      </div>
+
 
     </motion.div>
   );
