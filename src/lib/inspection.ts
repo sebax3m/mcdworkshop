@@ -119,15 +119,198 @@ export type ApprovalRequest = {
   resolution_note: string | null;
 };
 
-/** Quick-add templates shown to technicians. */
-export const FINDING_PRESETS: { title: string; category: FindingCategory; severity: Severity }[] = [
-  { title: "Chain & sprockets worn", category: "chain_sprockets", severity: "important" },
-  { title: "Front brake pads low", category: "brakes", severity: "safety_critical" },
-  { title: "Rear brake pads low", category: "brakes", severity: "safety_critical" },
-  { title: "Rear tyre near wear limit", category: "tyres", severity: "recommended" },
-  { title: "Front tyre near wear limit", category: "tyres", severity: "recommended" },
-  { title: "Fork seals leaking", category: "suspension", severity: "important" },
-  { title: "Coolant low / due for change", category: "cooling", severity: "recommended" },
-  { title: "Battery weak", category: "electrical", severity: "recommended" },
-  { title: "Steering head bearing worn", category: "safety", severity: "safety_critical" },
+/** Workshop labour rate (ex GST) used for inspection quote estimates. */
+export const INSPECTION_LABOUR_RATE = 130;
+
+/** Fallback estimate when nothing more specific is known. */
+export const DEFAULT_FINDING_ESTIMATE = { labour: 1, parts: 100 };
+
+/** Category-level fallbacks (used when no preset matches). */
+export const CATEGORY_DEFAULTS: Record<string, { labour: number; parts: number }> = {
+  brakes: { labour: 1, parts: 120 },
+  chain_sprockets: { labour: 1.5, parts: 320 },
+  tyres: { labour: 1, parts: 320 },
+  suspension: { labour: 2.5, parts: 350 },
+  electrical: { labour: 1, parts: 150 },
+  engine: { labour: 3, parts: 400 },
+  cooling: { labour: 1, parts: 90 },
+  transmission: { labour: 2.5, parts: 350 },
+  service_item: { labour: 0.5, parts: 60 },
+  safety: { labour: 2, parts: 200 },
+  other: { labour: 1, parts: 100 },
+};
+
+/** Quick-add templates shown to technicians, with default labour + parts estimates. */
+export const FINDING_PRESETS: {
+  title: string;
+  category: FindingCategory;
+  severity: Severity;
+  labour: number;
+  parts: number;
+  action?: string;
+}[] = [
+  {
+    title: "Chain & sprockets worn",
+    category: "chain_sprockets",
+    severity: "important",
+    labour: 1.5,
+    parts: 320,
+    action: "Replace chain and sprocket kit.",
+  },
+  {
+    title: "Front brake pads low",
+    category: "brakes",
+    severity: "safety_critical",
+    labour: 1,
+    parts: 55,
+    action: "Replace front brake pads.",
+  },
+  {
+    title: "Rear brake pads low",
+    category: "brakes",
+    severity: "safety_critical",
+    labour: 1,
+    parts: 45,
+    action: "Replace rear brake pads.",
+  },
+  {
+    title: "Brake fluid change",
+    category: "brakes",
+    severity: "recommended",
+    labour: 1,
+    parts: 35,
+    action: "Flush and bleed brake system.",
+  },
+  {
+    title: "Brake discs worn",
+    category: "brakes",
+    severity: "important",
+    labour: 1.5,
+    parts: 320,
+    action: "Replace brake disc(s).",
+  },
+  {
+    title: "Rear tyre near wear limit",
+    category: "tyres",
+    severity: "recommended",
+    labour: 1,
+    parts: 360,
+    action: "Replace rear tyre.",
+  },
+  {
+    title: "Front tyre near wear limit",
+    category: "tyres",
+    severity: "recommended",
+    labour: 0.8,
+    parts: 280,
+    action: "Replace front tyre.",
+  },
+  {
+    title: "Fork seals leaking",
+    category: "suspension",
+    severity: "important",
+    labour: 3,
+    parts: 180,
+    action: "Replace fork seals and oil.",
+  },
+  {
+    title: "Rear shock worn",
+    category: "suspension",
+    severity: "recommended",
+    labour: 2,
+    parts: 550,
+    action: "Replace or service rear shock.",
+  },
+  {
+    title: "Coolant low / due for change",
+    category: "cooling",
+    severity: "recommended",
+    labour: 1,
+    parts: 45,
+    action: "Drain and refill coolant.",
+  },
+  {
+    title: "Battery weak",
+    category: "electrical",
+    severity: "recommended",
+    labour: 0.5,
+    parts: 180,
+    action: "Replace battery.",
+  },
+  {
+    title: "Steering head bearing worn",
+    category: "safety",
+    severity: "safety_critical",
+    labour: 2.5,
+    parts: 100,
+    action: "Replace steering head bearings and re-torque.",
+  },
+  {
+    title: "Wheel bearings worn",
+    category: "safety",
+    severity: "important",
+    labour: 1.5,
+    parts: 120,
+    action: "Replace wheel bearings.",
+  },
+  {
+    title: "Clutch slipping",
+    category: "transmission",
+    severity: "important",
+    labour: 2.5,
+    parts: 350,
+    action: "Replace clutch plates and springs.",
+  },
+  {
+    title: "Air filter dirty",
+    category: "service_item",
+    severity: "recommended",
+    labour: 0.5,
+    parts: 70,
+    action: "Replace air filter.",
+  },
+  {
+    title: "Spark plugs due",
+    category: "service_item",
+    severity: "recommended",
+    labour: 1,
+    parts: 90,
+    action: "Replace spark plugs.",
+  },
+  {
+    title: "Oil leak",
+    category: "engine",
+    severity: "important",
+    labour: 2,
+    parts: 150,
+    action: "Trace leak, replace gasket/seal.",
+  },
+  {
+    title: "Valve clearances out of spec",
+    category: "engine",
+    severity: "important",
+    labour: 4,
+    parts: 180,
+    action: "Adjust valve clearances / fit shims.",
+  },
 ];
+
+/** Default labour hours + parts cost for a finding, by preset title then category. */
+export function findingDefaults(title: string, category: string) {
+  const preset = FINDING_PRESETS.find(
+    (p) => p.title.toLowerCase() === title.trim().toLowerCase(),
+  );
+  if (preset) return { labour: preset.labour, parts: preset.parts };
+  return CATEGORY_DEFAULTS[category] ?? DEFAULT_FINDING_ESTIMATE;
+}
+
+/** Quote roll-up for a list of findings. */
+export function quoteTotals(list: { estimated_labour: number | null; estimated_parts_cost: number | null }[]) {
+  const hours = list.reduce((n, f) => n + (Number(f.estimated_labour) || 0), 0);
+  const parts = list.reduce((n, f) => n + (Number(f.estimated_parts_cost) || 0), 0);
+  const labour = hours * INSPECTION_LABOUR_RATE;
+  const subtotal = labour + parts;
+  const gst = subtotal * 0.15;
+  return { hours, parts, labour, subtotal, gst, total: subtotal + gst };
+}
+

@@ -9,7 +9,9 @@ import { useTechnicianNames } from "@/hooks/use-technician-names";
 import {
   CATEGORY_LABEL,
   FINDING_STATUS_META,
+  INSPECTION_LABOUR_RATE,
   SEVERITY_META,
+  quoteTotals,
   type ApprovalRequest,
   type InspectionFinding,
 } from "@/lib/inspection";
@@ -84,11 +86,13 @@ export function InspectionPanel({
     onJobChanged();
   };
 
-  const totals = useMemo(() => {
-    const sum = (list: InspectionFinding[]) =>
-      list.reduce((n, f) => n + (Number(f.estimated_parts_cost) || 0), 0);
-    return { drafts: sum(drafts), pending: sum(pending) };
-  }, [drafts, pending]);
+  const totals = useMemo(
+    () => ({ drafts: quoteTotals(drafts), pending: quoteTotals(pending) }),
+    [drafts, pending],
+  );
+  const approved = useMemo(() => findings.filter((f) => f.status === "approved"), [findings]);
+  const quoteList = pending.length > 0 ? pending : drafts.length > 0 ? drafts : approved;
+  const quote = useMemo(() => quoteTotals(quoteList), [quoteList]);
 
   async function saveDraft() {
     await logJobEvent(
@@ -258,7 +262,7 @@ export function InspectionPanel({
       )}
 
       {pending.length > 0 && (
-        <Section title={`Awaiting approval (${pending.length})`} total={totals.pending}>
+        <Section title={`Awaiting approval (${pending.length})`} summary={totals.pending}>
           {pending.map((f) => (
             <FindingRow key={f.id} f={f} onDelete={() => removeFinding(f)} />
           ))}
@@ -266,7 +270,7 @@ export function InspectionPanel({
       )}
 
       {drafts.length > 0 && (
-        <Section title={`Draft findings (${drafts.length})`} total={totals.drafts}>
+        <Section title={`Draft findings (${drafts.length})`} summary={totals.drafts}>
           {drafts.map((f) => (
             <FindingRow
               key={f.id}
@@ -296,6 +300,66 @@ export function InspectionPanel({
           ))}
         </Section>
       )}
+
+      {quoteList.length > 0 && (
+        <div className="rounded-lg border border-border overflow-hidden">
+          <div className="bg-muted/40 px-3 py-2 text-[0.6875rem] font-bold uppercase tracking-wider">
+            Estimate for customer approval
+          </div>
+          <table className="w-full text-xs">
+            <thead>
+              <tr className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">
+                <th className="text-left font-medium px-3 py-1.5">Item</th>
+                <th className="text-right font-medium px-2 py-1.5 w-14">Hrs</th>
+                <th className="text-right font-medium px-2 py-1.5 w-20">Labour</th>
+                <th className="text-right font-medium px-2 py-1.5 w-20">Parts</th>
+                <th className="text-right font-medium px-3 py-1.5 w-20">Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              {quoteList.map((f) => {
+                const hrs = Number(f.estimated_labour) || 0;
+                const parts = Number(f.estimated_parts_cost) || 0;
+                const lab = hrs * INSPECTION_LABOUR_RATE;
+                return (
+                  <tr key={f.id} className="border-t border-border/60">
+                    <td className="px-3 py-1.5">
+                      <span className="font-medium">{f.title}</span>
+                      <span className="text-muted-foreground">
+                        {" "}
+                        · {SEVERITY_META[f.severity]?.label}
+                      </span>
+                    </td>
+                    <td className="px-2 py-1.5 text-right tabular-nums">{hrs || "—"}</td>
+                    <td className="px-2 py-1.5 text-right tabular-nums">${lab.toFixed(2)}</td>
+                    <td className="px-2 py-1.5 text-right tabular-nums">${parts.toFixed(2)}</td>
+                    <td className="px-3 py-1.5 text-right tabular-nums font-semibold">
+                      ${(lab + parts).toFixed(2)}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+          <div className="border-t border-border px-3 py-2 space-y-0.5 text-xs">
+            <Row
+              label={`Labour ${quote.hours}h @ $${INSPECTION_LABOUR_RATE}/h`}
+              value={quote.labour}
+            />
+            <Row label="Parts" value={quote.parts} />
+            <Row label="Subtotal (ex GST)" value={quote.subtotal} />
+            <Row label="GST 15%" value={quote.gst} />
+            <div className="flex items-center justify-between border-t border-border pt-1 mt-1 text-sm font-bold">
+              <span>Total incl GST</span>
+              <span className="tabular-nums">${quote.total.toFixed(2)}</span>
+            </div>
+            <p className="text-[0.625rem] text-muted-foreground pt-1">
+              Default hours and parts prices are estimates — edit any finding to adjust.
+            </p>
+          </div>
+        </div>
+      )}
+
 
       {drafts.length > 0 && (
         <div className="flex flex-wrap gap-2">
@@ -334,21 +398,35 @@ export function InspectionPanel({
   );
 }
 
+function Row({ label, value }: { label: string; value: number }) {
+  return (
+    <div className="flex items-center justify-between">
+      <span className="text-muted-foreground">{label}</span>
+      <span className="tabular-nums font-medium">${value.toFixed(2)}</span>
+    </div>
+  );
+}
+
 function Section({
   title,
-  total,
+  summary,
   children,
 }: {
   title: string;
-  total?: number;
+  summary?: { hours: number; subtotal: number };
   children: React.ReactNode;
 }) {
   return (
     <div>
       <div className="flex items-center justify-between text-[0.6875rem] uppercase tracking-wider text-muted-foreground mb-1.5">
         <span>{title}</span>
-        {total ? <span>~${total.toFixed(0)} parts</span> : null}
+        {summary && (summary.hours || summary.subtotal) ? (
+          <span>
+            {summary.hours}h · ~${summary.subtotal.toFixed(0)} ex GST
+          </span>
+        ) : null}
       </div>
+
       <div className="space-y-2">{children}</div>
     </div>
   );
