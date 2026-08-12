@@ -37,6 +37,7 @@ function BookingDetail() {
   const nav = useNavigate();
   const [converting, setConverting] = useState(false);
   const [completing, setCompleting] = useState(false);
+  const [reversing, setReversing] = useState(false);
   const [photoUrls, setPhotoUrls] = useState<string[]>([]);
   const [loanOpen, setLoanOpen] = useState(false);
 
