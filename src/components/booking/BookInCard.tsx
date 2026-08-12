@@ -235,18 +235,18 @@ export function BookInCard({
         {/* ROW 2 — customer */}
         <div
           className={cn(
-            "flex items-center gap-1.5 truncate pl-[1.4rem] text-[0.625rem] leading-tight sm:text-[0.6875rem]",
+            "flex items-center gap-1.5 truncate pl-[1.6rem] text-[0.6875rem] leading-tight sm:text-[0.75rem]",
             jobCompleted ? "text-muted-foreground/70" : "text-muted-foreground",
           )}
         >
-          <UserIcon className="h-2.5 w-2.5 shrink-0" />
+          <UserIcon className="h-3 w-3 shrink-0" />
           <span className="truncate">{customer}</span>
         </div>
 
         {/* ROW 3 — requested work (service type = secondary) */}
-        <div className="flex items-center gap-1.5 truncate pl-[1.4rem] text-[0.625rem] leading-tight sm:text-[0.6875rem]">
+        <div className="flex items-center gap-1.5 truncate pl-[1.6rem] text-[0.6875rem] leading-tight sm:text-[0.75rem]">
           <span
-            className={cn("h-1.5 w-1.5 shrink-0 rounded-full", svc.bg, jobCompleted && "opacity-50")}
+            className={cn("h-2 w-2 shrink-0 rounded-full", svc.bg, jobCompleted && "opacity-50")}
           />
           <span
             className={cn(
@@ -260,9 +260,9 @@ export function BookInCard({
 
         {/* ROW 4 — workflow detail + status badge (bottom-right aligned) */}
         <div className="flex items-center justify-between gap-1.5">
-          <div className="flex items-center gap-1.5 min-w-0 pl-[1.4rem]">
+          <div className="flex items-center gap-1.5 min-w-0 pl-[1.6rem]">
             {detail && (
-              <span className="truncate text-[0.5625rem] uppercase tracking-wider text-muted-foreground/70">
+              <span className="truncate text-[0.625rem] uppercase tracking-wider text-muted-foreground/70">
                 {detail}
               </span>
             )}
@@ -275,7 +275,7 @@ export function BookInCard({
                 style={statusStyle.badge(svc.hex)}
                 className={cn(
                   "inline-flex items-center rounded-[4px] border px-1.5 py-[2px] font-bold uppercase leading-none tracking-[0.06em]",
-                  dense ? "text-[0.5rem]" : "text-[0.5625rem]",
+                  dense ? "text-[0.5625rem]" : "text-[0.625rem]",
                 )}
               >
                 {serviceBadgeLabel(b.service_type)}
