@@ -1506,8 +1506,7 @@ function ServiceChecks({
         </button>
       </div>
 
-      {(detailDraft.trim() !== "" || true) && (
-        <div className="mt-3">
+      <div className="mt-3">
           <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground mb-1">
             Details of work performed
           </div>
@@ -1526,8 +1525,7 @@ function ServiceChecks({
             placeholder="Describe the work carried out — diagnostics, findings, adjustments, tests…"
             className="no-print w-full rounded-lg border border-border bg-background/50 p-3 text-sm leading-relaxed outline-none focus:border-primary resize-y"
           />
-        </div>
-      )}
+      </div>
     </div>
   );
 }
