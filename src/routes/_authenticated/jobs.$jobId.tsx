@@ -219,6 +219,7 @@ function JobDetail() {
   const [previewOpen, setPreviewOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [completingAll, setCompletingAll] = useState(false);
+  const [reversingAll, setReversingAll] = useState(false);
   const jobRef = useRef<HTMLDivElement>(null);
 
   /** Mark the job, its booking and any loan bike as fully completed everywhere. */
@@ -263,6 +264,51 @@ function JobDetail() {
       toast.error(err instanceof Error ? err.message : "Failed to complete job");
     } finally {
       setCompletingAll(false);
+    }
+  }
+
+  /** Reverse the completed status in case it was pressed by mistake. */
+  async function reverseCompleteEverything() {
+    setReversingAll(true);
+    try {
+      const { error } = await supabase
+        .from("jobs")
+        .update({ status: "in_progress", completed_at: null })
+        .eq("id", jobId);
+      if (error) throw error;
+      const { data: bk } = await supabase
+        .from("bookings")
+        .select("id, loan_bike_id, loan_bike_returned_at")
+        .eq("job_id", jobId)
+        .maybeSingle();
+      if (bk?.id) {
+        await supabase
+          .from("bookings")
+          .update({
+            status: "in_progress",
+            ...(bk.loan_bike_id && bk.loan_bike_returned_at
+              ? { loan_bike_returned_at: null }
+              : {}),
+          })
+          .eq("id", bk.id);
+      }
+      [
+        ["job", jobId],
+        ["jobs"],
+        ["my-jobs"],
+        ["my-bookings"],
+        ["dashboard-jobs"],
+        ["dashboard-counts"],
+        ["calendar-bookings"],
+        ["bookings"],
+        ["loan-bikes"],
+        ["loan-bikes-active-assignments"],
+      ].forEach((key) => qc.invalidateQueries({ queryKey: key as string[] }));
+      toast.success("Completion reversed");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to reverse completion");
+    } finally {
+      setReversingAll(false);
     }
   }
 
