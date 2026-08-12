@@ -179,7 +179,7 @@ function GarageLibraryIndex() {
   });
 
   const brands = useMemo(() => {
-    const map = new Map<string, ModelRow[]>();
+    const map = new Map<string, LibModel[]>();
     for (const m of models) {
       const key = m.make.trim();
       const arr = map.get(key) ?? [];
