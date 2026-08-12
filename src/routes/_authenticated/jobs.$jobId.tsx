@@ -33,6 +33,7 @@ import {
   FileText,
   Printer,
   Trash2,
+  Pencil,
 } from "lucide-react";
 import { detectServiceKind, KIND_META, SERVICE_PARTS } from "@/lib/service-kinds";
 import { getValveSpec, formatRange, type ValveSpec } from "@/lib/valve-specs";
@@ -798,30 +799,15 @@ function JobDetail() {
         />
       )}
 
-      {/* Notes */}
-      {(booking.data?.instructions || booking.data?.notes) && (
-        <section
-          data-print-section="instructions"
-          className="card-surface p-4 border-l-4 border-primary/60"
-        >
-          <div className="flex items-center gap-2 mb-2">
-            <h2 className="font-display text-lg font-semibold">Instructions</h2>
-            <span className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">
-              from book-in
-            </span>
-          </div>
-          {booking.data?.instructions && (
-            <p className="text-sm whitespace-pre-wrap">{booking.data.instructions}</p>
-          )}
-          {booking.data?.notes && (
-            <div className="mt-2 pt-2 border-t border-border/40">
-              <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground mb-0.5">
-                Internal notes
-              </div>
-              <p className="text-sm whitespace-pre-wrap">{booking.data.notes}</p>
-            </div>
-          )}
-        </section>
+      {/* Book-in instructions — editable from the job card */}
+      {(booking.data?.id || booking.data?.instructions || booking.data?.notes) && (
+        <InstructionsSection
+          bookingId={booking.data?.id ?? null}
+          instructions={booking.data?.instructions ?? ""}
+          notes={booking.data?.notes ?? ""}
+          canEdit={canEdit}
+          onSaved={() => qc.invalidateQueries({ queryKey: ["job-booking", jobId] })}
+        />
       )}
 
       {/* Customer-approved extra work — printed so the tech knows exactly what was signed off */}
@@ -2141,6 +2127,132 @@ function ValveClearancePrintSheet({
     </div>
   );
 }
+function InstructionsSection({
+  bookingId,
+  instructions,
+  notes,
+  canEdit,
+  onSaved,
+}: {
+  bookingId: string | null;
+  instructions: string;
+  notes: string;
+  canEdit: boolean;
+  onSaved: () => void;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [ins, setIns] = useState(instructions);
+  const [nts, setNts] = useState(notes);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    setIns(instructions);
+    setNts(notes);
+  }, [instructions, notes]);
+
+  async function save() {
+    if (!bookingId) return;
+    setSaving(true);
+    try {
+      const { error } = await supabase
+        .from("bookings")
+        .update({ instructions: ins || null, notes: nts || null })
+        .eq("id", bookingId);
+      if (error) throw error;
+      toast.success("Instructions saved");
+      setEditing(false);
+      onSaved();
+    } catch (e: any) {
+      toast.error(e?.message ?? "Failed to save");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <section
+      data-print-section="instructions"
+      className="card-surface p-4 border-l-4 border-primary/60"
+    >
+      <div className="flex items-center gap-2 mb-2">
+        <h2 className="font-display text-lg font-semibold">Instructions</h2>
+        <span className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">
+          from book-in
+        </span>
+        {canEdit && bookingId && !editing && (
+          <Button
+            variant="outline"
+            size="sm"
+            className="ml-auto print:hidden"
+            onClick={() => setEditing(true)}
+          >
+            <Pencil className="h-3.5 w-3.5 mr-1" /> Edit
+          </Button>
+        )}
+      </div>
+
+      {editing ? (
+        <div className="space-y-3 print:hidden">
+          <div>
+            <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground mb-1">
+              Instructions
+            </div>
+            <Textarea
+              value={ins}
+              onChange={(e) => setIns(e.target.value)}
+              rows={4}
+              placeholder="What the customer asked for…"
+            />
+          </div>
+          <div>
+            <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground mb-1">
+              Internal notes
+            </div>
+            <Textarea
+              value={nts}
+              onChange={(e) => setNts(e.target.value)}
+              rows={3}
+              placeholder="Internal notes…"
+            />
+          </div>
+          <div className="flex gap-2">
+            <Button size="sm" onClick={save} disabled={saving}>
+              {saving ? "Saving…" : "Save"}
+            </Button>
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => {
+                setIns(instructions);
+                setNts(notes);
+                setEditing(false);
+              }}
+            >
+              Cancel
+            </Button>
+          </div>
+        </div>
+      ) : (
+        <>
+          {instructions ? (
+            <p className="text-sm whitespace-pre-wrap">{instructions}</p>
+          ) : (
+            <p className="text-sm text-muted-foreground print:hidden">No instructions yet.</p>
+          )}
+          {notes && (
+            <div className="mt-2 pt-2 border-t border-border/40">
+              <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground mb-0.5">
+                Internal notes
+              </div>
+              <p className="text-sm whitespace-pre-wrap">{notes}</p>
+            </div>
+          )}
+        </>
+      )}
+    </section>
+  );
+}
+
 
 function OdometerSection({
   jobId,
@@ -2190,7 +2302,7 @@ function OdometerSection({
     }
   }
 
-  useAutoSave(value, dirty && canEdit, () => save(true));
+  // Manual save only — the technician presses Save.
 
   const display = value ? Number(value.replace(/\D/g, "")).toLocaleString() : "";
 
@@ -2231,8 +2343,11 @@ function OdometerSection({
               km
             </span>
           </div>
+          <Button size="sm" className="h-11" onClick={() => save()} disabled={!canEdit || saving || !dirty}>
+            {saving ? "Saving…" : "Save"}
+          </Button>
           <span className="text-[0.625rem] uppercase tracking-wider text-muted-foreground min-w-[52px]">
-            {saving || dirty ? "saving…" : savedTick ? "✓ saved" : "\u00A0"}
+            {dirty ? "unsaved" : savedTick ? "✓ saved" : "\u00A0"}
           </span>
         </div>
       </div>
