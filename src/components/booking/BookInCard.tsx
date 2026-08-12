@@ -277,18 +277,6 @@ export function BookInCard({
 
       {/* Ultra-compact mobile view: bike + customer + tiny status dots */}
       <div className="sm:hidden flex items-start gap-1">
-        {photo ? (
-          <img
-            src={typeof photo === "string" ? photo : photo?.url}
-            alt=""
-            loading="lazy"
-            className="h-5 w-5 rounded object-cover border border-border shrink-0"
-          />
-        ) : (
-          <div className="h-5 w-5 rounded grid place-items-center bg-background/50 text-foreground/70 shrink-0">
-            <BikeIcon className="h-2.5 w-2.5" />
-          </div>
-        )}
         <div className="min-w-0 flex-1">
           <div className="font-semibold text-[0.65rem] leading-tight truncate">{bike}</div>
           <div className="flex items-center gap-0.5 text-[0.6rem] text-foreground/70 truncate">
