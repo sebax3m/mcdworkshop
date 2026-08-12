@@ -150,6 +150,39 @@ function BookingDetail() {
     }
   }
 
+  async function reverseComplete() {
+    if (!b) return;
+    if (!confirm("Reverse completion? This will set the booking and job back to In progress.")) return;
+    setReversing(true);
+    try {
+      const updates: any = { status: "in_progress" };
+      if (b.job_id) {
+        const { error: jobError } = await supabase
+          .from("jobs")
+          .update({ status: "in_progress", completed_at: null })
+          .eq("id", b.job_id);
+        if (jobError) throw jobError;
+      }
+      if (b.loan_bike_id && b.loan_bike_returned_at) {
+        updates.loan_bike_returned_at = null;
+      }
+      const { error } = await supabase.from("bookings").update(updates).eq("id", b.id);
+      if (error) throw error;
+      qc.invalidateQueries({ queryKey: ["booking", bookingId] });
+      qc.invalidateQueries({ queryKey: ["calendar-bookings"] });
+      qc.invalidateQueries({ queryKey: ["my-bookings"] });
+      qc.invalidateQueries({ queryKey: ["my-jobs"] });
+      qc.invalidateQueries({ queryKey: ["loan-bikes"] });
+      qc.invalidateQueries({ queryKey: ["loan-bikes-active-assignments"] });
+      toast.success("Completion reversed");
+    } catch (err: any) {
+      toast.error(err.message ?? "Failed to reverse completion");
+    } finally {
+      setReversing(false);
+    }
+  }
+
+
   if (isLoading || !b)
 
     return (
