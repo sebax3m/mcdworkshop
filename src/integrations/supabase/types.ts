@@ -19,34 +19,55 @@ export type Database = {
           created_at: string
           hours: number | null
           id: string
+          is_archived: boolean
           model_id: string
           notes: string | null
           parts_cost: number | null
+          parts_required: string | null
           sort_order: number
+          source: Database["public"]["Enums"]["garage_source"]
+          special_tools: string | null
           task: string
           updated_at: string
+          updated_by: string | null
+          verification: Database["public"]["Enums"]["garage_verification"]
+          verified_by: string | null
         }
         Insert: {
           created_at?: string
           hours?: number | null
           id?: string
+          is_archived?: boolean
           model_id: string
           notes?: string | null
           parts_cost?: number | null
+          parts_required?: string | null
           sort_order?: number
+          source?: Database["public"]["Enums"]["garage_source"]
+          special_tools?: string | null
           task: string
           updated_at?: string
+          updated_by?: string | null
+          verification?: Database["public"]["Enums"]["garage_verification"]
+          verified_by?: string | null
         }
         Update: {
           created_at?: string
           hours?: number | null
           id?: string
+          is_archived?: boolean
           model_id?: string
           notes?: string | null
           parts_cost?: number | null
+          parts_required?: string | null
           sort_order?: number
+          source?: Database["public"]["Enums"]["garage_source"]
+          special_tools?: string | null
           task?: string
           updated_at?: string
+          updated_by?: string | null
+          verification?: Database["public"]["Enums"]["garage_verification"]
+          verified_by?: string | null
         }
         Relationships: [
           {
@@ -69,26 +90,31 @@ export type Database = {
           created_at: string
           created_by: string | null
           cylinders: number
+          engine_cc: number | null
           engine_oil_qty_l: number | null
           engine_oil_type: string | null
           fork_oil: string | null
           front_sprocket: string | null
           front_tyre: string | null
           id: string
+          is_archived: boolean
           make: string
           model: string
           notes: string | null
           oil_filter: string | null
+          photo_url: string | null
           rear_sprocket: string | null
           rear_tyre: string | null
           service_interval_km: number | null
           spark_plug: string | null
           spark_plug_qty: number | null
           updated_at: string
+          updated_by: string | null
           valve_exhaust_max: number | null
           valve_exhaust_min: number | null
           valve_intake_max: number | null
           valve_intake_min: number | null
+          variant: string | null
           year_from: number | null
           year_to: number | null
         }
@@ -102,26 +128,31 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           cylinders?: number
+          engine_cc?: number | null
           engine_oil_qty_l?: number | null
           engine_oil_type?: string | null
           fork_oil?: string | null
           front_sprocket?: string | null
           front_tyre?: string | null
           id?: string
+          is_archived?: boolean
           make: string
           model: string
           notes?: string | null
           oil_filter?: string | null
+          photo_url?: string | null
           rear_sprocket?: string | null
           rear_tyre?: string | null
           service_interval_km?: number | null
           spark_plug?: string | null
           spark_plug_qty?: number | null
           updated_at?: string
+          updated_by?: string | null
           valve_exhaust_max?: number | null
           valve_exhaust_min?: number | null
           valve_intake_max?: number | null
           valve_intake_min?: number | null
+          variant?: string | null
           year_from?: number | null
           year_to?: number | null
         }
@@ -135,26 +166,31 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           cylinders?: number
+          engine_cc?: number | null
           engine_oil_qty_l?: number | null
           engine_oil_type?: string | null
           fork_oil?: string | null
           front_sprocket?: string | null
           front_tyre?: string | null
           id?: string
+          is_archived?: boolean
           make?: string
           model?: string
           notes?: string | null
           oil_filter?: string | null
+          photo_url?: string | null
           rear_sprocket?: string | null
           rear_tyre?: string | null
           service_interval_km?: number | null
           spark_plug?: string | null
           spark_plug_qty?: number | null
           updated_at?: string
+          updated_by?: string | null
           valve_exhaust_max?: number | null
           valve_exhaust_min?: number | null
           valve_intake_max?: number | null
           valve_intake_min?: number | null
+          variant?: string | null
           year_from?: number | null
           year_to?: number | null
         }
@@ -162,43 +198,70 @@ export type Database = {
       }
       bike_library_parts: {
         Row: {
+          alt_part_number: string | null
+          brand: string | null
+          category: string | null
           created_at: string
           id: string
+          is_archived: boolean
           model_id: string
           name: string
           notes: string | null
           part_number: string | null
           price: number | null
           qty: number
+          retail_price: number | null
           sort_order: number
+          source: Database["public"]["Enums"]["garage_source"]
           supplier: string | null
           updated_at: string
+          updated_by: string | null
+          verification: Database["public"]["Enums"]["garage_verification"]
+          verified_by: string | null
         }
         Insert: {
+          alt_part_number?: string | null
+          brand?: string | null
+          category?: string | null
           created_at?: string
           id?: string
+          is_archived?: boolean
           model_id: string
           name: string
           notes?: string | null
           part_number?: string | null
           price?: number | null
           qty?: number
+          retail_price?: number | null
           sort_order?: number
+          source?: Database["public"]["Enums"]["garage_source"]
           supplier?: string | null
           updated_at?: string
+          updated_by?: string | null
+          verification?: Database["public"]["Enums"]["garage_verification"]
+          verified_by?: string | null
         }
         Update: {
+          alt_part_number?: string | null
+          brand?: string | null
+          category?: string | null
           created_at?: string
           id?: string
+          is_archived?: boolean
           model_id?: string
           name?: string
           notes?: string | null
           part_number?: string | null
           price?: number | null
           qty?: number
+          retail_price?: number | null
           sort_order?: number
+          source?: Database["public"]["Enums"]["garage_source"]
           supplier?: string | null
           updated_at?: string
+          updated_by?: string | null
+          verification?: Database["public"]["Enums"]["garage_verification"]
+          verified_by?: string | null
         }
         Relationships: [
           {
@@ -215,31 +278,49 @@ export type Database = {
           created_at: string
           fastener: string
           id: string
+          is_archived: boolean
           model_id: string
           notes: string | null
           sort_order: number
+          source: Database["public"]["Enums"]["garage_source"]
           torque_nm: number | null
+          unit: string
           updated_at: string
+          updated_by: string | null
+          verification: Database["public"]["Enums"]["garage_verification"]
+          verified_by: string | null
         }
         Insert: {
           created_at?: string
           fastener: string
           id?: string
+          is_archived?: boolean
           model_id: string
           notes?: string | null
           sort_order?: number
+          source?: Database["public"]["Enums"]["garage_source"]
           torque_nm?: number | null
+          unit?: string
           updated_at?: string
+          updated_by?: string | null
+          verification?: Database["public"]["Enums"]["garage_verification"]
+          verified_by?: string | null
         }
         Update: {
           created_at?: string
           fastener?: string
           id?: string
+          is_archived?: boolean
           model_id?: string
           notes?: string | null
           sort_order?: number
+          source?: Database["public"]["Enums"]["garage_source"]
           torque_nm?: number | null
+          unit?: string
           updated_at?: string
+          updated_by?: string | null
+          verification?: Database["public"]["Enums"]["garage_verification"]
+          verified_by?: string | null
         }
         Relationships: [
           {
@@ -633,6 +714,319 @@ export type Database = {
             columns: ["motorcycle_id"]
             isOneToOne: false
             referencedRelation: "motorcycles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      garage_fluid_specs: {
+        Row: {
+          created_at: string
+          filter_part_number: string | null
+          fluid_type: string
+          id: string
+          is_archived: boolean
+          model_id: string
+          notes: string | null
+          preferred_product: string | null
+          qty_with_filter: number | null
+          qty_without_filter: number | null
+          sort_order: number
+          source: Database["public"]["Enums"]["garage_source"]
+          spec: string | null
+          standard: string | null
+          unit: string
+          updated_at: string
+          updated_by: string | null
+          verification: Database["public"]["Enums"]["garage_verification"]
+          verified_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          filter_part_number?: string | null
+          fluid_type: string
+          id?: string
+          is_archived?: boolean
+          model_id: string
+          notes?: string | null
+          preferred_product?: string | null
+          qty_with_filter?: number | null
+          qty_without_filter?: number | null
+          sort_order?: number
+          source?: Database["public"]["Enums"]["garage_source"]
+          spec?: string | null
+          standard?: string | null
+          unit?: string
+          updated_at?: string
+          updated_by?: string | null
+          verification?: Database["public"]["Enums"]["garage_verification"]
+          verified_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          filter_part_number?: string | null
+          fluid_type?: string
+          id?: string
+          is_archived?: boolean
+          model_id?: string
+          notes?: string | null
+          preferred_product?: string | null
+          qty_with_filter?: number | null
+          qty_without_filter?: number | null
+          sort_order?: number
+          source?: Database["public"]["Enums"]["garage_source"]
+          spec?: string | null
+          standard?: string | null
+          unit?: string
+          updated_at?: string
+          updated_by?: string | null
+          verification?: Database["public"]["Enums"]["garage_verification"]
+          verified_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "garage_fluid_specs_model_id_fkey"
+            columns: ["model_id"]
+            isOneToOne: false
+            referencedRelation: "bike_library_models"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      garage_notes: {
+        Row: {
+          body: string
+          created_at: string
+          created_by: string | null
+          id: string
+          is_archived: boolean
+          model_id: string
+          title: string | null
+          updated_at: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_archived?: boolean
+          model_id: string
+          title?: string | null
+          updated_at?: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_archived?: boolean
+          model_id?: string
+          title?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "garage_notes_model_id_fkey"
+            columns: ["model_id"]
+            isOneToOne: false
+            referencedRelation: "bike_library_models"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      garage_revisions: {
+        Row: {
+          action: string
+          created_at: string
+          created_by: string | null
+          entity_id: string | null
+          entity_table: string
+          field: string | null
+          id: string
+          label: string
+          model_id: string | null
+          new_value: string | null
+          note: string | null
+          old_value: string | null
+        }
+        Insert: {
+          action?: string
+          created_at?: string
+          created_by?: string | null
+          entity_id?: string | null
+          entity_table: string
+          field?: string | null
+          id?: string
+          label: string
+          model_id?: string | null
+          new_value?: string | null
+          note?: string | null
+          old_value?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          created_by?: string | null
+          entity_id?: string | null
+          entity_table?: string
+          field?: string | null
+          id?: string
+          label?: string
+          model_id?: string | null
+          new_value?: string | null
+          note?: string | null
+          old_value?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "garage_revisions_model_id_fkey"
+            columns: ["model_id"]
+            isOneToOne: false
+            referencedRelation: "bike_library_models"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      garage_update_proposals: {
+        Row: {
+          created_at: string
+          current_value: string | null
+          entity_id: string | null
+          entity_table: string
+          field: string | null
+          id: string
+          label: string
+          model_id: string
+          note: string | null
+          proposed_by: string | null
+          proposed_value: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          source: Database["public"]["Enums"]["garage_source"]
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          current_value?: string | null
+          entity_id?: string | null
+          entity_table: string
+          field?: string | null
+          id?: string
+          label: string
+          model_id: string
+          note?: string | null
+          proposed_by?: string | null
+          proposed_value?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          source?: Database["public"]["Enums"]["garage_source"]
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          current_value?: string | null
+          entity_id?: string | null
+          entity_table?: string
+          field?: string | null
+          id?: string
+          label?: string
+          model_id?: string
+          note?: string | null
+          proposed_by?: string | null
+          proposed_value?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          source?: Database["public"]["Enums"]["garage_source"]
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "garage_update_proposals_model_id_fkey"
+            columns: ["model_id"]
+            isOneToOne: false
+            referencedRelation: "bike_library_models"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      garage_valve_specs: {
+        Row: {
+          adjustment_hours: number | null
+          created_at: string
+          exhaust_max: number | null
+          exhaust_min: number | null
+          id: string
+          inspection_hours: number | null
+          inspection_interval_km: number | null
+          intake_max: number | null
+          intake_min: number | null
+          is_archived: boolean
+          measurement_notes: string | null
+          model_id: string
+          notes: string | null
+          parts_required: string | null
+          source: Database["public"]["Enums"]["garage_source"]
+          special_tools: string | null
+          unit: string
+          updated_at: string
+          updated_by: string | null
+          verification: Database["public"]["Enums"]["garage_verification"]
+          verified_by: string | null
+        }
+        Insert: {
+          adjustment_hours?: number | null
+          created_at?: string
+          exhaust_max?: number | null
+          exhaust_min?: number | null
+          id?: string
+          inspection_hours?: number | null
+          inspection_interval_km?: number | null
+          intake_max?: number | null
+          intake_min?: number | null
+          is_archived?: boolean
+          measurement_notes?: string | null
+          model_id: string
+          notes?: string | null
+          parts_required?: string | null
+          source?: Database["public"]["Enums"]["garage_source"]
+          special_tools?: string | null
+          unit?: string
+          updated_at?: string
+          updated_by?: string | null
+          verification?: Database["public"]["Enums"]["garage_verification"]
+          verified_by?: string | null
+        }
+        Update: {
+          adjustment_hours?: number | null
+          created_at?: string
+          exhaust_max?: number | null
+          exhaust_min?: number | null
+          id?: string
+          inspection_hours?: number | null
+          inspection_interval_km?: number | null
+          intake_max?: number | null
+          intake_min?: number | null
+          is_archived?: boolean
+          measurement_notes?: string | null
+          model_id?: string
+          notes?: string | null
+          parts_required?: string | null
+          source?: Database["public"]["Enums"]["garage_source"]
+          special_tools?: string | null
+          unit?: string
+          updated_at?: string
+          updated_by?: string | null
+          verification?: Database["public"]["Enums"]["garage_verification"]
+          verified_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "garage_valve_specs_model_id_fkey"
+            columns: ["model_id"]
+            isOneToOne: false
+            referencedRelation: "bike_library_models"
             referencedColumns: ["id"]
           },
         ]
@@ -2081,6 +2475,17 @@ export type Database = {
     Enums: {
       app_role: "admin" | "technician"
       clock_event_type: "clock_in" | "clock_out" | "break_start" | "break_end"
+      garage_source:
+        | "workshop_verified"
+        | "manufacturer_manual"
+        | "parts_supplier"
+        | "previous_job"
+        | "technician_entry"
+        | "other"
+      garage_verification:
+        | "unverified"
+        | "workshop_verified"
+        | "manufacturer_verified"
       insurance_claim_status:
         | "intake"
         | "assessing"
@@ -2229,6 +2634,19 @@ export const Constants = {
     Enums: {
       app_role: ["admin", "technician"],
       clock_event_type: ["clock_in", "clock_out", "break_start", "break_end"],
+      garage_source: [
+        "workshop_verified",
+        "manufacturer_manual",
+        "parts_supplier",
+        "previous_job",
+        "technician_entry",
+        "other",
+      ],
+      garage_verification: [
+        "unverified",
+        "workshop_verified",
+        "manufacturer_verified",
+      ],
       insurance_claim_status: [
         "intake",
         "assessing",

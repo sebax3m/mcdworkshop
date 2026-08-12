@@ -15,6 +15,7 @@ import {
   Users,
   ArrowLeft,
   Truck,
+  Library,
 } from "lucide-react";
 import { useRef, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -84,6 +85,7 @@ export function AppShell() {
         { to: "/bookings", label: "List", icon: ClipboardList, color: "#f472b6" },
         { to: "/jobs", label: "Jobs", icon: Wrench, color: "#fb923c" },
         { to: "/motorcycles", label: "Bikes", icon: Bike, color: "#facc15" },
+        { to: "/garage-library", label: "Garage Library", icon: Library, color: "#f59e0b" },
         { to: "/clock", label: "Team Clock", icon: Timer, color: "#34d399" },
         { to: "/invoices", label: "Invoices", icon: FileText, color: "#22d3ee" },
         { to: "/insurance", label: "Insurance", icon: ShieldCheck, color: "#a78bfa" },
@@ -98,6 +100,7 @@ export function AppShell() {
         { to: "/post-bike", label: "Post Bike", icon: Truck, color: "#38bdf8" },
         { to: "/jobs", label: "Job Cards", icon: Wrench, color: "#fb923c" },
         { to: "/motorcycles", label: "Bikes", icon: Bike, color: "#facc15" },
+        { to: "/garage-library", label: "Garage Library", icon: Library, color: "#f59e0b" },
         { to: "/customers", label: "Customers", icon: Users, color: "#f472b6" },
         { to: "/clock", label: "Clock", icon: Timer, color: "#34d399" },
         { to: "/settings", label: "Settings", icon: SettingsIcon, color: "#94a3b8" },

@@ -32,6 +32,7 @@ import { Route as AuthenticatedLoanBikesIndexRouteImport } from './routes/_authe
 import { Route as AuthenticatedJobsIndexRouteImport } from './routes/_authenticated/jobs.index'
 import { Route as AuthenticatedInvoicesIndexRouteImport } from './routes/_authenticated/invoices.index'
 import { Route as AuthenticatedInsuranceIndexRouteImport } from './routes/_authenticated/insurance.index'
+import { Route as AuthenticatedGarageLibraryIndexRouteImport } from './routes/_authenticated/garage-library.index'
 import { Route as AuthenticatedCustomersIndexRouteImport } from './routes/_authenticated/customers.index'
 import { Route as AuthenticatedBookingsIndexRouteImport } from './routes/_authenticated/bookings.index'
 import { Route as AuthenticatedSettingsThemesRouteImport } from './routes/_authenticated/settings_.themes'
@@ -45,6 +46,7 @@ import { Route as AuthenticatedInvoicesNewRouteImport } from './routes/_authenti
 import { Route as AuthenticatedInvoicesInvoiceIdRouteImport } from './routes/_authenticated/invoices.$invoiceId'
 import { Route as AuthenticatedInsuranceNewRouteImport } from './routes/_authenticated/insurance.new'
 import { Route as AuthenticatedInsuranceClaimIdRouteImport } from './routes/_authenticated/insurance.$claimId'
+import { Route as AuthenticatedGarageLibraryModelIdRouteImport } from './routes/_authenticated/garage-library.$modelId'
 import { Route as AuthenticatedCustomersCustomerIdRouteImport } from './routes/_authenticated/customers.$customerId'
 import { Route as AuthenticatedBookingsNewRouteImport } from './routes/_authenticated/bookings.new'
 import { Route as AuthenticatedBookingsBookingIdRouteImport } from './routes/_authenticated/bookings.$bookingId'
@@ -168,6 +170,12 @@ const AuthenticatedInsuranceIndexRoute =
     path: '/',
     getParentRoute: () => AuthenticatedInsuranceRoute,
   } as any)
+const AuthenticatedGarageLibraryIndexRoute =
+  AuthenticatedGarageLibraryIndexRouteImport.update({
+    id: '/garage-library/',
+    path: '/garage-library/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedCustomersIndexRoute =
   AuthenticatedCustomersIndexRouteImport.update({
     id: '/',
@@ -244,6 +252,12 @@ const AuthenticatedInsuranceClaimIdRoute =
     path: '/$claimId',
     getParentRoute: () => AuthenticatedInsuranceRoute,
   } as any)
+const AuthenticatedGarageLibraryModelIdRoute =
+  AuthenticatedGarageLibraryModelIdRouteImport.update({
+    id: '/garage-library/$modelId',
+    path: '/garage-library/$modelId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedCustomersCustomerIdRoute =
   AuthenticatedCustomersCustomerIdRouteImport.update({
     id: '/$customerId',
@@ -291,6 +305,7 @@ export interface FileRoutesByFullPath {
   '/bookings/$bookingId': typeof AuthenticatedBookingsBookingIdRoute
   '/bookings/new': typeof AuthenticatedBookingsNewRoute
   '/customers/$customerId': typeof AuthenticatedCustomersCustomerIdRoute
+  '/garage-library/$modelId': typeof AuthenticatedGarageLibraryModelIdRoute
   '/insurance/$claimId': typeof AuthenticatedInsuranceClaimIdRoute
   '/insurance/new': typeof AuthenticatedInsuranceNewRoute
   '/invoices/$invoiceId': typeof AuthenticatedInvoicesInvoiceIdRoute
@@ -304,6 +319,7 @@ export interface FileRoutesByFullPath {
   '/settings/themes': typeof AuthenticatedSettingsThemesRoute
   '/bookings/': typeof AuthenticatedBookingsIndexRoute
   '/customers/': typeof AuthenticatedCustomersIndexRoute
+  '/garage-library/': typeof AuthenticatedGarageLibraryIndexRoute
   '/insurance/': typeof AuthenticatedInsuranceIndexRoute
   '/invoices/': typeof AuthenticatedInvoicesIndexRoute
   '/jobs/': typeof AuthenticatedJobsIndexRoute
@@ -329,6 +345,7 @@ export interface FileRoutesByTo {
   '/bookings/$bookingId': typeof AuthenticatedBookingsBookingIdRoute
   '/bookings/new': typeof AuthenticatedBookingsNewRoute
   '/customers/$customerId': typeof AuthenticatedCustomersCustomerIdRoute
+  '/garage-library/$modelId': typeof AuthenticatedGarageLibraryModelIdRoute
   '/insurance/$claimId': typeof AuthenticatedInsuranceClaimIdRoute
   '/insurance/new': typeof AuthenticatedInsuranceNewRoute
   '/invoices/$invoiceId': typeof AuthenticatedInvoicesInvoiceIdRoute
@@ -342,6 +359,7 @@ export interface FileRoutesByTo {
   '/settings/themes': typeof AuthenticatedSettingsThemesRoute
   '/bookings': typeof AuthenticatedBookingsIndexRoute
   '/customers': typeof AuthenticatedCustomersIndexRoute
+  '/garage-library': typeof AuthenticatedGarageLibraryIndexRoute
   '/insurance': typeof AuthenticatedInsuranceIndexRoute
   '/invoices': typeof AuthenticatedInvoicesIndexRoute
   '/jobs': typeof AuthenticatedJobsIndexRoute
@@ -372,6 +390,7 @@ export interface FileRoutesById {
   '/_authenticated/bookings/$bookingId': typeof AuthenticatedBookingsBookingIdRoute
   '/_authenticated/bookings/new': typeof AuthenticatedBookingsNewRoute
   '/_authenticated/customers/$customerId': typeof AuthenticatedCustomersCustomerIdRoute
+  '/_authenticated/garage-library/$modelId': typeof AuthenticatedGarageLibraryModelIdRoute
   '/_authenticated/insurance/$claimId': typeof AuthenticatedInsuranceClaimIdRoute
   '/_authenticated/insurance/new': typeof AuthenticatedInsuranceNewRoute
   '/_authenticated/invoices/$invoiceId': typeof AuthenticatedInvoicesInvoiceIdRoute
@@ -385,6 +404,7 @@ export interface FileRoutesById {
   '/_authenticated/settings_/themes': typeof AuthenticatedSettingsThemesRoute
   '/_authenticated/bookings/': typeof AuthenticatedBookingsIndexRoute
   '/_authenticated/customers/': typeof AuthenticatedCustomersIndexRoute
+  '/_authenticated/garage-library/': typeof AuthenticatedGarageLibraryIndexRoute
   '/_authenticated/insurance/': typeof AuthenticatedInsuranceIndexRoute
   '/_authenticated/invoices/': typeof AuthenticatedInvoicesIndexRoute
   '/_authenticated/jobs/': typeof AuthenticatedJobsIndexRoute
@@ -415,6 +435,7 @@ export interface FileRouteTypes {
     | '/bookings/$bookingId'
     | '/bookings/new'
     | '/customers/$customerId'
+    | '/garage-library/$modelId'
     | '/insurance/$claimId'
     | '/insurance/new'
     | '/invoices/$invoiceId'
@@ -428,6 +449,7 @@ export interface FileRouteTypes {
     | '/settings/themes'
     | '/bookings/'
     | '/customers/'
+    | '/garage-library/'
     | '/insurance/'
     | '/invoices/'
     | '/jobs/'
@@ -453,6 +475,7 @@ export interface FileRouteTypes {
     | '/bookings/$bookingId'
     | '/bookings/new'
     | '/customers/$customerId'
+    | '/garage-library/$modelId'
     | '/insurance/$claimId'
     | '/insurance/new'
     | '/invoices/$invoiceId'
@@ -466,6 +489,7 @@ export interface FileRouteTypes {
     | '/settings/themes'
     | '/bookings'
     | '/customers'
+    | '/garage-library'
     | '/insurance'
     | '/invoices'
     | '/jobs'
@@ -495,6 +519,7 @@ export interface FileRouteTypes {
     | '/_authenticated/bookings/$bookingId'
     | '/_authenticated/bookings/new'
     | '/_authenticated/customers/$customerId'
+    | '/_authenticated/garage-library/$modelId'
     | '/_authenticated/insurance/$claimId'
     | '/_authenticated/insurance/new'
     | '/_authenticated/invoices/$invoiceId'
@@ -508,6 +533,7 @@ export interface FileRouteTypes {
     | '/_authenticated/settings_/themes'
     | '/_authenticated/bookings/'
     | '/_authenticated/customers/'
+    | '/_authenticated/garage-library/'
     | '/_authenticated/insurance/'
     | '/_authenticated/invoices/'
     | '/_authenticated/jobs/'
@@ -685,6 +711,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedInsuranceIndexRouteImport
       parentRoute: typeof AuthenticatedInsuranceRoute
     }
+    '/_authenticated/garage-library/': {
+      id: '/_authenticated/garage-library/'
+      path: '/garage-library'
+      fullPath: '/garage-library/'
+      preLoaderRoute: typeof AuthenticatedGarageLibraryIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/customers/': {
       id: '/_authenticated/customers/'
       path: '/'
@@ -775,6 +808,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/insurance/$claimId'
       preLoaderRoute: typeof AuthenticatedInsuranceClaimIdRouteImport
       parentRoute: typeof AuthenticatedInsuranceRoute
+    }
+    '/_authenticated/garage-library/$modelId': {
+      id: '/_authenticated/garage-library/$modelId'
+      path: '/garage-library/$modelId'
+      fullPath: '/garage-library/$modelId'
+      preLoaderRoute: typeof AuthenticatedGarageLibraryModelIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/customers/$customerId': {
       id: '/_authenticated/customers/$customerId'
@@ -877,6 +917,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedBookInsDateRoute: typeof AuthenticatedBookInsDateRoute
   AuthenticatedBookingsBookingIdRoute: typeof AuthenticatedBookingsBookingIdRoute
   AuthenticatedBookingsNewRoute: typeof AuthenticatedBookingsNewRoute
+  AuthenticatedGarageLibraryModelIdRoute: typeof AuthenticatedGarageLibraryModelIdRoute
   AuthenticatedJobsJobIdRoute: typeof AuthenticatedJobsJobIdRoute
   AuthenticatedJobsNewRoute: typeof AuthenticatedJobsNewRoute
   AuthenticatedLoanBikesBikeIdRoute: typeof AuthenticatedLoanBikesBikeIdRoute
@@ -885,6 +926,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedSettingsCapacityRoute: typeof AuthenticatedSettingsCapacityRoute
   AuthenticatedSettingsThemesRoute: typeof AuthenticatedSettingsThemesRoute
   AuthenticatedBookingsIndexRoute: typeof AuthenticatedBookingsIndexRoute
+  AuthenticatedGarageLibraryIndexRoute: typeof AuthenticatedGarageLibraryIndexRoute
   AuthenticatedJobsIndexRoute: typeof AuthenticatedJobsIndexRoute
   AuthenticatedLoanBikesIndexRoute: typeof AuthenticatedLoanBikesIndexRoute
   AuthenticatedMotorcyclesIndexRoute: typeof AuthenticatedMotorcyclesIndexRoute
@@ -908,6 +950,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedBookInsDateRoute: AuthenticatedBookInsDateRoute,
   AuthenticatedBookingsBookingIdRoute: AuthenticatedBookingsBookingIdRoute,
   AuthenticatedBookingsNewRoute: AuthenticatedBookingsNewRoute,
+  AuthenticatedGarageLibraryModelIdRoute:
+    AuthenticatedGarageLibraryModelIdRoute,
   AuthenticatedJobsJobIdRoute: AuthenticatedJobsJobIdRoute,
   AuthenticatedJobsNewRoute: AuthenticatedJobsNewRoute,
   AuthenticatedLoanBikesBikeIdRoute: AuthenticatedLoanBikesBikeIdRoute,
@@ -917,6 +961,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedSettingsCapacityRoute: AuthenticatedSettingsCapacityRoute,
   AuthenticatedSettingsThemesRoute: AuthenticatedSettingsThemesRoute,
   AuthenticatedBookingsIndexRoute: AuthenticatedBookingsIndexRoute,
+  AuthenticatedGarageLibraryIndexRoute: AuthenticatedGarageLibraryIndexRoute,
   AuthenticatedJobsIndexRoute: AuthenticatedJobsIndexRoute,
   AuthenticatedLoanBikesIndexRoute: AuthenticatedLoanBikesIndexRoute,
   AuthenticatedMotorcyclesIndexRoute: AuthenticatedMotorcyclesIndexRoute,
