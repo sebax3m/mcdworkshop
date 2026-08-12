@@ -57,8 +57,11 @@ export function FindingDialog({ open, onOpenChange, jobId, userId, finding, onSa
     setCategory(finding?.category ?? "other");
     setSeverity(finding?.severity ?? "recommended");
     setAction(finding?.recommended_action ?? "");
-    setLabour(finding?.estimated_labour != null ? String(finding.estimated_labour) : "");
-    setPartsCost(finding?.estimated_parts_cost != null ? String(finding.estimated_parts_cost) : "");
+    const d = findingDefaults(finding?.title ?? "", finding?.category ?? "other");
+    setLabour(finding?.estimated_labour != null ? String(finding.estimated_labour) : String(d.labour));
+    setPartsCost(
+      finding?.estimated_parts_cost != null ? String(finding.estimated_parts_cost) : String(d.parts),
+    );
     setPhotoPath(finding?.photo_path ?? null);
   }, [open, finding]);
 
