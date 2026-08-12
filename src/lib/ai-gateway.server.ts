@@ -46,6 +46,7 @@ export async function aiChat(opts: {
       model: opts.model ?? AI_MODELS.chat,
       messages: [
         { role: "system", content: opts.system },
+        ...(opts.history ?? []).map((m) => ({ role: m.role, content: m.content })),
         { role: "user", content: opts.user },
       ],
     }),
