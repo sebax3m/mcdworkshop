@@ -798,30 +798,15 @@ function JobDetail() {
         />
       )}
 
-      {/* Notes */}
-      {(booking.data?.instructions || booking.data?.notes) && (
-        <section
-          data-print-section="instructions"
-          className="card-surface p-4 border-l-4 border-primary/60"
-        >
-          <div className="flex items-center gap-2 mb-2">
-            <h2 className="font-display text-lg font-semibold">Instructions</h2>
-            <span className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">
-              from book-in
-            </span>
-          </div>
-          {booking.data?.instructions && (
-            <p className="text-sm whitespace-pre-wrap">{booking.data.instructions}</p>
-          )}
-          {booking.data?.notes && (
-            <div className="mt-2 pt-2 border-t border-border/40">
-              <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground mb-0.5">
-                Internal notes
-              </div>
-              <p className="text-sm whitespace-pre-wrap">{booking.data.notes}</p>
-            </div>
-          )}
-        </section>
+      {/* Book-in instructions — editable from the job card */}
+      {(booking.data?.id || booking.data?.instructions || booking.data?.notes) && (
+        <InstructionsSection
+          bookingId={booking.data?.id ?? null}
+          instructions={booking.data?.instructions ?? ""}
+          notes={booking.data?.notes ?? ""}
+          canEdit={canEdit}
+          onSaved={() => qc.invalidateQueries({ queryKey: ["job-booking", jobId] })}
+        />
       )}
 
       {/* Customer-approved extra work — printed so the tech knows exactly what was signed off */}
