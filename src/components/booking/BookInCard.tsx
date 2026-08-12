@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { displayBike, displayCustomerName, displayServiceType } from "@/lib/display";
 import { resolveBookInStatus, isBookInCompleted, statusStyle } from "@/lib/book-in-status";
-import { serviceColor, isHighlightedService } from "@/lib/service-colors";
+import { serviceColor, isHighlightedService, serviceBadgeLabel } from "@/lib/service-colors";
 import { cn } from "@/lib/utils";
 import { useTechnicianNames } from "@/hooks/use-technician-names";
 import { StatusBadge, BookInStatusIcon } from "@/components/booking/StatusBadge";
@@ -256,15 +256,6 @@ export function BookInCard({
           >
             {work}
           </span>
-          {highlighted && (
-            <span
-              className={cn(
-                "ml-auto h-2 w-3 shrink-0 rounded-[3px] border border-white/25 shadow-sm",
-                svc.bg,
-              )}
-              title={b.service_type}
-            />
-          )}
         </div>
 
         {/* ROW 4 — workflow detail + status badge (bottom-right aligned) */}
@@ -277,7 +268,21 @@ export function BookInCard({
             )}
             <TechnicianIndicator name={techName} showName={false} />
           </div>
-          <StatusBadge meta={status} compact={dense} className="shrink-0" />
+          <div className="flex shrink-0 items-center gap-1">
+            {highlighted && (
+              <span
+                title={b.service_type}
+                style={statusStyle.badge(svc.hex)}
+                className={cn(
+                  "inline-flex items-center rounded-[4px] border px-1.5 py-[2px] font-bold uppercase leading-none tracking-[0.06em]",
+                  dense ? "text-[0.5rem]" : "text-[0.5625rem]",
+                )}
+              >
+                {serviceBadgeLabel(b.service_type)}
+              </span>
+            )}
+            <StatusBadge meta={status} compact={dense} />
+          </div>
         </div>
       </div>
 
