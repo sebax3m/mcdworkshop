@@ -253,14 +253,6 @@ export function BookInCard({
         />
       )}
 
-      {transportLabel && (
-        <TransportIcon
-          variant="absolute"
-          label={transportLabel}
-          title={transportTitle}
-          address={b.transport_address || ""}
-        />
-      )}
 
       {b.loan_bike && (
         <span
