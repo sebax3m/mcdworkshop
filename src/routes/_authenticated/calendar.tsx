@@ -2510,6 +2510,46 @@ function CalendarPage() {
                   </div>
 
                   <div>
+                    <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground mb-1">
+                      Bike transport
+                    </div>
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        className="h-4 w-4 accent-primary"
+                        checked={qPickup}
+                        onChange={(e) => setQPickup(e.target.checked)}
+                      />
+                      <span className="text-sm font-semibold">🚚 Pick up the bike</span>
+                    </label>
+                    <label className="mt-1 flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        className="h-4 w-4 accent-primary"
+                        checked={qDelivery}
+                        onChange={(e) => setQDelivery(e.target.checked)}
+                      />
+                      <span className="text-sm font-semibold">🏁 Drop the bike back</span>
+                    </label>
+                    {(qPickup || qDelivery) && (
+                      <div className="mt-2 space-y-2 rounded-xl border border-primary/40 bg-primary/5 p-3">
+                        <AddressAutocomplete
+                          value={qTransportAddress}
+                          onChange={setQTransportAddress}
+                        />
+                        <AddressMap address={qTransportAddress} />
+                        <textarea
+                          value={qTransportNotes}
+                          onChange={(e) => setQTransportNotes(e.target.value)}
+                          placeholder="Transport notes (contact, access, preferred time…)"
+                          className="w-full min-h-[56px] rounded-lg border border-border bg-background/60 px-3 py-2 text-sm focus:border-primary/60 focus:outline-none resize-y"
+                        />
+                      </div>
+                    )}
+                  </div>
+
+
+                  <div>
                     <label className="flex items-center gap-2 cursor-pointer">
                       <input
                         type="checkbox"
