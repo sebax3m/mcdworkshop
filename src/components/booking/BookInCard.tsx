@@ -16,6 +16,8 @@ import { bookInStage, stageMeta } from "@/lib/workshop-status";
 import { serviceColor } from "@/lib/service-colors";
 import { cn } from "@/lib/utils";
 import { useTechnicianNames, initialsOf } from "@/hooks/use-technician-names";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { AddressMap } from "@/components/booking/AddressAutocomplete";
 
 type Props = {
   booking: any;
@@ -26,6 +28,59 @@ type Props = {
   className?: string;
   dense?: boolean;
 };
+
+function TransportIcon({
+  label,
+  title,
+  address,
+  variant = "inline",
+}: {
+  label: string;
+  title?: string;
+  address: string;
+  variant?: "inline" | "absolute";
+}) {
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <button
+          type="button"
+          onClick={(e) => e.stopPropagation()}
+          className={cn(
+            "z-10 inline-flex items-center justify-center rounded bg-sky-500 text-white shadow hover:bg-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-300",
+            variant === "inline" && "h-4 w-4",
+            variant === "absolute" && "absolute top-1 right-1 h-4 w-4 text-[0.55rem]",
+          )}
+          title={title}
+        >
+          <Truck className="h-2.5 w-2.5" />
+        </button>
+      </PopoverTrigger>
+      <PopoverContent
+        side="top"
+        align="end"
+        sideOffset={6}
+        className="w-80 p-3 sm:w-96"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="space-y-2">
+          <div className="flex items-center gap-2 text-sm font-semibold">
+            <Truck className="h-4 w-4 text-sky-500" />
+            {label}
+          </div>
+          {address ? (
+            <>
+              <p className="text-xs text-muted-foreground">{address}</p>
+              <AddressMap address={address} />
+            </>
+          ) : (
+            <p className="text-xs text-muted-foreground">No address provided.</p>
+          )}
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+}
 
 /**
  * Compact book-in card: motorcycle → rego → customer → requested work → status.
@@ -206,13 +261,12 @@ export function BookInCard({
       )}
 
       {transportLabel && (
-        <span
-          className="absolute top-1 right-1 z-10 inline-flex items-center gap-0.5 rounded bg-sky-500 px-1 py-[1px] text-[0.55rem] font-bold uppercase leading-none text-white shadow sm:hidden"
+        <TransportIcon
+          variant="absolute"
+          label={transportLabel}
           title={transportTitle}
-        >
-          <Truck className="h-2.5 w-2.5" />
-          {b.pickup_required && b.delivery_required ? "P/D" : b.pickup_required ? "P" : "D"}
-        </span>
+          address={b.transport_address || ""}
+        />
       )}
 
       {b.loan_bike && (
@@ -286,12 +340,12 @@ export function BookInCard({
                 </span>
               )}
               {transportLabel && (
-                <span
-                  className="grid h-4 w-4 place-items-center rounded bg-sky-500 text-white shadow"
+                <TransportIcon
+                  variant="inline"
+                  label={transportLabel}
                   title={transportTitle}
-                >
-                  <Truck className="h-2.5 w-2.5" />
-                </span>
+                  address={b.transport_address || ""}
+                />
               )}
             </div>
           </div>
