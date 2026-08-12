@@ -157,7 +157,17 @@ export function BookInCard({
         className,
       )}
     >
-      {!jobCompleted && (
+      {jobCompleted ? (
+        <button
+          type="button"
+          onClick={reverseComplete}
+          disabled={reversing}
+          title="Reverse completion"
+          className="absolute bottom-1 right-1 z-10 grid h-5 w-5 place-items-center rounded-full border border-amber-500/60 bg-background/90 text-amber-400 opacity-0 transition-opacity hover:bg-amber-500/20 group-hover:opacity-100 focus:opacity-100"
+        >
+          <RotateCcw className="h-3 w-3" />
+        </button>
+      ) : (
         <button
           type="button"
           onClick={markCompleted}
