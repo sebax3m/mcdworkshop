@@ -36,6 +36,7 @@ import { Route as AuthenticatedGarageLibraryIndexRouteImport } from './routes/_a
 import { Route as AuthenticatedCustomersIndexRouteImport } from './routes/_authenticated/customers.index'
 import { Route as AuthenticatedBookingsIndexRouteImport } from './routes/_authenticated/bookings.index'
 import { Route as AuthenticatedSettingsThemesRouteImport } from './routes/_authenticated/settings_.themes'
+import { Route as AuthenticatedSettingsMcdTechRouteImport } from './routes/_authenticated/settings_.mcd-tech'
 import { Route as AuthenticatedSettingsCapacityRouteImport } from './routes/_authenticated/settings_.capacity'
 import { Route as AuthenticatedSettingsBookingTypesRouteImport } from './routes/_authenticated/settings_.booking-types'
 import { Route as AuthenticatedMotorcyclesBikeIdRouteImport } from './routes/_authenticated/motorcycles.$bikeId'
@@ -199,6 +200,12 @@ const AuthenticatedSettingsThemesRoute =
     path: '/settings/themes',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedSettingsMcdTechRoute =
+  AuthenticatedSettingsMcdTechRouteImport.update({
+    id: '/settings_/mcd-tech',
+    path: '/settings/mcd-tech',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedSettingsCapacityRoute =
   AuthenticatedSettingsCapacityRouteImport.update({
     id: '/settings_/capacity',
@@ -355,6 +362,7 @@ export interface FileRoutesByFullPath {
   '/motorcycles/$bikeId': typeof AuthenticatedMotorcyclesBikeIdRoute
   '/settings/booking-types': typeof AuthenticatedSettingsBookingTypesRoute
   '/settings/capacity': typeof AuthenticatedSettingsCapacityRoute
+  '/settings/mcd-tech': typeof AuthenticatedSettingsMcdTechRoute
   '/settings/themes': typeof AuthenticatedSettingsThemesRoute
   '/bookings/': typeof AuthenticatedBookingsIndexRoute
   '/customers/': typeof AuthenticatedCustomersIndexRoute
@@ -400,6 +408,7 @@ export interface FileRoutesByTo {
   '/motorcycles/$bikeId': typeof AuthenticatedMotorcyclesBikeIdRoute
   '/settings/booking-types': typeof AuthenticatedSettingsBookingTypesRoute
   '/settings/capacity': typeof AuthenticatedSettingsCapacityRoute
+  '/settings/mcd-tech': typeof AuthenticatedSettingsMcdTechRoute
   '/settings/themes': typeof AuthenticatedSettingsThemesRoute
   '/bookings': typeof AuthenticatedBookingsIndexRoute
   '/customers': typeof AuthenticatedCustomersIndexRoute
@@ -450,6 +459,7 @@ export interface FileRoutesById {
   '/_authenticated/motorcycles/$bikeId': typeof AuthenticatedMotorcyclesBikeIdRoute
   '/_authenticated/settings_/booking-types': typeof AuthenticatedSettingsBookingTypesRoute
   '/_authenticated/settings_/capacity': typeof AuthenticatedSettingsCapacityRoute
+  '/_authenticated/settings_/mcd-tech': typeof AuthenticatedSettingsMcdTechRoute
   '/_authenticated/settings_/themes': typeof AuthenticatedSettingsThemesRoute
   '/_authenticated/bookings/': typeof AuthenticatedBookingsIndexRoute
   '/_authenticated/customers/': typeof AuthenticatedCustomersIndexRoute
@@ -500,6 +510,7 @@ export interface FileRouteTypes {
     | '/motorcycles/$bikeId'
     | '/settings/booking-types'
     | '/settings/capacity'
+    | '/settings/mcd-tech'
     | '/settings/themes'
     | '/bookings/'
     | '/customers/'
@@ -545,6 +556,7 @@ export interface FileRouteTypes {
     | '/motorcycles/$bikeId'
     | '/settings/booking-types'
     | '/settings/capacity'
+    | '/settings/mcd-tech'
     | '/settings/themes'
     | '/bookings'
     | '/customers'
@@ -594,6 +606,7 @@ export interface FileRouteTypes {
     | '/_authenticated/motorcycles/$bikeId'
     | '/_authenticated/settings_/booking-types'
     | '/_authenticated/settings_/capacity'
+    | '/_authenticated/settings_/mcd-tech'
     | '/_authenticated/settings_/themes'
     | '/_authenticated/bookings/'
     | '/_authenticated/customers/'
@@ -802,6 +815,13 @@ declare module '@tanstack/react-router' {
       path: '/settings/themes'
       fullPath: '/settings/themes'
       preLoaderRoute: typeof AuthenticatedSettingsThemesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/settings_/mcd-tech': {
+      id: '/_authenticated/settings_/mcd-tech'
+      path: '/settings/mcd-tech'
+      fullPath: '/settings/mcd-tech'
+      preLoaderRoute: typeof AuthenticatedSettingsMcdTechRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/settings_/capacity': {
@@ -1028,6 +1048,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedMotorcyclesBikeIdRoute: typeof AuthenticatedMotorcyclesBikeIdRoute
   AuthenticatedSettingsBookingTypesRoute: typeof AuthenticatedSettingsBookingTypesRoute
   AuthenticatedSettingsCapacityRoute: typeof AuthenticatedSettingsCapacityRoute
+  AuthenticatedSettingsMcdTechRoute: typeof AuthenticatedSettingsMcdTechRoute
   AuthenticatedSettingsThemesRoute: typeof AuthenticatedSettingsThemesRoute
   AuthenticatedBookingsIndexRoute: typeof AuthenticatedBookingsIndexRoute
   AuthenticatedGarageLibraryIndexRoute: typeof AuthenticatedGarageLibraryIndexRoute
@@ -1071,6 +1092,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedSettingsBookingTypesRoute:
     AuthenticatedSettingsBookingTypesRoute,
   AuthenticatedSettingsCapacityRoute: AuthenticatedSettingsCapacityRoute,
+  AuthenticatedSettingsMcdTechRoute: AuthenticatedSettingsMcdTechRoute,
   AuthenticatedSettingsThemesRoute: AuthenticatedSettingsThemesRoute,
   AuthenticatedBookingsIndexRoute: AuthenticatedBookingsIndexRoute,
   AuthenticatedGarageLibraryIndexRoute: AuthenticatedGarageLibraryIndexRoute,

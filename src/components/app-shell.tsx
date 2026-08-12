@@ -22,6 +22,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { initials } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import { McdTechProvider } from "@/components/garage/McdTechAssistant";
 import logoAsset from "@/assets/motorcycle-doctors-logo.png.asset.json";
 import { ActiveUserSwitcher } from "@/components/ActiveUserSwitcher";
 import { FloatingClockWidget } from "@/components/FloatingClockWidget";
@@ -112,6 +113,7 @@ export function AppShell() {
   }
 
   return (
+    <McdTechProvider>
     <div className="min-h-screen flex flex-col bg-background text-foreground">
       {/* ===== HEADER ===== */}
       <header className="sticky top-0 z-30 border-b border-border/60 bg-background/85 backdrop-blur-xl">
@@ -313,5 +315,6 @@ export function AppShell() {
         </div>
       </nav>
     </div>
+    </McdTechProvider>
   );
 }

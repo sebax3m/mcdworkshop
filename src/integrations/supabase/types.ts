@@ -2364,6 +2364,131 @@ export type Database = {
         }
         Relationships: []
       }
+      mcd_tech_conversations: {
+        Row: {
+          context_label: string | null
+          created_at: string
+          id: string
+          job_id: string | null
+          model_id: string | null
+          motorcycle_id: string | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          context_label?: string | null
+          created_at?: string
+          id?: string
+          job_id?: string | null
+          model_id?: string | null
+          motorcycle_id?: string | null
+          title?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          context_label?: string | null
+          created_at?: string
+          id?: string
+          job_id?: string | null
+          model_id?: string | null
+          motorcycle_id?: string | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mcd_tech_conversations_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mcd_tech_conversations_motorcycle_id_fkey"
+            columns: ["motorcycle_id"]
+            isOneToOne: false
+            referencedRelation: "motorcycles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mcd_tech_messages: {
+        Row: {
+          answer_source: string | null
+          content: string
+          conversation_id: string
+          created_at: string
+          id: string
+          payload: Json | null
+          role: string
+          used_external_ai: boolean
+        }
+        Insert: {
+          answer_source?: string | null
+          content?: string
+          conversation_id: string
+          created_at?: string
+          id?: string
+          payload?: Json | null
+          role: string
+          used_external_ai?: boolean
+        }
+        Update: {
+          answer_source?: string | null
+          content?: string
+          conversation_id?: string
+          created_at?: string
+          id?: string
+          payload?: Json | null
+          role?: string
+          used_external_ai?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mcd_tech_messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "mcd_tech_conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mcd_tech_settings: {
+        Row: {
+          ai_enabled: boolean
+          allow_customer_reports: boolean
+          allow_library_proposals: boolean
+          allow_technician_access: boolean
+          external_ai_enabled: boolean
+          id: boolean
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          ai_enabled?: boolean
+          allow_customer_reports?: boolean
+          allow_library_proposals?: boolean
+          allow_technician_access?: boolean
+          external_ai_enabled?: boolean
+          id?: boolean
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          ai_enabled?: boolean
+          allow_customer_reports?: boolean
+          allow_library_proposals?: boolean
+          allow_technician_access?: boolean
+          external_ai_enabled?: boolean
+          id?: boolean
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       motorcycle_knowledge: {
         Row: {
           category: string
