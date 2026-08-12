@@ -191,8 +191,8 @@ function McdTechDrawer({
         answer.specs.map((s) => `${s.label}: ${s.value}`).join("\n") || answer.aiText || "No answer";
       thread.current = [
         ...thread.current,
-        { role: "user", content: question },
-        { role: "assistant", content: summary },
+        { role: "user" as const, content: question },
+        { role: "assistant" as const, content: summary },
       ].slice(-12);
       await saveMessage(conversationId.current, "assistant", summary, { answer });
     } catch (e) {
