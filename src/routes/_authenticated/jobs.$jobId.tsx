@@ -2453,13 +2453,13 @@ function ValveClearancePrintSheet({
       )}
 
       <div className="text-[0.625rem] uppercase tracking-[0.2em] text-gray-600 text-center mb-2">
-        Top-down · {intakeOnTop ? "INTAKE top / EXHAUST bottom" : "EXHAUST top / INTAKE bottom"} ·
-        write measured mm inside each circle
+        Top-down · {intakeOnTop ? "INTAKE top / EXHAUST bottom" : "EXHAUST top / INTAKE bottom"} ·{" "}
+        {frontLabel} · write measured mm inside each circle
       </div>
       <div className="flex gap-4 justify-center items-stretch mb-3">
-        {Array.from({ length: cylinders }).map((_, c) => {
-          const cyl = c + 1;
+        {cyls.map((cyl) => {
           return (
+
             <div
               key={cyl}
               className="border border-gray-400 rounded-2xl p-3 flex flex-col items-center gap-2 flex-1"
