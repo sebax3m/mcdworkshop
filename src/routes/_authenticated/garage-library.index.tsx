@@ -27,28 +27,43 @@ export const Route = createFileRoute("/_authenticated/garage-library/")({
 
 type SearchHit = { modelId: string; kind: string; text: string };
 
+type LibModel = ModelRow & {
+  generation: string | null;
+  platform: string | null;
+  engine: string | null;
+  category: string | null;
+  priority: number | null;
+};
+
 function GarageLibraryIndex() {
   const { isAdmin } = useCurrentUser();
   const qc = useQueryClient();
   const [q, setQ] = useState("");
   const [openBrand, setOpenBrand] = useState<string | null>(null);
   const [newOpen, setNewOpen] = useState(false);
+  const [tier, setTier] = useState<number | null>(null);
   const [form, setForm] = useState({ make: "", model: "", variant: "", engine_cc: "", year_from: "", year_to: "" });
 
-  const { data: models = [], isLoading } = useQuery({
+  const { data: allModels = [], isLoading } = useQuery({
     queryKey: ["garage-models"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("bike_library_models")
-        .select("id, make, model, variant, engine_cc, year_from, year_to, cylinders, notes, photo_url, is_archived, updated_at")
+        .select("id, make, model, variant, engine_cc, year_from, year_to, cylinders, notes, photo_url, is_archived, updated_at, generation, platform, engine, category, priority")
         .eq("is_archived", false)
         .order("make")
         .order("model")
         .order("year_from");
       if (error) throw error;
-      return (data ?? []) as ModelRow[];
+      return (data ?? []) as LibModel[];
     },
   });
+
+  const models = useMemo(
+    () => (tier === null ? allModels : allModels.filter((m) => (m.priority ?? 2) === tier)),
+    [allModels, tier],
+  );
+
 
   const { data: hits = [] } = useQuery({
     queryKey: ["garage-search", q],
