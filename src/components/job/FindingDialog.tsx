@@ -244,6 +244,41 @@ export function FindingDialog({ open, onOpenChange, jobId, userId, finding, onSa
             </div>
           </div>
 
+          <div className="rounded-lg border border-border bg-muted/30 p-2.5 text-xs">
+            <div className="flex items-center justify-between">
+              <span className="text-muted-foreground">
+                Labour {Number(labour) || 0}h × ${INSPECTION_LABOUR_RATE}
+              </span>
+              <span className="font-semibold">
+                ${((Number(labour) || 0) * INSPECTION_LABOUR_RATE).toFixed(2)}
+              </span>
+            </div>
+            <div className="flex items-center justify-between mt-0.5">
+              <span className="text-muted-foreground">Parts</span>
+              <span className="font-semibold">${(Number(partsCost) || 0).toFixed(2)}</span>
+            </div>
+            <div className="flex items-center justify-between mt-1 border-t border-border pt-1">
+              <span className="font-semibold">Line estimate (ex GST)</span>
+              <span className="font-bold">
+                $
+                {(
+                  (Number(labour) || 0) * INSPECTION_LABOUR_RATE + (Number(partsCost) || 0)
+                ).toFixed(2)}
+              </span>
+            </div>
+            <button
+              type="button"
+              className="mt-1.5 text-[0.6875rem] text-primary hover:underline"
+              onClick={() => {
+                const d = findingDefaults(title, category);
+                setLabour(String(d.labour));
+                setPartsCost(String(d.parts));
+              }}
+            >
+              Reset to default estimate
+            </button>
+          </div>
+
           <div>
             <Label htmlFor="f-photo">Photo (optional)</Label>
             <Input
