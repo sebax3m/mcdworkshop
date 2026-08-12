@@ -4,11 +4,11 @@ const ITEMS = [
   { label: "Basic", k: "basic" },
   { label: "Standard", k: "standard" },
   { label: "Full", k: "full" },
+  { label: "Other", k: "other" },
   { label: "Tuning", k: "dyno" },
   { label: "Diagnostic", k: "diagnostic" },
   { label: "Insurance", k: "insurance" },
   { label: "Post Bike", k: "postbike" },
-  { label: "Other", k: "other" },
 ];
 
 export function ServiceLegend() {

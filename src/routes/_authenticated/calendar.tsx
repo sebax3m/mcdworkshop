@@ -122,7 +122,7 @@ const DAILY_CAPACITY_HOURS = 16;
 
 type ViewMode = "month" | "week";
 
-import { serviceColor, SERVICE_LEGEND, SERVICE_COLORS } from "@/lib/service-colors";
+import { serviceColor } from "@/lib/service-colors";
 import { changeBookingServiceType, changeBookingServiceOther } from "@/lib/service-sync";
 import { changeBookingMotorcycle } from "@/lib/bike-assign";
 
@@ -1060,20 +1060,6 @@ function CalendarPage() {
         </div>
       )}
 
-      {/* Service-type colour legend */}
-      <div className="flex flex-wrap items-center gap-x-2 sm:gap-x-3 gap-y-1 px-1 pb-1 sm:pb-2">
-        {SERVICE_LEGEND.map((l) => (
-          <span
-            key={l.key}
-            className="inline-flex items-center gap-1 sm:gap-1.5 text-[0.6rem] sm:text-[0.6875rem]"
-          >
-            <span
-              className={`h-2 w-2 sm:h-2.5 sm:w-2.5 rounded-sm ${SERVICE_COLORS[l.key]?.bg ?? "bg-muted"}`}
-            />
-            <span className="text-muted-foreground">{l.label}</span>
-          </span>
-        ))}
-      </div>
 
       {/* WEEK VIEW — motorcycles booked in per day (no hourly slots) */}
       {viewMode === "week" && (
