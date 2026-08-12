@@ -233,6 +233,10 @@ function GarageLibraryIndex() {
                 <Upload className="h-4 w-4 mr-1" /> Import
               </Link>
             </Button>
+            <Button size="sm" variant="outline" asChild>
+              <Link to="/garage-library/review">Data review</Link>
+            </Button>
+
             <Button size="sm" onClick={() => setNewOpen(true)}>
               <Plus className="h-4 w-4 mr-1" /> Add model
             </Button>
