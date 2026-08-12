@@ -14,6 +14,7 @@ import {
   Bike as BikeIcon,
   FileText,
   KeyRound,
+  CheckCircle,
 } from "lucide-react";
 import { LoanBikeDialog } from "@/components/booking/LoanBikeDialog";
 import { changeBookingMotorcycle, fetchCustomerBikes } from "@/lib/bike-assign";
@@ -22,6 +23,7 @@ import { displayCustomerName } from "@/lib/display";
 import { fullBike } from "@/lib/format";
 import { getSignedUrls } from "@/lib/photos";
 import { format } from "date-fns";
+
 
 export const Route = createFileRoute("/_authenticated/bookings/$bookingId")({
   component: BookingDetail,
