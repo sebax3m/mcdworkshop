@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState } from "react";
 import {
-  Bike as BikeIcon,
   CheckCircle,
   RotateCcw,
   Truck,
@@ -120,7 +119,7 @@ export function BookInCard({
     ? `${transportLabel}${b.transport_address ? ` — ${b.transport_address}` : ""}`
     : undefined;
 
-  const photo = Array.isArray(b.motorcycles?.photos) ? b.motorcycles.photos[0] : null;
+  
   const jobCompleted =
     b.job_completed === true ||
     b.job_status === "completed" ||
@@ -278,18 +277,6 @@ export function BookInCard({
 
       {/* Ultra-compact mobile view: bike + customer + tiny status dots */}
       <div className="sm:hidden flex items-start gap-1">
-        {photo ? (
-          <img
-            src={typeof photo === "string" ? photo : photo?.url}
-            alt=""
-            loading="lazy"
-            className="h-5 w-5 rounded object-cover border border-border shrink-0"
-          />
-        ) : (
-          <div className="h-5 w-5 rounded grid place-items-center bg-background/50 text-foreground/70 shrink-0">
-            <BikeIcon className="h-2.5 w-2.5" />
-          </div>
-        )}
         <div className="min-w-0 flex-1">
           <div className="font-semibold text-[0.65rem] leading-tight truncate">{bike}</div>
           <div className="flex items-center gap-0.5 text-[0.6rem] text-foreground/70 truncate">
@@ -318,18 +305,6 @@ export function BookInCard({
 
       {/* Desktop / tablet view */}
       <div className="hidden sm:flex items-start gap-2">
-        {photo ? (
-          <img
-            src={typeof photo === "string" ? photo : photo?.url}
-            alt=""
-            loading="lazy"
-            className="h-7 w-7 sm:h-9 sm:w-9 rounded-md object-cover border border-border shrink-0"
-          />
-        ) : (
-          <div className="h-7 w-7 sm:h-9 sm:w-9 rounded-md grid place-items-center bg-background/50 text-foreground/70 shrink-0">
-            <BikeIcon className="h-3 w-3 sm:h-4 sm:w-4" />
-          </div>
-        )}
         <div className="min-w-0 flex-1">
           <div className="flex items-start justify-between gap-1.5 sm:gap-2">
             <div className="font-semibold text-xs sm:text-sm truncate">{bike}</div>
