@@ -176,7 +176,7 @@ export function BookInCard({
       className={cn(
         "group relative w-full overflow-hidden rounded-[8px] border border-[color:var(--bookin-line)] border-l-[3px] text-left transition-colors",
         "hover:border-border focus:outline-none focus:ring-2 focus:ring-primary/40",
-        dense ? "px-2 py-1.5" : "px-2.5 py-2",
+        dense ? "px-2.5 py-2" : "px-3 py-2.5",
         draggable && "cursor-grab active:cursor-grabbing",
         className,
       )}
@@ -188,9 +188,9 @@ export function BookInCard({
           onClick={reverseComplete}
           disabled={reversing}
           title="Reverse completion"
-          className="absolute bottom-1 right-1 z-10 grid h-5 w-5 place-items-center rounded-full border border-amber-500/60 bg-background/90 text-amber-400 opacity-0 transition-opacity hover:bg-amber-500/20 group-hover:opacity-100 focus:opacity-100"
+          className="absolute bottom-1.5 right-1.5 z-10 grid h-6 w-6 place-items-center rounded-full border border-amber-500/60 bg-background/90 text-amber-400 opacity-0 transition-opacity hover:bg-amber-500/20 group-hover:opacity-100 focus:opacity-100"
         >
-          <RotateCcw className="h-3 w-3" />
+          <RotateCcw className="h-3.5 w-3.5" />
         </button>
       ) : (
         <button
@@ -198,19 +198,19 @@ export function BookInCard({
           onClick={markCompleted}
           disabled={completing}
           title="Mark as completed"
-          className="absolute bottom-1 right-1 z-10 grid h-5 w-5 place-items-center rounded-full border border-green-500/60 bg-background/90 text-green-400 opacity-0 transition-opacity hover:bg-green-500/20 group-hover:opacity-100 focus:opacity-100"
+          className="absolute bottom-1.5 right-1.5 z-10 grid h-6 w-6 place-items-center rounded-full border border-green-500/60 bg-background/90 text-green-400 opacity-0 transition-opacity hover:bg-green-500/20 group-hover:opacity-100 focus:opacity-100"
         >
-          <CheckCircle2 className="h-3 w-3" />
+          <CheckCircle2 className="h-3.5 w-3.5" />
         </button>
       )}
 
-      <div className="min-w-0 space-y-[3px]">
+      <div className="min-w-0 space-y-1">
         {/* ROW 1 — status icon + motorcycle + rego */}
-        <div className="flex items-center gap-1">
-          <BookInStatusIcon meta={status} />
+        <div className="flex items-center gap-1.5">
+          <BookInStatusIcon meta={status} size="md" />
           <div
             className={cn(
-              "min-w-0 flex-1 truncate text-[0.75rem] font-bold leading-tight",
+              "min-w-0 flex-1 truncate text-[0.8125rem] font-bold leading-tight",
               jobCompleted ? "text-muted-foreground" : "text-foreground",
             )}
           >
@@ -219,13 +219,13 @@ export function BookInCard({
           <div className="flex shrink-0 items-center gap-1">
             <TransportIndicator kind={kind} address={b.transport_address} />
             {b.loan_bike && (
-              <span className="h-1.5 w-1.5 rounded-full bg-fuchsia-500" title="Loan bike" />
+              <span className="h-2 w-2 rounded-full bg-fuchsia-500" title="Loan bike" />
             )}
             {b.notes && (
-              <span className="h-1.5 w-1.5 rounded-full bg-muted-foreground/70" title="Has notes" />
+              <span className="h-2 w-2 rounded-full bg-muted-foreground/70" title="Has notes" />
             )}
             {rego && (
-              <span className="rounded-[4px] bg-white/[0.07] px-1 py-[1px] font-mono text-[0.5rem] font-bold uppercase tracking-wide tabular-nums text-foreground/70">
+              <span className="rounded-[4px] bg-white/[0.07] px-1.5 py-[2px] font-mono text-[0.625rem] font-bold uppercase tracking-wide tabular-nums text-foreground/70">
                 {rego}
               </span>
             )}
@@ -235,18 +235,18 @@ export function BookInCard({
         {/* ROW 2 — customer */}
         <div
           className={cn(
-            "flex items-center gap-1.5 truncate pl-[1.4rem] text-[0.625rem] leading-tight sm:text-[0.6875rem]",
+            "flex items-center gap-1.5 truncate pl-[1.6rem] text-[0.6875rem] leading-tight sm:text-[0.75rem]",
             jobCompleted ? "text-muted-foreground/70" : "text-muted-foreground",
           )}
         >
-          <UserIcon className="h-2.5 w-2.5 shrink-0" />
+          <UserIcon className="h-3 w-3 shrink-0" />
           <span className="truncate">{customer}</span>
         </div>
 
         {/* ROW 3 — requested work (service type = secondary) */}
-        <div className="flex items-center gap-1.5 truncate pl-[1.4rem] text-[0.625rem] leading-tight sm:text-[0.6875rem]">
+        <div className="flex items-center gap-1.5 truncate pl-[1.6rem] text-[0.6875rem] leading-tight sm:text-[0.75rem]">
           <span
-            className={cn("h-1.5 w-1.5 shrink-0 rounded-full", svc.bg, jobCompleted && "opacity-50")}
+            className={cn("h-2 w-2 shrink-0 rounded-full", svc.bg, jobCompleted && "opacity-50")}
           />
           <span
             className={cn(
@@ -260,9 +260,9 @@ export function BookInCard({
 
         {/* ROW 4 — workflow detail + status badge (bottom-right aligned) */}
         <div className="flex items-center justify-between gap-1.5">
-          <div className="flex items-center gap-1.5 min-w-0 pl-[1.4rem]">
+          <div className="flex items-center gap-1.5 min-w-0 pl-[1.6rem]">
             {detail && (
-              <span className="truncate text-[0.5625rem] uppercase tracking-wider text-muted-foreground/70">
+              <span className="truncate text-[0.625rem] uppercase tracking-wider text-muted-foreground/70">
                 {detail}
               </span>
             )}
@@ -275,7 +275,7 @@ export function BookInCard({
                 style={statusStyle.badge(svc.hex)}
                 className={cn(
                   "inline-flex items-center rounded-[4px] border px-1.5 py-[2px] font-bold uppercase leading-none tracking-[0.06em]",
-                  dense ? "text-[0.5rem]" : "text-[0.5625rem]",
+                  dense ? "text-[0.5625rem]" : "text-[0.625rem]",
                 )}
               >
                 {serviceBadgeLabel(b.service_type)}
