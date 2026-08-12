@@ -227,7 +227,7 @@ export function FindingDialog({ open, onOpenChange, jobId, userId, finding, onSa
               />
             </div>
             <div>
-              <Label htmlFor="f-parts">Est. parts ($)</Label>
+              <Label htmlFor="f-parts">Est. parts ($ incl GST)</Label>
               <Input
                 id="f-parts"
                 inputMode="decimal"
@@ -241,18 +241,18 @@ export function FindingDialog({ open, onOpenChange, jobId, userId, finding, onSa
           <div className="rounded-lg border border-border bg-muted/30 p-2.5 text-xs">
             <div className="flex items-center justify-between">
               <span className="text-muted-foreground">
-                Labour {Number(labour) || 0}h × ${INSPECTION_LABOUR_RATE}
+                Labour {Number(labour) || 0}h × ${INSPECTION_LABOUR_RATE} (incl GST)
               </span>
               <span className="font-semibold">
                 ${((Number(labour) || 0) * INSPECTION_LABOUR_RATE).toFixed(2)}
               </span>
             </div>
             <div className="flex items-center justify-between mt-0.5">
-              <span className="text-muted-foreground">Parts</span>
+              <span className="text-muted-foreground">Parts (incl GST)</span>
               <span className="font-semibold">${(Number(partsCost) || 0).toFixed(2)}</span>
             </div>
             <div className="flex items-center justify-between mt-1 border-t border-border pt-1">
-              <span className="font-semibold">Line estimate (ex GST)</span>
+              <span className="font-semibold">Line estimate (incl GST)</span>
               <span className="font-bold">
                 $
                 {(
