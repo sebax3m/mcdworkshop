@@ -34,6 +34,7 @@ import {
   Printer,
   Trash2,
   Pencil,
+  CheckCircle2,
 } from "lucide-react";
 import { detectServiceKind, KIND_META, SERVICE_PARTS } from "@/lib/service-kinds";
 import { getValveSpec, formatRange, type ValveSpec } from "@/lib/valve-specs";
@@ -216,7 +217,53 @@ function JobDetail() {
 
   const [previewOpen, setPreviewOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [completingAll, setCompletingAll] = useState(false);
   const jobRef = useRef<HTMLDivElement>(null);
+
+  /** Mark the job, its booking and any loan bike as fully completed everywhere. */
+  async function completeEverything() {
+    setCompletingAll(true);
+    try {
+      const { error } = await supabase
+        .from("jobs")
+        .update({ status: "completed", completed_at: new Date().toISOString() })
+        .eq("id", jobId);
+      if (error) throw error;
+      const { data: bk } = await supabase
+        .from("bookings")
+        .select("id, loan_bike_id, loan_bike_returned_at")
+        .eq("job_id", jobId)
+        .maybeSingle();
+      if (bk?.id) {
+        await supabase
+          .from("bookings")
+          .update({
+            status: "completed",
+            ...(bk.loan_bike_id && !bk.loan_bike_returned_at
+              ? { loan_bike_returned_at: new Date().toISOString() }
+              : {}),
+          })
+          .eq("id", bk.id);
+      }
+      [
+        ["job", jobId],
+        ["jobs"],
+        ["my-jobs"],
+        ["my-bookings"],
+        ["dashboard-jobs"],
+        ["dashboard-counts"],
+        ["calendar-bookings"],
+        ["bookings"],
+        ["loan-bikes"],
+        ["loan-bikes-active-assignments"],
+      ].forEach((key) => qc.invalidateQueries({ queryKey: key as string[] }));
+      toast.success("Job completed — marked across the calendar and boards");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to complete job");
+    } finally {
+      setCompletingAll(false);
+    }
+  }
 
   /** Admin-only: permanently delete this job card and unlink it from its booking. */
   async function deleteJob() {
@@ -455,6 +502,23 @@ function JobDetail() {
               <Printer className="h-4 w-4" />
               <span className="hidden sm:inline">Preview & print</span>
             </Button>
+            {j.status === "completed" ? (
+              <span className="inline-flex items-center gap-1.5 rounded-lg border border-green-500/40 bg-green-500/15 px-2.5 h-8 text-xs font-bold text-green-400">
+                <CheckCircle2 className="h-4 w-4" /> Completed
+              </span>
+            ) : (
+              <Button
+                onClick={completeEverything}
+                size="sm"
+                disabled={completingAll}
+                className="gap-1.5 h-8 px-2.5 bg-green-600 hover:bg-green-500 text-white"
+              >
+                <CheckCircle2 className="h-4 w-4" />
+                <span className="hidden sm:inline">
+                  {completingAll ? "Completing…" : "Mark completed"}
+                </span>
+              </Button>
+            )}
             {isAdmin && (
               <Button
                 onClick={deleteJob}

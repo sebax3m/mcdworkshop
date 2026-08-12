@@ -59,6 +59,7 @@ export type Database = {
           created_by: string | null
           customer_id: string
           damage_photos: Json
+          delivery_required: boolean
           drop_off_time: string | null
           estimated_hours: number | null
           google_uid: string | null
@@ -74,6 +75,7 @@ export type Database = {
           mileage: number | null
           motorcycle_id: string | null
           notes: string | null
+          pickup_required: boolean
           priority: string
           rego: string | null
           reminder_sent_at: string | null
@@ -83,6 +85,8 @@ export type Database = {
           service_type: string
           service_type_other: string | null
           status: string
+          transport_address: string | null
+          transport_notes: string | null
           updated_at: string
           vin: string | null
           wof_expiry: string | null
@@ -101,6 +105,7 @@ export type Database = {
           created_by?: string | null
           customer_id: string
           damage_photos?: Json
+          delivery_required?: boolean
           drop_off_time?: string | null
           estimated_hours?: number | null
           google_uid?: string | null
@@ -116,6 +121,7 @@ export type Database = {
           mileage?: number | null
           motorcycle_id?: string | null
           notes?: string | null
+          pickup_required?: boolean
           priority?: string
           rego?: string | null
           reminder_sent_at?: string | null
@@ -125,6 +131,8 @@ export type Database = {
           service_type: string
           service_type_other?: string | null
           status?: string
+          transport_address?: string | null
+          transport_notes?: string | null
           updated_at?: string
           vin?: string | null
           wof_expiry?: string | null
@@ -143,6 +151,7 @@ export type Database = {
           created_by?: string | null
           customer_id?: string
           damage_photos?: Json
+          delivery_required?: boolean
           drop_off_time?: string | null
           estimated_hours?: number | null
           google_uid?: string | null
@@ -158,6 +167,7 @@ export type Database = {
           mileage?: number | null
           motorcycle_id?: string | null
           notes?: string | null
+          pickup_required?: boolean
           priority?: string
           rego?: string | null
           reminder_sent_at?: string | null
@@ -167,6 +177,8 @@ export type Database = {
           service_type?: string
           service_type_other?: string | null
           status?: string
+          transport_address?: string | null
+          transport_notes?: string | null
           updated_at?: string
           vin?: string | null
           wof_expiry?: string | null

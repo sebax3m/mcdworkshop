@@ -62,6 +62,10 @@ function NewBooking() {
   const [loanBikeId, setLoanBikeId] = useState<string | null>(null);
   const [loanBikeReturn, setLoanBikeReturn] = useState<string>("");
   const [loanBikeStartKm, setLoanBikeStartKm] = useState<string>("");
+  const [pickupRequired, setPickupRequired] = useState<boolean>(false);
+  const [deliveryRequired, setDeliveryRequired] = useState<boolean>(false);
+  const [transportAddress, setTransportAddress] = useState<string>("");
+  const [transportNotes, setTransportNotes] = useState<string>("");
   const [techId, setTechId] = useState<string | null>(null);
   const [arrivalPhotos, setArrivalPhotos] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
@@ -312,6 +316,12 @@ function NewBooking() {
           loan_bike_id: loanBike ? loanBikeId : null,
           loan_bike_expected_return: loanBike && loanBikeReturn ? loanBikeReturn : null,
           loan_bike_start_km: loanBike && loanBikeStartKm ? parseInt(loanBikeStartKm) : null,
+          pickup_required: pickupRequired,
+          delivery_required: deliveryRequired,
+          transport_address:
+            pickupRequired || deliveryRequired ? transportAddress.trim() || null : null,
+          transport_notes:
+            pickupRequired || deliveryRequired ? transportNotes.trim() || null : null,
           status: openJobCard ? "checked_in" : "booked",
         } as any)
         .select("id")
@@ -871,6 +881,44 @@ function NewBooking() {
               placeholder="Step-by-step instructions for the technician — shown on the Job Card"
               rows={3}
             />
+            <div className="rounded-xl border border-border p-3 space-y-2">
+              <div className="text-xs uppercase tracking-wider text-muted-foreground">
+                Bike transport
+              </div>
+              <label className="flex items-center gap-3 text-sm cursor-pointer">
+                <input
+                  type="checkbox"
+                  className="h-5 w-5 accent-primary"
+                  checked={pickupRequired}
+                  onChange={(e) => setPickupRequired(e.target.checked)}
+                />
+                <span className="font-semibold">🚚 We pick up the bike from the customer</span>
+              </label>
+              <label className="flex items-center gap-3 text-sm cursor-pointer">
+                <input
+                  type="checkbox"
+                  className="h-5 w-5 accent-primary"
+                  checked={deliveryRequired}
+                  onChange={(e) => setDeliveryRequired(e.target.checked)}
+                />
+                <span className="font-semibold">🏁 We drop the bike back after the work</span>
+              </label>
+              {(pickupRequired || deliveryRequired) && (
+                <div className="space-y-2 pt-1">
+                  <Input
+                    value={transportAddress}
+                    onChange={(e) => setTransportAddress(e.target.value)}
+                    placeholder="Pick-up / drop-off address"
+                  />
+                  <Textarea
+                    value={transportNotes}
+                    onChange={(e) => setTransportNotes(e.target.value)}
+                    placeholder="Transport notes (contact, access, preferred time…)"
+                    rows={2}
+                  />
+                </div>
+              )}
+            </div>
             <label className="flex items-center gap-3 rounded-xl border border-border p-3 cursor-pointer hover:border-primary/50">
               <input
                 type="checkbox"
