@@ -1031,7 +1031,7 @@ function CalendarPage() {
                       </div>
                     )}
 
-                    <div className="mt-1.5 flex-1 flex flex-col gap-1 content-start overflow-hidden">
+                    <div className="mt-1.5 flex-1 flex flex-col gap-0.5 content-start overflow-hidden">
                       {dayBookings.slice(0, 4).map((b: any) => {
                         const c = serviceColor(b.service_type);
                         const st = resolveBookInStatus(b);
@@ -1039,31 +1039,31 @@ function CalendarPage() {
                         return (
                           <div
                             key={b.id}
-                            className={`flex items-center gap-1 w-full min-w-0 rounded-md border-l-2 px-1.5 py-1 ${st.accent} ${
+                            className={`flex items-center gap-1 w-full min-w-0 rounded-md border-l-2 px-1 py-0.5 ${st.accent} ${
                               done ? "bg-muted/20 opacity-70 saturate-50" : st.tint
                             }`}
                             title={`${st.label} — ${b.service_type} — ${b.motorcycles?.make ?? ""} ${b.motorcycles?.model ?? ""}`}
                           >
                             <span
-                              className={`shrink-0 rounded-full ${c.bg} ${b.bike_arrived ? "h-2 w-2 ring-2 ring-orange-500" : "h-2 w-2"}`}
+                              className={`shrink-0 rounded-full ${c.bg} ${b.bike_arrived ? "h-2 w-2 ring-2 ring-orange-500" : "h-1.5 w-1.5"}`}
                               title={b.service_type}
                             />
 
                             {b.loan_bike && (
                               <span
-                                className="shrink-0 h-2 w-2 rounded-full bg-fuchsia-500 shadow-[0_0_6px_rgba(217,70,239,0.9)]"
+                                className="shrink-0 h-1.5 w-1.5 rounded-full bg-fuchsia-500 shadow-[0_0_6px_rgba(217,70,239,0.9)]"
                                 title="Loan bike"
                               />
                             )}
 
-                            <span className="flex-1 min-w-0 truncate text-[0.5625rem] font-semibold leading-tight">
+                            <span className="flex-1 min-w-0 truncate text-[0.5rem] font-semibold leading-tight">
                               {b.motorcycles
                                 ? `${b.motorcycles.make ?? ""} ${b.motorcycles.model ?? ""}`.trim()
                                 : (b.customers?.first_name ?? "Booking")}
                             </span>
                             {b.assigned_tech_id && (
                               <span
-                                className="ml-auto shrink-0 grid h-3.5 w-3.5 place-items-center rounded-full bg-primary text-[0.5625rem] font-black text-primary-foreground"
+                                className="ml-auto shrink-0 grid h-3 w-3 place-items-center rounded-full bg-primary text-[0.5rem] font-black text-primary-foreground"
                                 title={`Assigned to ${b.tech_name ?? "technician"}`}
                               >
                                 {initialsOf(b.tech_name).charAt(0)}
@@ -1126,7 +1126,7 @@ function CalendarPage() {
                     if (id) moveBookingToDate(id, day);
                     setDraggingId(null);
                   }}
-                  className={`rounded-[10px] border border-[color:var(--bookin-line)] bg-[color:var(--bookin-column)] p-2 flex flex-col gap-2 min-h-[260px] sm:min-h-[340px] ${
+                  className={`rounded-[10px] border border-[color:var(--bookin-line)] bg-[color:var(--bookin-column)] p-2 flex flex-col gap-2 min-h-[220px] sm:min-h-[280px] ${
                     today ? "border-[#DC2626]" : ""
                   } ${draggingId ? "border-dashed border-primary/40" : ""}`}
                 >
@@ -1170,7 +1170,7 @@ function CalendarPage() {
 
                   {/* Book-in cards — drag freely up/down or onto another day */}
                   <div
-                    className="flex flex-col gap-1.5 sm:gap-2 flex-1"
+                    className="flex flex-col gap-1 sm:gap-1.5 flex-1"
                     onDragOver={(e) => {
                       e.preventDefault();
                       setDropHint({ dayKey, index: dayBookings.length });

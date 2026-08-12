@@ -113,28 +113,7 @@ export function serviceColor(t: string | null | undefined): ServiceColor {
 export function isHighlightedService(t: string | null | undefined): boolean {
   if (!t) return false;
   const k = t.toLowerCase();
-  return (
-    k.includes("full") ||
-    k.includes("tuning") ||
-    k.includes("dyno") ||
-    k.includes("diag") ||
-    k.includes("insurance") ||
-    k.includes("collision") ||
-    k.includes("crash") ||
-    (k.includes("post") && k.includes("bike"))
-  );
-}
-
-/** Short uppercase label for the service badge shown on book-in cards. */
-export function serviceBadgeLabel(t: string | null | undefined): string {
-  if (!t) return "";
-  const k = t.toLowerCase();
-  if (k.includes("post") && k.includes("bike")) return "POST BIKE";
-  if (k.includes("collision") || k.includes("insurance") || k.includes("crash")) return "INSURANCE";
-  if (k.includes("tuning") || k.includes("dyno")) return "TUNING";
-  if (k.includes("full")) return "FULL SERVICE";
-  if (k.includes("diag")) return "DIAGNOSTIC";
-  return t.toUpperCase();
+  return k.includes("full") || k.includes("tuning") || k.includes("dyno") || k.includes("diag");
 }
 
 /** Legend entries, in display order. */
