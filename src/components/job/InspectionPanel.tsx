@@ -398,21 +398,35 @@ export function InspectionPanel({
   );
 }
 
+function Row({ label, value }: { label: string; value: number }) {
+  return (
+    <div className="flex items-center justify-between">
+      <span className="text-muted-foreground">{label}</span>
+      <span className="tabular-nums font-medium">${value.toFixed(2)}</span>
+    </div>
+  );
+}
+
 function Section({
   title,
-  total,
+  summary,
   children,
 }: {
   title: string;
-  total?: number;
+  summary?: { hours: number; subtotal: number };
   children: React.ReactNode;
 }) {
   return (
     <div>
       <div className="flex items-center justify-between text-[0.6875rem] uppercase tracking-wider text-muted-foreground mb-1.5">
         <span>{title}</span>
-        {total ? <span>~${total.toFixed(0)} parts</span> : null}
+        {summary && (summary.hours || summary.subtotal) ? (
+          <span>
+            {summary.hours}h · ~${summary.subtotal.toFixed(0)} ex GST
+          </span>
+        ) : null}
       </div>
+
       <div className="space-y-2">{children}</div>
     </div>
   );
