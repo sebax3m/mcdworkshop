@@ -55,6 +55,7 @@ export function BookInCard({
 
   const qc = useQueryClient();
   const [completing, setCompleting] = useState(false);
+  const [reversing, setReversing] = useState(false);
 
   async function markCompleted(e: React.MouseEvent) {
     e.stopPropagation();
@@ -87,6 +88,43 @@ export function BookInCard({
       toast.error(err instanceof Error ? err.message : "Failed to complete booking");
     } finally {
       setCompleting(false);
+    }
+  }
+
+  async function reverseComplete(e: React.MouseEvent) {
+    e.stopPropagation();
+    if (reversing) return;
+    if (!confirm("Reverse completion? This will set the booking and job back to In progress.")) return;
+    setReversing(true);
+    try {
+      const updates: { status: string; loan_bike_returned_at?: null } = {
+        status: "in_progress",
+      };
+      if (b.job_id) {
+        const { error: jobError } = await supabase
+          .from("jobs")
+          .update({ status: "in_progress", completed_at: null })
+          .eq("id", b.job_id);
+        if (jobError) throw jobError;
+      }
+      if (b.loan_bike_id && b.loan_bike_returned_at) {
+        updates.loan_bike_returned_at = null;
+      }
+      const { error } = await supabase.from("bookings").update(updates).eq("id", b.id);
+      if (error) throw error;
+      qc.invalidateQueries({ queryKey: ["booking", b.id] });
+      qc.invalidateQueries({ queryKey: ["calendar-bookings"] });
+      qc.invalidateQueries({ queryKey: ["my-bookings"] });
+      qc.invalidateQueries({ queryKey: ["my-jobs"] });
+      qc.invalidateQueries({ queryKey: ["day-bookings"] });
+      qc.invalidateQueries({ queryKey: ["today-bookings"] });
+      qc.invalidateQueries({ queryKey: ["loan-bikes"] });
+      qc.invalidateQueries({ queryKey: ["loan-bikes-active-assignments"] });
+      toast.success("Completion reversed");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to reverse completion");
+    } finally {
+      setReversing(false);
     }
   }
 
