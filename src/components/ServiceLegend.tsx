@@ -1,13 +1,4 @@
-const SERVICE_COLORS: Record<string, { dot: string; text: string }> = {
-  basic: { dot: "bg-status-new", text: "text-status-new" },
-  standard: { dot: "bg-primary", text: "text-primary" },
-  full: { dot: "bg-status-assigned", text: "text-status-assigned" },
-  dyno: { dot: "bg-status-dyno", text: "text-status-dyno" },
-  diagnostic: { dot: "bg-status-progress", text: "text-status-progress" },
-  insurance: { dot: "bg-status-insurance", text: "text-status-insurance" },
-  postbike: { dot: "bg-cyan-400", text: "text-cyan-400" },
-  other: { dot: "bg-muted-foreground", text: "text-muted-foreground" },
-};
+import { SERVICE_COLORS } from "@/lib/service-colors";
 
 const ITEMS = [
   { label: "Basic", k: "basic" },
