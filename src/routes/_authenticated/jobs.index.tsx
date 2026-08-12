@@ -5,8 +5,9 @@ import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { STATUS_META, STATUS_ORDER, fullBike } from "@/lib/format";
 import { displayCustomerName } from "@/lib/display";
-import { Plus, Search, Trash2, X } from "lucide-react";
+import { Plus, Search, Trash2, User2, Users, X } from "lucide-react";
 import { useCurrentUser } from "@/hooks/use-current-user";
+import { useTechnicians } from "@/hooks/use-active-technician";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -27,12 +28,19 @@ function JobsList() {
   const { isAdmin } = useCurrentUser();
   const qc = useQueryClient();
   const [filter, setFilter] = useState<string>("active");
+  const [techFilter, setTechFilter] = useState<string>("all");
   const [search, setSearch] = useState("");
   const [selectMode, setSelectMode] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [deleteJobId, setDeleteJobId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
+
+  const { technicians: allTechs } = useTechnicians();
+  const technicians = allTechs.filter(
+    (t) => t.full_name.trim().toLowerCase() !== "admin" && t.email !== "services@mcdr.co.nz",
+  );
+
 
   const { data: jobs = [], isLoading } = useQuery({
     queryKey: ["jobs", filter],
@@ -60,6 +68,9 @@ function JobsList() {
   });
 
   const filtered = jobs.filter((j: any) => {
+    if (techFilter === "unassigned" && j.technician_id) return false;
+    if (techFilter !== "all" && techFilter !== "unassigned" && j.technician_id !== techFilter)
+      return false;
     if (!search) return true;
     const hay =
       `${j.job_number} ${j.title} ${j.customers?.first_name ?? ""} ${j.customers?.last_name ?? ""} ${j.motorcycles?.make ?? ""} ${j.motorcycles?.model ?? ""} ${j.motorcycles?.rego ?? ""}`.toLowerCase();
@@ -151,6 +162,47 @@ function JobsList() {
         />
       </div>
 
+      <section className="card-surface p-3 space-y-2">
+        <div className="flex items-center justify-between gap-2">
+          <h2 className="flex items-center gap-1.5 text-[0.6875rem] font-bold uppercase tracking-[0.2em] text-muted-foreground">
+            <Users className="h-3.5 w-3.5" /> Assigned technician
+          </h2>
+          <span className="text-xs font-bold tabular-nums text-muted-foreground">
+            {filtered.length}
+          </span>
+        </div>
+        <div className="flex flex-wrap gap-1.5">
+          {[
+            { id: "all", label: "All technicians" },
+            { id: "unassigned", label: "Unassigned" },
+            ...technicians.map((t) => ({ id: t.id, label: t.full_name })),
+          ].map((t) => {
+            const count =
+              t.id === "all"
+                ? jobs.length
+                : t.id === "unassigned"
+                  ? jobs.filter((j: any) => !j.technician_id).length
+                  : jobs.filter((j: any) => j.technician_id === t.id).length;
+            const active = techFilter === t.id;
+            return (
+              <button
+                key={t.id}
+                onClick={() => setTechFilter(t.id)}
+                className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors ${
+                  active
+                    ? "border-primary bg-primary/10 text-primary"
+                    : "border-border text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                <User2 className="h-3.5 w-3.5" />
+                <span className="truncate max-w-[10rem]">{t.label}</span>
+                <span className="tabular-nums opacity-70">{count}</span>
+              </button>
+            );
+          })}
+        </div>
+      </section>
+
       <div className="flex gap-1.5 overflow-x-auto -mx-1 px-1 pb-1 scrollbar-none">
         {[
           { id: "active", label: "Active" },
@@ -210,6 +262,9 @@ function JobsList() {
                     {displayCustomerName(j.customers)} ·{" "}
                     {j.motorcycles ? fullBike(j.motorcycles) : "—"}
                     {j.motorcycles?.rego ? ` · ${j.motorcycles.rego}` : ""}
+                    {j.technician_id
+                      ? ` · ${technicians.find((t) => t.id === j.technician_id)?.full_name ?? "Assigned"}`
+                      : " · Unassigned"}
                   </div>
                 </div>
                 <span
