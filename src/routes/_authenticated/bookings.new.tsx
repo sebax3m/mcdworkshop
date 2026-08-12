@@ -18,6 +18,8 @@ import { displayCustomerName } from "@/lib/display";
 import { uploadPhoto } from "@/lib/photos";
 import { useBookingTypes } from "@/hooks/useBookingTypes";
 import { TimeSlotFields } from "@/components/booking/TimeSlotFields";
+import { AddressAutocomplete, AddressMap } from "@/components/booking/AddressAutocomplete";
+
 import {
   addMinutesToTime,
   findBookingConflicts,
