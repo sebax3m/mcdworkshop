@@ -50,6 +50,7 @@ import { Route as AuthenticatedInsuranceClaimIdRouteImport } from './routes/_aut
 import { Route as AuthenticatedGarageLibraryUpdatesRouteImport } from './routes/_authenticated/garage-library.updates'
 import { Route as AuthenticatedGarageLibraryTechRouteImport } from './routes/_authenticated/garage-library.tech'
 import { Route as AuthenticatedGarageLibraryReviewRouteImport } from './routes/_authenticated/garage-library.review'
+import { Route as AuthenticatedGarageLibraryResearchRouteImport } from './routes/_authenticated/garage-library.research'
 import { Route as AuthenticatedGarageLibraryImportRouteImport } from './routes/_authenticated/garage-library.import'
 import { Route as AuthenticatedGarageLibraryDocumentsRouteImport } from './routes/_authenticated/garage-library.documents'
 import { Route as AuthenticatedGarageLibraryAnalyticsRouteImport } from './routes/_authenticated/garage-library.analytics'
@@ -284,6 +285,12 @@ const AuthenticatedGarageLibraryReviewRoute =
     path: '/garage-library/review',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedGarageLibraryResearchRoute =
+  AuthenticatedGarageLibraryResearchRouteImport.update({
+    id: '/garage-library/research',
+    path: '/garage-library/research',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedGarageLibraryImportRoute =
   AuthenticatedGarageLibraryImportRouteImport.update({
     id: '/garage-library/import',
@@ -365,6 +372,7 @@ export interface FileRoutesByFullPath {
   '/garage-library/analytics': typeof AuthenticatedGarageLibraryAnalyticsRoute
   '/garage-library/documents': typeof AuthenticatedGarageLibraryDocumentsRoute
   '/garage-library/import': typeof AuthenticatedGarageLibraryImportRoute
+  '/garage-library/research': typeof AuthenticatedGarageLibraryResearchRoute
   '/garage-library/review': typeof AuthenticatedGarageLibraryReviewRoute
   '/garage-library/tech': typeof AuthenticatedGarageLibraryTechRoute
   '/garage-library/updates': typeof AuthenticatedGarageLibraryUpdatesRoute
@@ -413,6 +421,7 @@ export interface FileRoutesByTo {
   '/garage-library/analytics': typeof AuthenticatedGarageLibraryAnalyticsRoute
   '/garage-library/documents': typeof AuthenticatedGarageLibraryDocumentsRoute
   '/garage-library/import': typeof AuthenticatedGarageLibraryImportRoute
+  '/garage-library/research': typeof AuthenticatedGarageLibraryResearchRoute
   '/garage-library/review': typeof AuthenticatedGarageLibraryReviewRoute
   '/garage-library/tech': typeof AuthenticatedGarageLibraryTechRoute
   '/garage-library/updates': typeof AuthenticatedGarageLibraryUpdatesRoute
@@ -466,6 +475,7 @@ export interface FileRoutesById {
   '/_authenticated/garage-library/analytics': typeof AuthenticatedGarageLibraryAnalyticsRoute
   '/_authenticated/garage-library/documents': typeof AuthenticatedGarageLibraryDocumentsRoute
   '/_authenticated/garage-library/import': typeof AuthenticatedGarageLibraryImportRoute
+  '/_authenticated/garage-library/research': typeof AuthenticatedGarageLibraryResearchRoute
   '/_authenticated/garage-library/review': typeof AuthenticatedGarageLibraryReviewRoute
   '/_authenticated/garage-library/tech': typeof AuthenticatedGarageLibraryTechRoute
   '/_authenticated/garage-library/updates': typeof AuthenticatedGarageLibraryUpdatesRoute
@@ -519,6 +529,7 @@ export interface FileRouteTypes {
     | '/garage-library/analytics'
     | '/garage-library/documents'
     | '/garage-library/import'
+    | '/garage-library/research'
     | '/garage-library/review'
     | '/garage-library/tech'
     | '/garage-library/updates'
@@ -567,6 +578,7 @@ export interface FileRouteTypes {
     | '/garage-library/analytics'
     | '/garage-library/documents'
     | '/garage-library/import'
+    | '/garage-library/research'
     | '/garage-library/review'
     | '/garage-library/tech'
     | '/garage-library/updates'
@@ -619,6 +631,7 @@ export interface FileRouteTypes {
     | '/_authenticated/garage-library/analytics'
     | '/_authenticated/garage-library/documents'
     | '/_authenticated/garage-library/import'
+    | '/_authenticated/garage-library/research'
     | '/_authenticated/garage-library/review'
     | '/_authenticated/garage-library/tech'
     | '/_authenticated/garage-library/updates'
@@ -941,6 +954,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedGarageLibraryReviewRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/garage-library/research': {
+      id: '/_authenticated/garage-library/research'
+      path: '/garage-library/research'
+      fullPath: '/garage-library/research'
+      preLoaderRoute: typeof AuthenticatedGarageLibraryResearchRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/garage-library/import': {
       id: '/_authenticated/garage-library/import'
       path: '/garage-library/import'
@@ -1081,6 +1101,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedGarageLibraryAnalyticsRoute: typeof AuthenticatedGarageLibraryAnalyticsRoute
   AuthenticatedGarageLibraryDocumentsRoute: typeof AuthenticatedGarageLibraryDocumentsRoute
   AuthenticatedGarageLibraryImportRoute: typeof AuthenticatedGarageLibraryImportRoute
+  AuthenticatedGarageLibraryResearchRoute: typeof AuthenticatedGarageLibraryResearchRoute
   AuthenticatedGarageLibraryReviewRoute: typeof AuthenticatedGarageLibraryReviewRoute
   AuthenticatedGarageLibraryTechRoute: typeof AuthenticatedGarageLibraryTechRoute
   AuthenticatedGarageLibraryUpdatesRoute: typeof AuthenticatedGarageLibraryUpdatesRoute
@@ -1125,6 +1146,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedGarageLibraryDocumentsRoute:
     AuthenticatedGarageLibraryDocumentsRoute,
   AuthenticatedGarageLibraryImportRoute: AuthenticatedGarageLibraryImportRoute,
+  AuthenticatedGarageLibraryResearchRoute:
+    AuthenticatedGarageLibraryResearchRoute,
   AuthenticatedGarageLibraryReviewRoute: AuthenticatedGarageLibraryReviewRoute,
   AuthenticatedGarageLibraryTechRoute: AuthenticatedGarageLibraryTechRoute,
   AuthenticatedGarageLibraryUpdatesRoute:

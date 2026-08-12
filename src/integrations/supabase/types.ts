@@ -848,6 +848,84 @@ export type Database = {
           },
         ]
       }
+      garage_bike_overrides: {
+        Row: {
+          category: string
+          created_at: string
+          created_by: string | null
+          field: string
+          id: string
+          is_archived: boolean
+          model_id: string | null
+          motorcycle_id: string
+          notes: string | null
+          reason: string | null
+          source_name: string | null
+          source_type: string
+          subject: string
+          unit: string | null
+          updated_at: string
+          value_num: number | null
+          value_text: string | null
+          verification: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          created_by?: string | null
+          field: string
+          id?: string
+          is_archived?: boolean
+          model_id?: string | null
+          motorcycle_id: string
+          notes?: string | null
+          reason?: string | null
+          source_name?: string | null
+          source_type?: string
+          subject?: string
+          unit?: string | null
+          updated_at?: string
+          value_num?: number | null
+          value_text?: string | null
+          verification?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          field?: string
+          id?: string
+          is_archived?: boolean
+          model_id?: string | null
+          motorcycle_id?: string
+          notes?: string | null
+          reason?: string | null
+          source_name?: string | null
+          source_type?: string
+          subject?: string
+          unit?: string | null
+          updated_at?: string
+          value_num?: number | null
+          value_text?: string | null
+          verification?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "garage_bike_overrides_model_id_fkey"
+            columns: ["model_id"]
+            isOneToOne: false
+            referencedRelation: "bike_library_models"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "garage_bike_overrides_motorcycle_id_fkey"
+            columns: ["motorcycle_id"]
+            isOneToOne: false
+            referencedRelation: "motorcycles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       garage_checklist_items: {
         Row: {
           checklist_id: string
@@ -1356,6 +1434,193 @@ export type Database = {
             columns: ["motorcycle_id"]
             isOneToOne: false
             referencedRelation: "motorcycles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      garage_research_requests: {
+        Row: {
+          category: string
+          created_at: string
+          field: string
+          id: string
+          label: string
+          model_id: string
+          note: string | null
+          priority: number
+          requested_by: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          status: string
+          subject: string
+          updated_at: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          field: string
+          id?: string
+          label: string
+          model_id: string
+          note?: string | null
+          priority?: number
+          requested_by?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: string
+          subject?: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          field?: string
+          id?: string
+          label?: string
+          model_id?: string
+          note?: string | null
+          priority?: number
+          requested_by?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: string
+          subject?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "garage_research_requests_model_id_fkey"
+            columns: ["model_id"]
+            isOneToOne: false
+            referencedRelation: "bike_library_models"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      garage_research_results: {
+        Row: {
+          accessed_at: string
+          applied_spec_id: string | null
+          category: string
+          confidence: string
+          conflict_spec_id: string | null
+          created_at: string
+          decision_note: string | null
+          field: string
+          id: string
+          import_batch: string | null
+          model_id: string
+          model_match: string
+          notes: string | null
+          origin: string
+          request_id: string | null
+          researched_by: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          source_date: string | null
+          source_name: string | null
+          source_ref: string | null
+          source_type: string
+          source_url: string | null
+          status: string
+          subject: string
+          unit: string | null
+          updated_at: string
+          value_num: number | null
+          value_text: string | null
+          warnings: Json
+        }
+        Insert: {
+          accessed_at?: string
+          applied_spec_id?: string | null
+          category: string
+          confidence?: string
+          conflict_spec_id?: string | null
+          created_at?: string
+          decision_note?: string | null
+          field: string
+          id?: string
+          import_batch?: string | null
+          model_id: string
+          model_match?: string
+          notes?: string | null
+          origin?: string
+          request_id?: string | null
+          researched_by?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          source_date?: string | null
+          source_name?: string | null
+          source_ref?: string | null
+          source_type?: string
+          source_url?: string | null
+          status?: string
+          subject?: string
+          unit?: string | null
+          updated_at?: string
+          value_num?: number | null
+          value_text?: string | null
+          warnings?: Json
+        }
+        Update: {
+          accessed_at?: string
+          applied_spec_id?: string | null
+          category?: string
+          confidence?: string
+          conflict_spec_id?: string | null
+          created_at?: string
+          decision_note?: string | null
+          field?: string
+          id?: string
+          import_batch?: string | null
+          model_id?: string
+          model_match?: string
+          notes?: string | null
+          origin?: string
+          request_id?: string | null
+          researched_by?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          source_date?: string | null
+          source_name?: string | null
+          source_ref?: string | null
+          source_type?: string
+          source_url?: string | null
+          status?: string
+          subject?: string
+          unit?: string | null
+          updated_at?: string
+          value_num?: number | null
+          value_text?: string | null
+          warnings?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "garage_research_results_applied_spec_id_fkey"
+            columns: ["applied_spec_id"]
+            isOneToOne: false
+            referencedRelation: "garage_tech_specs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "garage_research_results_conflict_spec_id_fkey"
+            columns: ["conflict_spec_id"]
+            isOneToOne: false
+            referencedRelation: "garage_tech_specs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "garage_research_results_model_id_fkey"
+            columns: ["model_id"]
+            isOneToOne: false
+            referencedRelation: "bike_library_models"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "garage_research_results_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "garage_research_requests"
             referencedColumns: ["id"]
           },
         ]
@@ -3411,6 +3676,18 @@ export type Database = {
         Args: { p_model_id: string }
         Returns: Json
       }
+      garage_part_usage: {
+        Args: { p_model_id: string }
+        Returns: {
+          detail: string
+          jobs: number
+          key_norm: string
+          label: string
+          last_used: string
+          verified: boolean
+        }[]
+      }
+      garage_research_analytics: { Args: never; Returns: Json }
       garage_search_chunks: {
         Args: {
           p_embedding?: string
