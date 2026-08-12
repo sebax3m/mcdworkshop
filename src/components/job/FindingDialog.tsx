@@ -159,7 +159,12 @@ export function FindingDialog({ open, onOpenChange, jobId, userId, finding, onSa
                 <button
                   key={c}
                   type="button"
-                  onClick={() => setCategory(c)}
+                  onClick={() => {
+                    setCategory(c);
+                    const d = findingDefaults(title, c);
+                    if (!labour) setLabour(String(d.labour));
+                    if (!partsCost) setPartsCost(String(d.parts));
+                  }}
                   className={cn(
                     "rounded-full border px-2.5 py-1 text-[0.6875rem] font-semibold",
                     category === c
