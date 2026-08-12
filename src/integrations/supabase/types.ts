@@ -718,6 +718,275 @@ export type Database = {
           },
         ]
       }
+      garage_answer_feedback: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          helpful: boolean
+          id: string
+          note: string | null
+          query_id: string
+          reason: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          helpful: boolean
+          id?: string
+          note?: string | null
+          query_id: string
+          reason?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          helpful?: boolean
+          id?: string
+          note?: string | null
+          query_id?: string
+          reason?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "garage_answer_feedback_query_id_fkey"
+            columns: ["query_id"]
+            isOneToOne: false
+            referencedRelation: "garage_queries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      garage_checklist_items: {
+        Row: {
+          checklist_id: string
+          created_at: string
+          id: string
+          label: string
+          note: string | null
+          sort_order: number
+          torque_ref: string | null
+        }
+        Insert: {
+          checklist_id: string
+          created_at?: string
+          id?: string
+          label: string
+          note?: string | null
+          sort_order?: number
+          torque_ref?: string | null
+        }
+        Update: {
+          checklist_id?: string
+          created_at?: string
+          id?: string
+          label?: string
+          note?: string | null
+          sort_order?: number
+          torque_ref?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "garage_checklist_items_checklist_id_fkey"
+            columns: ["checklist_id"]
+            isOneToOne: false
+            referencedRelation: "garage_checklists"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      garage_checklists: {
+        Row: {
+          base_checklist_id: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          estimated_hours: number | null
+          id: string
+          is_archived: boolean
+          model_id: string | null
+          operation_key: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          base_checklist_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          estimated_hours?: number | null
+          id?: string
+          is_archived?: boolean
+          model_id?: string | null
+          operation_key: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          base_checklist_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          estimated_hours?: number | null
+          id?: string
+          is_archived?: boolean
+          model_id?: string | null
+          operation_key?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "garage_checklists_base_checklist_id_fkey"
+            columns: ["base_checklist_id"]
+            isOneToOne: false
+            referencedRelation: "garage_checklists"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "garage_checklists_model_id_fkey"
+            columns: ["model_id"]
+            isOneToOne: false
+            referencedRelation: "bike_library_models"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      garage_document_chunks: {
+        Row: {
+          chunk_index: number
+          content: string
+          created_at: string
+          document_id: string
+          embedding: string | null
+          heading: string | null
+          id: string
+          page_from: number | null
+          page_to: number | null
+        }
+        Insert: {
+          chunk_index: number
+          content: string
+          created_at?: string
+          document_id: string
+          embedding?: string | null
+          heading?: string | null
+          id?: string
+          page_from?: number | null
+          page_to?: number | null
+        }
+        Update: {
+          chunk_index?: number
+          content?: string
+          created_at?: string
+          document_id?: string
+          embedding?: string | null
+          heading?: string | null
+          id?: string
+          page_from?: number | null
+          page_to?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "garage_document_chunks_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "garage_documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      garage_documents: {
+        Row: {
+          authorised: boolean
+          created_at: string
+          doc_type: Database["public"]["Enums"]["garage_doc_type"]
+          engine_platform: string | null
+          external_url: string | null
+          generation: string | null
+          id: string
+          is_archived: boolean
+          language: string
+          manufacturer: string
+          model: string | null
+          model_id: string | null
+          notes: string | null
+          page_count: number | null
+          source: Database["public"]["Enums"]["garage_source"]
+          storage_path: string | null
+          title: string
+          updated_at: string
+          uploaded_by: string | null
+          verification: Database["public"]["Enums"]["garage_verification"]
+          verified_at: string | null
+          verified_by: string | null
+          version: string | null
+          year_from: number | null
+          year_to: number | null
+        }
+        Insert: {
+          authorised?: boolean
+          created_at?: string
+          doc_type?: Database["public"]["Enums"]["garage_doc_type"]
+          engine_platform?: string | null
+          external_url?: string | null
+          generation?: string | null
+          id?: string
+          is_archived?: boolean
+          language?: string
+          manufacturer: string
+          model?: string | null
+          model_id?: string | null
+          notes?: string | null
+          page_count?: number | null
+          source?: Database["public"]["Enums"]["garage_source"]
+          storage_path?: string | null
+          title: string
+          updated_at?: string
+          uploaded_by?: string | null
+          verification?: Database["public"]["Enums"]["garage_verification"]
+          verified_at?: string | null
+          verified_by?: string | null
+          version?: string | null
+          year_from?: number | null
+          year_to?: number | null
+        }
+        Update: {
+          authorised?: boolean
+          created_at?: string
+          doc_type?: Database["public"]["Enums"]["garage_doc_type"]
+          engine_platform?: string | null
+          external_url?: string | null
+          generation?: string | null
+          id?: string
+          is_archived?: boolean
+          language?: string
+          manufacturer?: string
+          model?: string | null
+          model_id?: string | null
+          notes?: string | null
+          page_count?: number | null
+          source?: Database["public"]["Enums"]["garage_source"]
+          storage_path?: string | null
+          title?: string
+          updated_at?: string
+          uploaded_by?: string | null
+          verification?: Database["public"]["Enums"]["garage_verification"]
+          verified_at?: string | null
+          verified_by?: string | null
+          version?: string | null
+          year_from?: number | null
+          year_to?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "garage_documents_model_id_fkey"
+            columns: ["model_id"]
+            isOneToOne: false
+            referencedRelation: "bike_library_models"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       garage_fluid_specs: {
         Row: {
           created_at: string
@@ -906,6 +1175,92 @@ export type Database = {
           },
           {
             foreignKeyName: "garage_observations_motorcycle_id_fkey"
+            columns: ["motorcycle_id"]
+            isOneToOne: false
+            referencedRelation: "motorcycles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      garage_queries: {
+        Row: {
+          answer_source: Database["public"]["Enums"]["garage_answer_source"]
+          answer_summary: string | null
+          answered: boolean
+          asked_by: string | null
+          cache_hit: boolean
+          created_at: string
+          document_id: string | null
+          id: string
+          job_id: string | null
+          model_id: string | null
+          motorcycle_id: string | null
+          needs_verification: boolean
+          question: string
+          question_norm: string
+          topic: string | null
+          used_external_ai: boolean
+        }
+        Insert: {
+          answer_source?: Database["public"]["Enums"]["garage_answer_source"]
+          answer_summary?: string | null
+          answered?: boolean
+          asked_by?: string | null
+          cache_hit?: boolean
+          created_at?: string
+          document_id?: string | null
+          id?: string
+          job_id?: string | null
+          model_id?: string | null
+          motorcycle_id?: string | null
+          needs_verification?: boolean
+          question: string
+          question_norm: string
+          topic?: string | null
+          used_external_ai?: boolean
+        }
+        Update: {
+          answer_source?: Database["public"]["Enums"]["garage_answer_source"]
+          answer_summary?: string | null
+          answered?: boolean
+          asked_by?: string | null
+          cache_hit?: boolean
+          created_at?: string
+          document_id?: string | null
+          id?: string
+          job_id?: string | null
+          model_id?: string | null
+          motorcycle_id?: string | null
+          needs_verification?: boolean
+          question?: string
+          question_norm?: string
+          topic?: string | null
+          used_external_ai?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "garage_queries_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "garage_documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "garage_queries_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "garage_queries_model_id_fkey"
+            columns: ["model_id"]
+            isOneToOne: false
+            referencedRelation: "bike_library_models"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "garage_queries_motorcycle_id_fkey"
             columns: ["motorcycle_id"]
             isOneToOne: false
             referencedRelation: "motorcycles"
@@ -2671,9 +3026,21 @@ export type Database = {
           status: string
         }[]
       }
+      garage_ai_usage: { Args: { p_days?: number }; Returns: Json }
+      garage_knowledge_coverage: { Args: { p_model_id: string }; Returns: Json }
       garage_match_model: {
         Args: { p_make: string; p_model: string; p_year?: number }
         Returns: string
+      }
+      garage_missing_knowledge: {
+        Args: { p_limit?: number }
+        Returns: {
+          asks: number
+          last_asked: string
+          model_id: string
+          question_norm: string
+          sample: string
+        }[]
       }
       garage_model_experience: { Args: { p_model_id: string }; Returns: Json }
       garage_model_jobs: {
@@ -2693,6 +3060,35 @@ export type Database = {
         Args: { p_model_id: string }
         Returns: Json
       }
+      garage_search_chunks: {
+        Args: {
+          p_embedding?: string
+          p_limit?: number
+          p_make?: string
+          p_model?: string
+          p_model_id?: string
+          p_query?: string
+          p_year?: number
+        }
+        Returns: {
+          chunk_id: string
+          content: string
+          doc_model: string
+          doc_type: Database["public"]["Enums"]["garage_doc_type"]
+          document_id: string
+          generation: string
+          heading: string
+          manufacturer: string
+          page_from: number
+          page_to: number
+          score: number
+          title: string
+          verification: Database["public"]["Enums"]["garage_verification"]
+          version: string
+          year_from: number
+          year_to: number
+        }[]
+      }
       merge_customers: {
         Args: { p_keep_id: string; p_merge_id: string }
         Returns: Json
@@ -2709,6 +3105,22 @@ export type Database = {
     Enums: {
       app_role: "admin" | "technician"
       clock_event_type: "clock_in" | "clock_out" | "break_start" | "break_end"
+      garage_answer_source:
+        | "structured"
+        | "document"
+        | "history"
+        | "external_ai"
+        | "none"
+      garage_doc_type:
+        | "workshop_manual"
+        | "service_manual"
+        | "owner_manual"
+        | "parts_catalogue"
+        | "technical_bulletin"
+        | "workshop_procedure"
+        | "dyno_document"
+        | "supplier_document"
+        | "other"
       garage_source:
         | "workshop_verified"
         | "manufacturer_manual"
@@ -2868,6 +3280,24 @@ export const Constants = {
     Enums: {
       app_role: ["admin", "technician"],
       clock_event_type: ["clock_in", "clock_out", "break_start", "break_end"],
+      garage_answer_source: [
+        "structured",
+        "document",
+        "history",
+        "external_ai",
+        "none",
+      ],
+      garage_doc_type: [
+        "workshop_manual",
+        "service_manual",
+        "owner_manual",
+        "parts_catalogue",
+        "technical_bulletin",
+        "workshop_procedure",
+        "dyno_document",
+        "supplier_document",
+        "other",
+      ],
       garage_source: [
         "workshop_verified",
         "manufacturer_manual",
