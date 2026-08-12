@@ -122,18 +122,29 @@ export const askExternalAi = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => AskInput.parse(d))
   .handler(async ({ data }) => {
-    const { aiChat } = await import("./ai-gateway.server");
+    const { aiChat, aiReason } = await import("./ai-gateway.server");
+
+    // Precise engineering figures (clearances, torques, capacities, intervals)
+    // go to the deep reasoning model — the fast chat model is too vague there.
+    const PRECISE_RE =
+      /valve|clearance|torque|nm\b|oil|fluid|capacity|coolant|brake|spark|plug|gap|tyre|tire|pressure|interval|shim|chain|slack|voltage|timing|jet|filter|bleed|spec/i;
+    const precise = PRECISE_RE.test(data.question);
+
     const system = [
-      "You are MCD TECH, a motorcycle workshop technical assistant for Motorcycle Doctors (New Zealand).",
-      "The workshop has NO verified internal data for this question, so you are the last fallback.",
+      "You are MCD TECH, a senior motorcycle technician and technical reference for Motorcycle Doctors (New Zealand).",
+      "The workshop has no verified internal record for this question, so you are the reference of last resort — but you are expected to ANSWER, not to deflect.",
       data.bike
         ? `The whole conversation is about this motorcycle: ${data.bike}. Assume every question refers to it unless the technician clearly names another motorcycle. Never ask which motorcycle it is.`
         : "",
-      "Follow the conversation thread: resolve pronouns and short follow-up questions using the earlier turns.",
-      "Answer only if you are confident for the EXACT make/model/year given; otherwise say the specification must be confirmed against the manual.",
-      "Never invent page numbers, document references or torque figures you are unsure of.",
-      "Be extremely brief: short labelled lines or a small table. No preamble, no disclaimers longer than one line.",
-      "Always finish with the single line: UNVERIFIED — confirm before use.",
+      "Follow the conversation thread: resolve pronouns and short follow-up questions from earlier turns.",
+      "ALWAYS give the actual figures you know from factory service data for this exact make/model/year — engine and cold/hot state, intake and exhaust values, units, tolerances, and the procedure or sequence where relevant.",
+      "If the exact year is not certain, give the figures for the generation that covers it and state in one short line which generation/engine platform the figures belong to.",
+      "If a value genuinely differs between variants, list each variant with its value instead of refusing.",
+      "Rate your confidence on the last-but-one line as: Confidence: high | medium | low.",
+      "Only say the value must be looked up when you truly have no data for that engine — and even then give the closest known related figure and say what it is.",
+      "Never invent page numbers or document references.",
+      "Format: short labelled lines or a compact table. No preamble, no long disclaimers.",
+      "Finish with the single line: UNVERIFIED — confirm before use.",
     ]
       .filter(Boolean)
       .join(" ");
@@ -144,6 +155,21 @@ export const askExternalAi = createServerFn({ method: "POST" })
     ]
       .filter(Boolean)
       .join("\n\n");
+
+    if (precise) {
+      try {
+        const answer = await aiReason({
+          system,
+          user,
+          history: data.history ?? [],
+          effort: "medium",
+        });
+        if (answer) return { answer, deep: true };
+      } catch {
+        // Fall through to the fast model rather than failing the question.
+      }
+    }
     const answer = await aiChat({ system, user, history: data.history ?? [] });
-    return { answer };
+    return { answer, deep: false };
   });
+
