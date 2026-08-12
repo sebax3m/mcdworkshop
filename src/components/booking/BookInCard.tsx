@@ -36,7 +36,7 @@ function TransportIcon({
   variant = "inline",
 }: {
   label: string;
-  title: string;
+  title?: string;
   address: string;
   variant?: "inline" | "absolute";
 }) {
