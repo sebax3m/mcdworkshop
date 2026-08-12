@@ -129,6 +129,9 @@ export function FindingDialog({ open, onOpenChange, jobId, userId, finding, onSa
                   setTitle(p.title);
                   setCategory(p.category);
                   setSeverity(p.severity);
+                  setAction(p.action ?? "");
+                  setLabour(String(p.labour));
+                  setPartsCost(String(p.parts));
                 }}
                 className="rounded-full border border-border px-2.5 py-1 text-[0.6875rem] font-medium text-muted-foreground hover:border-primary/50 hover:text-foreground"
               >
