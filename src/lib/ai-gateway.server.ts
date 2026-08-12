@@ -52,9 +52,77 @@ export async function aiChat(opts: {
     }),
   });
   if (!res.ok) throw gatewayError(res.status, await res.text().catch(() => ""));
-  const json = (await res.json()) as { choices?: Array<{ message?: { content?: string } }> };
-  return json.choices?.[0]?.message?.content?.trim() ?? "";
+
+/**
+ * Deep reasoning answer (OpenAI Responses API, streamed server-side).
+ * Used for precise technical questions — valve clearances, torque figures,
+ * fluid specifications — where the flash model is too vague.
+ */
+export async function aiReason(opts: {
+  system: string;
+  user: string;
+  history?: Array<{ role: "user" | "assistant"; content: string }>;
+  model?: string;
+  effort?: "low" | "medium" | "high";
+}): Promise<string> {
+  const input = [
+    { role: "developer" as const, content: [{ type: "input_text" as const, text: opts.system }] },
+    ...(opts.history ?? []).map((m) =>
+      m.role === "assistant"
+        ? { role: "assistant" as const, content: [{ type: "output_text" as const, text: m.content }] }
+        : { role: "user" as const, content: [{ type: "input_text" as const, text: m.content }] },
+    ),
+    { role: "user" as const, content: [{ type: "input_text" as const, text: opts.user }] },
+  ];
+
+  const res = await fetch(`${GATEWAY}/responses`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${apiKey()}`,
+      "Content-Type": "application/json",
+      "X-Lovable-AIG-SDK": "fetch",
+    },
+    body: JSON.stringify({
+      model: opts.model ?? AI_MODELS.reasoning,
+      input,
+      stream: true,
+      store: false,
+      reasoning: { effort: opts.effort ?? "medium", summary: "auto" },
+    }),
+  });
+  if (!res.ok || !res.body) throw gatewayError(res.status, await res.text().catch(() => ""));
+
+  // Streaming is mandatory on this endpoint; we consume it server-side and
+  // return only the final text.
+  const reader = res.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = "";
+  let text = "";
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+    const parts = buffer.split("\n\n");
+    buffer = parts.pop() ?? "";
+    for (const part of parts) {
+      for (const line of part.split("\n")) {
+        if (!line.startsWith("data:")) continue;
+        const payload = line.slice(5).trim();
+        if (!payload || payload === "[DONE]") continue;
+        try {
+          const evt = JSON.parse(payload) as any;
+          if (evt.type === "response.output_text.delta" && typeof evt.delta === "string") text += evt.delta;
+          else if (evt.type === "response.completed" && !text)
+            text = String(evt.response?.output_text ?? "");
+        } catch {
+          /* ignore keep-alive / partial frames */
+        }
+      }
+    }
+  }
+  return text.trim();
 }
+
 
 /** Embeddings for document indexing and semantic retrieval. */
 export async function aiEmbed(input: string[], model = AI_MODELS.embedding): Promise<number[][]> {
