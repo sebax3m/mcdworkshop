@@ -22,6 +22,7 @@ import {
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { generateCustomerReport } from "@/lib/customer-report.functions";
 import { displayCustomerName } from "@/lib/display";
+import { collectJobObservations, saveObservations, suggestLabourReferenceUpdates } from "@/lib/garage-learning";
 import {
   buildInvoiceDraft,
   buildPlainReport,
@@ -329,6 +330,37 @@ function SmartInvoiceDraft() {
     setBusy(null);
     if (error || !data) return toast.error(error?.message ?? "Failed");
     toast.success(`Invoice ${data.invoice_number} created`);
+
+    // Phase 2 learning: observe only, never auto-change library references.
+    try {
+      const ctx = await collectJobObservations(jobId);
+      if (ctx.completed && ctx.candidates.length) {
+        toast("Save as workshop observation?", {
+          description: `${ctx.candidates.length} item(s) from this completed job can be kept as Garage Library evidence.`,
+          duration: 12000,
+          action: {
+            label: "Save",
+            onClick: async () => {
+              try {
+                await saveObservations(ctx, data.id);
+                const n = await suggestLabourReferenceUpdates(ctx.modelId);
+                toast.success(
+                  n > 0
+                    ? `Observations saved · ${n} reference update(s) sent for Admin approval`
+                    : "Workshop observations saved",
+                );
+              } catch (err: any) {
+                toast.error(err?.message ?? "Could not save observations");
+              }
+            },
+          },
+          cancel: { label: "Ignore", onClick: () => undefined },
+        });
+      }
+    } catch {
+      /* learning is never allowed to block invoicing */
+    }
+
     nav({ to: "/invoices/$invoiceId", params: { invoiceId: data.id } });
   }
 

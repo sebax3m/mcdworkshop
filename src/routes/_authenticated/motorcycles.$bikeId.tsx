@@ -25,6 +25,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { BikeMakeModelYear } from "@/components/BikeMakeModelYear";
+import { BikeKnowledgePanel } from "@/components/bikes/BikeKnowledgePanel";
 import { uploadPhoto } from "@/lib/photos";
 import { generateBikeImage } from "@/lib/bike-image.functions";
 import { lookupRego } from "@/lib/rego-lookup.functions";
@@ -477,6 +478,8 @@ function BikeProfile() {
               />
             </div>
           )}
+
+          <BikeKnowledgePanel motorcycleId={b.id} />
 
           {editing && form && b.customer_id ? (
             <div className="card-surface p-4 space-y-2">
