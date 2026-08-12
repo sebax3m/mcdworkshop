@@ -268,7 +268,7 @@ export async function suggestModels(make: string, model: string, year?: number |
   const { data, error } = await supabase.rpc("garage_suggest_models", {
     p_make: make,
     p_model: model,
-    p_year: year ?? null,
+    p_year: year ?? undefined,
   });
   if (error) throw error;
   return (data ?? []) as ModelSuggestion[];
