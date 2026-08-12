@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { fetchAllRows } from "@/lib/fetch-all";
 import { ModelMatchingDialog } from "@/components/garage/ModelMatchingDialog";
+import { TechDataImport } from "@/components/garage/TechDataImport";
 import {
   buildPreview,
   generationLabel,
@@ -51,6 +52,7 @@ function GarageImportPage() {
   const [raw, setRaw] = useState("");
   const [preview, setPreview] = useState<PreviewRow[] | null>(null);
   const [busy, setBusy] = useState(false);
+  const [mode, setMode] = useState<"models" | "tech">("models");
 
   const { data: models = [] } = useQuery({
     queryKey: ["catalogue-models"],
