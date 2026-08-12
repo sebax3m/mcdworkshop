@@ -43,8 +43,10 @@ export function CalendarDayHeader({
           <div className="min-w-0">
             <div
               className={cn(
-                "truncate text-[0.625rem] font-semibold uppercase tracking-[0.12em]",
-                today ? "text-primary" : "text-muted-foreground/70",
+                "inline-block truncate text-[0.75rem] font-bold uppercase tracking-[0.12em]",
+                today
+                  ? "rounded-[4px] bg-primary/10 px-1.5 py-0.5 text-primary ring-1 ring-primary/40"
+                  : "text-muted-foreground/70",
               )}
             >
               {format(day, "EEEE")}
