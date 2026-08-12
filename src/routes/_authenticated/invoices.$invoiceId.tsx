@@ -1218,9 +1218,10 @@ function InvoiceDetail() {
                       const gross = Number(it.unit) * Number(it.quantity);
                       const net = gross * (1 - disc / 100);
                       return (
-                        <tr key={idx} className="border-b border-border/40 group">
+                        <tr key={idx} {...rowDragProps(String(idx), moveSnapshotLine)}>
                           <td className="py-3">
                             <div className="flex items-start gap-2">
+                              <DragHandle rowKey={String(idx)} />
                               <div className="flex-1">
                                 <EditableText
                                   value={it.description}
