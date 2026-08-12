@@ -1090,7 +1090,7 @@ function CalendarPage() {
                     setDraggingId(null);
                   }}
                   className={`card-surface p-1.5 sm:p-2 flex flex-col gap-1.5 sm:gap-2 min-h-[220px] sm:min-h-[280px] ${
-                    today ? "ring-2 ring-primary/40" : ""
+                    today ? "ring-[3px] ring-primary/60" : ""
                   } ${isSunday(day) ? "bg-primary/[0.08]" : ""} ${
                     draggingId ? "border-dashed border-primary/40" : ""
                   }`}
@@ -1103,7 +1103,7 @@ function CalendarPage() {
                     title="Open day view"
                   >
                     <div
-                      className={`text-[0.6rem] sm:text-[0.625rem] font-bold uppercase tracking-wider ${
+                      className={`text-[0.75rem] sm:text-[0.85rem] font-bold uppercase tracking-wider ${
                         today || isSunday(day) ? "text-primary" : "text-muted-foreground"
                       }`}
                     >

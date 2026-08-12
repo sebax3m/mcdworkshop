@@ -153,7 +153,6 @@ export function BookInCard({
         jobCompleted ? "job-complete-stripes" : "",
         "hover:shadow-md hover:brightness-110 focus:outline-none focus:ring-2 focus:ring-primary/40",
         dense ? "p-1 sm:p-1.5" : "p-2.5",
-        b.bike_arrived && "ring-1 ring-orange-500/60",
         draggable && "cursor-grab active:cursor-grabbing",
         className,
       )}
@@ -178,6 +177,13 @@ export function BookInCard({
         >
           <CheckCircle className="h-3 w-3" />
         </button>
+      )}
+
+      {b.bike_arrived && (
+        <span
+          className="absolute -top-1 -left-1 z-10 h-2.5 w-2.5 rounded-full bg-orange-500 shadow-[0_0_8px_rgba(249,115,22,0.9)]"
+          title="Bike arrived"
+        />
       )}
 
       {b.loan_bike && (
