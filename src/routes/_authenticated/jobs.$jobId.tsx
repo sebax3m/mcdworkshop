@@ -550,9 +550,22 @@ function JobDetail() {
               <span className="hidden sm:inline">Preview & print</span>
             </Button>
             {j.status === "completed" ? (
-              <span className="inline-flex items-center gap-1.5 rounded-lg border border-green-500/40 bg-green-500/15 px-2.5 h-8 text-xs font-bold text-green-400">
-                <CheckCircle2 className="h-4 w-4" /> Completed
-              </span>
+              <Button
+                onClick={() => {
+                  if (confirm("Reverse completion? This will set the job and booking back to In progress.")) {
+                    void reverseCompleteEverything();
+                  }
+                }}
+                size="sm"
+                disabled={reversingAll}
+                variant="outline"
+                className="gap-1.5 h-8 px-2.5 border-amber-500/50 text-amber-400 hover:bg-amber-500/10 hover:text-amber-300"
+              >
+                <RotateCcw className="h-4 w-4" />
+                <span className="hidden sm:inline">
+                  {reversingAll ? "Reversing…" : "Reverse complete"}
+                </span>
+              </Button>
             ) : (
               <Button
                 onClick={completeEverything}
