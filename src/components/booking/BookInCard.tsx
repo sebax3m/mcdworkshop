@@ -188,9 +188,9 @@ export function BookInCard({
           onClick={reverseComplete}
           disabled={reversing}
           title="Reverse completion"
-          className="absolute bottom-1 right-1 z-10 grid h-5 w-5 place-items-center rounded-full border border-amber-500/60 bg-background/90 text-amber-400 opacity-0 transition-opacity hover:bg-amber-500/20 group-hover:opacity-100 focus:opacity-100"
+          className="absolute bottom-1.5 right-1.5 z-10 grid h-6 w-6 place-items-center rounded-full border border-amber-500/60 bg-background/90 text-amber-400 opacity-0 transition-opacity hover:bg-amber-500/20 group-hover:opacity-100 focus:opacity-100"
         >
-          <RotateCcw className="h-3 w-3" />
+          <RotateCcw className="h-3.5 w-3.5" />
         </button>
       ) : (
         <button
@@ -198,9 +198,9 @@ export function BookInCard({
           onClick={markCompleted}
           disabled={completing}
           title="Mark as completed"
-          className="absolute bottom-1 right-1 z-10 grid h-5 w-5 place-items-center rounded-full border border-green-500/60 bg-background/90 text-green-400 opacity-0 transition-opacity hover:bg-green-500/20 group-hover:opacity-100 focus:opacity-100"
+          className="absolute bottom-1.5 right-1.5 z-10 grid h-6 w-6 place-items-center rounded-full border border-green-500/60 bg-background/90 text-green-400 opacity-0 transition-opacity hover:bg-green-500/20 group-hover:opacity-100 focus:opacity-100"
         >
-          <CheckCircle2 className="h-3 w-3" />
+          <CheckCircle2 className="h-3.5 w-3.5" />
         </button>
       )}
 
