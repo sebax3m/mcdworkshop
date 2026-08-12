@@ -517,7 +517,7 @@ function JobDetail() {
   }
 
   return (
-    <div ref={jobRef} className="space-y-5 max-w-3xl mx-auto jobcard-print">
+    <div ref={jobRef} className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-5 items-start jobcard-print">
       <style>{`
         @media print {
           @page { size: A4; margin: 14mm; }
@@ -530,6 +530,7 @@ function JobDetail() {
         }
         .print-cta:hover { transform: translateY(-1px); transition: transform 0.15s ease-out; }
       `}</style>
+      <div className="space-y-5 min-w-0">
       <header className="no-print space-y-3">
         <div className="flex items-center justify-between gap-2">
           <button
@@ -1030,36 +1031,6 @@ function JobDetail() {
         <JobTimeline jobId={jobId} />
       </div>
 
-      <section data-print-section="notes" className="card-surface p-4">
-        <h2 className="font-display text-lg font-semibold mb-3">Notes</h2>
-        {canEdit && (
-          <div className="no-print">
-            <AddNote
-              jobId={jobId}
-              onAdded={() => qc.invalidateQueries({ queryKey: ["job-notes", jobId] })}
-            />
-          </div>
-        )}
-        <div className="space-y-2 mt-3">
-          {(notes.data ?? []).map((n: any) => (
-            <div key={n.id} className="rounded-lg border border-border bg-background/40 p-3">
-              <div className="flex items-center gap-2 mb-1">
-                <span className="grid h-6 w-6 place-items-center rounded-full bg-muted text-[0.625rem] font-semibold">
-                  {initials(n.author_name)}
-                </span>
-                <span className="text-xs font-semibold">{n.author_name}</span>
-                <span className="text-[0.625rem] text-muted-foreground">
-                  {new Date(n.created_at).toLocaleString()}
-                </span>
-              </div>
-              <p className="text-sm whitespace-pre-wrap">{n.body}</p>
-            </div>
-          ))}
-          {(!notes.data || notes.data.length === 0) && (
-            <p className="text-sm text-muted-foreground">No notes yet.</p>
-          )}
-        </div>
-      </section>
 
       {j.complaint && (
         <section className="card-surface p-4 print:hidden">
@@ -1146,8 +1117,29 @@ function JobDetail() {
           Print Job Card
         </button>
       </div>
+
+      <section className="hidden print:block card-surface p-4" data-print-section="notes">
+        <h2 className="font-display text-lg font-semibold mb-3">Notes</h2>
+        <NotesList notes={notes.data ?? []} />
+      </section>
     </div>
-  );
+
+    <aside className="no-print lg:sticky lg:top-4 lg:self-start space-y-4">
+      <section className="card-surface p-4">
+        <h2 className="font-display text-lg font-semibold mb-3">Notes</h2>
+        {canEdit && (
+          <AddNote
+            jobId={jobId}
+            onAdded={() => qc.invalidateQueries({ queryKey: ["job-notes", jobId] })}
+          />
+        )}
+        <div className="mt-3">
+          <NotesList notes={notes.data ?? []} />
+        </div>
+      </section>
+    </aside>
+  </div>
+);
 }
 
 function InfoRow({
@@ -1280,6 +1272,30 @@ function AddNote({ jobId, onAdded }: { jobId: string; onAdded: () => void }) {
       >
         Post note
       </Button>
+    </div>
+  );
+}
+
+function NotesList({ notes }: { notes: any[] }) {
+  return (
+    <div className="space-y-2">
+      {(notes ?? []).map((n: any) => (
+        <div key={n.id} className="rounded-lg border border-border bg-background/40 p-3">
+          <div className="flex items-center gap-2 mb-1">
+            <span className="grid h-6 w-6 place-items-center rounded-full bg-muted text-[0.625rem] font-semibold">
+              {initials(n.author_name)}
+            </span>
+            <span className="text-xs font-semibold">{n.author_name}</span>
+            <span className="text-[0.625rem] text-muted-foreground">
+              {new Date(n.created_at).toLocaleString()}
+            </span>
+          </div>
+          <p className="text-sm whitespace-pre-wrap">{n.body}</p>
+        </div>
+      ))}
+      {(!notes || notes.length === 0) && (
+        <p className="text-sm text-muted-foreground">No notes yet.</p>
+      )}
     </div>
   );
 }
