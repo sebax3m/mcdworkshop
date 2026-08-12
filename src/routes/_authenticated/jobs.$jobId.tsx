@@ -38,6 +38,11 @@ import {
 import { detectServiceKind, KIND_META, SERVICE_PARTS } from "@/lib/service-kinds";
 import { getValveSpec, formatRange, type ValveSpec } from "@/lib/valve-specs";
 import { valveSheetHtml } from "@/lib/valve-sheet-html";
+import {
+  fetchSavedValveSpec,
+  upsertSavedValveSpec,
+  resolveValveSpec,
+} from "@/lib/valve-spec-store";
 import { DamageSection } from "@/components/DamageSection";
 import logoAsset from "@/assets/motorcycle-doctors-logo.png.asset.json";
 
@@ -2216,11 +2221,13 @@ function ValveClearancePrintSheet({
   cylinders,
   values,
   spec,
+  intakeOnTop = true,
 }: {
   bike: any;
   cylinders: number;
   values: any;
   spec: ValveSpec;
+  intakeOnTop?: boolean;
 }) {
   return (
     <div
@@ -2258,7 +2265,8 @@ function ValveClearancePrintSheet({
       )}
 
       <div className="text-[0.625rem] uppercase tracking-[0.2em] text-gray-600 text-center mb-2">
-        Top-down · INTAKE top / EXHAUST bottom · write measured mm inside each circle
+        Top-down · {intakeOnTop ? "INTAKE top / EXHAUST bottom" : "EXHAUST top / INTAKE bottom"} · write
+        measured mm inside each circle
       </div>
       <div className="flex gap-4 justify-center items-stretch mb-3">
         {Array.from({ length: cylinders }).map((_, c) => {
@@ -2274,7 +2282,7 @@ function ValveClearancePrintSheet({
               </div>
               <div className="flex gap-2">
                 {Array.from({ length: 2 }).map((_, i) => {
-                  const v = values?.[`c${cyl}_intake_${i}`] ?? "";
+                  const v = values?.[`c${cyl}_${intakeOnTop ? "intake" : "exhaust"}_${i}`] ?? "";
                   return (
                     <div
                       key={i}
@@ -2288,7 +2296,7 @@ function ValveClearancePrintSheet({
               <div className="h-3 w-3 rounded-full border border-gray-600 bg-gray-200" />
               <div className="flex gap-2">
                 {Array.from({ length: 2 }).map((_, i) => {
-                  const v = values?.[`c${cyl}_exhaust_${i}`] ?? "";
+                  const v = values?.[`c${cyl}_${intakeOnTop ? "exhaust" : "intake"}_${i}`] ?? "";
                   return (
                     <div
                       key={i}
