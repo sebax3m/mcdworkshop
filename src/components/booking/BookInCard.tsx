@@ -243,11 +243,8 @@ export function BookInCard({
           <span className="truncate">{customer}</span>
         </div>
 
-        {/* ROW 3 — requested work (service type = secondary) */}
-        <div className="flex items-center gap-1.5 truncate pl-[1.6rem] text-[0.6875rem] leading-tight sm:text-[0.75rem]">
-          <span
-            className={cn("h-2 w-2 shrink-0 rounded-full", svc.bg, jobCompleted && "opacity-50")}
-          />
+        {/* ROW 3 — requested work (service type text only) */}
+        <div className="truncate pl-[1.6rem] text-[0.6875rem] leading-tight sm:text-[0.75rem]">
           <span
             className={cn(
               "truncate",
