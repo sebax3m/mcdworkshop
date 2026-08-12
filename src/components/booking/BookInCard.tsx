@@ -148,10 +148,10 @@ export function BookInCard({
       }}
       title={jobCompleted ? "Job completed" : undefined}
       className={cn(
-        "group relative w-full rounded-lg border border-l-4 text-left transition-colors",
-        svc.border,
-        jobCompleted ? "job-complete-stripes" : svc.fill,
-        "hover:brightness-110 focus:outline-none focus:ring-2 focus:ring-primary/40",
+        "group relative w-full rounded-lg text-left transition-all backdrop-blur-md shadow-sm",
+        svc.fill,
+        jobCompleted ? "job-complete-stripes" : "",
+        "hover:shadow-md hover:brightness-110 focus:outline-none focus:ring-2 focus:ring-primary/40",
         dense ? "p-1 sm:p-1.5" : "p-2.5",
         b.bike_arrived && "ring-1 ring-orange-500/60",
         draggable && "cursor-grab active:cursor-grabbing",
