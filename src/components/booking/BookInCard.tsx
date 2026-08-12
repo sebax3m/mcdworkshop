@@ -61,7 +61,9 @@ export function BookInCard({
     if (completing) return;
     setCompleting(true);
     try {
-      const updates: Record<string, unknown> = { status: "completed" };
+      const updates: { status: string; loan_bike_returned_at?: string } = {
+        status: "completed",
+      };
       if (b.job_id) {
         const { error: jobError } = await supabase
           .from("jobs")
@@ -70,7 +72,7 @@ export function BookInCard({
         if (jobError) throw jobError;
       }
       if (b.loan_bike_id && !b.loan_bike_returned_at) {
-        updates["loan_bike_returned_at"] = new Date().toISOString();
+        updates.loan_bike_returned_at = new Date().toISOString();
       }
       const { error } = await supabase.from("bookings").update(updates).eq("id", b.id);
       if (error) throw error;
