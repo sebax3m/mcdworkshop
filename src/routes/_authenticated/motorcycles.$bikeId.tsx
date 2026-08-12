@@ -27,6 +27,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { BikeMakeModelYear } from "@/components/BikeMakeModelYear";
 import { BikeKnowledgePanel } from "@/components/bikes/BikeKnowledgePanel";
+import { BikeOverridesCard } from "@/components/garage/BikeOverridesCard";
 import { uploadPhoto } from "@/lib/photos";
 import { generateBikeImage } from "@/lib/bike-image.functions";
 import { lookupRego } from "@/lib/rego-lookup.functions";
@@ -484,6 +485,8 @@ function BikeProfile() {
           )}
 
           <BikeKnowledgePanel motorcycleId={b.id} />
+
+          <BikeOverridesCard motorcycleId={b.id} modelId={b.library_model_id ?? null} />
 
           {editing && form && b.customer_id ? (
             <div className="card-surface p-4 space-y-2">
