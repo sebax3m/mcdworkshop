@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Library, Search, Plus, ChevronRight, History, Inbox } from "lucide-react";
+import { Library, Search, Plus, ChevronRight, History, Inbox, Upload } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { Input } from "@/components/ui/input";
@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { logRevision, modelTitle, yearLabel, type ModelRow } from "@/lib/garage-library";
+import { PRIORITY_TIERS, priorityTier } from "@/lib/garage-catalogue";
 
 export const Route = createFileRoute("/_authenticated/garage-library/")({
   component: GarageLibraryIndex,
