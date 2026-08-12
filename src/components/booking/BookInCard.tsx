@@ -179,6 +179,13 @@ export function BookInCard({
         </button>
       )}
 
+      {b.bike_arrived && (
+        <span
+          className="absolute -top-1 -left-1 z-10 h-2.5 w-2.5 rounded-full bg-orange-500 shadow-[0_0_8px_rgba(249,115,22,0.9)]"
+          title="Bike arrived"
+        />
+      )}
+
       {b.loan_bike && (
         <span
           className="absolute -top-1 -right-1 z-10 h-2.5 w-2.5 rounded-full bg-fuchsia-500 ring-2 ring-background shadow-[0_0_8px_rgba(217,70,239,0.9)] animate-pulse"
