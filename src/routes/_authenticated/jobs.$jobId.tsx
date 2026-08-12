@@ -2343,8 +2343,11 @@ function OdometerSection({
               km
             </span>
           </div>
+          <Button size="sm" className="h-11" onClick={() => save()} disabled={!canEdit || saving || !dirty}>
+            {saving ? "Saving…" : "Save"}
+          </Button>
           <span className="text-[0.625rem] uppercase tracking-wider text-muted-foreground min-w-[52px]">
-            {saving || dirty ? "saving…" : savedTick ? "✓ saved" : "\u00A0"}
+            {dirty ? "unsaved" : savedTick ? "✓ saved" : "\u00A0"}
           </span>
         </div>
       </div>
