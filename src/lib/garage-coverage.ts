@@ -27,7 +27,10 @@ export async function coverageRows(modelId: string): Promise<Record<CoverageKey,
       .eq("model_id", modelId)
       .eq("is_archived", false),
   ]);
-  const counts = { ...((data ?? {}) as Record<string, number>), checklists: checklists.count ?? 0 };
+  const counts: Record<string, number> = {
+    ...((data ?? {}) as Record<string, number>),
+    checklists: checklists.count ?? 0,
+  };
   const out = {} as Record<CoverageKey, CoverageState>;
   for (const c of COVERAGE_CATEGORIES) {
     const n = Number(counts[c.key] ?? 0);
