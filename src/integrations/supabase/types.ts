@@ -79,30 +79,72 @@ export type Database = {
           },
         ]
       }
+      bike_library_model_aliases: {
+        Row: {
+          alias: string
+          alias_norm: string
+          created_at: string
+          created_by: string | null
+          id: string
+          model_id: string
+        }
+        Insert: {
+          alias: string
+          alias_norm: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          model_id: string
+        }
+        Update: {
+          alias?: string
+          alias_norm?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          model_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bike_library_model_aliases_model_id_fkey"
+            columns: ["model_id"]
+            isOneToOne: false
+            referencedRelation: "bike_library_models"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       bike_library_models: {
         Row: {
           air_filter: string | null
           battery: string | null
           brake_fluid: string | null
+          category: string | null
           chain_spec: string | null
           coolant_qty_l: number | null
           coolant_type: string | null
           created_at: string
           created_by: string | null
           cylinders: number
+          engine: string | null
           engine_cc: number | null
           engine_oil_qty_l: number | null
           engine_oil_type: string | null
           fork_oil: string | null
           front_sprocket: string | null
           front_tyre: string | null
+          generation: string | null
           id: string
           is_archived: boolean
           make: string
+          market_status: string | null
           model: string
+          model_family: string | null
           notes: string | null
           oil_filter: string | null
           photo_url: string | null
+          platform: string | null
+          priority: number
           rear_sprocket: string | null
           rear_tyre: string | null
           service_interval_km: number | null
@@ -122,25 +164,32 @@ export type Database = {
           air_filter?: string | null
           battery?: string | null
           brake_fluid?: string | null
+          category?: string | null
           chain_spec?: string | null
           coolant_qty_l?: number | null
           coolant_type?: string | null
           created_at?: string
           created_by?: string | null
           cylinders?: number
+          engine?: string | null
           engine_cc?: number | null
           engine_oil_qty_l?: number | null
           engine_oil_type?: string | null
           fork_oil?: string | null
           front_sprocket?: string | null
           front_tyre?: string | null
+          generation?: string | null
           id?: string
           is_archived?: boolean
           make: string
+          market_status?: string | null
           model: string
+          model_family?: string | null
           notes?: string | null
           oil_filter?: string | null
           photo_url?: string | null
+          platform?: string | null
+          priority?: number
           rear_sprocket?: string | null
           rear_tyre?: string | null
           service_interval_km?: number | null
@@ -160,25 +209,32 @@ export type Database = {
           air_filter?: string | null
           battery?: string | null
           brake_fluid?: string | null
+          category?: string | null
           chain_spec?: string | null
           coolant_qty_l?: number | null
           coolant_type?: string | null
           created_at?: string
           created_by?: string | null
           cylinders?: number
+          engine?: string | null
           engine_cc?: number | null
           engine_oil_qty_l?: number | null
           engine_oil_type?: string | null
           fork_oil?: string | null
           front_sprocket?: string | null
           front_tyre?: string | null
+          generation?: string | null
           id?: string
           is_archived?: boolean
           make?: string
+          market_status?: string | null
           model?: string
+          model_family?: string | null
           notes?: string | null
           oil_filter?: string | null
           photo_url?: string | null
+          platform?: string | null
+          priority?: number
           rear_sprocket?: string | null
           rear_tyre?: string | null
           service_interval_km?: number | null
@@ -272,6 +328,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      bike_library_platforms: {
+        Row: {
+          code: string
+          created_at: string
+          created_by: string | null
+          id: string
+          is_archived: boolean
+          make: string
+          name: string | null
+          notes: string | null
+          updated_at: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_archived?: boolean
+          make: string
+          name?: string | null
+          notes?: string | null
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_archived?: boolean
+          make?: string
+          name?: string | null
+          notes?: string | null
+          updated_at?: string
+        }
+        Relationships: []
       }
       bike_library_torque: {
         Row: {
@@ -2546,6 +2638,51 @@ export type Database = {
           },
         ]
       }
+      motorcycle_model_links: {
+        Row: {
+          confidence: string
+          confirmed_by: string | null
+          created_at: string
+          id: string
+          model_id: string
+          motorcycle_id: string
+          updated_at: string
+        }
+        Insert: {
+          confidence?: string
+          confirmed_by?: string | null
+          created_at?: string
+          id?: string
+          model_id: string
+          motorcycle_id: string
+          updated_at?: string
+        }
+        Update: {
+          confidence?: string
+          confirmed_by?: string | null
+          created_at?: string
+          id?: string
+          model_id?: string
+          motorcycle_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "motorcycle_model_links_model_id_fkey"
+            columns: ["model_id"]
+            isOneToOne: false
+            referencedRelation: "bike_library_models"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "motorcycle_model_links_motorcycle_id_fkey"
+            columns: ["motorcycle_id"]
+            isOneToOne: false
+            referencedRelation: "motorcycles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       motorcycles: {
         Row: {
           brake_condition: string | null
@@ -3210,6 +3347,20 @@ export type Database = {
           title: string
           verification: Database["public"]["Enums"]["garage_verification"]
           version: string
+          year_from: number
+          year_to: number
+        }[]
+      }
+      garage_suggest_models: {
+        Args: { p_make: string; p_model: string; p_year?: number }
+        Returns: {
+          confidence: string
+          generation: string
+          make: string
+          model: string
+          model_id: string
+          platform: string
+          score: number
           year_from: number
           year_to: number
         }[]
