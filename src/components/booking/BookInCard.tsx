@@ -165,11 +165,12 @@ export function BookInCard({
       }}
       title={tooltip}
       className={cn(
-        "group relative w-full overflow-hidden rounded-lg border border-border/70 border-l-4 text-left shadow-sm transition-all",
-        status.accent,
-        jobCompleted ? "bg-muted/20 opacity-80 saturate-50" : status.tint,
-        "hover:shadow-md hover:border-border focus:outline-none focus:ring-2 focus:ring-primary/40",
-        dense ? "p-1.5" : "p-2.5",
+        "group relative w-full overflow-hidden rounded-[12px] border-l-[3px] text-left transition-all",
+        jobCompleted
+          ? "border border-border/40 border-l-[3px] border-l-green-700/70 bg-zinc-900/50"
+          : cn("border border-border/40 shadow-sm", status.accent, status.tint),
+        "hover:border-border focus:outline-none focus:ring-2 focus:ring-primary/40",
+        dense ? "px-2 py-1" : "px-2.5 py-1.5",
         draggable && "cursor-grab active:cursor-grabbing",
         className,
       )}
@@ -197,54 +198,67 @@ export function BookInCard({
         </button>
       )}
 
-      {/* Tiny indicators */}
-      <div className="absolute right-1 top-1 z-10 flex items-center gap-1">
-        {b.bike_arrived && !jobCompleted && (
-          <span className="h-1.5 w-1.5 rounded-full bg-orange-500" title="Arrived today" />
-        )}
-        {b.loan_bike && (
-          <span className="h-1.5 w-1.5 rounded-full bg-fuchsia-500" title="Loan bike" />
-        )}
-        {b.notes && <span className="h-1.5 w-1.5 rounded-full bg-muted-foreground" title="Has notes" />}
-      </div>
-
-      <div className="min-w-0 pr-6">
-        {/* ROW 1 — motorcycle + rego + transport */}
-        <div className="flex items-start justify-between gap-1.5">
-          <div className="min-w-0 truncate text-[0.7rem] font-bold leading-tight sm:text-[0.8rem]">
+      <div className="min-w-0">
+        {/* ROW 1 — motorcycle + rego */}
+        <div className="flex items-center justify-between gap-1.5">
+          <div
+            className={cn(
+              "min-w-0 truncate text-[0.75rem] font-bold leading-tight sm:text-[0.8125rem]",
+              jobCompleted ? "text-muted-foreground" : "text-foreground",
+            )}
+          >
             {bike}
           </div>
           <div className="flex shrink-0 items-center gap-1">
             {rego && (
-              <span className="rounded bg-background/70 px-1 py-0 text-[0.5625rem] font-bold uppercase tracking-wider tabular-nums text-foreground/80">
+              <span className="rounded bg-background/70 px-1 py-0 font-mono text-[0.5625rem] font-bold uppercase tracking-wider tabular-nums text-foreground/75">
                 {rego}
               </span>
             )}
             <TransportIndicator kind={kind} address={b.transport_address} />
+            {b.loan_bike && (
+              <span className="h-1.5 w-1.5 rounded-full bg-fuchsia-500" title="Loan bike" />
+            )}
+            {b.notes && (
+              <span className="h-1.5 w-1.5 rounded-full bg-muted-foreground/70" title="Has notes" />
+            )}
           </div>
         </div>
 
         {/* ROW 2 — customer */}
-        <div className="mt-0.5 flex items-center gap-1 truncate text-[0.625rem] text-muted-foreground sm:text-[0.6875rem]">
+        <div
+          className={cn(
+            "flex items-center gap-1 truncate text-[0.625rem] leading-tight sm:text-[0.6875rem]",
+            jobCompleted ? "text-muted-foreground/70" : "text-muted-foreground",
+          )}
+        >
           <UserIcon className="h-2.5 w-2.5 shrink-0" />
           <span className="truncate">{customer}</span>
         </div>
 
         {/* ROW 3 — requested work (service type = secondary) */}
-        <div className="flex items-center gap-1 truncate text-[0.625rem] sm:text-[0.6875rem]">
-          <span className={cn("h-1.5 w-1.5 shrink-0 rounded-full", svc.bg)} />
-          <span className="truncate text-foreground/80">{work}</span>
+        <div className="flex items-center gap-1 truncate text-[0.625rem] leading-tight sm:text-[0.6875rem]">
+          <span
+            className={cn("h-1.5 w-1.5 shrink-0 rounded-full", svc.bg, jobCompleted && "opacity-50")}
+          />
+          <span className={cn("truncate", jobCompleted ? "text-muted-foreground/70" : "text-foreground/80")}>
+            {work}
+          </span>
         </div>
 
         {/* ROW 4 — operational status + technician */}
-        <div className="mt-1 flex items-center gap-1.5">
+        <div className="mt-0.5 flex items-center gap-1.5">
           <StatusBadge meta={status} compact={dense} />
-          <TechnicianIndicator name={techName} className="ml-auto" showName={!dense} />
+          {b.bike_arrived && !jobCompleted && (
+            <span className="h-1.5 w-1.5 rounded-full bg-orange-500" title="Arrived today" />
+          )}
+          <TechnicianIndicator name={techName} className="ml-auto" showName={false} />
         </div>
       </div>
     </div>
   );
 }
+
 
 /** Small "6 / 8" capacity indicator with a segmented bar. */
 export function CapacityBadge({
