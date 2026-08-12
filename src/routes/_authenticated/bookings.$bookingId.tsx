@@ -26,7 +26,6 @@ import { fullBike } from "@/lib/format";
 import { getSignedUrls } from "@/lib/photos";
 import { format } from "date-fns";
 
-
 export const Route = createFileRoute("/_authenticated/bookings/$bookingId")({
   component: BookingDetail,
 });
@@ -40,7 +39,6 @@ function BookingDetail() {
   const [reversing, setReversing] = useState(false);
   const [photoUrls, setPhotoUrls] = useState<string[]>([]);
   const [loanOpen, setLoanOpen] = useState(false);
-
 
   const { data: b, isLoading } = useQuery({
     queryKey: ["booking", bookingId],
@@ -62,8 +60,6 @@ function BookingDetail() {
     enabled: !!b?.customer_id,
     queryFn: () => fetchCustomerBikes(b?.customer_id),
   });
-
-
 
   useEffect(() => {
     const photos = b?.arrival_photos as string[] | undefined;
@@ -152,7 +148,8 @@ function BookingDetail() {
 
   async function reverseComplete() {
     if (!b) return;
-    if (!confirm("Reverse completion? This will set the booking and job back to In progress.")) return;
+    if (!confirm("Reverse completion? This will set the booking and job back to In progress."))
+      return;
     setReversing(true);
     try {
       const updates: any = { status: "in_progress" };
@@ -182,9 +179,7 @@ function BookingDetail() {
     }
   }
 
-
   if (isLoading || !b)
-
     return (
       <div className="card-surface p-8 text-center text-sm text-muted-foreground">Loading…</div>
     );
@@ -282,8 +277,6 @@ function BookingDetail() {
           qc.invalidateQueries({ queryKey: ["calendar-bookings"] });
         }}
       />
-
-
 
       <div className="card-surface p-4 flex items-center gap-3">
         <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-muted">
@@ -398,8 +391,6 @@ function BookingDetail() {
           </Button>
         )}
       </div>
-
-
     </motion.div>
   );
 }

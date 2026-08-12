@@ -94,7 +94,8 @@ export function BookInCard({
   async function reverseComplete(e: React.MouseEvent) {
     e.stopPropagation();
     if (reversing) return;
-    if (!confirm("Reverse completion? This will set the booking and job back to In progress.")) return;
+    if (!confirm("Reverse completion? This will set the booking and job back to In progress."))
+      return;
     setReversing(true);
     try {
       const updates: { status: string; loan_bike_returned_at?: null } = {
