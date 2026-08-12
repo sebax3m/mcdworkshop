@@ -1409,6 +1409,7 @@ function ServiceChecks({
   onSaveDetails: (value: string) => void | Promise<void>;
 }) {
   const [draft, setDraft] = useState("");
+  const isDiagnostic = (title ?? "").toLowerCase().includes("diagnos");
   const [detailDraft, setDetailDraft] = useState(details);
   useEffect(() => {
     setDetailDraft(details);
@@ -1490,6 +1491,7 @@ function ServiceChecks({
           ))}
         </ul>
       )}
+      {!isDiagnostic && (
       <div className="no-print mt-3 flex gap-2">
         <input
           value={draft}
@@ -1512,6 +1514,7 @@ function ServiceChecks({
           <Plus className="h-4 w-4" />
         </button>
       </div>
+      )}
 
       <div className="mt-3">
           <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground mb-1">
