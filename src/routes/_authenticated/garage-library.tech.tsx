@@ -37,12 +37,12 @@ async function searchEverything(term: string) {
     supabase.from("bike_library_labour").select("id, task, hours, model_id").ilike("task", like).eq("is_archived", false).limit(8),
     supabase.from("bike_library_torque").select("id, fastener, torque_nm, unit, model_id").ilike("fastener", like).eq("is_archived", false).limit(8),
     supabase.from("garage_documents").select("id, title, manufacturer, model, generation").or(`title.ilike.${like},manufacturer.ilike.${like},model.ilike.${like}`).eq("is_archived", false).limit(8),
-    supabase.from("jobs").select("id, job_number, service_type, created_at, motorcycles(make, model, rego)").limit(200).order("created_at", { ascending: false }),
+    supabase.from("jobs").select("id, job_number, title, created_at, motorcycles(make, model, rego)").limit(200).order("created_at", { ascending: false }),
     supabase.from("garage_document_chunks").select("id, document_id, heading, content, page_from").ilike("content", like).limit(6),
   ]);
   const t = term.toLowerCase();
   const jobHits = (jobs.data ?? []).filter((j: any) =>
-    [j.job_number, j.service_type, j.motorcycles?.make, j.motorcycles?.model, j.motorcycles?.rego]
+    [j.job_number, j.title, j.motorcycles?.make, j.motorcycles?.model, j.motorcycles?.rego]
       .filter(Boolean)
       .some((v: string) => String(v).toLowerCase().includes(t)),
   ).slice(0, 8);

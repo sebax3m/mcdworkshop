@@ -36,7 +36,7 @@ function AnalyticsPage() {
         supabase.from("garage_queries").select("*").order("created_at", { ascending: false }).limit(1000),
         supabase.from("garage_answer_feedback").select("helpful, reason").limit(1000),
         supabase.from("bike_library_models").select("id, make, model, year_from, year_to").eq("is_archived", false).limit(200),
-        supabase.from("jobs").select("id, service_type, motorcycles(make, model)").limit(1000).order("created_at", { ascending: false }),
+        supabase.from("jobs").select("id, title, motorcycles(make, model)").limit(1000).order("created_at", { ascending: false }),
       ]);
       return {
         queries: queries.data ?? [],

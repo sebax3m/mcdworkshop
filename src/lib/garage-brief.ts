@@ -96,18 +96,18 @@ const OPERATION_HINTS: Array<{ key: string; re: RegExp }> = [
 export async function buildJobBrief(jobId: string): Promise<JobBrief> {
   const { data: job } = await supabase
     .from("jobs")
-    .select("id, job_number, service_type, description, motorcycle_id, motorcycles(id, make, model, year, rego, mileage)")
+    .select("id, job_number, title, description, motorcycle_id, motorcycles(id, make, model, year, rego, mileage)")
     .eq("id", jobId)
     .maybeSingle();
   const bike = (job as any)?.motorcycles ?? null;
   const modelId = await matchModel(bike?.make, bike?.model, bike?.year ?? null);
   const bikeLabel = [bike?.year, bike?.make, bike?.model].filter(Boolean).join(" ") || "Unknown motorcycle";
-  const jobLabel = [(job as any)?.service_type, (job as any)?.description].filter(Boolean).join(" · ") || "Job";
+  const jobLabel = [(job as any)?.title, (job as any)?.description].filter(Boolean).join(" · ") || "Job";
 
   const sections: BriefSection[] = [];
   const warnings: string[] = [];
   const suggestedParts: Array<{ label: string; detail: string | null }> = [];
-  const text = `${(job as any)?.service_type ?? ""} ${(job as any)?.description ?? ""}`;
+  const text = `${(job as any)?.title ?? ""} ${(job as any)?.description ?? ""}`;
 
   if (!modelId) {
     warnings.push("No exact Garage Library model matched this motorcycle — verify specifications manually.");
@@ -193,7 +193,7 @@ export async function buildJobBrief(jobId: string): Promise<JobBrief> {
     const rows = await fetchAllRows((from: number, to: number) =>
       supabase
         .from("jobs")
-        .select("id, created_at, service_type")
+        .select("id, created_at, title")
         .eq("motorcycle_id", bike.id)
         .order("created_at", { ascending: false })
         .range(from, to),
@@ -205,7 +205,7 @@ export async function buildJobBrief(jobId: string): Promise<JobBrief> {
         title: "This motorcycle — history",
         rows: (rows as any[]).slice(0, 6).map((j) => ({
           label: new Date(j.created_at).toLocaleDateString("en-NZ", { day: "2-digit", month: "short", year: "numeric" }),
-          value: j.service_type ?? "Job",
+          value: j.title ?? "Job",
         })),
       });
   }
