@@ -1392,6 +1392,7 @@ export type Database = {
           on_invoice: boolean
           quantity: number
           retail: number | null
+          sort_order: number
           supplier: string | null
         }
         Insert: {
@@ -1405,6 +1406,7 @@ export type Database = {
           on_invoice?: boolean
           quantity?: number
           retail?: number | null
+          sort_order?: number
           supplier?: string | null
         }
         Update: {
@@ -1418,6 +1420,7 @@ export type Database = {
           on_invoice?: boolean
           quantity?: number
           retail?: number | null
+          sort_order?: number
           supplier?: string | null
         }
         Relationships: [
