@@ -343,12 +343,12 @@ export function InspectionPanel({
           </table>
           <div className="border-t border-border px-3 py-2 space-y-0.5 text-xs">
             <Row
-              label={`Labour ${quote.hours}h @ $${INSPECTION_LABOUR_RATE}/h`}
+              label={`Labour ${quote.hours}h @ $${INSPECTION_LABOUR_RATE}/h (incl GST)`}
               value={quote.labour}
             />
-            <Row label="Parts" value={quote.parts} />
-            <Row label="Subtotal (ex GST)" value={quote.subtotal} />
-            <Row label="GST 15%" value={quote.gst} />
+            <Row label="Parts (incl GST)" value={quote.parts} />
+            <Row label="Subtotal (excl GST)" value={quote.subtotal} />
+            <Row label="GST 15% (incl. in above)" value={quote.gst} />
             <div className="flex items-center justify-between border-t border-border pt-1 mt-1 text-sm font-bold">
               <span>Total incl GST</span>
               <span className="tabular-nums">${quote.total.toFixed(2)}</span>
@@ -413,16 +413,16 @@ function Section({
   children,
 }: {
   title: string;
-  summary?: { hours: number; subtotal: number };
+  summary?: { hours: number; total: number };
   children: React.ReactNode;
 }) {
   return (
     <div>
       <div className="flex items-center justify-between text-[0.6875rem] uppercase tracking-wider text-muted-foreground mb-1.5">
         <span>{title}</span>
-        {summary && (summary.hours || summary.subtotal) ? (
+        {summary && (summary.hours || summary.total) ? (
           <span>
-            {summary.hours}h · ~${summary.subtotal.toFixed(0)} ex GST
+            {summary.hours}h · ~${summary.total.toFixed(0)} incl GST
           </span>
         ) : null}
       </div>
