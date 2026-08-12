@@ -206,14 +206,14 @@
   }
 }
 
-/* Completed job marker: darker red diagonal gradient shading over a booking chip */
+/* Completed job marker: green + black diagonal stripes over a booking chip */
 @utility job-complete-stripes {
   background-image: repeating-linear-gradient(
     135deg,
-    rgb(21 128 61 / 1) 0px,
-    rgb(21 128 61 / 1) 6px,
-    rgb(21 128 61 / 0) 6px,
-    rgb(21 128 61 / 0) 14px
+    rgb(21 128 61 / 0.85) 0px,
+    rgb(21 128 61 / 0.85) 6px,
+    rgb(0 0 0 / 0.85) 6px,
+    rgb(0 0 0 / 0.85) 12px
   );
 }
 

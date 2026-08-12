@@ -169,7 +169,7 @@ export function BookInCard({
       className={cn(
         "group relative w-full rounded-lg text-left transition-all backdrop-blur-md shadow-sm",
         svc.fill,
-        jobCompleted ? "job-complete-stripes" : "",
+        jobCompleted ? "job-complete-stripes ring-2 ring-green-600 border border-green-600" : "",
         "hover:shadow-md hover:brightness-110 focus:outline-none focus:ring-2 focus:ring-primary/40",
         dense ? "p-1 sm:p-1.5" : "p-2.5",
         draggable && "cursor-grab active:cursor-grabbing",
