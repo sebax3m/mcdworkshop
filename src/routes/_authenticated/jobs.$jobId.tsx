@@ -16,6 +16,7 @@ import { JobTimeline } from "@/components/job/JobTimeline";
 import { ServiceTypeEditor } from "@/components/job/ServiceTypeEditor";
 import { ShiftClockCard } from "@/components/job/ShiftClockCard";
 import { AssignedTechnicianCard } from "@/components/job/AssignedTechnicianCard";
+import { JobTechnicalBrief } from "@/components/job/JobTechnicalBrief";
 
 import { displayCustomerName } from "@/lib/display";
 
