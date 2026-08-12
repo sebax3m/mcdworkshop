@@ -264,7 +264,23 @@ export function BookInCard({
       {/* Ultra-compact mobile view: bike + customer + tiny status dots */}
       <div className="sm:hidden flex items-start gap-1">
         <div className="min-w-0 flex-1">
-          <div className="font-semibold text-[0.65rem] leading-tight truncate">{bike}</div>
+          <div className="flex items-start justify-between gap-1">
+            <div className="font-semibold text-[0.65rem] leading-tight truncate">{bike}</div>
+            <div className="flex items-center gap-1 shrink-0">
+              {rego && (
+                <span className="shrink-0 rounded bg-background/60 px-1 py-0 text-[0.6rem] font-bold uppercase tracking-wider tabular-nums">
+                  {rego}
+                </span>
+              )}
+              {transportLabel && (
+                <TransportIcon
+                  label={transportLabel}
+                  title={transportTitle}
+                  address={b.transport_address || ""}
+                />
+              )}
+            </div>
+          </div>
           <div className="flex items-center gap-0.5 text-[0.6rem] text-foreground/70 truncate">
             <UserIcon className="h-2 w-2 shrink-0" />
             <span className="truncate">{customer}</span>
