@@ -287,15 +287,10 @@ export function BookInCard({
               )}
               {transportLabel && (
                 <span
-                  className="inline-flex items-center gap-0.5 rounded bg-sky-500 px-1 py-[1px] text-[0.55rem] font-black uppercase tracking-wider text-white shadow"
+                  className="grid h-4 w-4 place-items-center rounded bg-sky-500 text-white shadow"
                   title={transportTitle}
                 >
                   <Truck className="h-2.5 w-2.5" />
-                  {b.pickup_required && b.delivery_required
-                    ? "P/D"
-                    : b.pickup_required
-                      ? "P"
-                      : "D"}
                 </span>
               )}
             </div>
