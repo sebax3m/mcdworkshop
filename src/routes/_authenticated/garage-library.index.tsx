@@ -345,9 +345,13 @@ function GarageLibraryIndex() {
                         className="flex items-center gap-2 px-4 py-2 text-sm hover:bg-muted/40 border-b border-border/50 last:border-0"
                       >
                         <span className="truncate">{m.model}</span>
+                        {m.generation ? (
+                          <span className="font-mono text-[0.65rem] text-muted-foreground truncate">{m.generation}</span>
+                        ) : null}
                         <span className="ml-auto font-mono text-[0.7rem] text-muted-foreground">{yearLabel(m)}</span>
                       </Link>
                     ))}
+
                   </div>
                 )}
               </div>
