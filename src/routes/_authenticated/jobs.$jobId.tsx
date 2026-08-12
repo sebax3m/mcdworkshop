@@ -11,6 +11,7 @@ import { STATUS_META, STATUS_ORDER, formatMinutes, fullBike, initials } from "@/
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { logJobEvent } from "@/lib/job-events";
 import { InspectionPanel } from "@/components/job/InspectionPanel";
+import { AddToLibraryDialog } from "@/components/job/AddToLibraryDialog";
 import { JobTimeline } from "@/components/job/JobTimeline";
 import { ServiceTypeEditor } from "@/components/job/ServiceTypeEditor";
 import { ShiftClockCard } from "@/components/job/ShiftClockCard";
@@ -1069,7 +1070,14 @@ function JobDetail() {
                 </p>
               )}
             </div>
-            <div className="flex gap-2 flex-wrap">
+            <div className="flex gap-2 flex-wrap items-center">
+              <AddToLibraryDialog
+                jobId={jobId}
+                motorcycleId={j.motorcycle_id}
+                make={(j.motorcycles as any)?.make}
+                model={(j.motorcycles as any)?.model}
+                year={(j.motorcycles as any)?.year}
+              />
               <Button
                 variant="outline"
                 className="h-11 px-4 font-bold gap-2"
