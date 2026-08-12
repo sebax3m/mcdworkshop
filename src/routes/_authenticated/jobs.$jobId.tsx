@@ -2385,6 +2385,8 @@ function ValveClearanceSection({
         values={values}
         spec={spec}
         intakeOnTop={intakeOnTop}
+        order={order}
+        frontDeg={frontDeg}
       />
     </>
   );
@@ -2396,13 +2398,25 @@ function ValveClearancePrintSheet({
   values,
   spec,
   intakeOnTop = true,
+  order,
+  frontDeg = 0,
 }: {
   bike: any;
   cylinders: number;
   values: any;
   spec: ValveSpec;
   intakeOnTop?: boolean;
+  order?: number[];
+  frontDeg?: number;
 }) {
+  const cyls =
+    order && order.length === cylinders
+      ? order
+      : Array.from({ length: cylinders }, (_, i) => i + 1);
+  const frontLabel = ["FRONT ↑", "FRONT →", "FRONT ↓", "FRONT ←"][
+    Math.round(((frontDeg % 360) + 360) % 360 / 90) % 4
+  ];
+
   return (
     <div
       className="hidden print:block valve-print-page"
