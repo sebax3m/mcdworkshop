@@ -1,14 +1,15 @@
 import {
+  Bike,
   CheckCircle2,
+  CircleCheck,
   ClipboardCheck,
   Clock,
   CircleDot,
-  Flag,
   Gauge,
-  Hourglass,
-  PackageSearch,
-  PlayCircle,
+  Package,
   Search,
+  Settings2,
+  Wrench,
   type LucideIcon,
 } from "lucide-react";
 
@@ -49,6 +50,10 @@ export type BookInStatusMeta = {
   text: string;
   /** Sort weight — active work first, completed last. */
   priority: number;
+  /** Canonical hex colour — single source of truth for every surface. */
+  color: string;
+  /** Short description used in the operational legend. */
+  hint: string;
 };
 
 export const BOOK_IN_STATUS: Record<BookInStatusKey, BookInStatusMeta> = {
@@ -63,18 +68,22 @@ export const BOOK_IN_STATUS: Record<BookInStatusKey, BookInStatusMeta> = {
     badge: "bg-muted text-muted-foreground border-border",
     text: "text-muted-foreground",
     priority: 30,
+    color: "#F59E0B",
+    hint: "Scheduled",
   },
   arrived: {
     key: "arrived",
     label: "Arrived",
     short: "ARRIVED",
-    icon: Flag,
+    icon: Bike,
     dot: "bg-blue-500",
     accent: "border-l-blue-500",
     tint: "bg-blue-500/[0.14]",
     badge: "bg-blue-500/15 text-blue-300 border-blue-500/40",
     text: "text-blue-400",
     priority: 20,
+    color: "#3B82F6",
+    hint: "Dropped off",
   },
   inspection: {
     key: "inspection",
@@ -87,54 +96,64 @@ export const BOOK_IN_STATUS: Record<BookInStatusKey, BookInStatusMeta> = {
     badge: "bg-purple-500/15 text-purple-300 border-purple-500/40",
     text: "text-purple-400",
     priority: 15,
+    color: "#A855F7",
+    hint: "Inspecting",
   },
   waiting_approval: {
     key: "waiting_approval",
     label: "Approval",
     short: "APPROVAL",
-    icon: Hourglass,
+    icon: ClipboardCheck,
     dot: "bg-amber-500",
     accent: "border-l-amber-500",
     tint: "bg-amber-500/[0.14]",
     badge: "bg-amber-500/15 text-amber-300 border-amber-500/40",
     text: "text-amber-400",
     priority: 12,
+    color: "#F59E0B",
+    hint: "Waiting client",
   },
   waiting_parts: {
     key: "waiting_parts",
     label: "Waiting Parts",
     short: "PARTS",
-    icon: PackageSearch,
+    icon: Package,
     dot: "bg-teal-400",
     accent: "border-l-teal-400",
     tint: "bg-teal-400/[0.14]",
     badge: "bg-teal-400/15 text-teal-300 border-teal-400/40",
     text: "text-teal-300",
     priority: 14,
+    color: "#22B8C7",
+    hint: "Waiting parts",
   },
   ready_to_work: {
     key: "ready_to_work",
     label: "Ready to Work",
     short: "READY TO WORK",
-    icon: ClipboardCheck,
+    icon: Wrench,
     dot: "bg-emerald-500",
     accent: "border-l-emerald-500",
     tint: "bg-emerald-500/[0.13]",
     badge: "bg-emerald-500/15 text-emerald-300 border-emerald-500/40",
     text: "text-emerald-400",
     priority: 13,
+    color: "#4CAF3D",
+    hint: "Ready to start",
   },
   in_progress: {
     key: "in_progress",
     label: "In Progress",
     short: "IN PROGRESS",
-    icon: PlayCircle,
+    icon: Settings2,
     dot: "bg-sky-400",
     accent: "border-l-sky-400",
     tint: "bg-sky-400/[0.16]",
     badge: "bg-sky-400/20 text-sky-200 border-sky-400/50",
     text: "text-sky-300",
     priority: 10,
+    color: "#2684D9",
+    hint: "Working",
   },
   dyno_qc: {
     key: "dyno_qc",
@@ -147,6 +166,8 @@ export const BOOK_IN_STATUS: Record<BookInStatusKey, BookInStatusMeta> = {
     badge: "bg-violet-500/20 text-violet-200 border-violet-500/50",
     text: "text-violet-300",
     priority: 11,
+    color: "#9B51E0",
+    hint: "Dyno / QC",
   },
   ready_for_pickup: {
     key: "ready_for_pickup",
@@ -159,18 +180,22 @@ export const BOOK_IN_STATUS: Record<BookInStatusKey, BookInStatusMeta> = {
     badge: "bg-green-500/15 text-green-300 border-green-500/40",
     text: "text-green-400",
     priority: 16,
+    color: "#4CAF3D",
+    hint: "For pickup",
   },
   completed: {
     key: "completed",
     label: "Completed",
     short: "COMPLETED",
-    icon: CheckCircle2,
+    icon: CircleCheck,
     dot: "bg-muted-foreground/60",
     accent: "border-l-zinc-700",
     tint: "bg-zinc-900/50",
     badge: "bg-green-500/10 text-green-400/90 border-green-500/30",
     text: "text-green-500",
     priority: 90,
+    color: "#6B7280",
+    hint: "Picked up",
   },
 };
 
@@ -262,3 +287,35 @@ export function statusDot(b: BookInLike): string {
 }
 
 export { CircleDot };
+
+/** Primary operational states shown in the bottom legend panel. */
+export const BOOK_IN_STATUS_PRIMARY: BookInStatusKey[] = [
+  "booked",
+  "arrived",
+  "inspection",
+  "waiting_approval",
+  "waiting_parts",
+  "ready_to_work",
+  "in_progress",
+  "dyno_qc",
+  "ready_for_pickup",
+  "completed",
+];
+
+/** Inline styles derived from the single colour source above. */
+export const statusStyle = {
+  iconBox: (c: string) => ({
+    backgroundColor: `color-mix(in oklab, ${c} 22%, transparent)`,
+    color: c,
+  }),
+  badge: (c: string) => ({
+    backgroundColor: `color-mix(in oklab, ${c} 18%, transparent)`,
+    borderColor: `color-mix(in oklab, ${c} 45%, transparent)`,
+    color: `color-mix(in oklab, ${c} 78%, white)`,
+  }),
+  card: (c: string) => ({
+    borderLeftColor: c,
+    backgroundColor: `color-mix(in oklab, ${c} 7%, var(--bookin-card))`,
+  }),
+  dot: (c: string) => ({ backgroundColor: c }),
+};

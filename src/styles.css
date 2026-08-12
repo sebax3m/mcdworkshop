@@ -104,6 +104,15 @@
   --sidebar-border: oklch(0.24 0 0);
   --sidebar-ring: oklch(0.58 0.22 25);
 
+  /* Book-ins calendar surfaces (graphite scale) */
+  --bookin-page: #0b0e11;
+  --bookin-column: #15191d;
+  --bookin-card: #202428;
+  --bookin-panel: #14181c;
+  --bookin-line: #2a2f35;
+
+
+
   /* Job status palette */
   --status-new: oklch(0.55 0.1 255);
   --status-assigned: oklch(0.65 0.12 280);

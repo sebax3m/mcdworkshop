@@ -5,11 +5,11 @@ import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { displayBike, displayCustomerName, displayServiceType } from "@/lib/display";
-import { resolveBookInStatus, isBookInCompleted } from "@/lib/book-in-status";
+import { resolveBookInStatus, isBookInCompleted, statusStyle } from "@/lib/book-in-status";
 import { serviceColor } from "@/lib/service-colors";
 import { cn } from "@/lib/utils";
 import { useTechnicianNames } from "@/hooks/use-technician-names";
-import { StatusBadge } from "@/components/booking/StatusBadge";
+import { StatusBadge, BookInStatusIcon } from "@/components/booking/StatusBadge";
 import { TechnicianIndicator } from "@/components/booking/TechnicianIndicator";
 import { TransportIndicator, transportKind } from "@/components/booking/TransportIndicator";
 
@@ -146,6 +146,9 @@ export function BookInCard({
     .filter(Boolean)
     .join(" · ");
 
+  const arrivedAt = b.bike_arrived_at ? String(b.bike_arrived_at).slice(11, 16) : null;
+  const detail = arrivedAt ? `Arrived ${arrivedAt}` : null;
+
   return (
     <div
       role="button"
@@ -164,13 +167,15 @@ export function BookInCard({
         }
       }}
       title={tooltip}
-      className={cn(
-        "group relative w-full overflow-hidden rounded-[12px] border-l-[3px] text-left transition-all",
+      style={
         jobCompleted
-          ? "border border-border/40 border-l-[3px] border-l-green-700/70 bg-zinc-900/50"
-          : cn("border border-border/40 shadow-sm", status.accent, status.tint),
+          ? { borderLeftColor: "#4b5157", backgroundColor: "var(--bookin-card)" }
+          : statusStyle.card(status.color)
+      }
+      className={cn(
+        "group relative w-full overflow-hidden rounded-[8px] border border-[color:var(--bookin-line)] border-l-[3px] text-left transition-colors",
         "hover:border-border focus:outline-none focus:ring-2 focus:ring-primary/40",
-        dense ? "px-2 py-1" : "px-2.5 py-1.5",
+        dense ? "px-2 py-1.5" : "px-2.5 py-2",
         draggable && "cursor-grab active:cursor-grabbing",
         className,
       )}
@@ -198,23 +203,19 @@ export function BookInCard({
         </button>
       )}
 
-      <div className="min-w-0">
-        {/* ROW 1 — motorcycle + rego */}
-        <div className="flex items-center justify-between gap-1.5">
+      <div className="min-w-0 space-y-[3px]">
+        {/* ROW 1 — status icon + motorcycle + rego */}
+        <div className="flex items-center gap-1">
+          <BookInStatusIcon meta={status} />
           <div
             className={cn(
-              "min-w-0 truncate text-[0.75rem] font-bold leading-tight sm:text-[0.8125rem]",
+              "min-w-0 flex-1 truncate text-[0.75rem] font-bold leading-tight",
               jobCompleted ? "text-muted-foreground" : "text-foreground",
             )}
           >
             {bike}
           </div>
           <div className="flex shrink-0 items-center gap-1">
-            {rego && (
-              <span className="rounded bg-background/70 px-1 py-0 font-mono text-[0.5625rem] font-bold uppercase tracking-wider tabular-nums text-foreground/75">
-                {rego}
-              </span>
-            )}
             <TransportIndicator kind={kind} address={b.transport_address} />
             {b.loan_bike && (
               <span className="h-1.5 w-1.5 rounded-full bg-fuchsia-500" title="Loan bike" />
@@ -222,13 +223,18 @@ export function BookInCard({
             {b.notes && (
               <span className="h-1.5 w-1.5 rounded-full bg-muted-foreground/70" title="Has notes" />
             )}
+            {rego && (
+              <span className="rounded-[4px] bg-white/[0.07] px-1 py-[1px] font-mono text-[0.5rem] font-bold uppercase tracking-wide tabular-nums text-foreground/70">
+                {rego}
+              </span>
+            )}
           </div>
         </div>
 
         {/* ROW 2 — customer */}
         <div
           className={cn(
-            "flex items-center gap-1 truncate text-[0.625rem] leading-tight sm:text-[0.6875rem]",
+            "flex items-center gap-1.5 truncate pl-[1.4rem] text-[0.625rem] leading-tight sm:text-[0.6875rem]",
             jobCompleted ? "text-muted-foreground/70" : "text-muted-foreground",
           )}
         >
@@ -237,24 +243,32 @@ export function BookInCard({
         </div>
 
         {/* ROW 3 — requested work (service type = secondary) */}
-        <div className="flex items-center gap-1 truncate text-[0.625rem] leading-tight sm:text-[0.6875rem]">
+        <div className="flex items-center gap-1.5 truncate pl-[1.4rem] text-[0.625rem] leading-tight sm:text-[0.6875rem]">
           <span
             className={cn("h-1.5 w-1.5 shrink-0 rounded-full", svc.bg, jobCompleted && "opacity-50")}
           />
-          <span className={cn("truncate", jobCompleted ? "text-muted-foreground/70" : "text-foreground/80")}>
+          <span
+            className={cn(
+              "truncate",
+              jobCompleted ? "text-muted-foreground/70" : "text-foreground/80",
+            )}
+          >
             {work}
           </span>
         </div>
 
-        {/* ROW 4 — operational status + technician */}
-        <div className="mt-0.5 flex items-center gap-1.5">
-          <StatusBadge meta={status} compact={dense} />
-          {b.bike_arrived && !jobCompleted && (
-            <span className="h-1.5 w-1.5 rounded-full bg-orange-500" title="Arrived today" />
+        {/* ROW 4 — workflow detail + status badge */}
+        <div className="flex items-center gap-1.5 pl-[1.4rem]">
+          {detail && (
+            <span className="truncate text-[0.5625rem] uppercase tracking-wider text-muted-foreground/70">
+              {detail}
+            </span>
           )}
           <TechnicianIndicator name={techName} className="ml-auto" showName={false} />
+          <StatusBadge meta={status} compact={dense} className="shrink-0" />
         </div>
       </div>
+
     </div>
   );
 }

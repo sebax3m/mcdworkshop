@@ -54,6 +54,7 @@ import { useDailyNotesRange, useUpdateDailyNote, type DailyNote } from "@/hooks/
 import { NoteDialog } from "@/components/booking/NoteDialog";
 import { BookInCard, CapacityBadge } from "@/components/booking/BookInCard";
 import { CalendarDayHeader } from "@/components/booking/CalendarDayHeader";
+import { BookInsInfoBar } from "@/components/booking/BookInsInfoBar";
 import { StatusBadge } from "@/components/booking/StatusBadge";
 import { isBookInCompleted, resolveBookInStatus } from "@/lib/book-in-status";
 
@@ -79,7 +80,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { CalendarIcon } from "lucide-react";
+import { CalendarIcon, CalendarDays } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 // Drop position indicator shown while dragging a book-in
@@ -832,6 +833,18 @@ function CalendarPage() {
     [weekStart],
   );
 
+  const gaugeDay = useMemo(() => {
+    const now = new Date();
+    const inWeek = weekDays.some((d) => isToday(d));
+    const target = inWeek ? now : weekDays[0];
+    const key = format(target, "yyyy-MM-dd");
+    return {
+      booked: (bookings as any[]).filter((b) => b.scheduled_date === key).length,
+      capacity: capacityFor(target),
+      label: format(target, "EEEE d MMM"),
+    };
+  }, [bookings, weekDays, capacityFor]);
+
   const monthDays = useMemo(() => {
     if (viewMode !== "month") return [];
     const start = startOfWeek(startOfMonth(monthStart), { weekStartsOn: 1 });
@@ -846,6 +859,12 @@ function CalendarPage() {
 
   return (
     <div className="flex flex-col gap-3 h-full pt-5">
+      {/* PAGE TITLE */}
+      <div className="flex items-center gap-2.5">
+        <CalendarDays className="h-6 w-6 text-foreground" />
+        <h1 className="font-display text-2xl font-bold leading-none">Book-ins</h1>
+      </div>
+
       {/* NAV + TOGGLE */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
@@ -881,8 +900,7 @@ function CalendarPage() {
               <>{format(monthStart, "MMMM yyyy")}</>
             )}
             <span className="ml-3 text-xs tabular-nums">
-              {bookings.length} bookings ·{" "}
-              {[...totals.values()].reduce((a, b) => a + b, 0).toFixed(1)}h
+              {bookings.length} book-ins
             </span>
           </div>
 
@@ -1079,7 +1097,7 @@ function CalendarPage() {
       {/* WEEK VIEW — motorcycles booked in per day (no hourly slots) */}
       {viewMode === "week" && (
         <div className="overflow-x-auto min-w-full">
-          <div className="grid gap-1.5 sm:gap-2 min-w-[600px] sm:min-w-[980px] grid-cols-6 items-start">
+          <div className="grid gap-2 min-w-[600px] sm:min-w-[1040px] grid-cols-6 items-stretch">
             {weekDays.map((day) => {
               const dayKey = format(day, "yyyy-MM-dd");
               const allDayBookings = sortBookIns(
@@ -1108,11 +1126,9 @@ function CalendarPage() {
                     if (id) moveBookingToDate(id, day);
                     setDraggingId(null);
                   }}
-                  className={`rounded-[14px] border border-border/40 bg-card/40 p-1.5 sm:p-2 flex flex-col gap-1.5 sm:gap-2 min-h-[220px] sm:min-h-[280px] ${
-                    today ? "border-primary/70 bg-primary/[0.04]" : ""
-                  } ${isSunday(day) ? "bg-primary/[0.08]" : ""} ${
-                    draggingId ? "border-dashed border-primary/40" : ""
-                  }`}
+                  className={`rounded-[10px] border border-[color:var(--bookin-line)] bg-[color:var(--bookin-column)] p-2 flex flex-col gap-2 min-h-[220px] sm:min-h-[280px] ${
+                    today ? "border-[#DC2626]" : ""
+                  } ${draggingId ? "border-dashed border-primary/40" : ""}`}
                 >
                   {/* Day header: weekday, date, capacity + capacity bar */}
                   <CalendarDayHeader
@@ -1143,12 +1159,12 @@ function CalendarPage() {
                         e.stopPropagation();
                         setEditNote(n);
                       }}
-                      className="w-full text-left rounded-md border border-amber-500/30 bg-amber-500/[0.07] px-2 py-0.5"
+                      className="w-full text-left rounded-[8px] border border-[#8A5A00] bg-[#F59E0B]/[0.08] px-2 py-1"
                     >
-                      <div className="flex items-center gap-1 text-[0.5rem] font-bold uppercase tracking-[0.16em] text-amber-400/90">
+                      <div className="flex items-center gap-1 text-[0.5rem] font-bold uppercase tracking-[0.16em] text-[#FBBF24]">
                         <StickyNote className="h-2.5 w-2.5" /> Note
                       </div>
-                      <div className="text-[0.6875rem] font-semibold leading-tight truncate">{n.title}</div>
+                      <div className="text-[0.6875rem] font-semibold leading-tight truncate text-[#FBBF24]">{n.title}</div>
                     </button>
                   ))}
 
@@ -1235,7 +1251,7 @@ function CalendarPage() {
                   <button
                     type="button"
                     onClick={() => setSlotChoice({ date: day, time: null, dayKey })}
-                    className="rounded-lg border border-dashed border-border/40 px-2 h-6 sm:h-7 text-[0.55rem] sm:text-[0.5625rem] font-bold uppercase tracking-wider text-muted-foreground/50 hover:border-primary/50 hover:text-foreground transition-colors"
+                    className="rounded-[8px] px-2 h-7 text-[0.5625rem] font-bold uppercase tracking-wider text-muted-foreground/40 hover:bg-white/[0.04] hover:text-foreground transition-colors"
                   >
                     + Book-in / note
                   </button>
@@ -1246,7 +1262,14 @@ function CalendarPage() {
         </div>
       )}
 
-      {/* LEGEND moved to sidebar (only visible on /calendar) */}
+      {/* BOTTOM OPERATIONAL INFORMATION AREA */}
+      {viewMode === "week" && (
+        <BookInsInfoBar
+          booked={gaugeDay.booked}
+          capacity={gaugeDay.capacity}
+          dayLabel={gaugeDay.label}
+        />
+      )}
 
       {/* BOOKING QUICK-VIEW POPUP */}
       <AnimatePresence>
