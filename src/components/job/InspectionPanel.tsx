@@ -262,7 +262,7 @@ export function InspectionPanel({
       )}
 
       {pending.length > 0 && (
-        <Section title={`Awaiting approval (${pending.length})`} total={totals.pending}>
+        <Section title={`Awaiting approval (${pending.length})`} summary={totals.pending}>
           {pending.map((f) => (
             <FindingRow key={f.id} f={f} onDelete={() => removeFinding(f)} />
           ))}
@@ -270,7 +270,7 @@ export function InspectionPanel({
       )}
 
       {drafts.length > 0 && (
-        <Section title={`Draft findings (${drafts.length})`} total={totals.drafts}>
+        <Section title={`Draft findings (${drafts.length})`} summary={totals.drafts}>
           {drafts.map((f) => (
             <FindingRow
               key={f.id}
@@ -300,6 +300,66 @@ export function InspectionPanel({
           ))}
         </Section>
       )}
+
+      {quoteList.length > 0 && (
+        <div className="rounded-lg border border-border overflow-hidden">
+          <div className="bg-muted/40 px-3 py-2 text-[0.6875rem] font-bold uppercase tracking-wider">
+            Estimate for customer approval
+          </div>
+          <table className="w-full text-xs">
+            <thead>
+              <tr className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">
+                <th className="text-left font-medium px-3 py-1.5">Item</th>
+                <th className="text-right font-medium px-2 py-1.5 w-14">Hrs</th>
+                <th className="text-right font-medium px-2 py-1.5 w-20">Labour</th>
+                <th className="text-right font-medium px-2 py-1.5 w-20">Parts</th>
+                <th className="text-right font-medium px-3 py-1.5 w-20">Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              {quoteList.map((f) => {
+                const hrs = Number(f.estimated_labour) || 0;
+                const parts = Number(f.estimated_parts_cost) || 0;
+                const lab = hrs * INSPECTION_LABOUR_RATE;
+                return (
+                  <tr key={f.id} className="border-t border-border/60">
+                    <td className="px-3 py-1.5">
+                      <span className="font-medium">{f.title}</span>
+                      <span className="text-muted-foreground">
+                        {" "}
+                        · {SEVERITY_META[f.severity]?.label}
+                      </span>
+                    </td>
+                    <td className="px-2 py-1.5 text-right tabular-nums">{hrs || "—"}</td>
+                    <td className="px-2 py-1.5 text-right tabular-nums">${lab.toFixed(2)}</td>
+                    <td className="px-2 py-1.5 text-right tabular-nums">${parts.toFixed(2)}</td>
+                    <td className="px-3 py-1.5 text-right tabular-nums font-semibold">
+                      ${(lab + parts).toFixed(2)}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+          <div className="border-t border-border px-3 py-2 space-y-0.5 text-xs">
+            <Row
+              label={`Labour ${quote.hours}h @ $${INSPECTION_LABOUR_RATE}/h`}
+              value={quote.labour}
+            />
+            <Row label="Parts" value={quote.parts} />
+            <Row label="Subtotal (ex GST)" value={quote.subtotal} />
+            <Row label="GST 15%" value={quote.gst} />
+            <div className="flex items-center justify-between border-t border-border pt-1 mt-1 text-sm font-bold">
+              <span>Total incl GST</span>
+              <span className="tabular-nums">${quote.total.toFixed(2)}</span>
+            </div>
+            <p className="text-[0.625rem] text-muted-foreground pt-1">
+              Default hours and parts prices are estimates — edit any finding to adjust.
+            </p>
+          </div>
+        </div>
+      )}
+
 
       {drafts.length > 0 && (
         <div className="flex flex-wrap gap-2">
