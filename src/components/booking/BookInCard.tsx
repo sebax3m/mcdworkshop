@@ -342,12 +342,12 @@ export function BookInCard({
                 </span>
               )}
               {transportLabel && (
-                <span
-                  className="grid h-4 w-4 place-items-center rounded bg-sky-500 text-white shadow"
+                <TransportIcon
+                  variant="inline"
+                  label={transportLabel}
                   title={transportTitle}
-                >
-                  <Truck className="h-2.5 w-2.5" />
-                </span>
+                  address={b.transport_address || ""}
+                />
               )}
             </div>
           </div>
