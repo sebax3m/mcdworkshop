@@ -16,6 +16,7 @@ import { JobTimeline } from "@/components/job/JobTimeline";
 import { ServiceTypeEditor } from "@/components/job/ServiceTypeEditor";
 import { ShiftClockCard } from "@/components/job/ShiftClockCard";
 import { AssignedTechnicianCard } from "@/components/job/AssignedTechnicianCard";
+import { JobTechnicalBrief } from "@/components/job/JobTechnicalBrief";
 
 import { displayCustomerName } from "@/lib/display";
 
@@ -749,6 +750,12 @@ function JobDetail() {
           canEdit={canEdit}
           onChanged={() => qc.invalidateQueries({ queryKey: ["job", jobId] })}
         />
+
+        <div className="mt-4">
+          <JobTechnicalBrief jobId={jobId} />
+        </div>
+
+
 
         <div className="card-surface p-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
 

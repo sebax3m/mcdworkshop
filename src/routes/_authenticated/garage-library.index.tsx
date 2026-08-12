@@ -194,11 +194,22 @@ function GarageLibraryIndex() {
           <h1 className="text-xl font-semibold tracking-tight">Garage Library</h1>
           <p className="text-xs text-muted-foreground">Workshop-verified knowledge from motorcycles we have actually worked on.</p>
         </div>
-        <Button size="sm" variant="outline" className="ml-auto" asChild>
-          <Link to="/garage-library/updates">
-            <Inbox className="h-4 w-4 mr-1" /> Knowledge updates{proposals.length ? ` · ${proposals.length}` : ""}
-          </Link>
-        </Button>
+        <div className="ml-auto flex flex-wrap gap-2">
+          <Button size="sm" variant="outline" asChild>
+            <Link to="/garage-library/tech">MCD TECH</Link>
+          </Button>
+          <Button size="sm" variant="outline" asChild>
+            <Link to="/garage-library/documents">Documents</Link>
+          </Button>
+          <Button size="sm" variant="outline" asChild>
+            <Link to="/garage-library/analytics">Analytics</Link>
+          </Button>
+          <Button size="sm" variant="outline" asChild>
+            <Link to="/garage-library/updates">
+              <Inbox className="h-4 w-4 mr-1" /> Knowledge updates{proposals.length ? ` · ${proposals.length}` : ""}
+            </Link>
+          </Button>
+        </div>
         {isAdmin && (
           <Button size="sm" onClick={() => setNewOpen(true)}>
             <Plus className="h-4 w-4 mr-1" /> Add model

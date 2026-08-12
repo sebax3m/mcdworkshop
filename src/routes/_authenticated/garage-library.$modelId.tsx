@@ -12,6 +12,8 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "
 import { toast } from "sonner";
 import { SpecMeta, SourceSelect, VerificationSelect } from "@/components/garage/SpecMeta";
 import { WorkshopDataTab } from "@/components/garage/WorkshopDataTab";
+import { TechAskPanel } from "@/components/garage/TechAskPanel";
+import { KnowledgeCoverageCard, ModelDocumentsTab } from "@/components/garage/ModelKnowledgeTabs";
 import {
   COMMON_FASTENERS,
   FLUID_TYPES,
@@ -321,7 +323,7 @@ function GarageModelPage() {
 
       <Tabs defaultValue="overview">
         <TabsList className="flex flex-wrap h-auto">
-          {["overview", "workshop", "parts", "labour", "torque", "valves", "fluids", "notes", "history"].map((t) => (
+          {["overview", "mcd tech", "workshop", "parts", "labour", "torque", "valves", "fluids", "documents", "notes", "history"].map((t) => (
             <TabsTrigger key={t} value={t} className="text-xs uppercase tracking-wide">
               {t === "valves" ? "Valve clearances" : t === "workshop" ? "Workshop data" : t}
             </TabsTrigger>
@@ -356,6 +358,22 @@ function GarageModelPage() {
               }}
             />
           </div>
+        </TabsContent>
+
+        <TabsContent value="mcd tech" className="mt-4 space-y-3">
+          <KnowledgeCoverageCard modelId={modelId} />
+          <TechAskPanel
+            bike={{
+              modelId,
+              make: model.make,
+              model: model.model,
+              year: model.year_from ?? model.year_to ?? null,
+            }}
+          />
+        </TabsContent>
+
+        <TabsContent value="documents" className="mt-4">
+          <ModelDocumentsTab modelId={modelId} />
         </TabsContent>
 
         <TabsContent value="workshop" className="mt-4">
