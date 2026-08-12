@@ -256,6 +256,7 @@ function InvoiceDetail() {
           .from("parts")
           .select("*")
           .eq("job_id", invoice.data!.job_id!)
+          .order("sort_order")
           .order("created_at")
       ).data ?? [],
   });
