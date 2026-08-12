@@ -119,7 +119,7 @@ export function BookInCard({
     ? `${transportLabel}${b.transport_address ? ` — ${b.transport_address}` : ""}`
     : undefined;
 
-  const photo = Array.isArray(b.motorcycles?.photos) ? b.motorcycles.photos[0] : null;
+  
   const jobCompleted =
     b.job_completed === true ||
     b.job_status === "completed" ||
