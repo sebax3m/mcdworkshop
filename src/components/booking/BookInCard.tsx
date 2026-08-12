@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { displayBike, displayCustomerName, displayServiceType } from "@/lib/display";
 import { resolveBookInStatus, isBookInCompleted, statusStyle } from "@/lib/book-in-status";
-import { serviceColor } from "@/lib/service-colors";
+import { serviceColor, isHighlightedService } from "@/lib/service-colors";
 import { cn } from "@/lib/utils";
 import { useTechnicianNames } from "@/hooks/use-technician-names";
 import { StatusBadge, BookInStatusIcon } from "@/components/booking/StatusBadge";
