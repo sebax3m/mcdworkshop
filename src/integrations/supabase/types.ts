@@ -14,6 +14,243 @@ export type Database = {
   }
   public: {
     Tables: {
+      bike_library_labour: {
+        Row: {
+          created_at: string
+          hours: number | null
+          id: string
+          model_id: string
+          notes: string | null
+          parts_cost: number | null
+          sort_order: number
+          task: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          hours?: number | null
+          id?: string
+          model_id: string
+          notes?: string | null
+          parts_cost?: number | null
+          sort_order?: number
+          task: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          hours?: number | null
+          id?: string
+          model_id?: string
+          notes?: string | null
+          parts_cost?: number | null
+          sort_order?: number
+          task?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bike_library_labour_model_id_fkey"
+            columns: ["model_id"]
+            isOneToOne: false
+            referencedRelation: "bike_library_models"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      bike_library_models: {
+        Row: {
+          air_filter: string | null
+          battery: string | null
+          brake_fluid: string | null
+          chain_spec: string | null
+          coolant_qty_l: number | null
+          coolant_type: string | null
+          created_at: string
+          created_by: string | null
+          cylinders: number
+          engine_oil_qty_l: number | null
+          engine_oil_type: string | null
+          fork_oil: string | null
+          front_sprocket: string | null
+          front_tyre: string | null
+          id: string
+          make: string
+          model: string
+          notes: string | null
+          oil_filter: string | null
+          rear_sprocket: string | null
+          rear_tyre: string | null
+          service_interval_km: number | null
+          spark_plug: string | null
+          spark_plug_qty: number | null
+          updated_at: string
+          valve_exhaust_max: number | null
+          valve_exhaust_min: number | null
+          valve_intake_max: number | null
+          valve_intake_min: number | null
+          year_from: number | null
+          year_to: number | null
+        }
+        Insert: {
+          air_filter?: string | null
+          battery?: string | null
+          brake_fluid?: string | null
+          chain_spec?: string | null
+          coolant_qty_l?: number | null
+          coolant_type?: string | null
+          created_at?: string
+          created_by?: string | null
+          cylinders?: number
+          engine_oil_qty_l?: number | null
+          engine_oil_type?: string | null
+          fork_oil?: string | null
+          front_sprocket?: string | null
+          front_tyre?: string | null
+          id?: string
+          make: string
+          model: string
+          notes?: string | null
+          oil_filter?: string | null
+          rear_sprocket?: string | null
+          rear_tyre?: string | null
+          service_interval_km?: number | null
+          spark_plug?: string | null
+          spark_plug_qty?: number | null
+          updated_at?: string
+          valve_exhaust_max?: number | null
+          valve_exhaust_min?: number | null
+          valve_intake_max?: number | null
+          valve_intake_min?: number | null
+          year_from?: number | null
+          year_to?: number | null
+        }
+        Update: {
+          air_filter?: string | null
+          battery?: string | null
+          brake_fluid?: string | null
+          chain_spec?: string | null
+          coolant_qty_l?: number | null
+          coolant_type?: string | null
+          created_at?: string
+          created_by?: string | null
+          cylinders?: number
+          engine_oil_qty_l?: number | null
+          engine_oil_type?: string | null
+          fork_oil?: string | null
+          front_sprocket?: string | null
+          front_tyre?: string | null
+          id?: string
+          make?: string
+          model?: string
+          notes?: string | null
+          oil_filter?: string | null
+          rear_sprocket?: string | null
+          rear_tyre?: string | null
+          service_interval_km?: number | null
+          spark_plug?: string | null
+          spark_plug_qty?: number | null
+          updated_at?: string
+          valve_exhaust_max?: number | null
+          valve_exhaust_min?: number | null
+          valve_intake_max?: number | null
+          valve_intake_min?: number | null
+          year_from?: number | null
+          year_to?: number | null
+        }
+        Relationships: []
+      }
+      bike_library_parts: {
+        Row: {
+          created_at: string
+          id: string
+          model_id: string
+          name: string
+          notes: string | null
+          part_number: string | null
+          price: number | null
+          qty: number
+          sort_order: number
+          supplier: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          model_id: string
+          name: string
+          notes?: string | null
+          part_number?: string | null
+          price?: number | null
+          qty?: number
+          sort_order?: number
+          supplier?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          model_id?: string
+          name?: string
+          notes?: string | null
+          part_number?: string | null
+          price?: number | null
+          qty?: number
+          sort_order?: number
+          supplier?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bike_library_parts_model_id_fkey"
+            columns: ["model_id"]
+            isOneToOne: false
+            referencedRelation: "bike_library_models"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      bike_library_torque: {
+        Row: {
+          created_at: string
+          fastener: string
+          id: string
+          model_id: string
+          notes: string | null
+          sort_order: number
+          torque_nm: number | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          fastener: string
+          id?: string
+          model_id: string
+          notes?: string | null
+          sort_order?: number
+          torque_nm?: number | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          fastener?: string
+          id?: string
+          model_id?: string
+          notes?: string | null
+          sort_order?: number
+          torque_nm?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bike_library_torque_model_id_fkey"
+            columns: ["model_id"]
+            isOneToOne: false
+            referencedRelation: "bike_library_models"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       booking_types: {
         Row: {
           color: string | null
