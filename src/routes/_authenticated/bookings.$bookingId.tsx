@@ -14,6 +14,7 @@ import {
   Bike as BikeIcon,
   FileText,
   KeyRound,
+  CheckCircle,
 } from "lucide-react";
 import { LoanBikeDialog } from "@/components/booking/LoanBikeDialog";
 import { changeBookingMotorcycle, fetchCustomerBikes } from "@/lib/bike-assign";
@@ -22,6 +23,7 @@ import { displayCustomerName } from "@/lib/display";
 import { fullBike } from "@/lib/format";
 import { getSignedUrls } from "@/lib/photos";
 import { format } from "date-fns";
+
 
 export const Route = createFileRoute("/_authenticated/bookings/$bookingId")({
   component: BookingDetail,
@@ -32,8 +34,10 @@ function BookingDetail() {
   const qc = useQueryClient();
   const nav = useNavigate();
   const [converting, setConverting] = useState(false);
+  const [completing, setCompleting] = useState(false);
   const [photoUrls, setPhotoUrls] = useState<string[]>([]);
   const [loanOpen, setLoanOpen] = useState(false);
+
 
   const { data: b, isLoading } = useQuery({
     queryKey: ["booking", bookingId],
@@ -114,7 +118,37 @@ function BookingDetail() {
     }
   }
 
+  async function markCompleted() {
+    if (!b) return;
+    setCompleting(true);
+    try {
+      const updates: any = { status: "completed" };
+      if (b.job_id) {
+        const { error: jobError } = await supabase
+          .from("jobs")
+          .update({ status: "completed", completed_at: new Date().toISOString() })
+          .eq("id", b.job_id);
+        if (jobError) throw jobError;
+      }
+      if (b.loan_bike_id && !b.loan_bike_returned_at) {
+        updates.loan_bike_returned_at = new Date().toISOString();
+      }
+      const { error } = await supabase.from("bookings").update(updates).eq("id", b.id);
+      if (error) throw error;
+      qc.invalidateQueries({ queryKey: ["booking", bookingId] });
+      qc.invalidateQueries({ queryKey: ["calendar-bookings"] });
+      qc.invalidateQueries({ queryKey: ["my-bookings"] });
+      qc.invalidateQueries({ queryKey: ["my-jobs"] });
+      toast.success("Booking marked as completed");
+    } catch (err: any) {
+      toast.error(err.message ?? "Failed to complete booking");
+    } finally {
+      setCompleting(false);
+    }
+  }
+
   if (isLoading || !b)
+
     return (
       <div className="card-surface p-8 text-center text-sm text-muted-foreground">Loading…</div>
     );
@@ -279,23 +313,43 @@ function BookingDetail() {
         </div>
       )}
 
-      {!b.job_id ? (
-        <Button
-          onClick={createJob}
-          disabled={converting}
-          className="w-full h-14 gold-surface text-base font-bold"
-        >
-          {converting ? "Creating job…" : "→ Create Job Card from Booking"}
-        </Button>
-      ) : (
-        <Link
-          to="/jobs/$jobId"
-          params={{ jobId: b.job_id }}
-          className="block w-full text-center rounded-xl gold-surface h-14 leading-[3.5rem] font-bold"
-        >
-          Open Job Card →
-        </Link>
-      )}
+      <div className="flex flex-col gap-2">
+        {!b.job_id ? (
+          <Button
+            onClick={createJob}
+            disabled={converting}
+            className="w-full h-14 gold-surface text-base font-bold"
+          >
+            {converting ? "Creating job…" : "→ Create Job Card from Booking"}
+          </Button>
+        ) : (
+          <Link
+            to="/jobs/$jobId"
+            params={{ jobId: b.job_id }}
+            className="block w-full text-center rounded-xl gold-surface h-14 leading-[3.5rem] font-bold"
+          >
+            Open Job Card →
+          </Link>
+        )}
+        {b.status === "completed" ? (
+          <div className="flex items-center justify-center gap-2 rounded-xl bg-green-500/15 border border-green-500/40 h-12 text-green-400 font-bold">
+            <CheckCircle className="h-5 w-5" />
+            Completed
+          </div>
+        ) : (
+          <Button
+            onClick={markCompleted}
+            disabled={completing}
+            variant="outline"
+            className="w-full h-12 border-green-500/50 text-green-400 hover:bg-green-500/10 hover:text-green-300 font-bold"
+          >
+            <CheckCircle className="h-4 w-4 mr-2" />
+            {completing ? "Completing…" : "Mark booking as completed"}
+          </Button>
+        )}
+      </div>
+
+
     </motion.div>
   );
 }
