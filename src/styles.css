@@ -215,7 +215,6 @@
     rgb(185 28 28 / 0.1) 6px,
     rgb(185 28 28 / 0.1) 14px
   );
-  border-color: rgb(185 28 28 / 0.75);
 }
 
 /* ============ Appearance themes (per-user, set on <html data-theme>) ============ */
