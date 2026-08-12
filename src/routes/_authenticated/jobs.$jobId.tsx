@@ -2302,7 +2302,7 @@ function OdometerSection({
     }
   }
 
-  useAutoSave(value, dirty && canEdit, () => save(true));
+  // Manual save only — the technician presses Save.
 
   const display = value ? Number(value.replace(/\D/g, "")).toLocaleString() : "";
 
