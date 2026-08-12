@@ -19,8 +19,15 @@ export const COVERAGE_CATEGORIES = [
 export type CoverageKey = (typeof COVERAGE_CATEGORIES)[number]["key"];
 
 export async function coverageRows(modelId: string): Promise<Record<CoverageKey, CoverageState>> {
-  const { data } = await supabase.rpc("garage_knowledge_coverage", { p_model_id: modelId });
-  const counts = (data ?? {}) as Record<string, number>;
+  const [{ data }, checklists] = await Promise.all([
+    supabase.rpc("garage_knowledge_coverage", { p_model_id: modelId }),
+    supabase
+      .from("garage_checklists")
+      .select("id", { count: "exact", head: true })
+      .eq("model_id", modelId)
+      .eq("is_archived", false),
+  ]);
+  const counts = { ...((data ?? {}) as Record<string, number>), checklists: checklists.count ?? 0 };
   const out = {} as Record<CoverageKey, CoverageState>;
   for (const c of COVERAGE_CATEGORIES) {
     const n = Number(counts[c.key] ?? 0);
