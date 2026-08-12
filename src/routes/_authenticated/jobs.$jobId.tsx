@@ -1124,7 +1124,7 @@ function JobDetail() {
       </section>
     </div>
 
-    <aside className="no-print lg:sticky lg:top-4 lg:self-start space-y-4">
+    <aside className="no-print lg:sticky lg:top-20 lg:self-start space-y-4 max-h-[calc(100vh-6rem)] overflow-y-auto pr-1 -mr-1">
       <section className="card-surface p-4">
         <h2 className="font-display text-lg font-semibold mb-3">Notes</h2>
         {canEdit && (
