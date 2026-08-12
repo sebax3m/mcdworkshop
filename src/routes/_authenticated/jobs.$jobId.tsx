@@ -14,6 +14,8 @@ import { InspectionPanel } from "@/components/job/InspectionPanel";
 import { JobTimeline } from "@/components/job/JobTimeline";
 import { ServiceTypeEditor } from "@/components/job/ServiceTypeEditor";
 import { ShiftClockCard } from "@/components/job/ShiftClockCard";
+import { AssignedTechnicianCard } from "@/components/job/AssignedTechnicianCard";
+
 import { displayCustomerName } from "@/lib/display";
 
 import { toast } from "sonner";
