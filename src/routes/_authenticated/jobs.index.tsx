@@ -262,6 +262,9 @@ function JobsList() {
                     {displayCustomerName(j.customers)} ·{" "}
                     {j.motorcycles ? fullBike(j.motorcycles) : "—"}
                     {j.motorcycles?.rego ? ` · ${j.motorcycles.rego}` : ""}
+                    {j.technician_id
+                      ? ` · ${technicians.find((t) => t.id === j.technician_id)?.full_name ?? "Assigned"}`
+                      : " · Unassigned"}
                   </div>
                 </div>
                 <span
