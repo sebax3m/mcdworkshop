@@ -1,5 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Bike as BikeIcon, User as UserIcon, Wrench } from "lucide-react";
+import { useState } from "react";
+import { Bike as BikeIcon, CheckCircle, User as UserIcon, Wrench } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 import { displayBike, displayCustomerName, displayServiceType } from "@/lib/display";
 import { bookInStage, stageMeta } from "@/lib/workshop-status";
 import { serviceColor } from "@/lib/service-colors";
@@ -44,7 +48,45 @@ export function BookInCard({
 
   const photo = Array.isArray(b.motorcycles?.photos) ? b.motorcycles.photos[0] : null;
   const jobCompleted =
-    b.job_completed === true || b.job_status === "completed" || b.jobs?.status === "completed";
+    b.job_completed === true ||
+    b.job_status === "completed" ||
+    b.jobs?.status === "completed" ||
+    b.status === "completed";
+
+  const qc = useQueryClient();
+  const [completing, setCompleting] = useState(false);
+
+  async function markCompleted(e: React.MouseEvent) {
+    e.stopPropagation();
+    if (completing) return;
+    setCompleting(true);
+    try {
+      const updates: Record<string, unknown> = { status: "completed" };
+      if (b.job_id) {
+        const { error: jobError } = await supabase
+          .from("jobs")
+          .update({ status: "completed", completed_at: new Date().toISOString() })
+          .eq("id", b.job_id);
+        if (jobError) throw jobError;
+      }
+      if (b.loan_bike_id && !b.loan_bike_returned_at) {
+        updates["loan_bike_returned_at"] = new Date().toISOString();
+      }
+      const { error } = await supabase.from("bookings").update(updates).eq("id", b.id);
+      if (error) throw error;
+      qc.invalidateQueries({ queryKey: ["booking", b.id] });
+      qc.invalidateQueries({ queryKey: ["calendar-bookings"] });
+      qc.invalidateQueries({ queryKey: ["my-bookings"] });
+      qc.invalidateQueries({ queryKey: ["my-jobs"] });
+      qc.invalidateQueries({ queryKey: ["day-bookings"] });
+      qc.invalidateQueries({ queryKey: ["today-bookings"] });
+      toast.success("Booking marked as completed");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to complete booking");
+    } finally {
+      setCompleting(false);
+    }
+  }
 
   return (
     <div
@@ -75,6 +117,18 @@ export function BookInCard({
         className,
       )}
     >
+      {!jobCompleted && (
+        <button
+          type="button"
+          onClick={markCompleted}
+          disabled={completing}
+          title="Mark as completed"
+          className="absolute bottom-1 right-1 z-10 grid h-5 w-5 place-items-center rounded-full border border-green-500/60 bg-background/90 text-green-400 opacity-0 transition-opacity hover:bg-green-500/20 group-hover:opacity-100 focus:opacity-100"
+        >
+          <CheckCircle className="h-3 w-3" />
+        </button>
+      )}
+
       {b.loan_bike && (
         <span
           className="absolute -top-1 -right-1 z-10 h-2.5 w-2.5 rounded-full bg-fuchsia-500 ring-2 ring-background shadow-[0_0_8px_rgba(217,70,239,0.9)] animate-pulse"
