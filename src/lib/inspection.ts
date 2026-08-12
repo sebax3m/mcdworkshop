@@ -279,13 +279,14 @@ export const FINDING_PRESETS: {
   },
 ];
 
-/** Quote roll-up for a list of findings. */
+/** Quote roll-up for a list of findings. All amounts are GST-inclusive;
+ *  `gst` is the embedded 15% component and `subtotal` is the ex-GST value. */
 export function quoteTotals(list: { estimated_labour: number | null; estimated_parts_cost: number | null }[]) {
   const hours = list.reduce((n, f) => n + (Number(f.estimated_labour) || 0), 0);
   const parts = list.reduce((n, f) => n + (Number(f.estimated_parts_cost) || 0), 0);
   const labour = hours * INSPECTION_LABOUR_RATE;
-  const subtotal = labour + parts;
-  const gst = subtotal * 0.15;
-  return { hours, parts, labour, subtotal, gst, total: subtotal + gst };
+  const total = labour + parts;
+  const gst = (total * 0.15) / 1.15;
+  return { hours, parts, labour, subtotal: total - gst, gst, total };
 }
 
