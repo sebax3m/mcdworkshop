@@ -40,6 +40,7 @@ import {
 import { detectServiceKind, KIND_META, SERVICE_PARTS } from "@/lib/service-kinds";
 import { getValveSpec, formatRange, type ValveSpec } from "@/lib/valve-specs";
 import { valveSheetHtml } from "@/lib/valve-sheet-html";
+import { FrontArrow } from "@/components/job/FrontArrow";
 import {
   fetchSavedValveSpec,
   upsertSavedValveSpec,
@@ -2121,6 +2122,29 @@ function ValveClearanceSection({
   const topRow = rowFor(intakeOnTop ? "intake" : "exhaust");
   const bottomRow = rowFor(intakeOnTop ? "exhaust" : "intake");
 
+  // Orientation arrow + cylinder ordering (drag to rearrange)
+  const frontDeg = Number(values._frontDeg ?? 0) || 0;
+  const order: number[] = (() => {
+    const raw: number[] = Array.isArray(values._order)
+      ? (values._order as unknown[]).map(Number).filter((n) => n >= 1 && n <= cylCount)
+      : [];
+    const uniq = Array.from(new Set(raw));
+    for (let i = 1; i <= cylCount; i++) if (!uniq.includes(i)) uniq.push(i);
+    return uniq.slice(0, cylCount);
+  })();
+  const [dragCyl, setDragCyl] = useState<number | null>(null);
+  const [overIdx, setOverIdx] = useState<number | null>(null);
+  function moveCyl(cyl: number | null, toIdx: number) {
+    if (cyl === null || !canEdit) return;
+    const from = order.indexOf(cyl);
+    if (from === -1 || from === toIdx) return;
+    const next = [...order];
+    next.splice(from, 1);
+    next.splice(toIdx, 0, cyl);
+    setMeta({ _order: next });
+  }
+
+
   return (
     <>
       {/* Screen / on-card section */}
@@ -2279,32 +2303,57 @@ function ValveClearanceSection({
         <div className="rounded-xl border border-border bg-background/40 p-4 overflow-x-auto">
           <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground text-center mb-3">
             Top-down view ·{" "}
-            {intakeOnTop ? "INTAKE (top) / EXHAUST (bottom)" : "EXHAUST (top) / INTAKE (bottom)"}
+            {intakeOnTop ? "INTAKE (top) / EXHAUST (bottom)" : "EXHAUST (top) / INTAKE (bottom)"} ·
+            drag cylinders to reorder
           </div>
-          <div className="flex gap-4 min-w-fit justify-center">
-            {Array.from({ length: cylCount }).map((_, c) => {
-              const cyl = c + 1;
-              return (
-                <div
-                  key={cyl}
-                  className="rounded-2xl border-2 border-border bg-card/60 p-3 flex flex-col items-center gap-2"
-                  style={{ minWidth: 150 }}
-                >
-                  <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground font-bold">
-                    Cyl {cyl}
-                  </div>
-                  {topRow(cyl)}
-                  {/* Spark plug center */}
-                  <div
-                    className="h-4 w-4 rounded-full bg-muted-foreground/30 border border-muted-foreground/50"
-                    title="Spark plug"
-                  />
-                  {bottomRow(cyl)}
+          <div className="flex gap-4 min-w-fit justify-center items-center">
+            <FrontArrow
+              deg={frontDeg}
+              disabled={!canEdit}
+              onChange={(d) => setMeta({ _frontDeg: d })}
+            />
+            {order.map((cyl, idx) => (
+              <div
+                key={cyl}
+                draggable={canEdit}
+                onDragStart={() => setDragCyl(cyl)}
+                onDragEnd={() => {
+                  setDragCyl(null);
+                  setOverIdx(null);
+                }}
+                onDragOver={(e) => {
+                  if (!canEdit || dragCyl === null) return;
+                  e.preventDefault();
+                  setOverIdx(idx);
+                }}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  moveCyl(dragCyl, idx);
+                  setDragCyl(null);
+                  setOverIdx(null);
+                }}
+                className={`rounded-2xl border-2 bg-card/60 p-3 flex flex-col items-center gap-2 transition-colors ${
+                  overIdx === idx && dragCyl !== null && dragCyl !== cyl
+                    ? "border-primary"
+                    : "border-border"
+                } ${dragCyl === cyl ? "opacity-50" : ""} ${canEdit ? "cursor-grab active:cursor-grabbing" : ""}`}
+                style={{ minWidth: 150 }}
+              >
+                <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground font-bold">
+                  Cyl {cyl}
                 </div>
-              );
-            })}
+                {topRow(cyl)}
+                {/* Spark plug center */}
+                <div
+                  className="h-4 w-4 rounded-full bg-muted-foreground/30 border border-muted-foreground/50"
+                  title="Spark plug"
+                />
+                {bottomRow(cyl)}
+              </div>
+            ))}
           </div>
         </div>
+
         <div className="mt-3 flex items-center gap-3 text-[0.625rem] text-muted-foreground flex-wrap">
           <span className="inline-flex items-center gap-1">
             <span className="h-3 w-3 rounded-full bg-status-progress/40 border border-status-progress/60" />{" "}
@@ -2336,6 +2385,8 @@ function ValveClearanceSection({
         values={values}
         spec={spec}
         intakeOnTop={intakeOnTop}
+        order={order}
+        frontDeg={frontDeg}
       />
     </>
   );
@@ -2347,13 +2398,25 @@ function ValveClearancePrintSheet({
   values,
   spec,
   intakeOnTop = true,
+  order,
+  frontDeg = 0,
 }: {
   bike: any;
   cylinders: number;
   values: any;
   spec: ValveSpec;
   intakeOnTop?: boolean;
+  order?: number[];
+  frontDeg?: number;
 }) {
+  const cyls =
+    order && order.length === cylinders
+      ? order
+      : Array.from({ length: cylinders }, (_, i) => i + 1);
+  const frontLabel = ["FRONT ↑", "FRONT →", "FRONT ↓", "FRONT ←"][
+    Math.round(((frontDeg % 360) + 360) % 360 / 90) % 4
+  ];
+
   return (
     <div
       className="hidden print:block valve-print-page"
@@ -2390,13 +2453,13 @@ function ValveClearancePrintSheet({
       )}
 
       <div className="text-[0.625rem] uppercase tracking-[0.2em] text-gray-600 text-center mb-2">
-        Top-down · {intakeOnTop ? "INTAKE top / EXHAUST bottom" : "EXHAUST top / INTAKE bottom"} ·
-        write measured mm inside each circle
+        Top-down · {intakeOnTop ? "INTAKE top / EXHAUST bottom" : "EXHAUST top / INTAKE bottom"} ·{" "}
+        {frontLabel} · write measured mm inside each circle
       </div>
       <div className="flex gap-4 justify-center items-stretch mb-3">
-        {Array.from({ length: cylinders }).map((_, c) => {
-          const cyl = c + 1;
+        {cyls.map((cyl) => {
           return (
+
             <div
               key={cyl}
               className="border border-gray-400 rounded-2xl p-3 flex flex-col items-center gap-2 flex-1"
