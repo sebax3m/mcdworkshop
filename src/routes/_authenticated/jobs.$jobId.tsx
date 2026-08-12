@@ -2126,6 +2126,132 @@ function ValveClearancePrintSheet({
     </div>
   );
 }
+function InstructionsSection({
+  bookingId,
+  instructions,
+  notes,
+  canEdit,
+  onSaved,
+}: {
+  bookingId: string | null;
+  instructions: string;
+  notes: string;
+  canEdit: boolean;
+  onSaved: () => void;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [ins, setIns] = useState(instructions);
+  const [nts, setNts] = useState(notes);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    setIns(instructions);
+    setNts(notes);
+  }, [instructions, notes]);
+
+  async function save() {
+    if (!bookingId) return;
+    setSaving(true);
+    try {
+      const { error } = await supabase
+        .from("bookings")
+        .update({ instructions: ins || null, notes: nts || null })
+        .eq("id", bookingId);
+      if (error) throw error;
+      toast.success("Instructions saved");
+      setEditing(false);
+      onSaved();
+    } catch (e: any) {
+      toast.error(e?.message ?? "Failed to save");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <section
+      data-print-section="instructions"
+      className="card-surface p-4 border-l-4 border-primary/60"
+    >
+      <div className="flex items-center gap-2 mb-2">
+        <h2 className="font-display text-lg font-semibold">Instructions</h2>
+        <span className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">
+          from book-in
+        </span>
+        {canEdit && bookingId && !editing && (
+          <Button
+            variant="outline"
+            size="sm"
+            className="ml-auto print:hidden"
+            onClick={() => setEditing(true)}
+          >
+            <Pencil className="h-3.5 w-3.5 mr-1" /> Edit
+          </Button>
+        )}
+      </div>
+
+      {editing ? (
+        <div className="space-y-3 print:hidden">
+          <div>
+            <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground mb-1">
+              Instructions
+            </div>
+            <Textarea
+              value={ins}
+              onChange={(e) => setIns(e.target.value)}
+              rows={4}
+              placeholder="What the customer asked for…"
+            />
+          </div>
+          <div>
+            <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground mb-1">
+              Internal notes
+            </div>
+            <Textarea
+              value={nts}
+              onChange={(e) => setNts(e.target.value)}
+              rows={3}
+              placeholder="Internal notes…"
+            />
+          </div>
+          <div className="flex gap-2">
+            <Button size="sm" onClick={save} disabled={saving}>
+              {saving ? "Saving…" : "Save"}
+            </Button>
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => {
+                setIns(instructions);
+                setNts(notes);
+                setEditing(false);
+              }}
+            >
+              Cancel
+            </Button>
+          </div>
+        </div>
+      ) : (
+        <>
+          {instructions ? (
+            <p className="text-sm whitespace-pre-wrap">{instructions}</p>
+          ) : (
+            <p className="text-sm text-muted-foreground print:hidden">No instructions yet.</p>
+          )}
+          {notes && (
+            <div className="mt-2 pt-2 border-t border-border/40">
+              <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground mb-0.5">
+                Internal notes
+              </div>
+              <p className="text-sm whitespace-pre-wrap">{notes}</p>
+            </div>
+          )}
+        </>
+      )}
+    </section>
+  );
+}
+
 
 function OdometerSection({
   jobId,
