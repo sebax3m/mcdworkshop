@@ -72,20 +72,64 @@ export function AddressAutocomplete({
   );
 }
 
-/** Embedded Google map for a transport address. */
+/**
+ * Embedded Google map for a transport address.
+ * Defaults to driving directions from the workshop (94 Wairau Road) so the
+ * travel time to the pick-up / drop-off is visible straight away.
+ */
 export function AddressMap({ address }: { address: string }) {
   const key = import.meta.env["VITE_LOVABLE_CONNECTOR_GOOGLE_MAPS_BROWSER_KEY"] as
     | string
     | undefined;
   const q = address.trim();
+  const [eta, setEta] = useState<TravelEta | null>(null);
+  const [etaError, setEtaError] = useState(false);
+
+  useEffect(() => {
+    setEta(null);
+    setEtaError(false);
+    if (q.length < 5) return;
+    let cancelled = false;
+    travelFromWorkshop({ data: { destination: q } })
+      .then((r) => !cancelled && setEta(r))
+      .catch(() => !cancelled && setEtaError(true));
+    return () => {
+      cancelled = true;
+    };
+  }, [q]);
+
   if (!key || q.length < 5) return null;
+  const src = `https://www.google.com/maps/embed/v1/directions?key=${key}&origin=${encodeURIComponent(
+    WORKSHOP_ADDRESS,
+  )}&destination=${encodeURIComponent(q)}&mode=driving`;
+
   return (
-    <iframe
-      title="Transport location"
-      className="h-48 w-full rounded-xl border border-border"
-      loading="lazy"
-      referrerPolicy="no-referrer-when-downgrade"
-      src={`https://www.google.com/maps/embed/v1/place?key=${key}&q=${encodeURIComponent(q)}&zoom=14`}
-    />
+    <div className="space-y-1.5">
+      <iframe
+        title="Route from the workshop"
+        className="h-48 w-full rounded-xl border border-border"
+        loading="lazy"
+        referrerPolicy="no-referrer-when-downgrade"
+        src={src}
+      />
+      <div className="flex items-center gap-1.5 text-[0.6875rem] text-muted-foreground">
+        <Navigation className="h-3 w-3 shrink-0 text-sky-500" />
+        <span className="truncate">
+          From {WORKSHOP_SHORT}
+          {eta ? ` · ${eta.durationText} · ${eta.distanceText}` : etaError ? "" : " · …"}
+        </span>
+        <a
+          href={`https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(
+            WORKSHOP_ADDRESS,
+          )}&destination=${encodeURIComponent(q)}&travelmode=driving`}
+          target="_blank"
+          rel="noreferrer"
+          className="ml-auto shrink-0 font-semibold text-sky-500 hover:underline"
+          onClick={(e) => e.stopPropagation()}
+        >
+          Open
+        </a>
+      </div>
+    </div>
   );
 }
