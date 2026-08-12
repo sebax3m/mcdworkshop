@@ -102,6 +102,16 @@ const AskInput = z.object({
   question: z.string().min(2).max(500),
   bike: z.string().max(200).nullable().optional(),
   context: z.string().max(8000).nullable().optional(),
+  /** Prior turns of the same MCD TECH conversation, oldest first. */
+  history: z
+    .array(
+      z.object({
+        role: z.enum(["user", "assistant"]),
+        content: z.string().min(1).max(4000),
+      }),
+    )
+    .max(20)
+    .optional(),
 });
 
 /**
@@ -116,11 +126,17 @@ export const askExternalAi = createServerFn({ method: "POST" })
     const system = [
       "You are MCD TECH, a motorcycle workshop technical assistant for Motorcycle Doctors (New Zealand).",
       "The workshop has NO verified internal data for this question, so you are the last fallback.",
+      data.bike
+        ? `The whole conversation is about this motorcycle: ${data.bike}. Assume every question refers to it unless the technician clearly names another motorcycle. Never ask which motorcycle it is.`
+        : "",
+      "Follow the conversation thread: resolve pronouns and short follow-up questions using the earlier turns.",
       "Answer only if you are confident for the EXACT make/model/year given; otherwise say the specification must be confirmed against the manual.",
       "Never invent page numbers, document references or torque figures you are unsure of.",
       "Be extremely brief: short labelled lines or a small table. No preamble, no disclaimers longer than one line.",
       "Always finish with the single line: UNVERIFIED — confirm before use.",
-    ].join(" ");
+    ]
+      .filter(Boolean)
+      .join(" ");
     const user = [
       data.bike ? `Motorcycle: ${data.bike}` : null,
       data.context ? `Workshop context:\n${data.context}` : null,
@@ -128,6 +144,6 @@ export const askExternalAi = createServerFn({ method: "POST" })
     ]
       .filter(Boolean)
       .join("\n\n");
-    const answer = await aiChat({ system, user });
+    const answer = await aiChat({ system, user, history: data.history ?? [] });
     return { answer };
   });
