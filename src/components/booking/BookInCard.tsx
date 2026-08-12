@@ -1,6 +1,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState } from "react";
-import { Bike as BikeIcon, CheckCircle, RotateCcw, User as UserIcon, Wrench } from "lucide-react";
+import {
+  Bike as BikeIcon,
+  CheckCircle,
+  RotateCcw,
+  Truck,
+  User as UserIcon,
+  Wrench,
+} from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -45,6 +52,18 @@ export function BookInCard({
   const techName = b.assigned_tech_id
     ? (b.tech_name ?? techNames.get(b.assigned_tech_id) ?? "Assigned")
     : null;
+
+  const transportLabel =
+    b.pickup_required && b.delivery_required
+      ? "Pick-up & drop-off"
+      : b.pickup_required
+        ? "Pick-up"
+        : b.delivery_required
+          ? "Drop-off"
+          : null;
+  const transportTitle = transportLabel
+    ? `${transportLabel}${b.transport_address ? ` — ${b.transport_address}` : ""}`
+    : undefined;
 
   const photo = Array.isArray(b.motorcycles?.photos) ? b.motorcycles.photos[0] : null;
   const jobCompleted =
@@ -184,6 +203,16 @@ export function BookInCard({
           className="absolute -top-1 -left-1 z-10 h-2.5 w-2.5 rounded-full bg-orange-500 shadow-[0_0_8px_rgba(249,115,22,0.9)]"
           title="Bike arrived"
         />
+      )}
+
+      {transportLabel && (
+        <span
+          className="absolute top-1 right-1 z-10 inline-flex items-center gap-0.5 rounded bg-sky-500 px-1 py-[1px] text-[0.55rem] font-bold uppercase leading-none text-white shadow"
+          title={transportTitle}
+        >
+          <Truck className="h-2.5 w-2.5" />
+          {b.pickup_required && b.delivery_required ? "P/D" : b.pickup_required ? "P" : "D"}
+        </span>
       )}
 
       {b.loan_bike && (
