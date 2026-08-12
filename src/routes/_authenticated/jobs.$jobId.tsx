@@ -738,7 +738,15 @@ function JobDetail() {
 
       {/* Hide-on-print sections wrapped via print:hidden on each card */}
       <div className="print:hidden">
+        <AssignedTechnicianCard
+          jobId={jobId}
+          technicianId={j.technician_id ?? j.assigned_tech_id ?? null}
+          canEdit={canEdit}
+          onChanged={() => qc.invalidateQueries({ queryKey: ["job", jobId] })}
+        />
+
         <div className="card-surface p-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
+
           <InfoRow
             icon={User}
             label="Customer"
