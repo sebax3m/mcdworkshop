@@ -9,7 +9,9 @@ import { useTechnicianNames } from "@/hooks/use-technician-names";
 import {
   CATEGORY_LABEL,
   FINDING_STATUS_META,
+  INSPECTION_LABOUR_RATE,
   SEVERITY_META,
+  quoteTotals,
   type ApprovalRequest,
   type InspectionFinding,
 } from "@/lib/inspection";
