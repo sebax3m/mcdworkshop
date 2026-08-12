@@ -523,6 +523,11 @@ function CalendarPage() {
           loan_bike: qLoanBike,
           loan_bike_id: qLoanBike ? qLoanBikeId : null,
           loan_bike_expected_return: qLoanBike && qLoanBikeReturn ? qLoanBikeReturn : null,
+          pickup_required: qPickup,
+          delivery_required: qDelivery,
+          transport_address:
+            qPickup || qDelivery ? qTransportAddress.trim() || null : null,
+          transport_notes: qPickup || qDelivery ? qTransportNotes.trim() || null : null,
           status: "booked",
           wof_expiry: qWofNeeded && qWofExpiry ? qWofExpiry : null,
           notes:
