@@ -65,10 +65,11 @@ function McdTechSettingsPage() {
   async function update(key: keyof McdTechSettings, value: boolean) {
     setValues((v) => ({ ...v, [key]: value }));
     setSaving(key);
+    const patch = { [key]: value } as Partial<McdTechSettings>;
     const { data: row } = await supabase.from("mcd_tech_settings").select("id").maybeSingle();
     const { error } = row
-      ? await supabase.from("mcd_tech_settings").update({ [key]: value }).eq("id", (row as any).id)
-      : await supabase.from("mcd_tech_settings").insert({ ...values, [key]: value } as never);
+      ? await supabase.from("mcd_tech_settings").update(patch as never).eq("id", (row as any).id)
+      : await supabase.from("mcd_tech_settings").insert({ ...values, ...patch } as never);
     setSaving(null);
     if (error) {
       toast.error(error.message);
