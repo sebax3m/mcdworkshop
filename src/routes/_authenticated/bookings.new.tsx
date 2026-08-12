@@ -905,11 +905,11 @@ function NewBooking() {
               </label>
               {(pickupRequired || deliveryRequired) && (
                 <div className="space-y-2 pt-1">
-                  <Input
+                  <AddressAutocomplete
                     value={transportAddress}
-                    onChange={(e) => setTransportAddress(e.target.value)}
-                    placeholder="Pick-up / drop-off address"
+                    onChange={setTransportAddress}
                   />
+                  <AddressMap address={transportAddress} />
                   <Textarea
                     value={transportNotes}
                     onChange={(e) => setTransportNotes(e.target.value)}
@@ -918,6 +918,7 @@ function NewBooking() {
                   />
                 </div>
               )}
+
             </div>
             <label className="flex items-center gap-3 rounded-xl border border-border p-3 cursor-pointer hover:border-primary/50">
               <input
