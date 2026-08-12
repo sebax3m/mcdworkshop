@@ -51,6 +51,7 @@ import { Route as AuthenticatedCustomersCustomerIdRouteImport } from './routes/_
 import { Route as AuthenticatedBookingsNewRouteImport } from './routes/_authenticated/bookings.new'
 import { Route as AuthenticatedBookingsBookingIdRouteImport } from './routes/_authenticated/bookings.$bookingId'
 import { Route as AuthenticatedBookInsDateRouteImport } from './routes/_authenticated/book-ins.$date'
+import { Route as AuthenticatedJobsJobIdInvoiceDraftRouteImport } from './routes/_authenticated/jobs_.$jobId.invoice-draft'
 
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
@@ -282,6 +283,12 @@ const AuthenticatedBookInsDateRoute =
     path: '/book-ins/$date',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedJobsJobIdInvoiceDraftRoute =
+  AuthenticatedJobsJobIdInvoiceDraftRouteImport.update({
+    id: '/jobs_/$jobId/invoice-draft',
+    path: '/jobs/$jobId/invoice-draft',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -325,6 +332,7 @@ export interface FileRoutesByFullPath {
   '/jobs/': typeof AuthenticatedJobsIndexRoute
   '/loan-bikes/': typeof AuthenticatedLoanBikesIndexRoute
   '/motorcycles/': typeof AuthenticatedMotorcyclesIndexRoute
+  '/jobs/$jobId/invoice-draft': typeof AuthenticatedJobsJobIdInvoiceDraftRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -365,6 +373,7 @@ export interface FileRoutesByTo {
   '/jobs': typeof AuthenticatedJobsIndexRoute
   '/loan-bikes': typeof AuthenticatedLoanBikesIndexRoute
   '/motorcycles': typeof AuthenticatedMotorcyclesIndexRoute
+  '/jobs/$jobId/invoice-draft': typeof AuthenticatedJobsJobIdInvoiceDraftRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -410,6 +419,7 @@ export interface FileRoutesById {
   '/_authenticated/jobs/': typeof AuthenticatedJobsIndexRoute
   '/_authenticated/loan-bikes/': typeof AuthenticatedLoanBikesIndexRoute
   '/_authenticated/motorcycles/': typeof AuthenticatedMotorcyclesIndexRoute
+  '/_authenticated/jobs_/$jobId/invoice-draft': typeof AuthenticatedJobsJobIdInvoiceDraftRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -455,6 +465,7 @@ export interface FileRouteTypes {
     | '/jobs/'
     | '/loan-bikes/'
     | '/motorcycles/'
+    | '/jobs/$jobId/invoice-draft'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -495,6 +506,7 @@ export interface FileRouteTypes {
     | '/jobs'
     | '/loan-bikes'
     | '/motorcycles'
+    | '/jobs/$jobId/invoice-draft'
   id:
     | '__root__'
     | '/'
@@ -539,6 +551,7 @@ export interface FileRouteTypes {
     | '/_authenticated/jobs/'
     | '/_authenticated/loan-bikes/'
     | '/_authenticated/motorcycles/'
+    | '/_authenticated/jobs_/$jobId/invoice-draft'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -844,6 +857,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedBookInsDateRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/jobs_/$jobId/invoice-draft': {
+      id: '/_authenticated/jobs_/$jobId/invoice-draft'
+      path: '/jobs/$jobId/invoice-draft'
+      fullPath: '/jobs/$jobId/invoice-draft'
+      preLoaderRoute: typeof AuthenticatedJobsJobIdInvoiceDraftRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
@@ -930,6 +950,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedJobsIndexRoute: typeof AuthenticatedJobsIndexRoute
   AuthenticatedLoanBikesIndexRoute: typeof AuthenticatedLoanBikesIndexRoute
   AuthenticatedMotorcyclesIndexRoute: typeof AuthenticatedMotorcyclesIndexRoute
+  AuthenticatedJobsJobIdInvoiceDraftRoute: typeof AuthenticatedJobsJobIdInvoiceDraftRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -965,6 +986,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedJobsIndexRoute: AuthenticatedJobsIndexRoute,
   AuthenticatedLoanBikesIndexRoute: AuthenticatedLoanBikesIndexRoute,
   AuthenticatedMotorcyclesIndexRoute: AuthenticatedMotorcyclesIndexRoute,
+  AuthenticatedJobsJobIdInvoiceDraftRoute:
+    AuthenticatedJobsJobIdInvoiceDraftRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =

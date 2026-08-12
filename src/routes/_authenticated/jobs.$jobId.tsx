@@ -33,6 +33,8 @@ import {
   Plus,
   X,
   FileText,
+  Sparkles,
+
   Printer,
   Trash2,
   Pencil,
@@ -1067,10 +1069,23 @@ function JobDetail() {
                 </p>
               )}
             </div>
-            <Button onClick={createInvoice} className="gold-surface h-11 px-4 font-bold gap-2">
-              <FileText className="h-4 w-4" />
-              {existingInvoice.data ? "Open Invoice" : "Create Invoice"}
-            </Button>
+            <div className="flex gap-2 flex-wrap">
+              <Button
+                variant="outline"
+                className="h-11 px-4 font-bold gap-2"
+                onClick={() =>
+                  nav({ to: "/jobs/$jobId/invoice-draft", params: { jobId } })
+                }
+              >
+                <Sparkles className="h-4 w-4" />
+                Generate Invoice Draft
+              </Button>
+              <Button onClick={createInvoice} className="gold-surface h-11 px-4 font-bold gap-2">
+                <FileText className="h-4 w-4" />
+                {existingInvoice.data ? "Open Invoice" : "Create Invoice"}
+              </Button>
+            </div>
+
           </div>
         </section>
       )}

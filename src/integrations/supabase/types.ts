@@ -1516,6 +1516,53 @@ export type Database = {
           },
         ]
       }
+      job_invoice_drafts: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          customer_report: string | null
+          id: string
+          job_id: string
+          lines: Json
+          notes: string | null
+          report_generated_at: string | null
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          customer_report?: string | null
+          id?: string
+          job_id: string
+          lines?: Json
+          notes?: string | null
+          report_generated_at?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          customer_report?: string | null
+          id?: string
+          job_id?: string
+          lines?: Json
+          notes?: string | null
+          report_generated_at?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_invoice_drafts_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: true
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       job_notes: {
         Row: {
           author_id: string
@@ -1636,6 +1683,8 @@ export type Database = {
           created_at: string
           created_by: string | null
           customer_id: string
+          customer_report: string | null
+          customer_report_at: string | null
           description: string | null
           estimated_hours: number | null
           id: string
@@ -1660,6 +1709,8 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           customer_id: string
+          customer_report?: string | null
+          customer_report_at?: string | null
           description?: string | null
           estimated_hours?: number | null
           id?: string
@@ -1684,6 +1735,8 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           customer_id?: string
+          customer_report?: string | null
+          customer_report_at?: string | null
           description?: string | null
           estimated_hours?: number | null
           id?: string
