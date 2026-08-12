@@ -35,6 +35,7 @@ import {
   Trash2,
   Pencil,
   CheckCircle2,
+  RotateCcw,
 } from "lucide-react";
 import { detectServiceKind, KIND_META, SERVICE_PARTS } from "@/lib/service-kinds";
 import { getValveSpec, formatRange, type ValveSpec } from "@/lib/valve-specs";
