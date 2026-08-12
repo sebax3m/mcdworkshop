@@ -54,6 +54,7 @@ import { useDailyNotesRange, useUpdateDailyNote, type DailyNote } from "@/hooks/
 import { NoteDialog } from "@/components/booking/NoteDialog";
 import { BookInCard, CapacityBadge } from "@/components/booking/BookInCard";
 import { LoanBikeDialog } from "@/components/booking/LoanBikeDialog";
+import { AddressAutocomplete, AddressMap } from "@/components/booking/AddressAutocomplete";
 import { useWorkshopCapacity } from "@/hooks/useWorkshopCapacity";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { StickyNote } from "lucide-react";
@@ -199,6 +200,10 @@ function CalendarPage() {
   const [qLoanBike, setQLoanBike] = useState(false);
   const [qLoanBikeId, setQLoanBikeId] = useState<string | null>(null);
   const [qLoanBikeReturn, setQLoanBikeReturn] = useState<string>("");
+  const [qPickup, setQPickup] = useState(false);
+  const [qDelivery, setQDelivery] = useState(false);
+  const [qTransportAddress, setQTransportAddress] = useState<string>("");
+  const [qTransportNotes, setQTransportNotes] = useState<string>("");
   const [creatingQuick, setCreatingQuick] = useState(false);
   const [lookingUpRego, setLookingUpRego] = useState(false);
   const [qEndTime, setQEndTime] = useState<string>("");
@@ -451,6 +456,10 @@ function CalendarPage() {
     setQLoanBike(false);
     setQLoanBikeId(null);
     setQLoanBikeReturn("");
+    setQPickup(false);
+    setQDelivery(false);
+    setQTransportAddress("");
+    setQTransportNotes("");
   }
 
   async function createQuickBooking() {
@@ -515,6 +524,11 @@ function CalendarPage() {
           loan_bike: qLoanBike,
           loan_bike_id: qLoanBike ? qLoanBikeId : null,
           loan_bike_expected_return: qLoanBike && qLoanBikeReturn ? qLoanBikeReturn : null,
+          pickup_required: qPickup,
+          delivery_required: qDelivery,
+          transport_address:
+            qPickup || qDelivery ? qTransportAddress.trim() || null : null,
+          transport_notes: qPickup || qDelivery ? qTransportNotes.trim() || null : null,
           status: "booked",
           wof_expiry: qWofNeeded && qWofExpiry ? qWofExpiry : null,
           notes:
@@ -2495,6 +2509,46 @@ function CalendarPage() {
                       </div>
                     )}
                   </div>
+
+                  <div>
+                    <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground mb-1">
+                      Bike transport
+                    </div>
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        className="h-4 w-4 accent-primary"
+                        checked={qPickup}
+                        onChange={(e) => setQPickup(e.target.checked)}
+                      />
+                      <span className="text-sm font-semibold">🚚 Pick up the bike</span>
+                    </label>
+                    <label className="mt-1 flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        className="h-4 w-4 accent-primary"
+                        checked={qDelivery}
+                        onChange={(e) => setQDelivery(e.target.checked)}
+                      />
+                      <span className="text-sm font-semibold">🏁 Drop the bike back</span>
+                    </label>
+                    {(qPickup || qDelivery) && (
+                      <div className="mt-2 space-y-2 rounded-xl border border-primary/40 bg-primary/5 p-3">
+                        <AddressAutocomplete
+                          value={qTransportAddress}
+                          onChange={setQTransportAddress}
+                        />
+                        <AddressMap address={qTransportAddress} />
+                        <textarea
+                          value={qTransportNotes}
+                          onChange={(e) => setQTransportNotes(e.target.value)}
+                          placeholder="Transport notes (contact, access, preferred time…)"
+                          className="w-full min-h-[56px] rounded-lg border border-border bg-background/60 px-3 py-2 text-sm focus:border-primary/60 focus:outline-none resize-y"
+                        />
+                      </div>
+                    )}
+                  </div>
+
 
                   <div>
                     <label className="flex items-center gap-2 cursor-pointer">
