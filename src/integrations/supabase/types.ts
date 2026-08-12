@@ -1413,6 +1413,95 @@ export type Database = {
           },
         ]
       }
+      garage_tech_specs: {
+        Row: {
+          category: string
+          created_at: string
+          created_by: string | null
+          field: string
+          id: string
+          import_batch: string | null
+          is_alternative: boolean
+          is_archived: boolean
+          model_id: string
+          notes: string | null
+          review_status: string
+          source_date: string | null
+          source_name: string | null
+          source_ref: string | null
+          source_type: string
+          subject: string
+          unit: string | null
+          updated_at: string
+          updated_by: string | null
+          value_num: number | null
+          value_text: string | null
+          verification: string
+          verified_at: string | null
+          verified_by: string | null
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          created_by?: string | null
+          field: string
+          id?: string
+          import_batch?: string | null
+          is_alternative?: boolean
+          is_archived?: boolean
+          model_id: string
+          notes?: string | null
+          review_status?: string
+          source_date?: string | null
+          source_name?: string | null
+          source_ref?: string | null
+          source_type?: string
+          subject?: string
+          unit?: string | null
+          updated_at?: string
+          updated_by?: string | null
+          value_num?: number | null
+          value_text?: string | null
+          verification?: string
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          field?: string
+          id?: string
+          import_batch?: string | null
+          is_alternative?: boolean
+          is_archived?: boolean
+          model_id?: string
+          notes?: string | null
+          review_status?: string
+          source_date?: string | null
+          source_name?: string | null
+          source_ref?: string | null
+          source_type?: string
+          subject?: string
+          unit?: string | null
+          updated_at?: string
+          updated_by?: string | null
+          value_num?: number | null
+          value_text?: string | null
+          verification?: string
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "garage_tech_specs_model_id_fkey"
+            columns: ["model_id"]
+            isOneToOne: false
+            referencedRelation: "bike_library_models"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       garage_update_proposals: {
         Row: {
           category: string
@@ -3365,6 +3454,7 @@ export type Database = {
           year_to: number
         }[]
       }
+      garage_tech_coverage: { Args: { p_model_id: string }; Returns: Json }
       merge_customers: {
         Args: { p_keep_id: string; p_merge_id: string }
         Returns: Json

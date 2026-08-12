@@ -14,6 +14,8 @@ import { SpecMeta, SourceSelect, VerificationSelect } from "@/components/garage/
 import { WorkshopDataTab } from "@/components/garage/WorkshopDataTab";
 import { TechAskPanel } from "@/components/garage/TechAskPanel";
 import { KnowledgeCoverageCard, ModelDocumentsTab } from "@/components/garage/ModelKnowledgeTabs";
+import { TechSpecsTab } from "@/components/garage/TechSpecsTab";
+import { MissingKnowledgeCard, QuickTechSheetButton, TechQuickCards } from "@/components/garage/TechSheet";
 import {
   COMMON_FASTENERS,
   FLUID_TYPES,
@@ -319,11 +321,14 @@ function GarageModelPage() {
           {model.engine_cc ? <span>{model.engine_cc}cc</span> : null}
           <span>{model.cylinders} cyl</span>
         </div>
+        <div className="mt-3">
+          <QuickTechSheetButton modelId={modelId} title={title} />
+        </div>
       </header>
 
       <Tabs defaultValue="overview">
         <TabsList className="flex flex-wrap h-auto">
-          {["overview", "mcd tech", "workshop", "parts", "labour", "torque", "valves", "fluids", "documents", "notes", "history"].map((t) => (
+          {["overview", "tech data", "mcd tech", "workshop", "parts", "labour", "torque", "valves", "fluids", "documents", "notes", "history"].map((t) => (
             <TabsTrigger key={t} value={t} className="text-xs uppercase tracking-wide">
               {t === "valves" ? "Valve clearances" : t === "workshop" ? "Workshop data" : t}
             </TabsTrigger>
@@ -358,6 +363,12 @@ function GarageModelPage() {
               }}
             />
           </div>
+        </TabsContent>
+
+        <TabsContent value="tech data" className="mt-4 space-y-4">
+          <TechQuickCards modelId={modelId} />
+          <MissingKnowledgeCard modelId={modelId} />
+          <TechSpecsTab modelId={modelId} />
         </TabsContent>
 
         <TabsContent value="mcd tech" className="mt-4 space-y-3">
