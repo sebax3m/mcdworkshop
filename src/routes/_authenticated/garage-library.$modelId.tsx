@@ -12,6 +12,8 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "
 import { toast } from "sonner";
 import { SpecMeta, SourceSelect, VerificationSelect } from "@/components/garage/SpecMeta";
 import { WorkshopDataTab } from "@/components/garage/WorkshopDataTab";
+import { TechAskPanel } from "@/components/garage/TechAskPanel";
+import { KnowledgeCoverageCard, ModelDocumentsTab } from "@/components/garage/ModelKnowledgeTabs";
 import {
   COMMON_FASTENERS,
   FLUID_TYPES,
