@@ -54,6 +54,7 @@ import { useDailyNotesRange, useUpdateDailyNote, type DailyNote } from "@/hooks/
 import { NoteDialog } from "@/components/booking/NoteDialog";
 import { BookInCard, CapacityBadge } from "@/components/booking/BookInCard";
 import { LoanBikeDialog } from "@/components/booking/LoanBikeDialog";
+import { AddressAutocomplete, AddressMap } from "@/components/booking/AddressAutocomplete";
 import { useWorkshopCapacity } from "@/hooks/useWorkshopCapacity";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { StickyNote } from "lucide-react";
