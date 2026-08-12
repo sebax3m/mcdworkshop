@@ -139,6 +139,27 @@ function McdTechDrawer({
   const push = (e: Entry) => setEntries((prev) => [...prev, e]);
   const uid = () => Math.random().toString(36).slice(2);
 
+  // The whole session is about one motorcycle — this line is sent with every
+  // question so the assistant never asks "which bike?" again.
+  const contextNote = useMemo(() => {
+    const lines = [
+      `Motorcycle: ${ctx.title}`,
+      ctx.generation && ctx.generation !== "—" ? `Generation: ${ctx.generation}` : null,
+      ctx.variant ? `Variant: ${ctx.variant}` : null,
+      ctx.engine ? `Engine: ${ctx.engine}` : null,
+      ctx.mileage ? `Odometer: ${ctx.mileage.toLocaleString()} km` : null,
+      ctx.modifications ? `Modifications: ${ctx.modifications}` : null,
+      ctx.jobNumber ? `Current job: #${ctx.jobNumber}${ctx.jobLabel ? ` · ${ctx.jobLabel}` : ""}` : null,
+    ].filter(Boolean);
+    return lines.length > 1 ? lines.join("\n") : lines[0] ?? null;
+  }, [ctx]);
+
+  // Running transcript so short follow-ups ("and the fork oil?") keep the thread.
+  const thread = useRef<Array<{ role: "user" | "assistant"; content: string }>>([]);
+  useEffect(() => {
+    if (open) thread.current = [];
+  }, [open, target]);
+
   async function runAsk(question: string, forcedModelId?: string | null) {
     if (!question.trim() || busy) return;
     setQ("");
@@ -160,14 +181,20 @@ function McdTechDrawer({
     try {
       conversationId.current = await ensureConversation(ctx, conversationId.current);
       await saveMessage(conversationId.current, "user", question);
-      const answer = await askTech(question, bike, { allowExternalAi: access.canUseExternalAi });
+      const answer = await askTech(question, bike, {
+        allowExternalAi: access.canUseExternalAi,
+        history: thread.current.slice(-10),
+        contextNote,
+      });
       push({ id: uid(), kind: "answer", answer });
-      await saveMessage(
-        conversationId.current,
-        "assistant",
-        answer.specs.map((s) => `${s.label}: ${s.value}`).join("\n") || answer.aiText || "No answer",
-        { answer },
-      );
+      const summary =
+        answer.specs.map((s) => `${s.label}: ${s.value}`).join("\n") || answer.aiText || "No answer";
+      thread.current = [
+        ...thread.current,
+        { role: "user" as const, content: question },
+        { role: "assistant" as const, content: summary },
+      ].slice(-12);
+      await saveMessage(conversationId.current, "assistant", summary, { answer });
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "MCD TECH request failed");
     } finally {

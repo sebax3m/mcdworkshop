@@ -322,10 +322,18 @@ export function detectConflicts(specs: SpecRow[], sections: DocSection[]): Confl
  * ORCHESTRATION
  * ------------------------------------------------------------------ */
 
+export type TechTurn = { role: "user" | "assistant"; content: string };
+
 export async function askTech(
   question: string,
   bike: BikeContext,
-  opts: { allowExternalAi?: boolean } = {},
+  opts: {
+    allowExternalAi?: boolean;
+    /** Prior turns of this conversation, oldest first — keeps the thread. */
+    history?: TechTurn[];
+    /** Extra bike/job context injected into the AI fallback. */
+    contextNote?: string | null;
+  } = {},
 ): Promise<TechAnswer> {
   const key = cacheKey(question, bike);
   const cached = cache.get(key);
@@ -392,7 +400,15 @@ export async function askTech(
     try {
       const bikeLabel = [bike.year, bike.make, bike.model].filter(Boolean).join(" ");
       const res = await askExternalAi({
-        data: { question, bike: bikeLabel || null, context: null },
+        data: {
+          question,
+          bike: bikeLabel || null,
+          context: opts.contextNote ?? null,
+          history: (opts.history ?? []).slice(-10).map((t) => ({
+            role: t.role,
+            content: t.content.slice(0, 4000),
+          })),
+        },
       });
       aiText = res.answer || null;
       if (aiText) source = "external_ai";

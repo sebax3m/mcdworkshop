@@ -33,6 +33,8 @@ export async function aiChat(opts: {
   system: string;
   user: string;
   model?: string;
+  /** Prior turns of the same conversation, oldest first. */
+  history?: Array<{ role: "user" | "assistant"; content: string }>;
 }): Promise<string> {
   const res = await fetch(`${GATEWAY}/chat/completions`, {
     method: "POST",
@@ -44,6 +46,7 @@ export async function aiChat(opts: {
       model: opts.model ?? AI_MODELS.chat,
       messages: [
         { role: "system", content: opts.system },
+        ...(opts.history ?? []).map((m) => ({ role: m.role, content: m.content })),
         { role: "user", content: opts.user },
       ],
     }),
