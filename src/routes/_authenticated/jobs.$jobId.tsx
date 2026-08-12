@@ -989,13 +989,16 @@ function JobDetail() {
             defaultOn: kind === "full",
             orientation: "landscape",
             variantLabel: "Cylinders",
-            defaultVariant: String(cylinders),
+            defaultVariant: String(
+              ((j.service_data as any) ?? {}).valves?._cylinders || cylinders,
+            ),
             variants: [1, 2, 3, 4, 6].map((n) => ({ value: String(n), label: `${n} cylinder` })),
             getHtml: (v) =>
               valveSheetHtml({
                 cylinders: Number(v) || cylinders,
                 bike: j.motorcycles as any,
                 values: ((j.service_data as any) ?? {}).valves ?? {},
+                intakeOnTop: ((j.service_data as any) ?? {}).valves?._intakeOnTop !== false,
                 spec: getValveSpec(
                   (j.motorcycles as any)?.make,
                   (j.motorcycles as any)?.model,
