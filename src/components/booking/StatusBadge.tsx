@@ -1,5 +1,10 @@
 import { cn } from "@/lib/utils";
-import { resolveBookInStatus, type BookInLike, type BookInStatusMeta } from "@/lib/book-in-status";
+import {
+  resolveBookInStatus,
+  statusStyle,
+  type BookInLike,
+  type BookInStatusMeta,
+} from "@/lib/book-in-status";
 
 /** Compact operational status badge — the dominant signal on a book-in card. */
 export function StatusBadge({
@@ -14,19 +19,43 @@ export function StatusBadge({
   className?: string;
 }) {
   const s = meta ?? resolveBookInStatus(booking);
-  const Icon = s.icon;
   return (
     <span
       title={s.label}
+      style={statusStyle.badge(s.color)}
       className={cn(
-        "inline-flex items-center gap-1 rounded border px-1 py-[1px] font-bold uppercase leading-none tracking-[0.08em]",
-        compact ? "text-[0.5625rem]" : "text-[0.625rem]",
-        s.badge,
+        "inline-flex items-center rounded-[4px] border px-1.5 py-[2px] font-bold uppercase leading-none tracking-[0.06em]",
+        compact ? "text-[0.5rem]" : "text-[0.5625rem]",
         className,
       )}
     >
-      <Icon className="h-[0.7rem] w-[0.7rem] shrink-0" />
       <span className="truncate">{compact ? s.short : s.label}</span>
+    </span>
+  );
+}
+
+/** Small rounded status icon container shown at the left of the motorcycle name. */
+export function BookInStatusIcon({
+  meta,
+  className,
+  size = "sm",
+}: {
+  meta: BookInStatusMeta;
+  className?: string;
+  size?: "sm" | "lg";
+}) {
+  const Icon = meta.icon;
+  return (
+    <span
+      title={meta.label}
+      style={statusStyle.iconBox(meta.color)}
+      className={cn(
+        "grid shrink-0 place-items-center rounded-[5px]",
+        size === "lg" ? "h-6 w-6" : "h-[1.15rem] w-[1.15rem]",
+        className,
+      )}
+    >
+      <Icon className={size === "lg" ? "h-3.5 w-3.5" : "h-3 w-3"} />
     </span>
   );
 }

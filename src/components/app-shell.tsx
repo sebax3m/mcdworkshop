@@ -24,7 +24,6 @@ import { cn } from "@/lib/utils";
 import logoAsset from "@/assets/motorcycle-doctors-logo.png.asset.json";
 import { ActiveUserSwitcher } from "@/components/ActiveUserSwitcher";
 import { FloatingClockWidget } from "@/components/FloatingClockWidget";
-import { BookInLegend } from "@/components/booking/BookInLegend";
 import { NotificationsBell } from "@/components/NotificationsBell";
 
 // macOS-dock-like magnification based on cursor proximity to each item center
@@ -275,11 +274,6 @@ export function AppShell() {
             );
           })}
         </nav>
-        {pathname === "/calendar" && (
-          <div className="p-3 border-t border-border/60">
-            <BookInLegend />
-          </div>
-        )}
       </aside>
 
       {/* ===== MAIN ===== */}
