@@ -34,8 +34,10 @@ function BookingDetail() {
   const qc = useQueryClient();
   const nav = useNavigate();
   const [converting, setConverting] = useState(false);
+  const [completing, setCompleting] = useState(false);
   const [photoUrls, setPhotoUrls] = useState<string[]>([]);
   const [loanOpen, setLoanOpen] = useState(false);
+
 
   const { data: b, isLoading } = useQuery({
     queryKey: ["booking", bookingId],
