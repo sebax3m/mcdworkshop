@@ -16,7 +16,6 @@ import {
   LABOUR_OPERATIONS,
   SERVICE_INTERVAL_ITEMS,
   isSafetyCritical,
-  specValue,
   techCategory,
   techFieldLabel,
   techSourceLabel,
@@ -321,7 +320,6 @@ export function TechSpecsTab({ modelId }: { modelId: string }) {
       {!isAdmin ? null : (
         <p className="text-[0.65rem] text-muted-foreground">Archived values stay in the database for audit; ask an admin to delete permanently.</p>
       )}
-      <p className="sr-only">{specValue({ value_text: "", value_num: null, unit: null })}</p>
     </div>
   );
 }
