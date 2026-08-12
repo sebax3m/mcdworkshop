@@ -242,6 +242,77 @@ export async function suggestLabourReferenceUpdates(modelId: string | null) {
   return created;
 }
 
+/**
+ * Recurring part / fluid usage becomes an Admin proposal, never a spec.
+ * Requires evidence from at least 3 completed jobs.
+ */
+export async function suggestUsageProposals(modelId: string | null) {
+  if (!modelId) return 0;
+  const summary = await fetchObservationSummary(modelId);
+  const { data: auth } = await supabase.auth.getUser();
+  const { data: pending } = await supabase
+    .from("garage_update_proposals")
+    .select("id, label, category")
+    .eq("model_id", modelId)
+    .eq("status", "pending");
+
+  const { data: refParts } = await supabase
+    .from("bike_library_parts")
+    .select("id, name")
+    .eq("model_id", modelId)
+    .eq("is_archived", false);
+
+  let created = 0;
+  const rows: any[] = [
+    ...(summary.parts ?? []).map((p: any) => ({ ...p, kind: "parts" })),
+    ...(summary.fluids ?? []).map((p: any) => ({ ...p, kind: "fluids" })),
+  ];
+
+  for (const obs of rows) {
+    if (Number(obs.jobs ?? 0) < 3) continue;
+    if ((refParts ?? []).some((r) => norm(r.name) === obs.key)) continue;
+    const label =
+      obs.kind === "fluids"
+        ? `Add observed fluid: ${obs.label}`
+        : `Add commonly used part: ${obs.label}`;
+    if ((pending ?? []).some((p) => p.label === label)) continue;
+
+    const { error } = await supabase.from("garage_update_proposals").insert({
+      model_id: modelId,
+      entity_table: "bike_library_parts",
+      label,
+      proposed_value: obs.avg
+        ? `${obs.label} · ${obs.avg}${obs.unit ?? ""}`
+        : `${obs.label}${obs.detail ? ` · ${obs.detail}` : ""}`,
+      unit: obs.unit ?? null,
+      category: obs.kind,
+      evidence_count: Number(obs.jobs ?? 0),
+      evidence: { jobs: obs.jobs, last_at: obs.last_at, avg: obs.avg ?? null } as any,
+      note: `Observed on ${obs.jobs} completed jobs — workshop observation only, not a manufacturer specification`,
+      source: "previous_job",
+      proposed_by: auth.user?.id ?? null,
+    } as any);
+    if (!error) created++;
+  }
+  return created;
+}
+
+/** Part usage for a model: how often the workshop actually fitted it. */
+export async function fetchPartUsage(modelId: string) {
+  const { data, error } = await (supabase as any).rpc("garage_part_usage", { p_model_id: modelId });
+  if (error) throw error;
+  return (data ?? []) as {
+    key_norm: string;
+    label: string;
+    detail: string | null;
+    jobs: number;
+    last_used: string | null;
+    verified: boolean;
+  }[];
+}
+
+export const usageLabel = (verified: boolean) => (verified ? "VERIFIED" : "PREVIOUSLY USED");
+
 /** One call used after invoicing / completing a job. */
 export async function learnFromJob(jobId: string, invoiceId?: string | null) {
   const ctx = await collectJobObservations(jobId);
@@ -250,11 +321,13 @@ export async function learnFromJob(jobId: string, invoiceId?: string | null) {
   let proposals = 0;
   try {
     proposals = await suggestLabourReferenceUpdates(ctx.modelId);
+    proposals += await suggestUsageProposals(ctx.modelId);
   } catch {
-    proposals = 0;
+    /* proposals are best-effort; observations are already stored */
   }
   return { saved, proposals, ctx };
 }
+
 
 /** Aggregated observations for a library model. */
 export async function fetchObservationSummary(modelId: string) {

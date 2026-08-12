@@ -1,8 +1,12 @@
 import { useMemo, useState } from "react";
-import { Printer, FileText, CheckCircle2, AlertTriangle } from "lucide-react";
+import { Link } from "@tanstack/react-router";
+import { useQueryClient } from "@tanstack/react-query";
+import { Printer, FileText, CheckCircle2, AlertTriangle, Search } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { TechVerificationBadge, useTechSpecs } from "@/components/garage/TechSpecsTab";
+import { createResearchRequest } from "@/lib/garage-research";
 import {
   QUICK_SHEET_SECTIONS,
   groupSpecs,
@@ -12,6 +16,7 @@ import {
   techSourceLabel,
   type TechSpec,
 } from "@/lib/garage-tech";
+
 
 const cardCls = "rounded-lg border border-border bg-card";
 
@@ -70,16 +75,46 @@ export function TechQuickCards({ modelId }: { modelId: string }) {
 
 export function MissingKnowledgeCard({ modelId }: { modelId: string }) {
   const { data: specs = [] } = useTechSpecs(modelId);
+  const qc = useQueryClient();
   const items = useMemo(() => missingKnowledge(specs), [specs]);
-  const missing = items.filter((i) => !i.present).length;
+  const missing = items.filter((i) => !i.present);
+
+  async function research(list: typeof items) {
+    try {
+      for (const i of list) {
+        await createResearchRequest({
+          modelId,
+          category: i.category,
+          subject: i.subject ?? "",
+          field: i.field,
+          label: i.label,
+        });
+      }
+      qc.invalidateQueries({ queryKey: ["research-requests"] });
+      qc.invalidateQueries({ queryKey: ["research-analytics"] });
+      toast.success(`${list.length} item(s) added to the research queue`);
+    } catch (e) {
+      toast.error((e as Error).message);
+    }
+  }
 
   return (
     <div className={`${cardCls} p-4`}>
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="text-[0.65rem] font-mono uppercase tracking-widest text-muted-foreground">Missing knowledge</div>
-        <span className="font-mono text-xs text-muted-foreground">
-          {items.length - missing}/{items.length} covered
-        </span>
+        <div className="flex items-center gap-2">
+          <span className="font-mono text-xs text-muted-foreground">
+            {items.length - missing.length}/{items.length} covered
+          </span>
+          {missing.length > 0 && (
+            <Button size="sm" variant="outline" onClick={() => research(missing)}>
+              <Search className="mr-1 h-3.5 w-3.5" /> Research all
+            </Button>
+          )}
+          <Button size="sm" variant="ghost" asChild>
+            <Link to="/garage-library/research">Queue</Link>
+          </Button>
+        </div>
       </div>
       <ul className="mt-3 grid gap-1.5 sm:grid-cols-2">
         {items.map((i) => (
@@ -90,12 +125,22 @@ export function MissingKnowledgeCard({ modelId }: { modelId: string }) {
               <AlertTriangle className="h-3.5 w-3.5 text-amber-400" />
             )}
             <span className={i.present ? "text-foreground" : "text-amber-400"}>{i.label}</span>
+            {!i.present && (
+              <button
+                type="button"
+                onClick={() => research([i])}
+                className="ml-auto font-mono text-[0.6rem] uppercase tracking-widest text-primary hover:underline"
+              >
+                Research
+              </button>
+            )}
           </li>
         ))}
       </ul>
     </div>
   );
 }
+
 
 /* ---------------- Quick tech sheet ---------------- */
 

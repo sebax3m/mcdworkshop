@@ -8,6 +8,8 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+import { GarageSuggestions, type GarageSuggestion } from "@/components/garage/GarageSuggestions";
+
 import {
   ArrowLeft,
   Plus,
@@ -425,7 +427,29 @@ function SmartInvoiceDraft() {
               </p>
             </div>
           )}
+
+          <GarageSuggestions
+            bike={{ make: bike.make, model: bike.model, year: bike.year, motorcycleId: j.motorcycle_id }}
+            onAdd={(s: GarageSuggestion) =>
+              setLines((ls) => [
+                ...ls,
+                {
+                  id: `garage-${Date.now()}`,
+                  kind: s.kind === "labour" ? "labour" : "part",
+                  item_code: "",
+                  item_name: s.label,
+                  description: s.detail,
+                  quantity: s.kind === "labour" ? Number(s.hours ?? 1) : 1,
+                  unit: 0,
+                  discount_pct: 0,
+                  source: "Garage Library suggestion",
+                  price_required: true,
+                },
+              ])
+            }
+          />
         </section>
+
 
         {/* CENTRE — suggested invoice lines */}
         <section className="card-surface p-4 space-y-3">
