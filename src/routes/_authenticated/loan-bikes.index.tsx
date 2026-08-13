@@ -11,9 +11,14 @@ import {
   User as UserIcon,
 } from "lucide-react";
 import { format } from "date-fns";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { displayCustomerName } from "@/lib/display";
+import {
+  expiryStatus,
+  expiryClasses,
+  syncLoanBikeExpiryAlerts,
+} from "@/lib/loan-bike-compliance";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -157,6 +162,10 @@ function LoanBikesIndex() {
     },
   });
 
+  useEffect(() => {
+    syncLoanBikeExpiryAlerts().catch(() => {});
+  }, []);
+
   const assignments = useQuery({
     queryKey: ["loan-bikes-active-assignments"],
     queryFn: async () => {
@@ -263,10 +272,36 @@ function LoanBikesIndex() {
                           <Wrench className="h-3 w-3" /> Service due
                         </span>
                       )}
+                      {(["wof", "rego"] as const).map((k) => {
+                        const st = expiryStatus(
+                          k === "wof" ? (b as any).wof_expiry : (b as any).rego_expiry,
+                        );
+                        if (!st || st.level === "ok") return null;
+                        return (
+                          <span
+                            key={k}
+                            className={`rounded-full px-2 py-0.5 text-[0.625rem] font-bold uppercase tracking-wider ${expiryClasses(st.level)}`}
+                          >
+                            {k === "wof" ? "WOF" : "Rego"} {st.label}
+                          </span>
+                        );
+                      })}
                     </span>
                     <span className="mt-0.5 flex items-center gap-3 text-xs text-muted-foreground flex-wrap">
                       <span>{b.current_km.toLocaleString()} km</span>
                       <span>Next service @ {nextServiceKm.toLocaleString()} km</span>
+                      {(b as any).wof_expiry && (
+                        <span>
+                          WOF{" "}
+                          {format(new Date((b as any).wof_expiry + "T00:00:00"), "d MMM yyyy")}
+                        </span>
+                      )}
+                      {(b as any).rego_expiry && (
+                        <span>
+                          Rego{" "}
+                          {format(new Date((b as any).rego_expiry + "T00:00:00"), "d MMM yyyy")}
+                        </span>
+                      )}
                       {isOut && (
                         <>
                           <span className="inline-flex items-center gap-1">

@@ -2768,8 +2768,10 @@ export type Database = {
           next_service_due_km: number | null
           notes: string | null
           rego: string | null
+          rego_expiry: string | null
           service_interval_km: number
           updated_at: string
+          wof_expiry: string | null
           year: number | null
         }
         Insert: {
@@ -2786,8 +2788,10 @@ export type Database = {
           next_service_due_km?: number | null
           notes?: string | null
           rego?: string | null
+          rego_expiry?: string | null
           service_interval_km?: number
           updated_at?: string
+          wof_expiry?: string | null
           year?: number | null
         }
         Update: {
@@ -2804,8 +2808,10 @@ export type Database = {
           next_service_due_km?: number | null
           notes?: string | null
           rego?: string | null
+          rego_expiry?: string | null
           service_interval_km?: number
           updated_at?: string
+          wof_expiry?: string | null
           year?: number | null
         }
         Relationships: []
