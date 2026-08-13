@@ -41,7 +41,6 @@ export function TransportIndicator({
   address?: string | null;
   className?: string;
 }) {
-  if (!kind) return null;
   const label = transportLabel(kind);
   const hint =
     kind === "both"
@@ -56,9 +55,12 @@ export function TransportIndicator({
       if (!address) return null;
       return getEta({ data: { destination: address } });
     },
-    enabled: !!address && address.trim().length > 5,
+    enabled: !!kind && !!address && address.trim().length > 5,
     staleTime: 5 * 60 * 1000,
   });
+
+  if (!kind) return null;
+
 
   return (
     <Popover>
