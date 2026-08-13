@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import { displayCustomerName } from "@/lib/display";
+import { expiryStatus, expiryClasses } from "@/lib/loan-bike-compliance";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -110,6 +111,8 @@ function LoanBikeDetail() {
   const [interval, setInterval] = useState("");
   const [lastServiceKm, setLastServiceKm] = useState("");
   const [lastServiceDate, setLastServiceDate] = useState("");
+  const [wofExpiry, setWofExpiry] = useState("");
+  const [regoExpiry, setRegoExpiry] = useState("");
 
   function openEdit() {
     setName(bike.name ?? "");
@@ -121,6 +124,8 @@ function LoanBikeDetail() {
     setInterval(String(bike.service_interval_km ?? 5000));
     setLastServiceKm(bike.last_service_km != null ? String(bike.last_service_km) : "");
     setLastServiceDate(bike.last_service_date ?? "");
+    setWofExpiry(bike.wof_expiry ?? "");
+    setRegoExpiry(bike.rego_expiry ?? "");
     setEditing(true);
   }
 
@@ -138,7 +143,9 @@ function LoanBikeDetail() {
           service_interval_km: parseInt(interval) || 5000,
           last_service_km: lastServiceKm ? parseInt(lastServiceKm) : null,
           last_service_date: lastServiceDate || null,
-        })
+          wof_expiry: wofExpiry || null,
+          rego_expiry: regoExpiry || null,
+        } as any)
         .eq("id", bikeId);
       if (error) throw error;
       toast.success("Saved");
@@ -303,6 +310,28 @@ function LoanBikeDetail() {
               {bike.last_service_km != null ? `@ ${bike.last_service_km.toLocaleString()} km` : ""}
             </div>
           </div>
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          {(["wof", "rego"] as const).map((k) => {
+            const st = expiryStatus(k === "wof" ? bike.wof_expiry : bike.rego_expiry);
+            return (
+              <div key={k} className="rounded-lg border border-border p-3">
+                <div className="text-[0.625rem] uppercase tracking-widest text-muted-foreground">
+                  {k === "wof" ? "WOF expiry" : "Rego expiry"}
+                </div>
+                <div className="text-sm font-semibold">
+                  {st ? format(new Date(st.date + "T00:00:00"), "d MMM yyyy") : "—"}
+                </div>
+                {st && (
+                  <span
+                    className={`mt-1 inline-block rounded-full px-2 py-0.5 text-[0.625rem] font-bold uppercase tracking-wider ${expiryClasses(st.level)}`}
+                  >
+                    {st.label}
+                  </span>
+                )}
+              </div>
+            );
+          })}
         </div>
         {active && (
           <div className="rounded-lg border border-amber-400/30 bg-amber-400/5 p-3 text-sm">
@@ -548,6 +577,18 @@ function LoanBikeDetail() {
                   type="number"
                   value={lastServiceKm}
                   onChange={(e) => setLastServiceKm(e.target.value)}
+                />
+              </div>
+              <div>
+                <Label>WOF expiry</Label>
+                <Input type="date" value={wofExpiry} onChange={(e) => setWofExpiry(e.target.value)} />
+              </div>
+              <div>
+                <Label>Rego expiry</Label>
+                <Input
+                  type="date"
+                  value={regoExpiry}
+                  onChange={(e) => setRegoExpiry(e.target.value)}
                 />
               </div>
               <div>
