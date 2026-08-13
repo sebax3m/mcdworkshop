@@ -1,15 +1,20 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
+import { useRouterState } from "@tanstack/react-router";
 import {
   AlertTriangle,
   Bot,
+  BrainCircuit,
   ClipboardList,
   History as HistoryIcon,
   Loader2,
   MessageSquare,
+  Minus,
+  Plus,
   Send,
   Sparkles,
   Wrench,
+  X,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
@@ -17,6 +22,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { cn } from "@/lib/utils";
+
 import { AnswerCard } from "@/components/garage/AnswerCard";
 import { askTech, type TechAnswer } from "@/lib/mcd-tech";
 import {
