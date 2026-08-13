@@ -52,6 +52,10 @@ const KIND_LABEL: Record<ExpiryKind, string> = { wof: "WOF", rego: "Rego" };
  * Deduplicated by title, so it is safe to run on every page load.
  */
 export async function syncLoanBikeExpiryAlerts(): Promise<number> {
+  const { data: auth } = await supabase.auth.getUser();
+  const uid = auth?.user?.id;
+  if (!uid) return 0;
+
   const { data: bikes } = await supabase
     .from("loan_bikes")
     .select("id, name, rego, active, wof_expiry, rego_expiry")
@@ -101,11 +105,12 @@ export async function syncLoanBikeExpiryAlerts(): Promise<number> {
       link: p.link,
       target_role: null,
       requires_action: false,
+      created_by: uid,
     }));
 
   const newNotes = pending
     .filter((p) => !haveNote.has(`${p.noteDate}|${p.title}`))
-    .map((p) => ({ note_date: p.noteDate, title: p.title, body: p.body }));
+    .map((p) => ({ note_date: p.noteDate, title: p.title, body: p.body, created_by: uid }));
 
   await Promise.all([
     newNotifs.length ? supabase.from("notifications").insert(newNotifs) : Promise.resolve(),
