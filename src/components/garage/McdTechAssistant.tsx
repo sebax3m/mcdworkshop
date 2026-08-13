@@ -144,7 +144,7 @@ export function McdTechProvider({ children }: { children: React.ReactNode }) {
               onClick={() => openWith()}
               title="MCD TECH AI"
               aria-label="MCD TECH AI"
-              className="fixed z-50 print:hidden bottom-24 left-4 sm:bottom-6 sm:left-[236px] grid h-12 w-12 place-items-center rounded-full border border-primary/40 bg-card/95 text-primary backdrop-blur shadow-[0_0_20px_-6px_oklch(0.58_0.22_25/0.6)] hover:border-primary hover:shadow-[0_0_26px_-4px_oklch(0.58_0.22_25/0.8)] transition-all"
+              className="fixed z-50 print:hidden bottom-24 left-4 sm:bottom-6 sm:left-4 grid h-12 w-12 place-items-center rounded-full border border-primary/40 bg-card/95 text-primary backdrop-blur shadow-[0_0_20px_-6px_oklch(0.58_0.22_25/0.6)] hover:border-primary hover:shadow-[0_0_26px_-4px_oklch(0.58_0.22_25/0.8)] transition-all"
             >
               <BrainCircuit className="h-5 w-5" />
               {target.kind !== "global" && (
@@ -354,7 +354,7 @@ function McdTechPanel({
     <div
       className={cn(
         "fixed z-[60] print:hidden flex flex-col overflow-hidden border border-primary/25 bg-card shadow-2xl",
-        "inset-0 sm:inset-auto sm:left-[236px] sm:bottom-5 sm:w-[440px] sm:h-[680px] sm:max-h-[calc(100vh-110px)] sm:rounded-xl",
+        "inset-0 sm:inset-auto sm:left-4 sm:bottom-5 sm:w-[440px] sm:h-[680px] sm:max-h-[calc(100vh-110px)] sm:rounded-xl",
         !visible && "hidden",
       )}
     >
