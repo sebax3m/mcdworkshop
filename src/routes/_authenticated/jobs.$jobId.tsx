@@ -895,6 +895,15 @@ function JobDetail() {
         />
       </div>
 
+      {/* Work performed / additional work */}
+      <WorkPerformedSection
+        jobId={jobId}
+        serviceData={(j.service_data as any) ?? {}}
+        canEdit={canEdit}
+        onChanged={() => qc.invalidateQueries({ queryKey: ["job", jobId] })}
+      />
+
+
       {/* Parts used (service-kind aware) */}
       {(SERVICE_PARTS[kind].length > 0 || canEdit || (partsUsed.data ?? []).length > 0) && (
         <div data-print-section="parts">
