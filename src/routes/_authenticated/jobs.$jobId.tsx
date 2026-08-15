@@ -17,7 +17,7 @@ import { ServiceTypeEditor } from "@/components/job/ServiceTypeEditor";
 import { ShiftClockCard } from "@/components/job/ShiftClockCard";
 import { AssignedTechnicianCard } from "@/components/job/AssignedTechnicianCard";
 import { JobTechnicalBrief } from "@/components/job/JobTechnicalBrief";
-import { AskMcdTechButton } from "@/components/garage/McdTechAssistant";
+
 
 import { displayCustomerName } from "@/lib/display";
 
