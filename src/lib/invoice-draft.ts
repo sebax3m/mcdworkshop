@@ -256,7 +256,30 @@ export function buildInvoiceDraft(input: JobDraftInput): {
     });
   });
 
+  // ── Additional work written up on the job card ─────────────────────────
+  (input.workPerformed ?? []).forEach((w, i) => {
+    if (!w.title?.trim()) return;
+    detected.push({ label: w.title, detail: w.detail || undefined, origin: "Work performed on job card" });
+    const hrs = Number(w.hours ?? 0);
+    lines.push({
+      id: uid("work", i),
+      kind: hrs > 0 ? "labour" : "other",
+      item_code: hrs > 0 ? "LAB" : "",
+      item_name: w.title,
+      description: w.detail || (hrs > 0 ? `Labour — ${hrs} h @ $${LABOUR_RATE}/h` : ""),
+      quantity: hrs > 0 ? hrs : 1,
+      unit: hrs > 0 ? LABOUR_RATE : 0,
+      discount_pct: 0,
+      source: "Work performed (job card)",
+      price_required: hrs <= 0,
+    });
+    if (hrs <= 0) {
+      warnings.push({ level: "error", text: `PRICE REQUIRED — ${w.title}` });
+    }
+  });
+
   // ── Parts & fluids actually used ───────────────────────────────────────
+
   input.parts
     .filter((p) => p.on_invoice !== false)
     .forEach((p, i) => {
