@@ -753,9 +753,6 @@ function JobDetail() {
           onChanged={() => qc.invalidateQueries({ queryKey: ["job", jobId] })}
         />
 
-        <div className="mt-4 flex justify-end">
-          <AskMcdTechButton target={{ kind: "job", jobId }} />
-        </div>
 
         <div className="mt-4">
           <JobTechnicalBrief jobId={jobId} />
