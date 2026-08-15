@@ -854,11 +854,11 @@ function JobDetail() {
                     <Play className="h-4 w-4" /> Clock In
                   </Button>
                 )}
-                {j.status !== "completed" && (
+                {j.status !== "completed" && j.status !== "ready_for_pickup" && (
                   <Button
                     onClick={async () => {
                       if (activeTimer) await stopTimer();
-                      await setStatus("completed");
+                      await setStatus("ready_for_pickup");
                     }}
                     className="h-12 px-5 font-bold gap-2 bg-green-600 hover:bg-green-700 text-white"
                   >
