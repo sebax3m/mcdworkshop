@@ -77,7 +77,10 @@ export type JobDraftInput = {
   }>;
   trackedMinutes: number;
   notes: Array<{ id: string; body: string; author_name?: string; created_at: string }>;
+  /** Free-text extra work recorded on the job card (overhauls, repairs, etc.). */
+  workPerformed?: Array<{ id: string; title: string; detail: string; hours: number }>;
 };
+
 
 const FLUID_WORDS = [
   "oil",
@@ -253,7 +256,30 @@ export function buildInvoiceDraft(input: JobDraftInput): {
     });
   });
 
+  // ── Additional work written up on the job card ─────────────────────────
+  (input.workPerformed ?? []).forEach((w, i) => {
+    if (!w.title?.trim()) return;
+    detected.push({ label: w.title, detail: w.detail || undefined, origin: "Work performed on job card" });
+    const hrs = Number(w.hours ?? 0);
+    lines.push({
+      id: uid("work", i),
+      kind: hrs > 0 ? "labour" : "other",
+      item_code: hrs > 0 ? "LAB" : "",
+      item_name: w.title,
+      description: w.detail || (hrs > 0 ? `Labour — ${hrs} h @ $${LABOUR_RATE}/h` : ""),
+      quantity: hrs > 0 ? hrs : 1,
+      unit: hrs > 0 ? LABOUR_RATE : 0,
+      discount_pct: 0,
+      source: "Work performed (job card)",
+      price_required: hrs <= 0,
+    });
+    if (hrs <= 0) {
+      warnings.push({ level: "error", text: `PRICE REQUIRED — ${w.title}` });
+    }
+  });
+
   // ── Parts & fluids actually used ───────────────────────────────────────
+
   input.parts
     .filter((p) => p.on_invoice !== false)
     .forEach((p, i) => {
@@ -312,7 +338,13 @@ export function buildReportFacts(
       status: f.status,
       recommendation: f.recommended_action ?? f.description ?? "",
     })),
-    additional_work_completed: approvedFindings(input).map((f) => f.title),
+    additional_work_completed: [
+      ...approvedFindings(input).map((f) => f.title),
+      ...(input.workPerformed ?? [])
+        .filter((w) => w.title?.trim())
+        .map((w) => (w.detail ? `${w.title} — ${w.detail}` : w.title)),
+    ],
+
     declined_or_deferred: declinedFindings(input).map((f) => f.title),
     technician_notes: input.notes.map((n) => n.body),
   };

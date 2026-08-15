@@ -25,6 +25,7 @@ import { useCurrentUser } from "@/hooks/use-current-user";
 import { generateCustomerReport } from "@/lib/customer-report.functions";
 import { displayCustomerName } from "@/lib/display";
 import { collectJobObservations, saveObservations, suggestLabourReferenceUpdates } from "@/lib/garage-learning";
+import { readWorkPerformed } from "@/components/job/WorkPerformedSection";
 import {
   buildInvoiceDraft,
   buildPlainReport,
@@ -150,8 +151,10 @@ function SmartInvoiceDraft() {
       findings: (findings.data ?? []) as any,
       trackedMinutes,
       notes: (notes.data ?? []) as any,
+      workPerformed: readWorkPerformed(((job.data as any)?.service_data ?? {}) as any),
     };
   }, [job.data, tasks.data, parts.data, findings.data, notes.data, trackedMinutes]);
+
 
   const computed = useMemo(() => (input ? buildInvoiceDraft(input) : null), [input]);
 

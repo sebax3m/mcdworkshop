@@ -45,6 +45,7 @@ import {
   RotateCcw,
 } from "lucide-react";
 import { detectServiceKind, KIND_META, SERVICE_PARTS } from "@/lib/service-kinds";
+import WorkPerformedSection from "@/components/job/WorkPerformedSection";
 import { getValveSpec, formatRange, type ValveSpec } from "@/lib/valve-specs";
 import { valveSheetHtml } from "@/lib/valve-sheet-html";
 import { FrontArrow } from "@/components/job/FrontArrow";
@@ -894,6 +895,15 @@ function JobDetail() {
           }}
         />
       </div>
+
+      {/* Work performed / additional work */}
+      <WorkPerformedSection
+        jobId={jobId}
+        serviceData={(j.service_data as any) ?? {}}
+        canEdit={canEdit}
+        onChanged={() => qc.invalidateQueries({ queryKey: ["job", jobId] })}
+      />
+
 
       {/* Parts used (service-kind aware) */}
       {(SERVICE_PARTS[kind].length > 0 || canEdit || (partsUsed.data ?? []).length > 0) && (
