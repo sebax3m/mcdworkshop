@@ -338,7 +338,13 @@ export function buildReportFacts(
       status: f.status,
       recommendation: f.recommended_action ?? f.description ?? "",
     })),
-    additional_work_completed: approvedFindings(input).map((f) => f.title),
+    additional_work_completed: [
+      ...approvedFindings(input).map((f) => f.title),
+      ...(input.workPerformed ?? [])
+        .filter((w) => w.title?.trim())
+        .map((w) => (w.detail ? `${w.title} — ${w.detail}` : w.title)),
+    ],
+
     declined_or_deferred: declinedFindings(input).map((f) => f.title),
     technician_notes: input.notes.map((n) => n.body),
   };
