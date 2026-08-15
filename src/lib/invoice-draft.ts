@@ -77,7 +77,10 @@ export type JobDraftInput = {
   }>;
   trackedMinutes: number;
   notes: Array<{ id: string; body: string; author_name?: string; created_at: string }>;
+  /** Free-text extra work recorded on the job card (overhauls, repairs, etc.). */
+  workPerformed?: Array<{ id: string; title: string; detail: string; hours: number }>;
 };
+
 
 const FLUID_WORDS = [
   "oil",
