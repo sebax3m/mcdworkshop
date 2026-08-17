@@ -1606,13 +1606,9 @@ function NotesBox({
     setValue(initial);
   }, [initial]);
 
-  // If the invoice has no notes yet, seed the editor with notes from the job card.
-  useEffect(() => {
-    if (initial.trim() === "" && jobNotes.length > 0 && value === "") {
-      setValue(jobNotes.map((n) => n.body).join("\n\n"));
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [jobNotes.length]);
+  // Notes are invoice-only; do not auto-seed job/book-in notes so internal
+  // instructions never leak onto the customer invoice.
+  // (kept empty intentionally)
 
   async function save() {
     if (value === initial) return;
