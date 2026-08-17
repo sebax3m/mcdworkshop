@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import jsPDF from "jspdf";
 import { supabase } from "@/integrations/supabase/client";
-import bikeSideAsset from "@/assets/bike-side.png.asset.json";
 import logoAsset from "@/assets/motorcycle-doctors-logo.png.asset.json";
 
 const COMPANY = {
@@ -178,74 +177,6 @@ export async function buildClaimPdf(d: ClaimPdfData): Promise<Blob> {
     y += wrapped.length * 4 + 4;
   }
 
-  // ---------- Damage diagrams (left / right) ----------
-  const views: Array<{ key: "left" | "right"; title: string }> = [
-    { key: "left", title: "Left side" },
-    { key: "right", title: "Right side" },
-  ];
-  const sideData = await fetchAsDataUrl(bikeSideAsset.url);
-
-  pdf.setFontSize(8);
-  pdf.setTextColor(100);
-  pdf.text("DAMAGE DIAGRAM", margin, y);
-  pdf.setTextColor(0);
-  y += 4;
-
-  const numbered = marks.map((m, i) => ({ m, n: i + 1 }));
-  const diagW = pageW - margin * 2;
-  const diagH = diagW * (320 / 600);
-
-  for (const v of views) {
-    const viewItems = numbered.filter(({ m }) => normView(m.view) === v.key);
-    if (y + diagH + 10 > pageH - margin) {
-      pdf.addPage();
-      y = margin;
-    }
-    pdf.setFontSize(9);
-    pdf.setFont("helvetica", "bold");
-    pdf.text(
-      `${v.title}${viewItems.length ? `  (${viewItems.length} mark${viewItems.length > 1 ? "s" : ""})` : ""}`,
-      margin,
-      y,
-    );
-    pdf.setFont("helvetica", "normal");
-    y += 2;
-    pdf.setDrawColor(0);
-    pdf.setLineWidth(0.3);
-    pdf.rect(margin, y, diagW, diagH);
-    if (sideData) {
-      try {
-        if (v.key === "right") {
-          const flipped = await flipImage(sideData);
-          pdf.addImage(flipped, "PNG", margin, y, diagW, diagH);
-        } else {
-          pdf.addImage(sideData, "PNG", margin, y, diagW, diagH);
-        }
-      } catch {
-        /* ignore */
-      }
-    }
-    viewItems.forEach(({ m, n }) => {
-      const cx = margin + m.x * diagW;
-      const cy = y + m.y * diagH;
-      const [r, g, b] = SEV_COLOR[m.severity];
-      pdf.setFillColor(255, 255, 255);
-      pdf.circle(cx, cy, 5.2, "F");
-      pdf.setFillColor(r, g, b);
-      pdf.setDrawColor(0);
-      pdf.setLineWidth(0.5);
-      pdf.circle(cx, cy, 4.4, "FD");
-      pdf.setTextColor(255, 255, 255);
-      pdf.setFontSize(11);
-      pdf.setFont("helvetica", "bold");
-      pdf.text(String(n), cx, cy + 1.4, { align: "center" });
-      pdf.setTextColor(0);
-      pdf.setFont("helvetica", "normal");
-      pdf.setLineWidth(0.2);
-    });
-    y += diagH + 4;
-  }
-
   // ---------- Damage legend ----------
   if (marks.length) {
     if (y + 6 + marks.length * 4 > pageH - margin) {
@@ -405,24 +336,6 @@ export async function buildClaimPdf(d: ClaimPdfData): Promise<Blob> {
   return pdf.output("blob");
 }
 
-async function flipImage(dataUrl: string): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    img.crossOrigin = "anonymous";
-    img.onload = () => {
-      const canvas = document.createElement("canvas");
-      canvas.width = img.naturalWidth;
-      canvas.height = img.naturalHeight;
-      const ctx = canvas.getContext("2d")!;
-      ctx.translate(canvas.width, 0);
-      ctx.scale(-1, 1);
-      ctx.drawImage(img, 0, 0);
-      resolve(canvas.toDataURL("image/png"));
-    };
-    img.onerror = reject;
-    img.src = dataUrl;
-  });
-}
 
 export async function sendClaimEmailWithPdf(
   d: ClaimPdfData & {

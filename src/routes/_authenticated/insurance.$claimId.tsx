@@ -40,6 +40,7 @@ import { displayCustomerName } from "@/lib/display";
 import { CLAIM_PIPELINE, CLAIM_STATUS_META, type ClaimStatus, nextStatus } from "@/lib/insurance";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { ClaimDamageSection } from "@/components/ClaimDamageSection";
+import { ClaimBikeCard } from "@/components/ClaimBikeCard";
 
 export const Route = createFileRoute("/_authenticated/insurance/$claimId")({
   component: ClaimDetail,
@@ -300,29 +301,18 @@ function ClaimDetail() {
             </div>
           )}
         </div>
-        <div className="card-surface p-4">
-          <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground font-bold mb-1">
-            Motorcycle
-          </div>
-          <div className="font-bold flex items-center gap-1.5">
-            <BikeIcon className="h-4 w-4" /> {bikeText}
-          </div>
-          <div className="text-xs text-muted-foreground mt-0.5">
-            Rego {c.motorcycles?.rego ?? "—"} · VIN {c.motorcycles?.vin ?? "—"} ·{" "}
-            {c.motorcycles?.mileage ?? "—"}km
-          </div>
-        </div>
+        <ClaimBikeCard
+          bike={(c.motorcycles as any) ?? null}
+          bikeText={bikeText}
+          claimId={claimId}
+        />
       </section>
 
       <ClaimInsurerCard c={c} onUpdate={updateClaim} />
 
       <ClaimCustodyCard c={c} onUpdate={updateClaim} />
 
-      <ClaimDamageSection
-        claimId={claimId}
-        canEdit={true}
-        initialMarks={Array.isArray(c.damage_marks) ? c.damage_marks : []}
-      />
+      <ClaimDamageSection claimId={claimId} canEdit={true} />
 
       {/* Quotation builder (parts + labour) */}
       <QuoteBuilder
@@ -828,23 +818,13 @@ function QuoteBuilder({
             variant="outline"
             className="gap-2"
             onClick={async () => {
-              const t = toast.loading("Building PDF with photos & diagram…");
+              const t = toast.loading("Building PDF with photos…");
               try {
                 const { buildClaimPdf } = await import("@/lib/claim-pdf");
-                const { data: fresh } = await (supabase as any)
-                  .from("insurance_claims")
-                  .select("damage_marks")
-                  .eq("id", c.id)
-                  .maybeSingle();
-                const liveMarks = Array.isArray(fresh?.damage_marks)
-                  ? fresh.damage_marks
-                  : Array.isArray(c.damage_marks)
-                    ? c.damage_marks
-                    : [];
                 const blob = await buildClaimPdf({
                   claim: c,
                   bikeText,
-                  marks: liveMarks as any,
+                  marks: [],
                   items,
                 });
                 const url = URL.createObjectURL(blob);
