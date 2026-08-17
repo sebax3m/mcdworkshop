@@ -318,11 +318,7 @@ function ClaimDetail() {
 
       <ClaimCustodyCard c={c} onUpdate={updateClaim} />
 
-      <ClaimDamageSection
-        claimId={claimId}
-        canEdit={true}
-        initialMarks={Array.isArray(c.damage_marks) ? c.damage_marks : []}
-      />
+      <ClaimDamageSection claimId={claimId} canEdit={true} />
 
       {/* Quotation builder (parts + labour) */}
       <QuoteBuilder
