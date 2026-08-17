@@ -295,19 +295,6 @@ function InvoiceDetail() {
   });
 
 
-  const jobNotes = useQuery({
-    queryKey: ["invoice-job-notes", invoiceId, invoice.data?.job_id],
-    enabled: !!invoice.data?.job_id,
-    queryFn: async () =>
-      (
-        await supabase
-          .from("job_notes")
-          .select("id, body, created_at")
-          .eq("job_id", invoice.data!.job_id!)
-          .order("created_at")
-      ).data ?? [],
-  });
-
   // Ensure every invoice carries a default $30 shop consumables line. Auto-insert
   // once per job if missing, then it behaves like any other editable part line.
   useEffect(() => {
@@ -1420,7 +1407,6 @@ function InvoiceDetail() {
               <NotesBox
                 invoiceId={invoiceId}
                 initial={inv.notes ?? ""}
-                jobNotes={jobNotes.data ?? []}
                 onSaved={() => qc.invalidateQueries({ queryKey: ["invoice", invoiceId] })}
               />
             </div>
@@ -1591,12 +1577,10 @@ function InvoiceDetail() {
 function NotesBox({
   invoiceId,
   initial,
-  jobNotes,
   onSaved,
 }: {
   invoiceId: string;
   initial: string;
-  jobNotes: { id: string; body: string; created_at: string }[];
   onSaved: () => void;
 }) {
   const [value, setValue] = useState(initial);
@@ -1606,13 +1590,9 @@ function NotesBox({
     setValue(initial);
   }, [initial]);
 
-  // If the invoice has no notes yet, seed the editor with notes from the job card.
-  useEffect(() => {
-    if (initial.trim() === "" && jobNotes.length > 0 && value === "") {
-      setValue(jobNotes.map((n) => n.body).join("\n\n"));
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [jobNotes.length]);
+  // Notes are invoice-only; do not auto-seed job/book-in notes so internal
+  // instructions never leak onto the customer invoice.
+  // (kept empty intentionally)
 
   async function save() {
     if (value === initial) return;
