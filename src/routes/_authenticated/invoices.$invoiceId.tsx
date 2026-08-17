@@ -285,18 +285,6 @@ function InvoiceDetail() {
         .data ?? [],
   });
 
-  const checks = useQuery({
-    queryKey: ["invoice-checks", invoiceId, invoice.data?.job_id],
-    enabled: !!invoice.data?.job_id,
-    queryFn: async () =>
-      (
-        await supabase
-          .from("job_tasks")
-          .select("id,label,is_done,note,sort_order")
-          .eq("job_id", invoice.data!.job_id!)
-          .order("sort_order")
-      ).data ?? [],
-  });
 
   const jobNotes = useQuery({
     queryKey: ["invoice-job-notes", invoiceId, invoice.data?.job_id],
@@ -943,41 +931,55 @@ function InvoiceDetail() {
             </div>
           </div>
 
-          {/* Service checks */}
-          <div data-print-section="checks">
-            <ServiceChecks
-              jobId={inv.job_id}
-              title={inv.jobs?.title ?? null}
-              items={checks.data ?? []}
-              onChanged={() =>
-                qc.invalidateQueries({ queryKey: ["invoice-checks", invoiceId, inv.job_id] })
-              }
-              details={String((inv.snapshot as any)?.work_details ?? "")}
-              onSaveDetails={(v) => saveSnapshotMeta({ work_details: v })}
-            />
-          </div>
-
-          {/* Work performed / additional work recorded on the job card */}
+          {/* Work performed — recorded on the job card */}
           {(() => {
-            const wp = readWorkPerformed((inv.jobs as any)?.service_data);
-            if (!wp.length) return null;
+            const hidden: string[] = Array.isArray((inv.snapshot as any)?.work_performed_hidden)
+              ? (inv.snapshot as any).work_performed_hidden
+              : [];
+            const all = readWorkPerformed((inv.jobs as any)?.service_data);
+            const wp = all.filter((w) => !hidden.includes(w.id));
+            if (!all.length) return null;
             return (
               <div className="pt-5 border-t border-border" data-print-section="work-performed">
                 <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground mb-2">
                   Work performed
                 </div>
+                {wp.length === 0 && (
+                  <div className="text-xs text-muted-foreground italic no-print">
+                    All entries hidden on this invoice.
+                  </div>
+                )}
                 <div className="space-y-3">
                   {wp.map((w) => (
-                    <div key={w.id}>
-                      <div className="text-sm font-semibold">{w.title}</div>
-                      {w.detail && (
-                        <div className="text-xs text-muted-foreground whitespace-pre-wrap mt-0.5">
-                          {w.detail}
-                        </div>
-                      )}
+                    <div key={w.id} className="group flex items-start gap-2">
+                      <div className="min-w-0 flex-1">
+                        <div className="text-sm font-semibold">{w.title}</div>
+                        {w.detail && (
+                          <div className="text-xs text-muted-foreground whitespace-pre-wrap mt-0.5">
+                            {w.detail}
+                          </div>
+                        )}
+                      </div>
+                      <button
+                        onClick={() =>
+                          saveSnapshotMeta({ work_performed_hidden: [...hidden, w.id] })
+                        }
+                        className="no-print opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive p-0.5"
+                        title="Remove from this invoice"
+                      >
+                        <X className="h-3.5 w-3.5" />
+                      </button>
                     </div>
                   ))}
                 </div>
+                {hidden.length > 0 && (
+                  <button
+                    onClick={() => saveSnapshotMeta({ work_performed_hidden: [] })}
+                    className="no-print mt-3 text-[0.625rem] uppercase tracking-wider text-muted-foreground hover:text-foreground"
+                  >
+                    Restore {hidden.length} hidden {hidden.length === 1 ? "entry" : "entries"}
+                  </button>
+                )}
               </div>
             );
           })()}
@@ -1569,152 +1571,6 @@ function InvoiceDetail() {
   );
 }
 
-function ServiceChecks({
-  jobId,
-  title,
-  items,
-  onChanged,
-  details,
-  onSaveDetails,
-}: {
-  jobId: string | null;
-  title: string | null;
-  items: any[];
-  onChanged: () => void;
-  details: string;
-  onSaveDetails: (value: string) => void | Promise<void>;
-}) {
-  const [draft, setDraft] = useState("");
-  const isDiagnostic = (title ?? "").toLowerCase().includes("diagnos");
-  const [detailDraft, setDetailDraft] = useState(details);
-  useEffect(() => {
-    setDetailDraft(details);
-  }, [details]);
-
-  async function addItem() {
-    if (!jobId || !draft.trim()) return;
-    const nextSort = items.length
-      ? Math.max(...items.map((i) => Number(i.sort_order ?? 0))) + 1
-      : 0;
-    const { error } = await supabase
-      .from("job_tasks")
-      .insert({ job_id: jobId, label: draft.trim(), is_done: true, sort_order: nextSort });
-    if (error) return toast.error(error.message);
-    setDraft("");
-    onChanged();
-  }
-
-  async function removeItem(id: string) {
-    const { error } = await supabase.from("job_tasks").delete().eq("id", id);
-    if (error) return toast.error(error.message);
-    onChanged();
-  }
-
-  async function renameItem(id: string, label: string): Promise<void> {
-    const trimmed = label.trim();
-    if (!trimmed) return;
-    const { error } = await supabase.from("job_tasks").update({ label: trimmed }).eq("id", id);
-    if (error) {
-      toast.error(error.message);
-      return;
-    }
-    onChanged();
-  }
-
-  if (!jobId) return null;
-  if (items.length === 0 && !title) return null;
-
-  return (
-    <div className="pt-5 border-t border-border">
-      <div className="flex items-baseline justify-between mb-3">
-        <div>
-          <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">
-            Work Performed
-          </div>
-          {title && <div className="font-display text-lg font-bold mt-0.5">{title}</div>}
-        </div>
-      </div>
-      {items.length > 0 && (
-        <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1 text-xs">
-          {items.map((t: any) => (
-            <li key={t.id} className="group flex items-start gap-2">
-              <Check
-                className={`h-3.5 w-3.5 mt-0.5 flex-none ${
-                  t.is_done ? "text-emerald-500" : "text-muted-foreground/30"
-                }`}
-                strokeWidth={3}
-              />
-              <div className="min-w-0 flex-1">
-                <EditableText
-                  value={t.label}
-                  onCommit={(v) => renameItem(t.id, v)}
-                  className={
-                    t.is_done
-                      ? ""
-                      : "text-muted-foreground line-through decoration-muted-foreground/40"
-                  }
-                />
-                {t.note && <div className="text-xs text-muted-foreground">{t.note}</div>}
-              </div>
-              <button
-                onClick={() => removeItem(t.id)}
-                className="no-print opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive p-0.5"
-                title="Remove item"
-              >
-                <X className="h-3.5 w-3.5" />
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
-      {!isDiagnostic && (
-      <div className="no-print mt-3 flex gap-2">
-        <input
-          value={draft}
-          onChange={(e) => setDraft(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") {
-              e.preventDefault();
-              addItem();
-            }
-          }}
-          placeholder="Add an item performed…"
-          className="flex-1 rounded-md border border-border bg-background px-3 py-1.5 text-sm outline-none focus:border-primary"
-        />
-        <button
-          onClick={addItem}
-          disabled={!draft.trim()}
-          className="grid place-items-center rounded-md border border-border px-3 text-sm hover:bg-primary/10 disabled:opacity-40"
-          title="Add item"
-        >
-          <Plus className="h-4 w-4" />
-        </button>
-      </div>
-      )}
-
-      <div className="mt-3">
-          <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground mb-1">
-            Details of work performed
-          </div>
-          {detailDraft.trim() !== "" && (
-            <div className="hidden print:block text-xs leading-relaxed whitespace-pre-wrap">
-              {detailDraft}
-            </div>
-          )}
-          <textarea
-            value={detailDraft}
-            onChange={(e) => setDetailDraft(e.target.value)}
-            onBlur={() => {
-              if (detailDraft !== details) onSaveDetails(detailDraft);
-            }}
-            rows={4}
-            placeholder="Describe the work carried out — diagnostics, findings, adjustments, tests…"
-            className="no-print w-full rounded-lg border border-border bg-background/50 p-3 text-sm leading-relaxed outline-none focus:border-primary resize-y"
-          />
-      </div>
-    </div>
-  );
-}
 function NotesBox({
   invoiceId,
   initial,
