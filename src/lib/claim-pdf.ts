@@ -290,20 +290,28 @@ export async function buildClaimPdf(d: ClaimPdfData): Promise<Blob> {
   }
   const gst = subtotal * 0.15;
   const total = subtotal + gst;
-  y += 2;
-  pdf.setFontSize(9);
-  pdf.text("Subtotal", cols.unit, y, { align: "right" });
-  pdf.text(`$${subtotal.toFixed(2)}`, cols.line, y, { align: "right" });
-  y += 4;
-  pdf.text("GST (15%)", cols.unit, y, { align: "right" });
-  pdf.text(`$${gst.toFixed(2)}`, cols.line, y, { align: "right" });
+  if (y + 22 > pageH - margin) {
+    pdf.addPage();
+    y = margin;
+  }
   y += 5;
+  pdf.setFontSize(9);
+  pdf.text("Subtotal", rUnit, y, { align: "right" });
+  pdf.text(`$${subtotal.toFixed(2)}`, rLine, y, { align: "right" });
+  y += 4.5;
+  pdf.text("GST (15%)", rUnit, y, { align: "right" });
+  pdf.text(`$${gst.toFixed(2)}`, rLine, y, { align: "right" });
+  y += 2;
+  pdf.setDrawColor(0);
+  pdf.setLineWidth(0.3);
+  pdf.line(xQty, y, tableR, y);
+  y += 5.5;
   pdf.setFont("helvetica", "bold");
   pdf.setFontSize(11);
-  pdf.text("TOTAL (incl. GST)", cols.unit, y, { align: "right" });
-  pdf.text(`$${total.toFixed(2)}`, cols.line, y, { align: "right" });
+  pdf.text("TOTAL (incl. GST)", rUnit, y, { align: "right" });
+  pdf.text(`$${total.toFixed(2)}`, rLine, y, { align: "right" });
   pdf.setFont("helvetica", "normal");
-  y += 6;
+  y += 7;
 
   // ---------- Photo thumbnails ----------
   const photos = await loadClaimPhotos(c.id);
