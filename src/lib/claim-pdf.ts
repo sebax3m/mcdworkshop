@@ -31,11 +31,23 @@ export type QuoteItem = {
   unit_price: number;
 };
 
+export type ClaimPdfOptions = {
+  /** include damage photos in the PDF (default true) */
+  includePhotos?: boolean;
+  /** max number of photos to embed (default all) */
+  maxPhotos?: number;
+  /** JPEG quality 0.3 - 0.95 (default 0.7) */
+  photoQuality?: number;
+  /** max pixel width per embedded photo (default 1000) */
+  photoMaxWidth?: number;
+};
+
 export type ClaimPdfData = {
   claim: any;
   bikeText: string;
   marks: DamageMark[];
   items: QuoteItem[];
+  options?: ClaimPdfOptions;
 };
 
 const SEV_COLOR: Record<DamageMark["severity"], [number, number, number]> = {
