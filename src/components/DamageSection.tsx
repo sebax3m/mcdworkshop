@@ -296,7 +296,7 @@ export function DamageSection({
           {marks.map((m, i) => (
             <div
               key={m.id}
-              className="flex items-center gap-2 rounded-lg border border-border bg-background/40 px-2.5 py-1.5 text-xs"
+              className="flex items-center gap-2 rounded-lg border border-border bg-background/40 px-2.5 py-1.5 text-xs print:bg-white"
             >
               <span
                 className="grid h-6 w-6 place-items-center rounded-full text-white font-bold text-[0.6875rem] shrink-0"
