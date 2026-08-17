@@ -50,6 +50,8 @@ function EditableNumber({
   prefix = "",
   suffix = "",
   decimals = 2,
+  step = "0.01",
+  trim = false,
   className = "",
 }: {
   value: number;
@@ -57,13 +59,19 @@ function EditableNumber({
   prefix?: string;
   suffix?: string;
   decimals?: number;
+  step?: string;
+  trim?: boolean;
   className?: string;
 }) {
+  const fmt = (n: number) => {
+    const s = n.toFixed(decimals);
+    return trim && s.includes(".") ? s.replace(/\.?0+$/, "") : s;
+  };
   const [editing, setEditing] = useState(false);
-  const [draft, setDraft] = useState(value.toFixed(decimals));
+  const [draft, setDraft] = useState(fmt(value));
   const inputRef = useRef<HTMLInputElement>(null);
   useEffect(() => {
-    if (!editing) setDraft(value.toFixed(decimals));
+    if (!editing) setDraft(fmt(value));
   }, [value, editing, decimals]);
   useEffect(() => {
     if (editing) inputRef.current?.select();
@@ -80,7 +88,7 @@ function EditableNumber({
       <input
         ref={inputRef}
         type="number"
-        step="0.01"
+        step={step}
         value={draft}
         onChange={(e) => setDraft(e.target.value)}
         onBlur={commit}
@@ -90,7 +98,7 @@ function EditableNumber({
             commit();
           }
           if (e.key === "Escape") {
-            setDraft(value.toFixed(decimals));
+            setDraft(fmt(value));
             setEditing(false);
           }
         }}
@@ -107,7 +115,7 @@ function EditableNumber({
     >
       <span>
         {prefix}
-        {value.toFixed(decimals)}
+        {fmt(value)}
         {suffix}
       </span>
       <Pencil className="h-3 w-3 opacity-0 group-hover:opacity-60 no-print" />
@@ -1151,7 +1159,9 @@ function InvoiceDetail() {
                           <td className="py-3 text-right">
                             <EditableNumber
                               value={qty}
-                              decimals={0}
+                              decimals={2}
+                              trim
+                              step="0.5"
                               onCommit={(n) => updatePart(p.id, { quantity: n })}
                             />
                           </td>
@@ -1305,7 +1315,9 @@ function InvoiceDetail() {
                           <td className="py-3 text-right">
                             <EditableNumber
                               value={Number(it.quantity)}
-                              decimals={0}
+                              decimals={2}
+                              trim
+                              step="0.5"
                               onCommit={(n) => updateSnapshotLine(idx, { quantity: n })}
                             />
                           </td>
