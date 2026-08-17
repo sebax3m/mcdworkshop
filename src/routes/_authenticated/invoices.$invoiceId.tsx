@@ -1591,12 +1591,10 @@ function InvoiceDetail() {
 function NotesBox({
   invoiceId,
   initial,
-  jobNotes,
   onSaved,
 }: {
   invoiceId: string;
   initial: string;
-  jobNotes: { id: string; body: string; created_at: string }[];
   onSaved: () => void;
 }) {
   const [value, setValue] = useState(initial);
