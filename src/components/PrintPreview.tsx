@@ -658,7 +658,7 @@ export function PrintPreview({
                   checked={fitOnePage}
                   onChange={(e) => setFitOnePage(e.target.checked)}
                 />
-                Always fit on 1 page
+                Always fit on 1 page (off = flow onto extra pages)
               </label>
               <div className="flex items-center justify-between gap-2 text-sm">
                 <span className="text-muted-foreground">Scale</span>
