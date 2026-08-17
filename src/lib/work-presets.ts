@@ -195,6 +195,45 @@ export const WORK_PRESETS: WorkPreset[] = [
     ],
   },
   {
+    id: "brake-fluid",
+    label: "Brake Fluid Replacement",
+    group: "Brakes",
+    hours: 0.75,
+    items: [
+      "Old brake fluid drained from front and rear systems",
+      "Master cylinder reservoirs cleaned and inspected",
+      "System refilled with fresh DOT 4 fluid and bled until clear",
+      "Lines, hoses and seals checked for leaks",
+      "Lever/pedal feel checked and brakes road tested",
+    ],
+  },
+  {
+    id: "clutch-fluid",
+    label: "Clutch Fluid Replacement (Hydraulic)",
+    group: "Drivetrain",
+    hours: 0.5,
+    items: [
+      "Old clutch fluid drained from the hydraulic system",
+      "Reservoir cleaned and inspected",
+      "Refilled with fresh DOT 4 fluid and bled until clear",
+      "Slave cylinder and line checked for leaks",
+      "Clutch engagement checked and road tested",
+    ],
+  },
+  {
+    id: "final-drive-oil",
+    label: "Final Drive / Gearbox Oil Change",
+    group: "Drivetrain",
+    hours: 0.5,
+    items: [
+      "Final drive oil drained and drain plug inspected",
+      "Crush washers replaced",
+      "Refilled with correct grade and quantity of final drive oil",
+      "Plugs torqued to spec, checked for leaks and road tested",
+    ],
+  },
+
+  {
     id: "battery-charging",
     label: "Battery & Charging System",
     group: "Electrical",
