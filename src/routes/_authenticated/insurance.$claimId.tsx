@@ -41,6 +41,7 @@ import { CLAIM_PIPELINE, CLAIM_STATUS_META, type ClaimStatus, nextStatus } from 
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { ClaimDamageSection } from "@/components/ClaimDamageSection";
 import { ClaimBikeCard } from "@/components/ClaimBikeCard";
+import { ClaimPdfExportDialog } from "@/components/insurance/ClaimPdfExportDialog";
 
 export const Route = createFileRoute("/_authenticated/insurance/$claimId")({
   component: ClaimDetail,
