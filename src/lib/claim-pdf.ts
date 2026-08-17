@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import jsPDF from "jspdf";
 import { supabase } from "@/integrations/supabase/client";
-import bikeSideAsset from "@/assets/bike-side.png.asset.json";
 import logoAsset from "@/assets/motorcycle-doctors-logo.png.asset.json";
 
 const COMPANY = {
@@ -337,24 +336,6 @@ export async function buildClaimPdf(d: ClaimPdfData): Promise<Blob> {
   return pdf.output("blob");
 }
 
-async function flipImage(dataUrl: string): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    img.crossOrigin = "anonymous";
-    img.onload = () => {
-      const canvas = document.createElement("canvas");
-      canvas.width = img.naturalWidth;
-      canvas.height = img.naturalHeight;
-      const ctx = canvas.getContext("2d")!;
-      ctx.translate(canvas.width, 0);
-      ctx.scale(-1, 1);
-      ctx.drawImage(img, 0, 0);
-      resolve(canvas.toDataURL("image/png"));
-    };
-    img.onerror = reject;
-    img.src = dataUrl;
-  });
-}
 
 export async function sendClaimEmailWithPdf(
   d: ClaimPdfData & {
