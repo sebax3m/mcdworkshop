@@ -429,9 +429,13 @@ export function PrintPreview({
       const sheet = doc.getElementById(`page-${i}`) as HTMLElement | null;
       const inner = doc.getElementById(`inner-${i}`) as HTMLElement | null;
       if (!sheet || !inner) return;
+      // Reset any previous multi-page flow before measuring.
+      sheet.classList.remove("flow");
+      sheet.style.height = "";
       inner.style.transform = "";
       inner.style.width = "";
       inner.style.transformOrigin = "top left";
+
       const landscape = (p.orientation ?? "portrait") === "landscape" ? 90 : 0;
       const rot = ((((p.rotate ?? 0) + landscape) % 360) + 360) % 360;
       if (rot) {
