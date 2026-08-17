@@ -37,7 +37,7 @@ import {
   X,
   FileText,
   Sparkles,
-
+  BookOpen,
   Printer,
   Trash2,
   Pencil,
