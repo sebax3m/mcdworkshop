@@ -477,14 +477,11 @@ function JobDetail() {
       nav({ to: "/invoices/$invoiceId", params: { invoiceId: existingInvoice.data.id } });
       return;
     }
-    // Bill the standard estimated hours for the booked service (e.g. standard service = 2.5h).
-    // Fall back to actual tracked time when no estimate is set on the job/template.
+    // Labour is billed from the actual clocked time on the job.
+    // Preset/estimated hours are only a suggestion and are never billed automatically.
     const trackedHours = totalMinutes / 60;
-    const baseHours =
-      Number(j.estimated_hours ?? 0) > 0 ? Number(j.estimated_hours) : trackedHours;
     const workPerformed = readWorkPerformed(j.service_data);
-    const extraHours = workPerformed.reduce((s, w) => s + Number(w.hours ?? 0), 0);
-    const billedHours = baseHours + extraHours;
+    const billedHours = trackedHours;
     const labour = Math.round(billedHours * LABOUR_RATE * 100) / 100;
 
     const parts = (partsUsed.data ?? []).reduce(
