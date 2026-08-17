@@ -37,7 +37,7 @@ import {
   X,
   FileText,
   Sparkles,
-
+  BookOpen,
   Printer,
   Trash2,
   Pencil,
@@ -229,6 +229,7 @@ function JobDetail() {
   const [deleting, setDeleting] = useState(false);
   const [completingAll, setCompletingAll] = useState(false);
   const [reversingAll, setReversingAll] = useState(false);
+  const [showReference, setShowReference] = useState(false);
   const jobRef = useRef<HTMLDivElement>(null);
 
   /** Mark the job, its booking and any loan bike as fully completed everywhere. */
@@ -614,6 +615,15 @@ function JobDetail() {
               </Button>
             )}
             <StatusDropdown current={j.status} onChange={setStatus} />
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowReference((s) => !s)}
+              className="gap-1.5 h-8 px-2.5"
+            >
+              <BookOpen className="h-4 w-4" />
+              <span className="hidden sm:inline">Reference</span>
+            </Button>
           </div>
         </div>
         <div className="min-w-0">
@@ -640,6 +650,89 @@ function JobDetail() {
           />
         </div>
       </header>
+
+      {showReference && (
+        <div className="card-surface p-4 no-print">
+          <div className="flex items-center justify-between gap-3 mb-2">
+            <h3 className="font-display text-sm font-semibold uppercase tracking-wider">
+              Status reference
+            </h3>
+            <button
+              onClick={() => setShowReference(false)}
+              className="text-muted-foreground hover:text-foreground"
+              aria-label="Close reference"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+            {STATUS_ORDER.map((s) => {
+              const m = STATUS_META[s];
+              return (
+                <div key={s} className="flex items-center gap-2">
+                  <span className={`h-2 w-2 rounded-full ${m.dot}`} />
+                  <span className="font-semibold">{m.label}:</span>
+                  <span className="text-muted-foreground">
+                    {s === "new" && "Booked, not started"}
+                    {s === "assigned" && "Technician assigned"}
+                    {s === "in_progress" && "Work actively happening"}
+                    {s === "waiting_parts" && "Waiting on parts"}
+                    {s === "waiting_approval" && "Customer approval needed"}
+                    {s === "ready_for_pickup" && "Done, ready for customer"}
+                    {s === "completed" && "Collected / paid"}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Live timer / Labour logged — first thing technicians see */}
+      <div className="card-surface p-4 print:hidden">
+        <div className="flex items-center justify-between gap-3 flex-wrap">
+          <div>
+            <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">
+              Labour logged
+            </div>
+            <div className="font-display text-3xl font-bold gold-gradient-text">
+              {formatMinutes(totalMinutes)}
+            </div>
+            <div className="text-xs text-muted-foreground mt-0.5">
+              Tech: {techProfile.data?.full_name ?? <span className="italic">Unassigned</span>}
+              {j.estimated_hours ? ` · est. ${j.estimated_hours}h` : ""}
+            </div>
+          </div>
+          {canEdit && (
+            <div className="flex items-center gap-2 flex-wrap">
+              {activeTimer ? (
+                <LiveTimerButton startedAt={activeTimer.started_at} onStop={stopTimer} />
+              ) : (
+                <Button onClick={startTimer} className="gold-surface h-12 px-5 font-bold gap-2">
+                  <Play className="h-4 w-4" /> Clock In
+                </Button>
+              )}
+              {j.status !== "completed" && j.status !== "ready_for_pickup" && (
+                <Button
+                  onClick={async () => {
+                    if (activeTimer) await stopTimer();
+                    await setStatus("ready_for_pickup");
+                  }}
+                  className="h-12 px-5 font-bold gap-2 bg-green-600 hover:bg-green-700 text-white"
+                >
+                  <Check className="h-4 w-4" /> Finish Job
+                </Button>
+              )}
+            </div>
+          )}
+        </div>
+        <TimeEntriesEditor
+          entries={time.data ?? []}
+          jobId={jobId}
+          currentUserId={user?.id}
+          isAdmin={isAdmin}
+        />
+      </div>
 
       {/* Print-only compact summary */}
       <style>{`
@@ -846,54 +939,32 @@ function JobDetail() {
           />
         )}
 
+        {/* Inspection & approval — right after instructions */}
+        {canEdit && user && (
+          <div className="no-print">
+            <InspectionPanel
+              jobId={jobId}
+              jobNumber={j.job_number}
+              jobStartedAt={j.started_at}
+              customerName={displayCustomerName(j.customers as any)}
+              isAdmin={isAdmin || isTechnician}
+              userId={user.id}
+              onJobChanged={() => {
+                qc.invalidateQueries({ queryKey: ["job", jobId] });
+                qc.invalidateQueries({ queryKey: ["job-approval-pending", jobId] });
+                qc.invalidateQueries({ queryKey: ["job-events", jobId] });
+                qc.invalidateQueries({ queryKey: ["job-approved-findings", jobId] });
+                qc.invalidateQueries({ queryKey: ["job-approval-approved", jobId] });
+                qc.invalidateQueries({ queryKey: ["notifications"] });
+                qc.invalidateQueries({ queryKey: ["dashboard-counts"] });
+              }}
+            />
+          </div>
+        )}
+
         {/* Shift clock — technicians can clock in without leaving the job card */}
         {isTechnician && user && <ShiftClockCard userId={user.id} jobId={jobId} />}
 
-        {/* Live timer */}
-        <div className="card-surface p-4">
-          <div className="flex items-center justify-between gap-3 flex-wrap">
-            <div>
-              <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">
-                Labour logged
-              </div>
-              <div className="font-display text-3xl font-bold gold-gradient-text">
-                {formatMinutes(totalMinutes)}
-              </div>
-              <div className="text-xs text-muted-foreground mt-0.5">
-                Tech: {techProfile.data?.full_name ?? <span className="italic">Unassigned</span>}
-                {j.estimated_hours ? ` · est. ${j.estimated_hours}h` : ""}
-              </div>
-            </div>
-            {canEdit && (
-              <div className="flex items-center gap-2 flex-wrap">
-                {activeTimer ? (
-                  <LiveTimerButton startedAt={activeTimer.started_at} onStop={stopTimer} />
-                ) : (
-                  <Button onClick={startTimer} className="gold-surface h-12 px-5 font-bold gap-2">
-                    <Play className="h-4 w-4" /> Clock In
-                  </Button>
-                )}
-                {j.status !== "completed" && j.status !== "ready_for_pickup" && (
-                  <Button
-                    onClick={async () => {
-                      if (activeTimer) await stopTimer();
-                      await setStatus("ready_for_pickup");
-                    }}
-                    className="h-12 px-5 font-bold gap-2 bg-green-600 hover:bg-green-700 text-white"
-                  >
-                    <Check className="h-4 w-4" /> Finish Job
-                  </Button>
-                )}
-              </div>
-            )}
-          </div>
-          <TimeEntriesEditor
-            entries={time.data ?? []}
-            jobId={jobId}
-            currentUserId={user?.id}
-            isAdmin={isAdmin}
-          />
-        </div>
 
         {/* Customer-approved extra work — right below the clock-in area */}
         {(approvedFindings.data?.length ?? 0) > 0 && (
@@ -1030,27 +1101,6 @@ function JobDetail() {
         />
       )}
 
-      {canEdit && user && (
-        <div className="no-print">
-          <InspectionPanel
-            jobId={jobId}
-            jobNumber={j.job_number}
-            jobStartedAt={j.started_at}
-            customerName={displayCustomerName(j.customers as any)}
-            isAdmin={isAdmin || isTechnician}
-            userId={user.id}
-            onJobChanged={() => {
-              qc.invalidateQueries({ queryKey: ["job", jobId] });
-              qc.invalidateQueries({ queryKey: ["job-approval-pending", jobId] });
-              qc.invalidateQueries({ queryKey: ["job-events", jobId] });
-              qc.invalidateQueries({ queryKey: ["job-approved-findings", jobId] });
-              qc.invalidateQueries({ queryKey: ["job-approval-approved", jobId] });
-              qc.invalidateQueries({ queryKey: ["notifications"] });
-              qc.invalidateQueries({ queryKey: ["dashboard-counts"] });
-            }}
-          />
-        </div>
-      )}
 
       <div className="no-print">
         <JobTimeline jobId={jobId} />
