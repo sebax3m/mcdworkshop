@@ -23,16 +23,21 @@ export function ClaimBikeCard({
   bike,
   bikeText,
   claimId,
+  customerId,
   canEdit = true,
 }: {
   bike: Bike | null | undefined;
   bikeText: string;
   claimId: string;
+  customerId?: string | null;
   canEdit?: boolean;
 }) {
   const qc = useQueryClient();
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [picking, setPicking] = useState(false);
+  const [search, setSearch] = useState("");
+  const [results, setResults] = useState<Bike[]>([]);
   const [form, setForm] = useState({
     year: bike?.year != null ? String(bike.year) : "",
     make: bike?.make ?? "",
