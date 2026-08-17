@@ -235,6 +235,7 @@ function InvoiceDetail() {
   const nav = useNavigate();
   const qc = useQueryClient();
   const { isAdmin, user } = useCurrentUser();
+  const { technicians } = useTechnicians();
 
   const invoice = useQuery({
     queryKey: ["invoice", invoiceId],
@@ -454,7 +455,6 @@ function InvoiceDetail() {
     await recomputeInvoiceTotals(nextAmount);
   }
 
-  const { technicians } = useTechnicians();
   const snapTechId = (inv?.snapshot as any)?.technician_id as string | null | undefined;
   const technicianId =
     snapTechId !== undefined && snapTechId !== null
