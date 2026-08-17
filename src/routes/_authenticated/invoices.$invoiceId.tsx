@@ -25,6 +25,8 @@ import { toast } from "sonner";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { useTechnicians } from "@/hooks/use-active-technician";
 import { PrintPreview } from "@/components/PrintPreview";
+import { readWorkPerformed } from "@/components/job/WorkPerformedSection";
+
 import {
   AlertDialog,
   AlertDialogAction,
