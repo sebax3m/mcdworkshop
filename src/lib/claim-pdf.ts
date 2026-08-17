@@ -110,25 +110,38 @@ async function compressDataUrl(dataUrl: string, maxW: number, quality: number): 
   }
 }
 
-async function loadClaimPhotos(claimId: string): Promise<string[]> {
+export async function countClaimPhotos(claimId: string): Promise<number> {
+  const { count } = await supabase
+    .from("job_photos")
+    .select("id", { count: "exact", head: true })
+    .ilike("caption", `CLAIM_DAMAGE: ${claimId}%`);
+  return count ?? 0;
+}
+
+async function loadClaimPhotos(claimId: string, opts: ClaimPdfOptions): Promise<string[]> {
   const { data } = await supabase
     .from("job_photos")
     .select("storage_path")
     .ilike("caption", `CLAIM_DAMAGE: ${claimId}%`)
     .order("created_at", { ascending: false });
-  const rows = data ?? [];
+  let rows = data ?? [];
+  if (!rows.length) return [];
+  if (opts.maxPhotos != null) rows = rows.slice(0, Math.max(0, opts.maxPhotos));
   if (!rows.length) return [];
   const { data: signed } = await supabase.storage.from("workshop-photos").createSignedUrls(
     rows.map((r) => r.storage_path),
     60 * 60,
   );
   const urls = (signed ?? []).map((s) => s.signedUrl).filter(Boolean) as string[];
-  const datas = await Promise.all(urls.map(fetchAsDataUrl));
-  return datas.filter(Boolean) as string[];
+  const datas = (await Promise.all(urls.map(fetchAsDataUrl))).filter(Boolean) as string[];
+  const maxW = opts.photoMaxWidth ?? 1000;
+  const q = opts.photoQuality ?? 0.7;
+  return await Promise.all(datas.map((u) => compressDataUrl(u, maxW, q)));
 }
 
 export async function buildClaimPdf(d: ClaimPdfData): Promise<Blob> {
   const { claim: c, bikeText, marks, items } = d;
+  const opts: ClaimPdfOptions = d.options ?? {};
   const pdf = new jsPDF("p", "mm", "a4");
   const pageW = 210;
   const pageH = 297;
