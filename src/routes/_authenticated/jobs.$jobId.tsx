@@ -901,10 +901,10 @@ function JobDetail() {
           onSaved={() => qc.invalidateQueries({ queryKey: ["job", jobId] })}
         />
 
-        {/* Book-in instructions — show first so the technician sees them immediately */}
-        {(booking.data?.id || booking.data?.instructions || booking.data?.notes) && (
+        {/* Book-in instructions — always visible when a booking exists so technicians see them immediately */}
+        {booking.data?.id && (
           <InstructionsSection
-            bookingId={booking.data?.id ?? null}
+            bookingId={booking.data.id}
             instructions={booking.data?.instructions ?? ""}
             notes={booking.data?.notes ?? ""}
             canEdit={canEdit}
