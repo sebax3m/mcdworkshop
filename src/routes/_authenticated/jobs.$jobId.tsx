@@ -900,18 +900,20 @@ function JobDetail() {
           canEdit={canEditBike}
           onSaved={() => qc.invalidateQueries({ queryKey: ["job", jobId] })}
         />
+      </div>
 
-        {/* Book-in instructions — always visible when a booking exists so technicians see them immediately */}
-        {booking.data?.id && (
-          <InstructionsSection
-            bookingId={booking.data.id}
-            instructions={booking.data?.instructions ?? ""}
-            notes={booking.data?.notes ?? ""}
-            canEdit={canEdit}
-            onSaved={() => qc.invalidateQueries({ queryKey: ["job-booking", jobId] })}
-          />
-        )}
+      {/* Book-in instructions — visible on screen AND on the printed job card */}
+      {booking.data?.id && (
+        <InstructionsSection
+          bookingId={booking.data.id}
+          instructions={booking.data?.instructions ?? ""}
+          notes={booking.data?.notes ?? ""}
+          canEdit={canEdit}
+          onSaved={() => qc.invalidateQueries({ queryKey: ["job-booking", jobId] })}
+        />
+      )}
 
+      <div className="print:hidden">
         {/* Inspection & approval — right after instructions */}
         {canEdit && user && (
           <div className="no-print">
@@ -937,10 +939,10 @@ function JobDetail() {
 
         {/* Shift clock — technicians can clock in without leaving the job card */}
         {isTechnician && user && <ShiftClockCard userId={user.id} jobId={jobId} />}
+      </div>
 
-
-        {/* Customer-approved extra work — right below the clock-in area */}
-        {(approvedFindings.data?.length ?? 0) > 0 && (
+      {/* Customer-approved extra work — right below the clock-in area */}
+      {(approvedFindings.data?.length ?? 0) > 0 && (
           <section
             data-print-section="approvals"
             className="card-surface p-4 border-l-4 border-emerald-500/70"
@@ -990,8 +992,7 @@ function JobDetail() {
               </div>
             )}
           </section>
-        )}
-      </div>
+      )}
 
       {/* Work performed / additional work */}
       <WorkPerformedSection
