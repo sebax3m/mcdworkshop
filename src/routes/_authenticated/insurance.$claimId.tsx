@@ -423,6 +423,7 @@ function QuoteBuilder({
   const [rate, setRate] = useState<number>(Number(c.quote_labour_rate ?? 110));
   const [dirty, setDirty] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [pdfOpen, setPdfOpen] = useState(false);
 
   const subtotal = items.reduce(
     (s, it) => s + (Number(it.qty) || 0) * (Number(it.unit_price) || 0),
