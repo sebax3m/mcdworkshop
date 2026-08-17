@@ -1101,27 +1101,6 @@ function JobDetail() {
         />
       )}
 
-      {canEdit && user && (
-        <div className="no-print">
-          <InspectionPanel
-            jobId={jobId}
-            jobNumber={j.job_number}
-            jobStartedAt={j.started_at}
-            customerName={displayCustomerName(j.customers as any)}
-            isAdmin={isAdmin || isTechnician}
-            userId={user.id}
-            onJobChanged={() => {
-              qc.invalidateQueries({ queryKey: ["job", jobId] });
-              qc.invalidateQueries({ queryKey: ["job-approval-pending", jobId] });
-              qc.invalidateQueries({ queryKey: ["job-events", jobId] });
-              qc.invalidateQueries({ queryKey: ["job-approved-findings", jobId] });
-              qc.invalidateQueries({ queryKey: ["job-approval-approved", jobId] });
-              qc.invalidateQueries({ queryKey: ["notifications"] });
-              qc.invalidateQueries({ queryKey: ["dashboard-counts"] });
-            }}
-          />
-        </div>
-      )}
 
       <div className="no-print">
         <JobTimeline jobId={jobId} />
