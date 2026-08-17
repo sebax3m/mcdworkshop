@@ -939,10 +939,10 @@ function JobDetail() {
 
         {/* Shift clock — technicians can clock in without leaving the job card */}
         {isTechnician && user && <ShiftClockCard userId={user.id} jobId={jobId} />}
+      </div>
 
-
-        {/* Customer-approved extra work — right below the clock-in area */}
-        {(approvedFindings.data?.length ?? 0) > 0 && (
+      {/* Customer-approved extra work — right below the clock-in area */}
+      {(approvedFindings.data?.length ?? 0) > 0 && (
           <section
             data-print-section="approvals"
             className="card-surface p-4 border-l-4 border-emerald-500/70"
