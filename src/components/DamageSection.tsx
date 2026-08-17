@@ -155,7 +155,7 @@ export function DamageSection({
   }
 
   return (
-    <section className="card-surface p-4 sm:p-5 border-l-4 border-orange-500/60 print:break-inside-avoid">
+    <section className="card-surface p-4 sm:p-5 border-l-4 border-orange-500/60 print:break-inside-avoid print:bg-white print:text-black print:shadow-none">
       <div className="flex items-center justify-between gap-3 flex-wrap mb-3">
         <div className="flex items-center gap-2.5">
           <div className="grid h-9 w-9 place-items-center rounded-lg bg-orange-500/15 text-orange-400">
@@ -227,7 +227,7 @@ export function DamageSection({
       </div>
 
       {/* Diagram */}
-      <div className="relative rounded-xl border border-border bg-gradient-to-br from-background to-card overflow-hidden">
+      <div className="relative rounded-xl border border-border bg-gradient-to-br from-background to-card overflow-hidden print:bg-white">
         <svg
           viewBox="0 0 600 320"
           className={`w-full h-auto ${canEdit ? "cursor-crosshair" : ""}`}
@@ -296,7 +296,7 @@ export function DamageSection({
           {marks.map((m, i) => (
             <div
               key={m.id}
-              className="flex items-center gap-2 rounded-lg border border-border bg-background/40 px-2.5 py-1.5 text-xs"
+              className="flex items-center gap-2 rounded-lg border border-border bg-background/40 px-2.5 py-1.5 text-xs print:bg-white"
             >
               <span
                 className="grid h-6 w-6 place-items-center rounded-full text-white font-bold text-[0.6875rem] shrink-0"
@@ -359,7 +359,7 @@ export function DamageSection({
             {(photos.data ?? []).map((p: any) => (
               <div
                 key={p.id}
-                className="relative group rounded-lg overflow-hidden border border-border bg-card aspect-square"
+                className="relative group rounded-lg overflow-hidden border border-border bg-card aspect-square print:bg-white"
               >
                 <img
                   src={p.url}
