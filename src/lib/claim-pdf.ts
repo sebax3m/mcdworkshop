@@ -380,16 +380,18 @@ export async function sendClaimEmailWithPdf(
     body: string;
   },
 ): Promise<{ shared: boolean }> {
+  const { preparePdfAttachments, downloadFile } = await import("@/lib/pdf-attachments");
   const blob = await buildClaimPdf(d);
-  const filename = `Claim-${d.claim.claim_number}.pdf`;
-  const file = new File([blob], filename, { type: "application/pdf" });
+  const prepared = await preparePdfAttachments(blob, `Claim-${d.claim.claim_number}`);
+  const files = prepared.map((p) => p.file);
+  const names = files.map((f) => f.name);
 
-  // Try Web Share API (mobile + some desktop) — attaches the file directly
+  // Try Web Share API (mobile + some desktop) — attaches the file(s) directly
   const nav: any = navigator;
-  if (nav.canShare && nav.canShare({ files: [file] })) {
+  if (nav.canShare && nav.canShare({ files })) {
     try {
       await nav.share({
-        files: [file],
+        files,
         title: d.subject,
         text: d.body,
       });
@@ -401,18 +403,12 @@ export async function sendClaimEmailWithPdf(
   }
 
   // Fallback: download + open mailto
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = filename;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 2000);
+  files.forEach((f, i) => setTimeout(() => downloadFile(f), i * 400));
 
   const href = `mailto:${d.to}?subject=${encodeURIComponent(d.subject)}&body=${encodeURIComponent(
-    d.body + `\n\n(Attach the downloaded file: ${filename})`,
+    d.body + `\n\n(Attach the downloaded file${files.length > 1 ? "s" : ""}: ${names.join(", ")})`,
   )}`;
   window.location.href = href;
   return { shared: false };
 }
+
