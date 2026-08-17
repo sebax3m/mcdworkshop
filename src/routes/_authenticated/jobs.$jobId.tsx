@@ -539,11 +539,26 @@ function JobDetail() {
     <div ref={jobRef} className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-5 items-start jobcard-print">
       <style>{`
         @media print {
-          @page { size: A4; margin: 14mm; }
-          html, body { background: #fff !important; color: #000 !important; }
+          @page { size: A4 portrait; margin: 12mm; }
+          html, body {
+            background: #fff !important;
+            color: #000 !important;
+            width: auto !important;
+            margin: 0 !important;
+            padding: 0 !important;
+          }
           body * { visibility: hidden !important; }
           .jobcard-print, .jobcard-print * { visibility: visible !important; }
-          .jobcard-print { position: absolute; left: 0; top: 0; width: 100%; max-width: none; margin: 0; padding: 0; }
+          .jobcard-print {
+            position: static !important;
+            display: block !important;
+            width: auto !important;
+            max-width: none !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            box-sizing: border-box;
+          }
+          .jobcard-print img { max-width: 100% !important; }
           .jobcard-print .card-surface { box-shadow: none !important; border-color: #d1d5db !important; background: #fff !important; }
           .no-print, .no-print * { display: none !important; }
         }
