@@ -227,7 +227,7 @@ export function DamageSection({
       </div>
 
       {/* Diagram */}
-      <div className="relative rounded-xl border border-border bg-gradient-to-br from-background to-card overflow-hidden">
+      <div className="relative rounded-xl border border-border bg-gradient-to-br from-background to-card overflow-hidden print:bg-white">
         <svg
           viewBox="0 0 600 320"
           className={`w-full h-auto ${canEdit ? "cursor-crosshair" : ""}`}
