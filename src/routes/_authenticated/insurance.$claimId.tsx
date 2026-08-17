@@ -824,23 +824,13 @@ function QuoteBuilder({
             variant="outline"
             className="gap-2"
             onClick={async () => {
-              const t = toast.loading("Building PDF with photos & diagram…");
+              const t = toast.loading("Building PDF with photos…");
               try {
                 const { buildClaimPdf } = await import("@/lib/claim-pdf");
-                const { data: fresh } = await (supabase as any)
-                  .from("insurance_claims")
-                  .select("damage_marks")
-                  .eq("id", c.id)
-                  .maybeSingle();
-                const liveMarks = Array.isArray(fresh?.damage_marks)
-                  ? fresh.damage_marks
-                  : Array.isArray(c.damage_marks)
-                    ? c.damage_marks
-                    : [];
                 const blob = await buildClaimPdf({
                   claim: c,
                   bikeText,
-                  marks: liveMarks as any,
+                  marks: [],
                   items,
                 });
                 const url = URL.createObjectURL(blob);
