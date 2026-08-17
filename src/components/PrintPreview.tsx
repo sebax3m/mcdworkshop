@@ -224,6 +224,11 @@ function paperCss(margin: number) {
     /* drag mode */
     body.dragmode .sheet-inner > *, body.dragmode [data-print-section] { cursor: move; }
     body.dragmode [data-print-section]:hover { outline: 1px dashed #b91c1c; }
+    /* A page that is allowed to flow onto extra sheets keeps the same
+       @page margins but grows and paginates naturally. */
+    .sheet.flow { height:auto !important; max-height:none !important; overflow:visible !important; }
+    .sheet.flow [data-print-section],
+    .sheet.flow table tr { break-inside: avoid; page-break-inside: avoid; }
     @media print {
       html, body { background:#ffffff !important; }
       .sheet {
@@ -232,10 +237,15 @@ function paperCss(margin: number) {
         break-inside: avoid; page-break-inside: avoid;
         break-after: page; page-break-after: always;
       }
+      .sheet.flow {
+        overflow:visible !important;
+        break-inside: auto !important; page-break-inside: auto !important;
+      }
       /* The trailing <script> is the real last child, so :last-child never
          matched and every document printed one extra blank page. */
       .sheet:last-of-type { break-after: auto; page-break-after: auto; }
     }
+
 
   `;
 }
