@@ -88,17 +88,19 @@ export function JobPhotosSection({
     try {
       const { data: u } = await supabase.auth.getUser();
       const uid = u.user?.id;
+      const desc = note.trim();
       for (const f of files) {
         const path = await uploadPhoto(f, `job/${jobId}`);
         const { error } = await supabase.from("job_photos").insert({
           job_id: jobId,
           uploaded_by: uid,
           storage_path: path,
-          caption: `${JOB_PHOTO_PREFIX}:${category}: ${f.name}`,
+          caption: `${JOB_PHOTO_PREFIX}:${category}: ${desc || f.name}`,
         } as any);
         if (error) throw error;
       }
       toast.success(`${files.length} photo${files.length > 1 ? "s" : ""} added`);
+      setNote("");
       qc.invalidateQueries({ queryKey: ["job-photos", jobId] });
     } catch (e: any) {
       toast.error(e?.message ?? "Upload failed");
@@ -107,6 +109,19 @@ export function JobPhotosSection({
       if (fileRef.current) fileRef.current.value = "";
       if (cameraRef.current) cameraRef.current.value = "";
     }
+  }
+
+  async function saveNote(p: Row, text: string) {
+    const caption = `${JOB_PHOTO_PREFIX}:${p.category}: ${text.trim()}`;
+    const { error } = await supabase.from("job_photos").update({ caption }).eq("id", p.id);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    setEditing(null);
+    setLightbox((l) => (l && l.id === p.id ? { ...l, caption } : l));
+    qc.invalidateQueries({ queryKey: ["job-photos", jobId] });
+    toast.success("Description saved");
   }
 
   async function remove(p: Row) {
@@ -119,6 +134,7 @@ export function JobPhotosSection({
     qc.invalidateQueries({ queryKey: ["job-photos", jobId] });
     setLightbox(null);
   }
+
 
   async function shareLink(p: Row, mode: "sms" | "copy") {
     // 7-day link so the customer can still open it after receiving the text.
