@@ -900,18 +900,20 @@ function JobDetail() {
           canEdit={canEditBike}
           onSaved={() => qc.invalidateQueries({ queryKey: ["job", jobId] })}
         />
+      </div>
 
-        {/* Book-in instructions — always visible when a booking exists so technicians see them immediately */}
-        {booking.data?.id && (
-          <InstructionsSection
-            bookingId={booking.data.id}
-            instructions={booking.data?.instructions ?? ""}
-            notes={booking.data?.notes ?? ""}
-            canEdit={canEdit}
-            onSaved={() => qc.invalidateQueries({ queryKey: ["job-booking", jobId] })}
-          />
-        )}
+      {/* Book-in instructions — visible on screen AND on the printed job card */}
+      {booking.data?.id && (
+        <InstructionsSection
+          bookingId={booking.data.id}
+          instructions={booking.data?.instructions ?? ""}
+          notes={booking.data?.notes ?? ""}
+          canEdit={canEdit}
+          onSaved={() => qc.invalidateQueries({ queryKey: ["job-booking", jobId] })}
+        />
+      )}
 
+      <div className="print:hidden">
         {/* Inspection & approval — right after instructions */}
         {canEdit && user && (
           <div className="no-print">
