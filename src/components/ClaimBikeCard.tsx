@@ -251,7 +251,7 @@ export function ClaimBikeCard({
             {results.length === 0 ? (
               <div className="p-3 text-xs text-muted-foreground">No motorcycles found.</div>
             ) : (
-              results.map((m) => (
+              results.map((m: Bike) => (
                 <button
                   key={m.id}
                   onClick={() => void assign(m.id)}
