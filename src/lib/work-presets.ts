@@ -33,13 +33,15 @@ export const WORK_PRESETS: WorkPreset[] = [
     hours: 3,
     items: [
       "Engine oil and filter replaced with correct grade",
+      "Drain plug and filter torqued to spec",
       "Air filter replaced",
       "Spark plugs inspected / replaced and gapped to spec",
-      "Coolant level and condition checked",
-      "Brake fluid level and condition checked",
-      "Brake pads, discs and calipers inspected",
-      "Clutch operation and free play adjusted",
-      "Chain and sprockets inspected, cleaned, lubricated and adjusted",
+      "Brake fluid replaced front and rear with fresh DOT 4 and system bled",
+      "Coolant drained and replaced with correct spec coolant, system bled of air",
+      "Clutch fluid replaced and system bled (hydraulic clutch models)",
+      "Cable clutch free play adjusted and lubricated (cable clutch models)",
+      "Final drive oil replaced (shaft drive models) / chain and sprockets inspected, cleaned, lubricated and adjusted",
+      "Brake pads, discs and calipers inspected and cleaned",
       "Wheel bearings and steering head bearings checked",
       "Suspension inspected for leaks and operation",
       "Tyres inspected, pressures set",
@@ -49,6 +51,7 @@ export const WORK_PRESETS: WorkPreset[] = [
       "Extended road test completed",
     ],
   },
+
   {
     id: "pre-wof",
     label: "Pre-WOF Check",
