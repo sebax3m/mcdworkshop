@@ -519,7 +519,16 @@ function JobDetail() {
         total,
         status: "draft",
         created_by: user.id,
+        snapshot: {
+          work_performed_hours_added: true,
+          labour_desc: workPerformed.length
+            ? workPerformed
+                .map((w) => (w.detail ? `${w.title}\n${w.detail}` : w.title))
+                .join("\n\n")
+            : undefined,
+        } as any,
       })
+
       .select("id, invoice_number")
       .maybeSingle();
     if (error) return toast.error(error.message);
