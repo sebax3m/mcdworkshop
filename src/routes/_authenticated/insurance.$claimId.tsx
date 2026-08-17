@@ -305,6 +305,7 @@ function ClaimDetail() {
           bike={(c.motorcycles as any) ?? null}
           bikeText={bikeText}
           claimId={claimId}
+          customerId={c.customer_id ?? c.customers?.id ?? null}
         />
       </section>
 
