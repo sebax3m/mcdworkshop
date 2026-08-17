@@ -875,16 +875,29 @@ function InvoiceDetail() {
             </div>
             <div>
               <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">
-                Status
-              </div>
-              <div className="font-semibold uppercase">{inv.status}</div>
-            </div>
-            <div>
-              <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">
                 Job
               </div>
               <div className="font-semibold">{inv.jobs ? `#${inv.jobs.job_number}` : "—"}</div>
             </div>
+            <div>
+              <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">
+                Technician
+              </div>
+              <div className="font-semibold print:block hidden">{technicianName || "—"}</div>
+              <select
+                className="no-print w-full rounded-md border border-border bg-background px-1 py-0.5 text-sm font-semibold"
+                value={technicianId ?? ""}
+                onChange={(e) => saveSnapshotMeta({ technician_id: e.target.value || null })}
+              >
+                <option value="">—</option>
+                {technicians.map((t) => (
+                  <option key={t.id} value={t.id}>
+                    {t.full_name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
           </div>
 
           {/* Bill to + Bike */}
