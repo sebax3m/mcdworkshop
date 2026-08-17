@@ -354,7 +354,7 @@ function McdTechPanel({
     <div
       className={cn(
         "fixed z-[60] print:hidden flex flex-col overflow-hidden border border-primary/25 bg-card shadow-2xl",
-        "inset-0 sm:inset-auto sm:left-4 sm:bottom-5 sm:w-[440px] sm:h-[680px] sm:max-h-[calc(100vh-110px)] sm:rounded-xl",
+        "inset-0 sm:inset-auto sm:right-4 sm:left-auto sm:bottom-5 sm:w-[440px] sm:h-[680px] sm:max-h-[calc(100vh-110px)] sm:rounded-xl",
         !visible && "hidden",
       )}
     >
