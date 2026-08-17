@@ -1138,7 +1138,7 @@ function JobDetail() {
           { id: "approvals", label: "Customer-approved work" },
           { id: "notes", label: "Job notes" },
           { id: "parts", label: "Parts used" },
-          { id: "checklist", label: "Service checklist" },
+          
         ]}
       />
 
