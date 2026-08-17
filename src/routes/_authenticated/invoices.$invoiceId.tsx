@@ -242,7 +242,7 @@ function InvoiceDetail() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("invoices")
-        .select("*, customers(*), motorcycles(*), jobs(job_number, title, description, odometer, technician_id, assigned_tech_id)")
+        .select("*, customers(*), motorcycles(*), jobs(job_number, title, description, odometer, technician_id, assigned_tech_id, service_data)")
         .eq("id", invoiceId)
         .maybeSingle();
       if (error) throw error;
