@@ -55,6 +55,7 @@ import {
   resolveValveSpec,
 } from "@/lib/valve-spec-store";
 import { DamageSection } from "@/components/DamageSection";
+import { JobPhotosSection } from "@/components/job/JobPhotosSection";
 import logoAsset from "@/assets/motorcycle-doctors-logo.png.asset.json";
 
 // Debounced auto-save: fires `save` ~800ms after `value` stops changing.
