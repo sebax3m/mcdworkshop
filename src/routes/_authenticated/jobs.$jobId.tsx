@@ -480,9 +480,13 @@ function JobDetail() {
     // Bill the standard estimated hours for the booked service (e.g. standard service = 2.5h).
     // Fall back to actual tracked time when no estimate is set on the job/template.
     const trackedHours = totalMinutes / 60;
-    const billedHours =
+    const baseHours =
       Number(j.estimated_hours ?? 0) > 0 ? Number(j.estimated_hours) : trackedHours;
+    const workPerformed = readWorkPerformed(j.service_data);
+    const extraHours = workPerformed.reduce((s, w) => s + Number(w.hours ?? 0), 0);
+    const billedHours = baseHours + extraHours;
     const labour = Math.round(billedHours * LABOUR_RATE * 100) / 100;
+
     const parts = (partsUsed.data ?? []).reduce(
       (s, p: any) =>
         s +
