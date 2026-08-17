@@ -943,41 +943,55 @@ function InvoiceDetail() {
             </div>
           </div>
 
-          {/* Service checks */}
-          <div data-print-section="checks">
-            <ServiceChecks
-              jobId={inv.job_id}
-              title={inv.jobs?.title ?? null}
-              items={checks.data ?? []}
-              onChanged={() =>
-                qc.invalidateQueries({ queryKey: ["invoice-checks", invoiceId, inv.job_id] })
-              }
-              details={String((inv.snapshot as any)?.work_details ?? "")}
-              onSaveDetails={(v) => saveSnapshotMeta({ work_details: v })}
-            />
-          </div>
-
-          {/* Work performed / additional work recorded on the job card */}
+          {/* Work performed — recorded on the job card */}
           {(() => {
-            const wp = readWorkPerformed((inv.jobs as any)?.service_data);
-            if (!wp.length) return null;
+            const hidden: string[] = Array.isArray((inv.snapshot as any)?.work_performed_hidden)
+              ? (inv.snapshot as any).work_performed_hidden
+              : [];
+            const all = readWorkPerformed((inv.jobs as any)?.service_data);
+            const wp = all.filter((w) => !hidden.includes(w.id));
+            if (!all.length) return null;
             return (
               <div className="pt-5 border-t border-border" data-print-section="work-performed">
                 <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground mb-2">
                   Work performed
                 </div>
+                {wp.length === 0 && (
+                  <div className="text-xs text-muted-foreground italic no-print">
+                    All entries hidden on this invoice.
+                  </div>
+                )}
                 <div className="space-y-3">
                   {wp.map((w) => (
-                    <div key={w.id}>
-                      <div className="text-sm font-semibold">{w.title}</div>
-                      {w.detail && (
-                        <div className="text-xs text-muted-foreground whitespace-pre-wrap mt-0.5">
-                          {w.detail}
-                        </div>
-                      )}
+                    <div key={w.id} className="group flex items-start gap-2">
+                      <div className="min-w-0 flex-1">
+                        <div className="text-sm font-semibold">{w.title}</div>
+                        {w.detail && (
+                          <div className="text-xs text-muted-foreground whitespace-pre-wrap mt-0.5">
+                            {w.detail}
+                          </div>
+                        )}
+                      </div>
+                      <button
+                        onClick={() =>
+                          saveSnapshotMeta({ work_performed_hidden: [...hidden, w.id] })
+                        }
+                        className="no-print opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive p-0.5"
+                        title="Remove from this invoice"
+                      >
+                        <X className="h-3.5 w-3.5" />
+                      </button>
                     </div>
                   ))}
                 </div>
+                {hidden.length > 0 && (
+                  <button
+                    onClick={() => saveSnapshotMeta({ work_performed_hidden: [] })}
+                    className="no-print mt-3 text-[0.625rem] uppercase tracking-wider text-muted-foreground hover:text-foreground"
+                  >
+                    Restore {hidden.length} hidden {hidden.length === 1 ? "entry" : "entries"}
+                  </button>
+                )}
               </div>
             );
           })()}
