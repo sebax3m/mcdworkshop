@@ -1079,6 +1079,13 @@ function JobDetail() {
       )}
 
 
+      {/* Photo evidence — available to all staff on every job */}
+      <JobPhotosSection
+        jobId={jobId}
+        customerPhone={j.customers?.phone ?? null}
+        jobNumber={j.job_number}
+      />
+
       {/* Damage report (collision repair jobs) */}
       {kind === "collision" && (
         <DamageSection
