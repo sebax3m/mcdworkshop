@@ -746,16 +746,12 @@ function InvoiceDetail() {
             border: none !important;
             page-break-inside: avoid;
           }
-          /* Keep the red banner exactly like it looks in the app */
-          .invoice-sheet .red-surface,
-          .invoice-sheet .red-surface * {
-            -webkit-print-color-adjust: exact !important;
-            print-color-adjust: exact !important;
-            color: #ffffff !important;
-            -webkit-text-fill-color: #ffffff !important;
+          /* Clean white header for print */
+          .invoice-sheet .bg-background {
+            background: #ffffff !important;
           }
-          .invoice-sheet .red-surface {
-            background: linear-gradient(135deg, #b91c1c, #7f1d1d) !important;
+          .invoice-sheet .border-border {
+            border-color: #e5e7eb !important;
           }
           /* Tighten spacing so it fits on one page */
           .invoice-sheet .p-8 { padding: 14px 18px !important; }
@@ -769,7 +765,7 @@ function InvoiceDetail() {
           .invoice-sheet h1, .invoice-sheet h2, .invoice-sheet h3 { margin: 0 !important; }
           .invoice-sheet table { font-size: 10.5px !important; }
           .invoice-sheet th, .invoice-sheet td { padding: 4px 6px !important; }
-          .invoice-sheet img { max-height: 44px !important; }
+          .invoice-sheet img { max-height: 64px !important; }
           .no-print, .print\\:hidden { display: none !important; }
         }
       `}</style>
@@ -828,13 +824,13 @@ function InvoiceDetail() {
       </header>
 
       <div ref={sheetRef} className="card-surface invoice-sheet overflow-hidden">
-        {/* Gold banner */}
-        <div className="red-surface px-8 py-6 flex items-start justify-between gap-4 flex-wrap">
+        {/* Clean white header */}
+        <div className="bg-background border-b border-border px-8 py-6 flex items-center justify-between gap-4 flex-wrap text-foreground">
           <div className="flex items-center gap-4">
             <img
               src={logoAsset.url}
               alt="Motorcycle Doctors"
-              className="h-14 w-14 rounded-md object-contain bg-black/10 p-1"
+              className="h-20 w-20 object-contain"
             />
             <div>
               <div className="font-display text-3xl font-black tracking-tight">
