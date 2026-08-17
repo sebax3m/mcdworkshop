@@ -359,7 +359,7 @@ export function DamageSection({
             {(photos.data ?? []).map((p: any) => (
               <div
                 key={p.id}
-                className="relative group rounded-lg overflow-hidden border border-border bg-card aspect-square"
+                className="relative group rounded-lg overflow-hidden border border-border bg-card aspect-square print:bg-white"
               >
                 <img
                   src={p.url}
