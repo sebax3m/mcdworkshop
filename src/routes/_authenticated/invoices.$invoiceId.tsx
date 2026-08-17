@@ -23,6 +23,7 @@ import logoAsset from "@/assets/motorcycle-doctors-logo.png.asset.json";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useCurrentUser } from "@/hooks/use-current-user";
+import { useTechnicians } from "@/hooks/use-active-technician";
 import { PrintPreview } from "@/components/PrintPreview";
 import {
   AlertDialog,
@@ -240,7 +241,7 @@ function InvoiceDetail() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("invoices")
-        .select("*, customers(*), motorcycles(*), jobs(job_number, title, description, odometer)")
+        .select("*, customers(*), motorcycles(*), jobs(job_number, title, description, odometer, technician_id, assigned_tech_id)")
         .eq("id", invoiceId)
         .maybeSingle();
       if (error) throw error;
@@ -452,6 +453,14 @@ function InvoiceDetail() {
     nextAmount = Math.round(nextAmount * 100) / 100;
     await recomputeInvoiceTotals(nextAmount);
   }
+
+  const { technicians } = useTechnicians();
+  const snapTechId = (inv?.snapshot as any)?.technician_id as string | null | undefined;
+  const technicianId =
+    snapTechId !== undefined && snapTechId !== null
+      ? snapTechId
+      : ((inv?.jobs as any)?.technician_id ?? (inv?.jobs as any)?.assigned_tech_id ?? null);
+  const technicianName = technicians.find((t) => t.id === technicianId)?.full_name ?? "";
 
   async function saveSnapshotMeta(patch: Record<string, unknown>) {
     const newSnap = { ...((inv.snapshot as any) ?? {}), ...patch };
