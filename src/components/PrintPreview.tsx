@@ -467,7 +467,10 @@ export function PrintPreview({
           Math.min(2.5, Math.min(availPx / contentPx, availW / Math.max(1, contentW))) *
           (scale / 100);
       }
-      if (fitOnePage && contentPx * k > availPx) {
+      // Auto shrink-to-one-page only while the user hasn't set a manual scale.
+      // Otherwise the manual scale is honoured exactly (it may overflow / flow).
+      const autoFit = fitOnePage && scale === 100;
+      if (autoFit && contentPx * k > availPx) {
         k = Math.max(0.45, availPx / contentPx);
         if (contentPx * k > availPx + 2) over = true;
       }
@@ -475,13 +478,14 @@ export function PrintPreview({
         inner.style.transform = `scale(${k})`;
         inner.style.width = `${100 / k}%`;
       }
-      if (!fitOnePage && contentPx * k > availPx) {
+      if (!autoFit && contentPx * k > availPx) {
         // Let the sheet grow: the browser paginates it onto extra pages while
         // @page keeps the same margins on every page.
         over = true;
         sheet.classList.add("flow");
         sheet.style.height = `${Math.ceil(contentPx * k)}px`;
       }
+
 
     });
     setOverflow(over);
