@@ -23,6 +23,7 @@ import logoAsset from "@/assets/motorcycle-doctors-logo.png.asset.json";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useCurrentUser } from "@/hooks/use-current-user";
+import { useTechnicians } from "@/hooks/use-active-technician";
 import { PrintPreview } from "@/components/PrintPreview";
 import {
   AlertDialog,
@@ -234,13 +235,14 @@ function InvoiceDetail() {
   const nav = useNavigate();
   const qc = useQueryClient();
   const { isAdmin, user } = useCurrentUser();
+  const { technicians } = useTechnicians();
 
   const invoice = useQuery({
     queryKey: ["invoice", invoiceId],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("invoices")
-        .select("*, customers(*), motorcycles(*), jobs(job_number, title, description, odometer)")
+        .select("*, customers(*), motorcycles(*), jobs(job_number, title, description, odometer, technician_id, assigned_tech_id)")
         .eq("id", invoiceId)
         .maybeSingle();
       if (error) throw error;
@@ -452,6 +454,13 @@ function InvoiceDetail() {
     nextAmount = Math.round(nextAmount * 100) / 100;
     await recomputeInvoiceTotals(nextAmount);
   }
+
+  const snapTechId = (inv?.snapshot as any)?.technician_id as string | null | undefined;
+  const technicianId =
+    snapTechId !== undefined && snapTechId !== null
+      ? snapTechId
+      : ((inv?.jobs as any)?.technician_id ?? (inv?.jobs as any)?.assigned_tech_id ?? null);
+  const technicianName = technicians.find((t) => t.id === technicianId)?.full_name ?? "";
 
   async function saveSnapshotMeta(patch: Record<string, unknown>) {
     const newSnap = { ...((inv.snapshot as any) ?? {}), ...patch };
@@ -841,8 +850,11 @@ function InvoiceDetail() {
               <div className="font-display text-3xl font-black tracking-tight">
                 Motorcycle Doctors
               </div>
-              <div className="text-xs uppercase tracking-[0.3em] opacity-80 mt-1">
-                Premium Motorcycle Workshop
+              <div className="text-[0.7rem] leading-snug opacity-90 mt-1 space-y-0.5">
+                <div>94 Wairau Rd, Wairau Valley, Auckland City, Auckland, New Zealand</div>
+                <div>services@mcdr.co.nz · www.motorcycle-doctors.co.nz</div>
+                <div>0800 668 663 · GST Reg N°: 99386185</div>
+                <div>Repairs / Service / Dyno Tuning / Collision Repairs</div>
               </div>
             </div>
           </div>
@@ -853,6 +865,7 @@ function InvoiceDetail() {
             <div className="font-display text-2xl font-black">{inv.invoice_number}</div>
           </div>
         </div>
+
 
         <div className="p-8 space-y-7">
           {/* Meta strip */}
@@ -871,16 +884,29 @@ function InvoiceDetail() {
             </div>
             <div>
               <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">
-                Status
-              </div>
-              <div className="font-semibold uppercase">{inv.status}</div>
-            </div>
-            <div>
-              <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">
                 Job
               </div>
               <div className="font-semibold">{inv.jobs ? `#${inv.jobs.job_number}` : "—"}</div>
             </div>
+            <div>
+              <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">
+                Technician
+              </div>
+              <div className="font-semibold print:block hidden">{technicianName || "—"}</div>
+              <select
+                className="no-print w-full rounded-md border border-border bg-background px-1 py-0.5 text-sm font-semibold"
+                value={technicianId ?? ""}
+                onChange={(e) => saveSnapshotMeta({ technician_id: e.target.value || null })}
+              >
+                <option value="">—</option>
+                {technicians.map((t) => (
+                  <option key={t.id} value={t.id}>
+                    {t.full_name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
           </div>
 
           {/* Bill to + Bike */}
