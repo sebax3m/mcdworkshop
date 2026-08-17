@@ -87,6 +87,29 @@ async function fetchAsDataUrl(url: string): Promise<string | null> {
   }
 }
 
+async function compressDataUrl(dataUrl: string, maxW: number, quality: number): Promise<string> {
+  try {
+    const img = await new Promise<HTMLImageElement>((res, rej) => {
+      const i = new Image();
+      i.onload = () => res(i);
+      i.onerror = rej;
+      i.src = dataUrl;
+    });
+    const scale = Math.min(1, maxW / (img.naturalWidth || maxW));
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.max(1, Math.round(img.naturalWidth * scale));
+    canvas.height = Math.max(1, Math.round(img.naturalHeight * scale));
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return dataUrl;
+    ctx.fillStyle = "#fff";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    return canvas.toDataURL("image/jpeg", quality);
+  } catch {
+    return dataUrl;
+  }
+}
+
 async function loadClaimPhotos(claimId: string): Promise<string[]> {
   const { data } = await supabase
     .from("job_photos")
