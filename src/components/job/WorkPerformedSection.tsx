@@ -5,6 +5,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { toast } from "sonner";
 import { WORK_PRESETS, presetDetail, type WorkPreset } from "@/lib/work-presets";
 
@@ -52,6 +61,7 @@ export default function WorkPerformedSection({
     detail: "",
     hours: 0,
   });
+  const [selectedPreset, setSelectedPreset] = useState("");
 
   async function persist(next: WorkPerformedEntry[]) {
     setBusy(true);
@@ -78,6 +88,18 @@ export default function WorkPerformedSection({
       { ...draft, id: `wp-${Date.now()}`, title: draft.title.trim(), detail: draft.detail.trim() },
     ]);
     if (ok) setDraft({ id: "", title: "", detail: "", hours: 0 });
+  }
+
+  function applyPreset(presetId: string) {
+    const preset = WORK_PRESETS.find((p) => p.id === presetId);
+    if (!preset) return;
+    setDraft({
+      id: "",
+      title: preset.label,
+      detail: presetDetail(preset),
+      hours: preset.hours,
+    });
+    setSelectedPreset("");
   }
 
   return (
@@ -131,37 +153,24 @@ export default function WorkPerformedSection({
       {canEdit && (
         <div className="mt-4 space-y-3 print:hidden">
           <div className="rounded-lg border border-dashed border-border/70 p-3">
-            <Label className="text-xs">Quick templates — click to fill the work below</Label>
-            <div className="mt-2 space-y-2">
-              {groups.map(([group, presets]) => (
-                <div key={group}>
-                  <div className="text-[0.65rem] uppercase tracking-wide text-muted-foreground mb-1">
-                    {group}
-                  </div>
-                  <div className="flex flex-wrap gap-1.5">
+            <Label className="text-xs">Quick template</Label>
+            <Select value={selectedPreset} onValueChange={applyPreset}>
+              <SelectTrigger className="mt-2 h-9 text-sm">
+                <SelectValue placeholder="Pick a preset to fill the form below…" />
+              </SelectTrigger>
+              <SelectContent>
+                {groups.map(([group, presets]) => (
+                  <SelectGroup key={group}>
+                    <SelectLabel>{group}</SelectLabel>
                     {presets.map((p) => (
-                      <Button
-                        key={p.id}
-                        type="button"
-                        size="sm"
-                        variant="secondary"
-                        className="h-7 text-xs"
-                        onClick={() =>
-                          setDraft({
-                            id: "",
-                            title: p.label,
-                            detail: presetDetail(p),
-                            hours: p.hours,
-                          })
-                        }
-                      >
+                      <SelectItem key={p.id} value={p.id}>
                         {p.label}
-                      </Button>
+                      </SelectItem>
                     ))}
-                  </div>
-                </div>
-              ))}
-            </div>
+                  </SelectGroup>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="grid gap-2 sm:grid-cols-[1fr_120px]">
@@ -187,7 +196,8 @@ export default function WorkPerformedSection({
           <div>
             <Label className="text-xs">Process / details</Label>
             <Textarea
-              rows={3}
+              rows={6}
+              className="min-h-[160px] resize-y"
               value={draft.detail}
               placeholder="Stripped caliper, cleaned pistons and seals, new seal kit, bled system, tested."
               onChange={(ev) => setDraft({ ...draft, detail: ev.target.value })}
