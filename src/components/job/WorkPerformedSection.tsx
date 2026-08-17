@@ -121,7 +121,41 @@ export default function WorkPerformedSection({
       </div>
 
       {canEdit && (
-        <div className="mt-4 space-y-2 print:hidden">
+        <div className="mt-4 space-y-3 print:hidden">
+          <div className="rounded-lg border border-dashed border-border/70 p-3">
+            <Label className="text-xs">Quick templates — click to fill the work below</Label>
+            <div className="mt-2 space-y-2">
+              {groups.map(([group, presets]) => (
+                <div key={group}>
+                  <div className="text-[0.65rem] uppercase tracking-wide text-muted-foreground mb-1">
+                    {group}
+                  </div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {presets.map((p) => (
+                      <Button
+                        key={p.id}
+                        type="button"
+                        size="sm"
+                        variant="secondary"
+                        className="h-7 text-xs"
+                        onClick={() =>
+                          setDraft({
+                            id: "",
+                            title: p.label,
+                            detail: presetDetail(p),
+                            hours: p.hours,
+                          })
+                        }
+                      >
+                        {p.label}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
           <div className="grid gap-2 sm:grid-cols-[1fr_120px]">
             <div>
               <Label className="text-xs">What was done</Label>
