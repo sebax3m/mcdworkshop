@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Bike as BikeIcon, Pencil, Save, X } from "lucide-react";
+import { Bike as BikeIcon, Pencil, Plus, Save, Search, X } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
