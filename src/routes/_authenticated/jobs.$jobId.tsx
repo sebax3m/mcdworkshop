@@ -888,42 +888,15 @@ function JobDetail() {
           </div>
         </div>
 
-        {/* Kilometers / Odometer — technician entry */}
-        <OdometerSection
+        {/* Compact bike compliance card */}
+        <BikeComplianceCard
           jobId={jobId}
           bikeId={(j.motorcycles as any)?.id}
-          currentOdo={j.odometer ?? null}
+          rego={(j.motorcycles as any)?.rego ?? null}
+          regoExpiry={(j.motorcycles as any)?.rego_expiry ?? null}
+          wofExpiry={(j.motorcycles as any)?.wof_expiry ?? null}
+          odometer={j.odometer ?? null}
           bikeMileage={(j.motorcycles as any)?.mileage ?? null}
-          canEdit={canEditBike}
-          onSaved={() => {
-            qc.invalidateQueries({ queryKey: ["job", jobId] });
-          }}
-        />
-
-        {/* REGO plate — technician entry */}
-        <RegoPlateSection
-          bikeId={(j.motorcycles as any)?.id}
-          currentValue={(j.motorcycles as any)?.rego ?? null}
-          canEdit={canEditBike}
-          onSaved={() => qc.invalidateQueries({ queryKey: ["job", jobId] })}
-        />
-
-        {/* REGO expiry & WOF expiry — technician entry */}
-        <ExpirySection
-          label="REGO expiry"
-          hint="Technician — enter the registration expiry date shown on the rego label."
-          bikeId={(j.motorcycles as any)?.id}
-          field="rego_expiry"
-          currentValue={(j.motorcycles as any)?.rego_expiry ?? null}
-          canEdit={canEditBike}
-          onSaved={() => qc.invalidateQueries({ queryKey: ["job", jobId] })}
-        />
-        <ExpirySection
-          label="WOF expiry"
-          hint="Technician — enter the Warrant of Fitness expiry date."
-          bikeId={(j.motorcycles as any)?.id}
-          field="wof_expiry"
-          currentValue={(j.motorcycles as any)?.wof_expiry ?? null}
           canEdit={canEditBike}
           onSaved={() => qc.invalidateQueries({ queryKey: ["job", jobId] })}
         />
@@ -2744,36 +2717,44 @@ function InstructionsSection({
   );
 }
 
-function OdometerSection({
+
+function BikeComplianceCard({
   jobId,
   bikeId,
-  currentOdo,
+  rego,
+  regoExpiry,
+  wofExpiry,
+  odometer,
   bikeMileage,
   canEdit,
   onSaved,
 }: {
   jobId: string;
   bikeId?: string;
-  currentOdo: number | null;
+  rego: string | null;
+  regoExpiry: string | null;
+  wofExpiry: string | null;
+  odometer: number | null;
   bikeMileage: number | null;
   canEdit: boolean;
   onSaved: () => void;
 }) {
-  const initial = currentOdo ?? bikeMileage ?? null;
-  const [value, setValue] = useState<string>(initial != null ? String(initial) : "");
-  const [saving, setSaving] = useState(false);
-  const [dirty, setDirty] = useState(false);
-  const [savedTick, setSavedTick] = useState(false);
+  // Odometer
+  const initialOdo = odometer ?? bikeMileage ?? null;
+  const [odoValue, setOdoValue] = useState(initialOdo != null ? String(initialOdo) : "");
+  const [odoSaving, setOdoSaving] = useState(false);
+  const [odoDirty, setOdoDirty] = useState(false);
+  const [odoTick, setOdoTick] = useState(false);
 
   useEffect(() => {
-    const v = currentOdo ?? bikeMileage ?? null;
-    setValue(v != null ? String(v) : "");
-    setDirty(false);
-  }, [currentOdo, bikeMileage]);
+    const v = odometer ?? bikeMileage ?? null;
+    setOdoValue(v != null ? String(v) : "");
+    setOdoDirty(false);
+  }, [odometer, bikeMileage]);
 
-  async function save(silent = false) {
-    const km = value ? parseInt(value.replace(/\D/g, "")) : null;
-    setSaving(true);
+  async function saveOdometer(silent = false) {
+    const km = odoValue ? parseInt(odoValue.replace(/\D/g, "")) : null;
+    setOdoSaving(true);
     try {
       const { error } = await supabase.from("jobs").update({ odometer: km }).eq("id", jobId);
       if (error) throw error;
@@ -2781,245 +2762,254 @@ function OdometerSection({
         await supabase.from("motorcycles").update({ mileage: km }).eq("id", bikeId);
       }
       if (!silent) toast.success("Kilometers saved");
-      setDirty(false);
-      setSavedTick(true);
-      setTimeout(() => setSavedTick(false), 1500);
+      setOdoDirty(false);
+      setOdoTick(true);
+      setTimeout(() => setOdoTick(false), 1500);
       onSaved();
     } catch (e: any) {
       toast.error(e?.message ?? "Failed to save");
     } finally {
-      setSaving(false);
+      setOdoSaving(false);
     }
   }
 
-  // Manual save only — the technician presses Save.
-
-  const display = value ? Number(value.replace(/\D/g, "")).toLocaleString() : "";
-
-  return (
-    <div className="card-surface p-4 print:hidden">
-      <div className="flex items-center justify-between gap-3 flex-wrap">
-        <div>
-          <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">
-            Kilometers (odometer)
-          </div>
-          <div className="text-xs text-muted-foreground mt-0.5">
-            Technician — enter the bike's current km reading at intake.
-            {bikeMileage != null && (
-              <>
-                {" "}
-                Last recorded:{" "}
-                <span className="font-semibold text-foreground">
-                  {bikeMileage.toLocaleString()} km
-                </span>
-              </>
-            )}
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="relative">
-            <Input
-              inputMode="numeric"
-              placeholder="e.g. 24,500"
-              value={display}
-              onChange={(e) => {
-                setValue(e.target.value.replace(/\D/g, ""));
-                setDirty(true);
-              }}
-              disabled={!canEdit || saving}
-              className="pr-12 w-44 h-11 font-mono text-base"
-            />
-            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground font-semibold pointer-events-none">
-              km
-            </span>
-          </div>
-          <Button
-            size="sm"
-            className="h-11"
-            onClick={() => save()}
-            disabled={!canEdit || saving || !dirty}
-          >
-            {saving ? "Saving…" : "Save"}
-          </Button>
-          <span className="text-[0.625rem] uppercase tracking-wider text-muted-foreground min-w-[52px]">
-            {dirty ? "unsaved" : savedTick ? "✓ saved" : "\u00A0"}
-          </span>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function ExpirySection({
-  label,
-  hint,
-  bikeId,
-  field,
-  currentValue,
-  canEdit,
-  onSaved,
-}: {
-  label: string;
-  hint: string;
-  bikeId?: string;
-  field: "rego_expiry" | "wof_expiry";
-  currentValue: string | null;
-  canEdit: boolean;
-  onSaved: () => void;
-}) {
-  const [value, setValue] = useState<string>(currentValue ?? "");
-  const [saving, setSaving] = useState(false);
-  const [dirty, setDirty] = useState(false);
-  const [savedTick, setSavedTick] = useState(false);
+  // REGO plate
+  const [regoValue, setRegoValue] = useState(rego ?? "");
+  const [regoSaving, setRegoSaving] = useState(false);
+  const [regoDirty, setRegoDirty] = useState(false);
+  const [regoTick, setRegoTick] = useState(false);
 
   useEffect(() => {
-    setValue(currentValue ?? "");
-    setDirty(false);
-  }, [currentValue]);
+    setRegoValue(rego ?? "");
+    setRegoDirty(false);
+  }, [rego]);
 
-  async function save(silent = false) {
+  async function saveRego(silent = false) {
     if (!bikeId) {
       if (!silent) toast.error("No bike linked to this job");
       return;
     }
-    setSaving(true);
+    setRegoSaving(true);
     try {
       const { error } = await supabase
         .from("motorcycles")
-        .update({ [field]: value || null } as any)
-        .eq("id", bikeId);
-      if (error) throw error;
-      if (!silent) toast.success(`${label} saved`);
-      setDirty(false);
-      setSavedTick(true);
-      setTimeout(() => setSavedTick(false), 1500);
-      onSaved();
-    } catch (e: any) {
-      toast.error(e?.message ?? "Failed to save");
-    } finally {
-      setSaving(false);
-    }
-  }
-
-  useAutoSave(value, dirty && canEdit, () => save(true));
-
-  const expired = value ? new Date(value) < new Date(new Date().toDateString()) : false;
-
-  return (
-    <div className="card-surface p-4 print:hidden">
-      <div className="flex items-center justify-between gap-3 flex-wrap">
-        <div>
-          <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">
-            {label}
-          </div>
-          <div className="text-xs text-muted-foreground mt-0.5">
-            {hint}
-            {currentValue && (
-              <>
-                {" "}
-                Current:{" "}
-                <span
-                  className={`font-semibold ${expired ? "text-destructive" : "text-foreground"}`}
-                >
-                  {currentValue}
-                  {expired ? " (expired)" : ""}
-                </span>
-              </>
-            )}
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <Input
-            type="date"
-            value={value}
-            onChange={(e) => {
-              setValue(e.target.value);
-              setDirty(true);
-            }}
-            disabled={!canEdit || saving}
-            className="w-48 h-11 font-mono text-base"
-          />
-          <span className="text-[0.625rem] uppercase tracking-wider text-muted-foreground min-w-[52px]">
-            {saving || dirty ? "saving…" : savedTick ? "✓ saved" : "\u00A0"}
-          </span>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function RegoPlateSection({
-  bikeId,
-  currentValue,
-  canEdit,
-  onSaved,
-}: {
-  bikeId?: string;
-  currentValue: string | null;
-  canEdit: boolean;
-  onSaved: () => void;
-}) {
-  const [value, setValue] = useState<string>(currentValue ?? "");
-  const [saving, setSaving] = useState(false);
-  const [dirty, setDirty] = useState(false);
-  const [savedTick, setSavedTick] = useState(false);
-
-  useEffect(() => {
-    setValue(currentValue ?? "");
-    setDirty(false);
-  }, [currentValue]);
-
-  async function save(silent = false) {
-    if (!bikeId) {
-      if (!silent) toast.error("No bike linked to this job");
-      return;
-    }
-    setSaving(true);
-    try {
-      const { error } = await supabase
-        .from("motorcycles")
-        .update({ rego: value.trim().toUpperCase() || null })
+        .update({ rego: regoValue.trim().toUpperCase() || null })
         .eq("id", bikeId);
       if (error) throw error;
       if (!silent) toast.success("REGO saved");
-      setDirty(false);
-      setSavedTick(true);
-      setTimeout(() => setSavedTick(false), 1500);
+      setRegoDirty(false);
+      setRegoTick(true);
+      setTimeout(() => setRegoTick(false), 1500);
       onSaved();
     } catch (e: any) {
       toast.error(e?.message ?? "Failed to save");
     } finally {
-      setSaving(false);
+      setRegoSaving(false);
     }
   }
 
-  useAutoSave(value, dirty && canEdit, () => save(true));
+  useAutoSave(regoValue, regoDirty && canEdit, () => saveRego(true));
+
+  // REGO expiry
+  const [regoExpValue, setRegoExpValue] = useState(regoExpiry ?? "");
+  const [regoExpSaving, setRegoExpSaving] = useState(false);
+  const [regoExpDirty, setRegoExpDirty] = useState(false);
+  const [regoExpTick, setRegoExpTick] = useState(false);
+
+  useEffect(() => {
+    setRegoExpValue(regoExpiry ?? "");
+    setRegoExpDirty(false);
+  }, [regoExpiry]);
+
+  async function saveRegoExpiry(silent = false) {
+    if (!bikeId) {
+      if (!silent) toast.error("No bike linked to this job");
+      return;
+    }
+    setRegoExpSaving(true);
+    try {
+      const { error } = await supabase
+        .from("motorcycles")
+        .update({ rego_expiry: regoExpValue || null })
+        .eq("id", bikeId);
+      if (error) throw error;
+      if (!silent) toast.success("REGO expiry saved");
+      setRegoExpDirty(false);
+      setRegoExpTick(true);
+      setTimeout(() => setRegoExpTick(false), 1500);
+      onSaved();
+    } catch (e: any) {
+      toast.error(e?.message ?? "Failed to save");
+    } finally {
+      setRegoExpSaving(false);
+    }
+  }
+
+  useAutoSave(regoExpValue, regoExpDirty && canEdit, () => saveRegoExpiry(true));
+
+  // WOF expiry
+  const [wofExpValue, setWofExpValue] = useState(wofExpiry ?? "");
+  const [wofExpSaving, setWofExpSaving] = useState(false);
+  const [wofExpDirty, setWofExpDirty] = useState(false);
+  const [wofExpTick, setWofExpTick] = useState(false);
+
+  useEffect(() => {
+    setWofExpValue(wofExpiry ?? "");
+    setWofExpDirty(false);
+  }, [wofExpiry]);
+
+  async function saveWofExpiry(silent = false) {
+    if (!bikeId) {
+      if (!silent) toast.error("No bike linked to this job");
+      return;
+    }
+    setWofExpSaving(true);
+    try {
+      const { error } = await supabase
+        .from("motorcycles")
+        .update({ wof_expiry: wofExpValue || null })
+        .eq("id", bikeId);
+      if (error) throw error;
+      if (!silent) toast.success("WOF expiry saved");
+      setWofExpDirty(false);
+      setWofExpTick(true);
+      setTimeout(() => setWofExpTick(false), 1500);
+      onSaved();
+    } catch (e: any) {
+      toast.error(e?.message ?? "Failed to save");
+    } finally {
+      setWofExpSaving(false);
+    }
+  }
+
+  useAutoSave(wofExpValue, wofExpDirty && canEdit, () => saveWofExpiry(true));
+
+  const regoExpired = regoExpValue
+    ? new Date(regoExpValue) < new Date(new Date().toDateString())
+    : false;
+  const wofExpired = wofExpValue
+    ? new Date(wofExpValue) < new Date(new Date().toDateString())
+    : false;
+
+  const odoDisplay = odoValue ? Number(odoValue.replace(/\D/g, "")).toLocaleString() : "";
 
   return (
     <div className="card-surface p-4 print:hidden">
-      <div className="flex items-center justify-between gap-3 flex-wrap">
-        <div>
-          <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">
-            REGO plate
+      <div className="mb-3">
+        <h3 className="font-display text-sm font-semibold">Bike details</h3>
+        <p className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">
+          REGO, WOF & odometer
+        </p>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        {/* Odometer */}
+        <div className="space-y-1">
+          <label className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">
+            Kilometers
+          </label>
+          <div className="flex items-center gap-2">
+            <div className="relative flex-1">
+              <Input
+                inputMode="numeric"
+                placeholder="24,500"
+                value={odoDisplay}
+                onChange={(e) => {
+                  setOdoValue(e.target.value.replace(/\D/g, ""));
+                  setOdoDirty(true);
+                }}
+                disabled={!canEdit || odoSaving}
+                className="pr-10 h-9 font-mono text-sm"
+              />
+              <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground font-semibold pointer-events-none">
+                km
+              </span>
+            </div>
+            <Button
+              size="sm"
+              className="h-9 px-2.5"
+              onClick={() => saveOdometer()}
+              disabled={!canEdit || odoSaving || !odoDirty}
+            >
+              Save
+            </Button>
           </div>
-          <div className="text-xs text-muted-foreground mt-0.5">
-            Technician — check the plate on the bike and correct it here if needed.
+          <div className="flex items-center gap-2 text-[0.625rem] text-muted-foreground">
+            {bikeMileage != null && <span>Last: {bikeMileage.toLocaleString()} km</span>}
+            <span className="ml-auto">{odoDirty ? "unsaved" : odoTick ? "✓ saved" : "\u00A0"}</span>
           </div>
         </div>
-        <div className="flex items-center gap-2">
+
+        {/* REGO plate */}
+        <div className="space-y-1">
+          <label className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">
+            REGO plate
+          </label>
           <Input
-            value={value}
-            placeholder="e.g. 12ABC"
+            value={regoValue}
+            placeholder="12ABC"
             onChange={(e) => {
-              setValue(e.target.value.toUpperCase());
-              setDirty(true);
+              setRegoValue(e.target.value.toUpperCase());
+              setRegoDirty(true);
             }}
-            disabled={!canEdit || saving}
-            className="w-44 h-11 font-mono text-base tracking-widest"
+            disabled={!canEdit || regoSaving}
+            className="h-9 font-mono text-sm tracking-widest"
           />
-          <span className="text-[0.625rem] uppercase tracking-wider text-muted-foreground min-w-[52px]">
-            {saving || dirty ? "saving…" : savedTick ? "✓ saved" : "\u00A0"}
-          </span>
+          <div className="text-[0.625rem] text-muted-foreground text-right">
+            {regoSaving || regoDirty ? "saving…" : regoTick ? "✓ saved" : "\u00A0"}
+          </div>
+        </div>
+
+        {/* REGO expiry */}
+        <div className="space-y-1">
+          <label className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">
+            REGO expiry
+          </label>
+          <Input
+            type="date"
+            value={regoExpValue}
+            onChange={(e) => {
+              setRegoExpValue(e.target.value);
+              setRegoExpDirty(true);
+            }}
+            disabled={!canEdit || regoExpSaving}
+            className={`h-9 font-mono text-sm ${regoExpired ? "text-destructive" : ""}`}
+          />
+          <div className="text-[0.625rem] text-muted-foreground text-right">
+            {regoExpSaving || regoExpDirty
+              ? "saving…"
+              : regoExpired
+              ? "expired"
+              : regoExpTick
+              ? "✓ saved"
+              : "\u00A0"}
+          </div>
+        </div>
+
+        {/* WOF expiry */}
+        <div className="space-y-1">
+          <label className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">
+            WOF expiry
+          </label>
+          <Input
+            type="date"
+            value={wofExpValue}
+            onChange={(e) => {
+              setWofExpValue(e.target.value);
+              setWofExpDirty(true);
+            }}
+            disabled={!canEdit || wofExpSaving}
+            className={`h-9 font-mono text-sm ${wofExpired ? "text-destructive" : ""}`}
+          />
+          <div className="text-[0.625rem] text-muted-foreground text-right">
+            {wofExpSaving || wofExpDirty
+              ? "saving…"
+              : wofExpired
+              ? "expired"
+              : wofExpTick
+              ? "✓ saved"
+              : "\u00A0"}
+          </div>
         </div>
       </div>
     </div>
