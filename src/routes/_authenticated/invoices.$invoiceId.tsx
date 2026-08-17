@@ -26,6 +26,7 @@ import { useCurrentUser } from "@/hooks/use-current-user";
 import { useTechnicians } from "@/hooks/use-active-technician";
 import { PrintPreview } from "@/components/PrintPreview";
 import { readWorkPerformed } from "@/components/job/WorkPerformedSection";
+import { learnInventoryPrice } from "@/lib/inventory-price-sync";
 
 import {
   AlertDialog,
@@ -578,6 +579,11 @@ function InvoiceDetail() {
       toast.error(error.message);
       return;
     }
+    if (patch.retail != null) {
+      const existing = (parts.data ?? []).find((p: any) => p.id === id);
+      const partName = patch.name ?? existing?.name ?? null;
+      await learnInventoryPrice(partName, patch.retail);
+    }
     await refreshPartsTotals();
   }
 
@@ -664,6 +670,9 @@ function InvoiceDetail() {
     patch: Partial<{ description: string; quantity: number; unit: number; discount_pct: number }>,
   ) {
     const items = currentSnapshotLines().map((it, i) => (i === idx ? { ...it, ...patch } : it));
+    if (patch.unit != null) {
+      await learnInventoryPrice(items[idx]?.description, patch.unit);
+    }
     await saveSnapshotLines(items);
   }
   async function removeSnapshotLine(idx: number) {
