@@ -110,7 +110,7 @@ function EditableNumber({
     <button
       type="button"
       onClick={() => setEditing(true)}
-      className={`group inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 hover:bg-primary/10 hover:text-foreground transition-colors tabular-nums ${className}`}
+      className={`group/edit inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 hover:bg-primary/10 hover:text-foreground transition-colors tabular-nums ${className}`}
       title="Click to edit"
     >
       <span>
@@ -118,7 +118,7 @@ function EditableNumber({
         {fmt(value)}
         {suffix}
       </span>
-      <Pencil className="h-3 w-3 opacity-0 group-hover:opacity-60 no-print" />
+      <Pencil className="h-3 w-3 opacity-0 group-hover/edit:opacity-60 no-print" />
     </button>
   );
 }
@@ -220,7 +220,7 @@ function EditableText({
     <button
       type="button"
       onClick={() => setEditing(true)}
-      className={`group inline-flex items-start gap-1 text-left rounded-md px-1 -mx-1 hover:bg-primary/10 transition-colors ${
+      className={`group/edit inline-flex items-start gap-1 text-left rounded-md px-1 -mx-1 hover:bg-primary/10 transition-colors ${
         multiline ? "w-full" : ""
       } ${className}`}
       title={multiline ? "Click to edit (Enter for new line, Esc to cancel)" : "Click to edit"}
@@ -228,7 +228,7 @@ function EditableText({
       <span className={multiline ? "whitespace-pre-wrap flex-1" : ""}>
         {value || <span className="opacity-50">{placeholder ?? "Add details…"}</span>}
       </span>
-      <Pencil className="h-3 w-3 mt-1 opacity-0 group-hover:opacity-60 no-print flex-none" />
+      <Pencil className="h-3 w-3 mt-1 opacity-0 group-hover/edit:opacity-60 no-print flex-none" />
     </button>
   );
 }
@@ -300,6 +300,7 @@ function InvoiceDetail() {
   useEffect(() => {
     const jobId = invoice.data?.job_id;
     if (!jobId || !parts.data) return;
+    if ((invoice.data?.snapshot as any)?.consumables_removed) return;
     const hasConsumables = parts.data.some((p: any) =>
       (p.name ?? "").toLowerCase().includes("consumable"),
     );
@@ -331,7 +332,7 @@ function InvoiceDetail() {
       qc.invalidateQueries({ queryKey: ["invoice-parts", invoiceId, jobId] });
       qc.invalidateQueries({ queryKey: ["invoice", invoiceId] });
     })();
-  }, [invoice.data?.job_id, parts.data, invoiceId, qc]);
+  }, [invoice.data?.job_id, (invoice.data?.snapshot as any)?.consumables_removed, parts.data, invoiceId, qc]);
 
   const [previewOpen, setPreviewOpen] = useState(false);
   const sheetRef = useRef<HTMLDivElement>(null);
@@ -615,11 +616,14 @@ function InvoiceDetail() {
   }
 
   async function deletePart(id: string) {
+    const target = (parts.data ?? []).find((p: any) => p.id === id) as any;
+    const isConsumables = (target?.name ?? "").toLowerCase().includes("consumable");
     const { error } = await supabase.from("parts").delete().eq("id", id);
     if (error) {
       toast.error(error.message);
       return;
     }
+    if (isConsumables) await saveSnapshotMeta({ consumables_removed: true });
     await refreshPartsTotals();
   }
 
@@ -1084,19 +1088,21 @@ function InvoiceDetail() {
                           {hasDiscount && (
                             <td className="py-3 text-right text-muted-foreground">—</td>
                           )}
-                          <td className="py-3 text-right font-semibold">
-                            <EditableNumber
-                              value={Number(inv.labour_total)}
-                              onCommit={(n) => updateLabour({ amount: n })}
-                              prefix="$"
-                            />
-                            <button
-                              onClick={removeLabourLine}
-                              className="ml-2 no-print opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive"
-                              title="Remove labour line"
-                            >
-                              <Trash2 className="h-3.5 w-3.5 inline" />
-                            </button>
+                          <td className="py-3 text-right font-semibold align-top">
+                            <div className="flex items-start justify-end gap-1">
+                              <EditableNumber
+                                value={Number(inv.labour_total)}
+                                onCommit={(n) => updateLabour({ amount: n })}
+                                prefix="$"
+                              />
+                              <button
+                                onClick={removeLabourLine}
+                                className="no-print w-4 shrink-0 opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive"
+                                title="Remove labour line"
+                              >
+                                <Trash2 className="h-3.5 w-3.5 inline" />
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       );
@@ -1193,25 +1199,29 @@ function InvoiceDetail() {
                               </div>
                             </td>
                           )}
-                          <td className="py-3 text-right font-semibold">
-                            {disc > 0 && (
-                              <div className="text-[0.625rem] text-muted-foreground line-through tabular-nums">
-                                ${gross.toFixed(2)}
+                          <td className="py-3 text-right font-semibold align-top">
+                            <div className="flex items-start justify-end gap-1">
+                              <div className="text-right">
+                                {disc > 0 && (
+                                  <div className="text-[0.625rem] text-muted-foreground line-through tabular-nums">
+                                    ${gross.toFixed(2)}
+                                  </div>
+                                )}
+                                <span className="tabular-nums">${net.toFixed(2)}</span>
+                                {disc > 0 && (
+                                  <div className="text-[0.625rem] text-emerald-500 font-semibold">
+                                    −${(gross - net).toFixed(2)} ({disc}% off)
+                                  </div>
+                                )}
                               </div>
-                            )}
-                            <span className="tabular-nums">${net.toFixed(2)}</span>
-                            {disc > 0 && (
-                              <div className="text-[0.625rem] text-emerald-500 font-semibold">
-                                −${(gross - net).toFixed(2)} ({disc}% off)
-                              </div>
-                            )}
-                            <button
-                              onClick={() => deletePart(p.id)}
-                              className="ml-2 no-print opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive"
-                              title="Remove line"
-                            >
-                              <Trash2 className="h-3.5 w-3.5 inline" />
-                            </button>
+                              <button
+                                onClick={() => deletePart(p.id)}
+                                className="no-print w-4 shrink-0 opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive"
+                                title="Remove line"
+                              >
+                                <Trash2 className="h-3.5 w-3.5 inline" />
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       );
@@ -1232,6 +1242,14 @@ function InvoiceDetail() {
                       >
                         <Plus className="h-3 w-3" /> Add line item
                       </button>
+                      {(inv.snapshot as any)?.consumables_removed && (
+                        <button
+                          onClick={() => saveSnapshotMeta({ consumables_removed: false })}
+                          className="ml-4 text-xs text-primary hover:underline inline-flex items-center gap-1"
+                        >
+                          <Plus className="h-3 w-3" /> Add shop consumables
+                        </button>
+                      )}
                       {(inv.snapshot as any)?.labour_hidden && (
                         <button
                           onClick={restoreLabourLine}
