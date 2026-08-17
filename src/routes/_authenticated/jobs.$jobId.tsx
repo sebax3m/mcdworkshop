@@ -875,24 +875,6 @@ function JobDetail() {
         </div>
       </div>
 
-      {/* Service Template */}
-      <div data-print-section="checklist">
-        <ServiceTemplateSection
-          jobId={jobId}
-          currentTemplateId={j.template_id}
-          currentTitle={j.title}
-          tasks={tasks.data ?? []}
-          canEdit={canEdit}
-          completion={completion}
-          onToggleTask={(id: string, done: boolean) => toggleTask(id, done)}
-          onNoteSaved={() => qc.invalidateQueries({ queryKey: ["job-tasks", jobId] })}
-          onTemplateChanged={() => {
-            qc.invalidateQueries({ queryKey: ["job", jobId] });
-            qc.invalidateQueries({ queryKey: ["job-tasks", jobId] });
-          }}
-        />
-      </div>
-
       {/* Work performed / additional work */}
       <WorkPerformedSection
         jobId={jobId}
