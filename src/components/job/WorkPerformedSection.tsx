@@ -166,7 +166,7 @@ export default function WorkPerformedSection({
                   />
                 </div>
                 <div>
-                  <Label className="text-xs">Labour hours</Label>
+                  <Label className="text-xs">Suggested hours</Label>
                   <Input
                     type="number"
                     min={0}
@@ -228,7 +228,9 @@ export default function WorkPerformedSection({
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
                   {e.hours > 0 && (
-                    <span className="text-xs font-semibold text-muted-foreground">{e.hours} h</span>
+                    <span className="text-xs text-muted-foreground print:hidden">
+                      ~{e.hours} h suggested
+                    </span>
                   )}
                   {canEdit && (
                     <>
@@ -295,7 +297,7 @@ export default function WorkPerformedSection({
               />
             </div>
             <div>
-              <Label className="text-xs">Labour hours</Label>
+              <Label className="text-xs">Suggested hours</Label>
               <Input
                 type="number"
                 min={0}
