@@ -40,6 +40,7 @@ import { displayCustomerName } from "@/lib/display";
 import { CLAIM_PIPELINE, CLAIM_STATUS_META, type ClaimStatus, nextStatus } from "@/lib/insurance";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { ClaimDamageSection } from "@/components/ClaimDamageSection";
+import { ClaimBikeCard } from "@/components/ClaimBikeCard";
 
 export const Route = createFileRoute("/_authenticated/insurance/$claimId")({
   component: ClaimDetail,
