@@ -765,7 +765,7 @@ function InvoiceDetail() {
           .invoice-sheet h1, .invoice-sheet h2, .invoice-sheet h3 { margin: 0 !important; }
           .invoice-sheet table { font-size: 10.5px !important; }
           .invoice-sheet th, .invoice-sheet td { padding: 4px 6px !important; }
-          .invoice-sheet img { max-height: 44px !important; }
+          .invoice-sheet img { max-height: 64px !important; }
           .no-print, .print\\:hidden { display: none !important; }
         }
       `}</style>
