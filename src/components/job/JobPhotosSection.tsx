@@ -56,6 +56,9 @@ export function JobPhotosSection({
   const [category, setCategory] = useState<CategoryKey>("before");
   const [filter, setFilter] = useState<CategoryKey | "all">("all");
   const [lightbox, setLightbox] = useState<Row | null>(null);
+  const [note, setNote] = useState("");
+  const [editing, setEditing] = useState<{ id: string; text: string } | null>(null);
+
 
   const photos = useQuery({
     queryKey: ["job-photos", jobId],
