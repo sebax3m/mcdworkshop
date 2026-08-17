@@ -475,7 +475,14 @@ export function PrintPreview({
         inner.style.transform = `scale(${k})`;
         inner.style.width = `${100 / k}%`;
       }
-      if (!fitOnePage && contentPx * k > availPx) over = true;
+      if (!fitOnePage && contentPx * k > availPx) {
+        // Let the sheet grow: the browser paginates it onto extra pages while
+        // @page keeps the same margins on every page.
+        over = true;
+        sheet.classList.add("flow");
+        sheet.style.height = `${Math.ceil(contentPx * k)}px`;
+      }
+
     });
     setOverflow(over);
   }, [pages, scale, fitOnePage]);
