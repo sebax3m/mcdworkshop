@@ -721,9 +721,12 @@ export function PrintPreview({
             </p>
             {overflow && (
               <p className="text-xs text-amber-500">
-                Content is long — turn off some sections or lower the scale to keep it on one page.
+                {fitOnePage
+                  ? "Content is long — turn off some sections or lower the scale to keep it on one page."
+                  : "Content is longer than one page — it continues on additional pages with the same margins."}
               </p>
             )}
+
           </aside>
 
           {/* Preview */}
