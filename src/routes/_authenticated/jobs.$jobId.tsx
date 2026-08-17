@@ -888,42 +888,15 @@ function JobDetail() {
           </div>
         </div>
 
-        {/* Kilometers / Odometer — technician entry */}
-        <OdometerSection
+        {/* Compact bike compliance card */}
+        <BikeComplianceCard
           jobId={jobId}
           bikeId={(j.motorcycles as any)?.id}
-          currentOdo={j.odometer ?? null}
+          rego={(j.motorcycles as any)?.rego ?? null}
+          regoExpiry={(j.motorcycles as any)?.rego_expiry ?? null}
+          wofExpiry={(j.motorcycles as any)?.wof_expiry ?? null}
+          odometer={j.odometer ?? null}
           bikeMileage={(j.motorcycles as any)?.mileage ?? null}
-          canEdit={canEditBike}
-          onSaved={() => {
-            qc.invalidateQueries({ queryKey: ["job", jobId] });
-          }}
-        />
-
-        {/* REGO plate — technician entry */}
-        <RegoPlateSection
-          bikeId={(j.motorcycles as any)?.id}
-          currentValue={(j.motorcycles as any)?.rego ?? null}
-          canEdit={canEditBike}
-          onSaved={() => qc.invalidateQueries({ queryKey: ["job", jobId] })}
-        />
-
-        {/* REGO expiry & WOF expiry — technician entry */}
-        <ExpirySection
-          label="REGO expiry"
-          hint="Technician — enter the registration expiry date shown on the rego label."
-          bikeId={(j.motorcycles as any)?.id}
-          field="rego_expiry"
-          currentValue={(j.motorcycles as any)?.rego_expiry ?? null}
-          canEdit={canEditBike}
-          onSaved={() => qc.invalidateQueries({ queryKey: ["job", jobId] })}
-        />
-        <ExpirySection
-          label="WOF expiry"
-          hint="Technician — enter the Warrant of Fitness expiry date."
-          bikeId={(j.motorcycles as any)?.id}
-          field="wof_expiry"
-          currentValue={(j.motorcycles as any)?.wof_expiry ?? null}
           canEdit={canEditBike}
           onSaved={() => qc.invalidateQueries({ queryKey: ["job", jobId] })}
         />
