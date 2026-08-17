@@ -362,7 +362,7 @@ export async function buildClaimPdf(d: ClaimPdfData): Promise<Blob> {
   y += 7;
 
   // ---------- Photo thumbnails ----------
-  const photos = await loadClaimPhotos(c.id);
+  const photos = opts.includePhotos === false ? [] : await loadClaimPhotos(c.id, opts);
   if (photos.length) {
     if (y + 40 > pageH - margin) {
       pdf.addPage();
