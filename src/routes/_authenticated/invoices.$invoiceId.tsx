@@ -841,8 +841,11 @@ function InvoiceDetail() {
               <div className="font-display text-3xl font-black tracking-tight">
                 Motorcycle Doctors
               </div>
-              <div className="text-xs uppercase tracking-[0.3em] opacity-80 mt-1">
-                Premium Motorcycle Workshop
+              <div className="text-[0.7rem] leading-snug opacity-90 mt-1 space-y-0.5">
+                <div>94 Wairau Rd, Wairau Valley, Auckland City, Auckland, New Zealand</div>
+                <div>services@mcdr.co.nz · www.motorcycle-doctors.co.nz</div>
+                <div>0800 668 663 · GST Reg N°: 99386185</div>
+                <div>Repairs / Service / Dyno Tuning / Collision Repairs</div>
               </div>
             </div>
           </div>
@@ -853,6 +856,7 @@ function InvoiceDetail() {
             <div className="font-display text-2xl font-black">{inv.invoice_number}</div>
           </div>
         </div>
+
 
         <div className="p-8 space-y-7">
           {/* Meta strip */}
