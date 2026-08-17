@@ -76,7 +76,7 @@ function InvoicesList() {
                   ${Number(inv.total).toFixed(2)}
                 </div>
                 <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">
-                  {inv.status}
+                  {String(inv.status ?? "").toLowerCase() === "draft" ? "Unpaid" : inv.status}
                 </div>
               </div>
             </Link>

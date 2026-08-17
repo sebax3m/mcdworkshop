@@ -98,11 +98,11 @@ export function InspectionPanel({
     await logJobEvent(
       jobId,
       "inspection_saved",
-      `Inspection draft saved (${drafts.length} finding${drafts.length === 1 ? "" : "s"})`,
+      `Findings saved (${drafts.length} finding${drafts.length === 1 ? "" : "s"})`,
       { count: drafts.length },
       userId,
     );
-    toast.success("Inspection draft saved");
+    toast.success("Findings saved");
     refresh();
   }
 
@@ -270,7 +270,7 @@ export function InspectionPanel({
       )}
 
       {drafts.length > 0 && (
-        <Section title={`Draft findings (${drafts.length})`} summary={totals.drafts}>
+        <Section title={`New findings (${drafts.length})`} summary={totals.drafts}>
           {drafts.map((f) => (
             <FindingRow
               key={f.id}
@@ -364,7 +364,7 @@ export function InspectionPanel({
       {drafts.length > 0 && (
         <div className="flex flex-wrap gap-2">
           <Button variant="outline" onClick={saveDraft} disabled={busy}>
-            Save draft
+            Save
           </Button>
           <Button onClick={requestApproval} disabled={busy || !!pendingRequest}>
             {busy ? "Sending…" : "Save & request approval"}
