@@ -746,16 +746,12 @@ function InvoiceDetail() {
             border: none !important;
             page-break-inside: avoid;
           }
-          /* Keep the red banner exactly like it looks in the app */
-          .invoice-sheet .red-surface,
-          .invoice-sheet .red-surface * {
-            -webkit-print-color-adjust: exact !important;
-            print-color-adjust: exact !important;
-            color: #ffffff !important;
-            -webkit-text-fill-color: #ffffff !important;
+          /* Clean white header for print */
+          .invoice-sheet .bg-background {
+            background: #ffffff !important;
           }
-          .invoice-sheet .red-surface {
-            background: linear-gradient(135deg, #b91c1c, #7f1d1d) !important;
+          .invoice-sheet .border-border {
+            border-color: #e5e7eb !important;
           }
           /* Tighten spacing so it fits on one page */
           .invoice-sheet .p-8 { padding: 14px 18px !important; }
