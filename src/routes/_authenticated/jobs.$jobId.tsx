@@ -229,6 +229,7 @@ function JobDetail() {
   const [deleting, setDeleting] = useState(false);
   const [completingAll, setCompletingAll] = useState(false);
   const [reversingAll, setReversingAll] = useState(false);
+  const [showReference, setShowReference] = useState(false);
   const jobRef = useRef<HTMLDivElement>(null);
 
   /** Mark the job, its booking and any loan bike as fully completed everywhere. */
