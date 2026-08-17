@@ -350,11 +350,22 @@ export function JobPhotosSection({
               alt={parseCaption(lightbox.caption).name || "Job photo"}
               className="max-h-[70vh] w-full rounded-lg object-contain bg-black"
             />
+            <input
+              defaultValue={parseCaption(lightbox.caption).name}
+              key={lightbox.id}
+              placeholder="Description of this photo"
+              onBlur={(e) => void saveNote(lightbox, e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") void saveNote(lightbox, e.currentTarget.value);
+              }}
+              className="h-9 w-full rounded-md border border-white/20 bg-black/50 px-3 text-sm text-white placeholder:text-white/50"
+            />
             <div className="flex items-center justify-between gap-2 flex-wrap">
               <div className="text-xs text-white/80">
                 {CATEGORIES.find((c) => c.key === lightbox.category)?.label} ·{" "}
                 {new Date(lightbox.created_at).toLocaleString()}
               </div>
+
               <div className="flex items-center gap-2">
                 <Button
                   size="sm"
