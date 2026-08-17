@@ -62,6 +62,25 @@ export default function WorkPerformedSection({
     hours: 0,
   });
   const [selectedPreset, setSelectedPreset] = useState("");
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editDraft, setEditDraft] = useState<WorkPerformedEntry>({
+    id: "",
+    title: "",
+    detail: "",
+    hours: 0,
+  });
+
+  function applyPresetToEdit(presetId: string) {
+    const preset = WORK_PRESETS.find((p) => p.id === presetId);
+    if (!preset) return;
+    setEditDraft((d) => ({
+      ...d,
+      title: preset.label,
+      detail: presetDetail(preset),
+      hours: preset.hours,
+    }));
+  }
+
 
   async function persist(next: WorkPerformedEntry[]) {
     setBusy(true);
