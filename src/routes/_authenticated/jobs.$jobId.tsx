@@ -752,7 +752,6 @@ function JobDetail() {
       {/* Print-only compact summary */}
       <style>{`
         @media print {
-          @page { size: A4; margin: 10mm 10mm 10mm 10mm; }
           html, body { font-size: 10.5px !important; }
           .card-surface { padding: 0 !important; margin: 0 !important; border: 0 !important; box-shadow: none !important; background: transparent !important; }
           h1, h2, h3 { margin: 0 !important; }
