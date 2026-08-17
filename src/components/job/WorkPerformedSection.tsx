@@ -6,6 +6,14 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+import { WORK_PRESETS, presetDetail, type WorkPreset } from "@/lib/work-presets";
+
+const groups: [string, WorkPreset[]][] = Array.from(
+  WORK_PRESETS.reduce((m, p) => {
+    m.set(p.group, [...(m.get(p.group) ?? []), p]);
+    return m;
+  }, new Map<string, WorkPreset[]>()),
+);
 
 export type WorkPerformedEntry = {
   id: string;
