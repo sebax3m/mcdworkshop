@@ -651,6 +651,43 @@ function JobDetail() {
         </div>
       </header>
 
+      {showReference && (
+        <div className="card-surface p-4 no-print">
+          <div className="flex items-center justify-between gap-3 mb-2">
+            <h3 className="font-display text-sm font-semibold uppercase tracking-wider">
+              Status reference
+            </h3>
+            <button
+              onClick={() => setShowReference(false)}
+              className="text-muted-foreground hover:text-foreground"
+              aria-label="Close reference"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+            {STATUS_ORDER.map((s) => {
+              const m = STATUS_META[s];
+              return (
+                <div key={s} className="flex items-center gap-2">
+                  <span className={`h-2 w-2 rounded-full ${m.dot}`} />
+                  <span className="font-semibold">{m.label}:</span>
+                  <span className="text-muted-foreground">
+                    {s === "new" && "Booked, not started"}
+                    {s === "assigned" && "Technician assigned"}
+                    {s === "in_progress" && "Work actively happening"}
+                    {s === "awaiting_parts" && "Waiting on parts"}
+                    {s === "awaiting_approval" && "Customer approval needed"}
+                    {s === "ready_for_pickup" && "Done, ready for customer"}
+                    {s === "completed" && "Collected / paid"}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       {/* Print-only compact summary */}
       <style>{`
         @media print {
