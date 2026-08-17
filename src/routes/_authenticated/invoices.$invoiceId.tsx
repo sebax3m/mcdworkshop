@@ -1420,7 +1420,6 @@ function InvoiceDetail() {
               <NotesBox
                 invoiceId={invoiceId}
                 initial={inv.notes ?? ""}
-                jobNotes={jobNotes.data ?? []}
                 onSaved={() => qc.invalidateQueries({ queryKey: ["invoice", invoiceId] })}
               />
             </div>
