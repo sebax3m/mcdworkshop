@@ -6,6 +6,14 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+import { WORK_PRESETS, presetDetail, type WorkPreset } from "@/lib/work-presets";
+
+const groups: [string, WorkPreset[]][] = Array.from(
+  WORK_PRESETS.reduce((m, p) => {
+    m.set(p.group, [...(m.get(p.group) ?? []), p]);
+    return m;
+  }, new Map<string, WorkPreset[]>()),
+);
 
 export type WorkPerformedEntry = {
   id: string;
@@ -121,7 +129,41 @@ export default function WorkPerformedSection({
       </div>
 
       {canEdit && (
-        <div className="mt-4 space-y-2 print:hidden">
+        <div className="mt-4 space-y-3 print:hidden">
+          <div className="rounded-lg border border-dashed border-border/70 p-3">
+            <Label className="text-xs">Quick templates — click to fill the work below</Label>
+            <div className="mt-2 space-y-2">
+              {groups.map(([group, presets]) => (
+                <div key={group}>
+                  <div className="text-[0.65rem] uppercase tracking-wide text-muted-foreground mb-1">
+                    {group}
+                  </div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {presets.map((p) => (
+                      <Button
+                        key={p.id}
+                        type="button"
+                        size="sm"
+                        variant="secondary"
+                        className="h-7 text-xs"
+                        onClick={() =>
+                          setDraft({
+                            id: "",
+                            title: p.label,
+                            detail: presetDetail(p),
+                            hours: p.hours,
+                          })
+                        }
+                      >
+                        {p.label}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
           <div className="grid gap-2 sm:grid-cols-[1fr_120px]">
             <div>
               <Label className="text-xs">What was done</Label>
