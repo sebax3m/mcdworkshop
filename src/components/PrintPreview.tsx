@@ -224,6 +224,11 @@ function paperCss(margin: number) {
     /* drag mode */
     body.dragmode .sheet-inner > *, body.dragmode [data-print-section] { cursor: move; }
     body.dragmode [data-print-section]:hover { outline: 1px dashed #b91c1c; }
+    /* A page that is allowed to flow onto extra sheets keeps the same
+       @page margins but grows and paginates naturally. */
+    .sheet.flow { height:auto !important; max-height:none !important; overflow:visible !important; }
+    .sheet.flow [data-print-section],
+    .sheet.flow table tr { break-inside: avoid; page-break-inside: avoid; }
     @media print {
       html, body { background:#ffffff !important; }
       .sheet {
@@ -232,10 +237,15 @@ function paperCss(margin: number) {
         break-inside: avoid; page-break-inside: avoid;
         break-after: page; page-break-after: always;
       }
+      .sheet.flow {
+        overflow:visible !important;
+        break-inside: auto !important; page-break-inside: auto !important;
+      }
       /* The trailing <script> is the real last child, so :last-child never
          matched and every document printed one extra blank page. */
       .sheet:last-of-type { break-after: auto; page-break-after: auto; }
     }
+
 
   `;
 }
@@ -419,9 +429,13 @@ export function PrintPreview({
       const sheet = doc.getElementById(`page-${i}`) as HTMLElement | null;
       const inner = doc.getElementById(`inner-${i}`) as HTMLElement | null;
       if (!sheet || !inner) return;
+      // Reset any previous multi-page flow before measuring.
+      sheet.classList.remove("flow");
+      sheet.style.height = "";
       inner.style.transform = "";
       inner.style.width = "";
       inner.style.transformOrigin = "top left";
+
       const landscape = (p.orientation ?? "portrait") === "landscape" ? 90 : 0;
       const rot = ((((p.rotate ?? 0) + landscape) % 360) + 360) % 360;
       if (rot) {
@@ -461,7 +475,14 @@ export function PrintPreview({
         inner.style.transform = `scale(${k})`;
         inner.style.width = `${100 / k}%`;
       }
-      if (!fitOnePage && contentPx * k > availPx) over = true;
+      if (!fitOnePage && contentPx * k > availPx) {
+        // Let the sheet grow: the browser paginates it onto extra pages while
+        // @page keeps the same margins on every page.
+        over = true;
+        sheet.classList.add("flow");
+        sheet.style.height = `${Math.ceil(contentPx * k)}px`;
+      }
+
     });
     setOverflow(over);
   }, [pages, scale, fitOnePage]);
@@ -637,7 +658,7 @@ export function PrintPreview({
                   checked={fitOnePage}
                   onChange={(e) => setFitOnePage(e.target.checked)}
                 />
-                Always fit on 1 page
+                Always fit on 1 page (off = flow onto extra pages)
               </label>
               <div className="flex items-center justify-between gap-2 text-sm">
                 <span className="text-muted-foreground">Scale</span>
@@ -700,9 +721,12 @@ export function PrintPreview({
             </p>
             {overflow && (
               <p className="text-xs text-amber-500">
-                Content is long — turn off some sections or lower the scale to keep it on one page.
+                {fitOnePage
+                  ? "Content is long — turn off some sections or lower the scale to keep it on one page."
+                  : "Content is longer than one page — it continues on additional pages with the same margins."}
               </p>
             )}
+
           </aside>
 
           {/* Preview */}
