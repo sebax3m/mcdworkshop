@@ -221,6 +221,17 @@ export function JobPhotosSection({
         </div>
       </div>
 
+      <div className="mb-3 print:hidden">
+        <input
+          value={note}
+          onChange={(e) => setNote(e.target.value)}
+          placeholder="Short description for the next photo(s) — e.g. scratch on left fairing"
+          className="h-9 w-full rounded-md border border-border bg-background px-3 text-sm"
+          aria-label="Photo description"
+        />
+      </div>
+
+
       <div className="flex flex-wrap gap-1.5 mb-3 print:hidden">
         {(["all", ...CATEGORIES.map((c) => c.key)] as const).map((k) => {
           const label = k === "all" ? "All" : CATEGORIES.find((c) => c.key === k)!.label;
