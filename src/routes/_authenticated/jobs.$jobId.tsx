@@ -835,6 +835,17 @@ function JobDetail() {
           onSaved={() => qc.invalidateQueries({ queryKey: ["job", jobId] })}
         />
 
+        {/* Book-in instructions — show first so the technician sees them immediately */}
+        {(booking.data?.id || booking.data?.instructions || booking.data?.notes) && (
+          <InstructionsSection
+            bookingId={booking.data?.id ?? null}
+            instructions={booking.data?.instructions ?? ""}
+            notes={booking.data?.notes ?? ""}
+            canEdit={canEdit}
+            onSaved={() => qc.invalidateQueries({ queryKey: ["job-booking", jobId] })}
+          />
+        )}
+
         {/* Shift clock — technicians can clock in without leaving the job card */}
         {isTechnician && user && <ShiftClockCard userId={user.id} jobId={jobId} />}
 
@@ -883,6 +894,59 @@ function JobDetail() {
             isAdmin={isAdmin}
           />
         </div>
+
+        {/* Customer-approved extra work — right below the clock-in area */}
+        {(approvedFindings.data?.length ?? 0) > 0 && (
+          <section
+            data-print-section="approvals"
+            className="card-surface p-4 border-l-4 border-emerald-500/70"
+          >
+            <div className="flex items-center gap-2 mb-2">
+              <h2 className="font-display text-lg font-semibold">Approved by customer</h2>
+              <span className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">
+                proceed with this work
+              </span>
+            </div>
+            <ul className="space-y-2">
+              {approvedFindings.data!.map((f) => (
+                <li key={f.id} className="border-t border-border/40 pt-2 first:border-0 first:pt-0">
+                  <div className="flex items-baseline justify-between gap-3">
+                    <span className="text-sm font-semibold">{f.title}</span>
+                    {(f.estimated_labour || f.estimated_parts_cost) && (
+                      <span className="text-[0.6875rem] text-muted-foreground whitespace-nowrap">
+                        {f.estimated_labour ? `${f.estimated_labour} h` : ""}
+                        {f.estimated_labour && f.estimated_parts_cost ? " · " : ""}
+                        {f.estimated_parts_cost
+                          ? `$${Number(f.estimated_parts_cost).toFixed(2)} parts`
+                          : ""}
+                      </span>
+                    )}
+                  </div>
+                  {f.description && <p className="text-sm whitespace-pre-wrap">{f.description}</p>}
+                  {f.recommended_action && (
+                    <p className="text-xs text-muted-foreground">Action: {f.recommended_action}</p>
+                  )}
+                  {f.decision_note && (
+                    <p className="text-xs italic text-muted-foreground">Note: {f.decision_note}</p>
+                  )}
+                </li>
+              ))}
+            </ul>
+            {(approvalDecisions.data ?? []).some((d) => d.decision !== "declined_all") && (
+              <div className="mt-3 pt-2 border-t border-border/40 space-y-1">
+                {(approvalDecisions.data ?? [])
+                  .filter((d) => d.decision !== "declined_all")
+                  .map((d) => (
+                    <p key={d.id} className="text-[0.6875rem] text-muted-foreground">
+                      Approved {d.resolved_at ? new Date(d.resolved_at).toLocaleString() : ""}
+                      {d.customer_contact_method ? ` · via ${d.customer_contact_method}` : ""}
+                      {d.resolution_note ? ` · ${d.resolution_note}` : ""}
+                    </p>
+                  ))}
+              </div>
+            )}
+          </section>
+        )}
       </div>
 
       {/* Work performed / additional work */}
