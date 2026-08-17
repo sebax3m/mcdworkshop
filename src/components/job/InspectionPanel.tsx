@@ -364,7 +364,7 @@ export function InspectionPanel({
       {drafts.length > 0 && (
         <div className="flex flex-wrap gap-2">
           <Button variant="outline" onClick={saveDraft} disabled={busy}>
-            Save draft
+            Save
           </Button>
           <Button onClick={requestApproval} disabled={busy || !!pendingRequest}>
             {busy ? "Sending…" : "Save & request approval"}
