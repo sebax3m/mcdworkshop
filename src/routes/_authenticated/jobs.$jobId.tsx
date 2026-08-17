@@ -992,8 +992,7 @@ function JobDetail() {
               </div>
             )}
           </section>
-        )}
-      </div>
+      )}
 
       {/* Work performed / additional work */}
       <WorkPerformedSection
