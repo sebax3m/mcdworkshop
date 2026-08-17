@@ -266,44 +266,73 @@ export function JobPhotosSection({
           {visible.map((p) => (
             <div
               key={p.id}
-              className="relative group rounded-lg overflow-hidden border border-border bg-card aspect-square print:break-inside-avoid"
+              className="rounded-lg overflow-hidden border border-border bg-card print:break-inside-avoid"
             >
-              <button onClick={() => setLightbox(p)} className="block h-full w-full">
-                <img
-                  src={p.url}
-                  alt={parseCaption(p.caption).name || "Job photo"}
-                  className="h-full w-full object-cover"
-                  loading="lazy"
-                />
-              </button>
-              <span className="absolute bottom-1 left-1 rounded bg-background/80 px-1.5 py-0.5 text-[0.6rem] font-semibold uppercase tracking-wider backdrop-blur">
-                {CATEGORIES.find((c) => c.key === p.category)?.label}
-              </span>
-              <div className="absolute top-1 right-1 flex gap-1 opacity-0 group-hover:opacity-100 transition print:hidden">
-                <button
-                  title="Text photo to customer"
-                  onClick={() => void shareLink(p, "sms")}
-                  className="grid h-7 w-7 place-items-center rounded-full bg-background/85 backdrop-blur text-sky-500"
-                >
-                  <MessageSquare className="h-3.5 w-3.5" />
+              <div className="relative group aspect-square">
+                <button onClick={() => setLightbox(p)} className="block h-full w-full">
+                  <img
+                    src={p.url}
+                    alt={parseCaption(p.caption).name || "Job photo"}
+                    className="h-full w-full object-cover"
+                    loading="lazy"
+                  />
                 </button>
-                <button
-                  title="Copy photo link"
-                  onClick={() => void shareLink(p, "copy")}
-                  className="grid h-7 w-7 place-items-center rounded-full bg-background/85 backdrop-blur"
-                >
-                  <Copy className="h-3.5 w-3.5" />
-                </button>
-                <button
-                  title="Delete photo"
-                  onClick={() => void remove(p)}
-                  className="grid h-7 w-7 place-items-center rounded-full bg-background/85 backdrop-blur text-destructive"
-                >
-                  <Trash2 className="h-3.5 w-3.5" />
-                </button>
+                <span className="absolute bottom-1 left-1 rounded bg-background/80 px-1.5 py-0.5 text-[0.6rem] font-semibold uppercase tracking-wider backdrop-blur">
+                  {CATEGORIES.find((c) => c.key === p.category)?.label}
+                </span>
+                <div className="absolute top-1 right-1 flex gap-1 opacity-0 group-hover:opacity-100 transition print:hidden">
+                  <button
+                    title="Text photo to customer"
+                    onClick={() => void shareLink(p, "sms")}
+                    className="grid h-7 w-7 place-items-center rounded-full bg-background/85 backdrop-blur text-sky-500"
+                  >
+                    <MessageSquare className="h-3.5 w-3.5" />
+                  </button>
+                  <button
+                    title="Copy photo link"
+                    onClick={() => void shareLink(p, "copy")}
+                    className="grid h-7 w-7 place-items-center rounded-full bg-background/85 backdrop-blur"
+                  >
+                    <Copy className="h-3.5 w-3.5" />
+                  </button>
+                  <button
+                    title="Delete photo"
+                    onClick={() => void remove(p)}
+                    className="grid h-7 w-7 place-items-center rounded-full bg-background/85 backdrop-blur text-destructive"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              </div>
+
+              <div className="px-2 py-1.5">
+                {editing?.id === p.id ? (
+                  <input
+                    autoFocus
+                    value={editing.text}
+                    onChange={(e) => setEditing({ id: p.id, text: e.target.value })}
+                    onBlur={() => void saveNote(p, editing.text)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") void saveNote(p, editing.text);
+                      if (e.key === "Escape") setEditing(null);
+                    }}
+                    className="h-7 w-full rounded border border-border bg-background px-1.5 text-[0.7rem]"
+                  />
+                ) : (
+                  <button
+                    onClick={() =>
+                      setEditing({ id: p.id, text: parseCaption(p.caption).name })
+                    }
+                    className="block w-full text-left text-[0.7rem] leading-snug text-muted-foreground hover:text-foreground line-clamp-2"
+                    title="Click to edit description"
+                  >
+                    {parseCaption(p.caption).name || "Add description…"}
+                  </button>
+                )}
               </div>
             </div>
           ))}
+
         </div>
       )}
 
