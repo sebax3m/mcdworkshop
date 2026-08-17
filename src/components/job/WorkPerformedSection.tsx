@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus, Trash2, Wrench } from "lucide-react";
+import { Check, Pencil, Plus, Trash2, Wrench } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -62,6 +62,25 @@ export default function WorkPerformedSection({
     hours: 0,
   });
   const [selectedPreset, setSelectedPreset] = useState("");
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editDraft, setEditDraft] = useState<WorkPerformedEntry>({
+    id: "",
+    title: "",
+    detail: "",
+    hours: 0,
+  });
+
+  function applyPresetToEdit(presetId: string) {
+    const preset = WORK_PRESETS.find((p) => p.id === presetId);
+    if (!preset) return;
+    setEditDraft((d) => ({
+      ...d,
+      title: preset.label,
+      detail: presetDetail(preset),
+      hours: preset.hours,
+    }));
+  }
+
 
   async function persist(next: WorkPerformedEntry[]) {
     setBusy(true);
@@ -89,6 +108,23 @@ export default function WorkPerformedSection({
     ]);
     if (ok) setDraft({ id: "", title: "", detail: "", hours: 0 });
   }
+
+  async function saveEdit() {
+    if (!editDraft.title.trim()) {
+      toast.error("Give the work a short title.");
+      return;
+    }
+    const ok = await persist(
+      entries.map((x) =>
+        x.id === editingId
+          ? { ...editDraft, id: x.id, title: editDraft.title.trim(), detail: editDraft.detail.trim() }
+          : x,
+      ),
+    );
+    if (ok) setEditingId(null);
+  }
+
+
 
   function applyPreset(presetId: string) {
     const preset = WORK_PRESETS.find((p) => p.id === presetId);
@@ -118,37 +154,113 @@ export default function WorkPerformedSection({
       )}
 
       <div className="space-y-2">
-        {entries.map((e) => (
-          <div key={e.id} className="rounded-lg border border-border/70 bg-background/40 p-3">
-            <div className="flex items-start justify-between gap-3">
-              <div className="min-w-0">
-                <div className="font-semibold text-sm">{e.title}</div>
-                {e.detail && (
-                  <div className="text-sm text-muted-foreground whitespace-pre-wrap mt-1">
-                    {e.detail}
-                  </div>
-                )}
+        {entries.map((e) =>
+          editingId === e.id ? (
+            <div key={e.id} className="rounded-lg border border-primary/50 bg-background/60 p-3 space-y-2">
+              <div className="grid gap-2 sm:grid-cols-[1fr_120px]">
+                <div>
+                  <Label className="text-xs">What was done</Label>
+                  <Input
+                    value={editDraft.title}
+                    onChange={(ev) => setEditDraft({ ...editDraft, title: ev.target.value })}
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs">Labour hours</Label>
+                  <Input
+                    type="number"
+                    min={0}
+                    step={0.25}
+                    value={editDraft.hours || ""}
+                    onChange={(ev) =>
+                      setEditDraft({ ...editDraft, hours: Number(ev.target.value) || 0 })
+                    }
+                  />
+                </div>
               </div>
-              <div className="flex items-center gap-2 shrink-0">
-                {e.hours > 0 && (
-                  <span className="text-xs font-semibold text-muted-foreground">{e.hours} h</span>
-                )}
-                {canEdit && (
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-7 w-7 print:hidden"
-                    disabled={busy}
-                    onClick={() => persist(entries.filter((x) => x.id !== e.id))}
-                  >
-                    <Trash2 className="h-4 w-4 text-destructive" />
+              <div>
+                <Label className="text-xs">Process / details</Label>
+                <Textarea
+                  rows={6}
+                  className="min-h-[160px] resize-y"
+                  value={editDraft.detail}
+                  onChange={(ev) => setEditDraft({ ...editDraft, detail: ev.target.value })}
+                />
+              </div>
+              <div className="flex items-center gap-2">
+                <Select value="" onValueChange={applyPresetToEdit}>
+                  <SelectTrigger className="h-9 text-sm w-64">
+                    <SelectValue placeholder="Replace with a template…" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {groups.map(([group, presets]) => (
+                      <SelectGroup key={group}>
+                        <SelectLabel>{group}</SelectLabel>
+                        {presets.map((p) => (
+                          <SelectItem key={p.id} value={p.id}>
+                            {p.label}
+                          </SelectItem>
+                        ))}
+                      </SelectGroup>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <div className="ml-auto flex gap-2">
+                  <Button variant="ghost" size="sm" onClick={() => setEditingId(null)}>
+                    Cancel
                   </Button>
-                )}
+                  <Button size="sm" disabled={busy} onClick={saveEdit} className="gap-2">
+                    <Check className="h-4 w-4" /> Save
+                  </Button>
+                </div>
               </div>
             </div>
-          </div>
-        ))}
+          ) : (
+            <div key={e.id} className="rounded-lg border border-border/70 bg-background/40 p-3">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <div className="font-semibold text-sm">{e.title}</div>
+                  {e.detail && (
+                    <div className="text-sm text-muted-foreground whitespace-pre-wrap mt-1">
+                      {e.detail}
+                    </div>
+                  )}
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  {e.hours > 0 && (
+                    <span className="text-xs font-semibold text-muted-foreground">{e.hours} h</span>
+                  )}
+                  {canEdit && (
+                    <>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 print:hidden"
+                        onClick={() => {
+                          setEditingId(e.id);
+                          setEditDraft({ ...e });
+                        }}
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 print:hidden"
+                        disabled={busy}
+                        onClick={() => persist(entries.filter((x) => x.id !== e.id))}
+                      >
+                        <Trash2 className="h-4 w-4 text-destructive" />
+                      </Button>
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
+          ),
+        )}
       </div>
+
 
       {canEdit && (
         <div className="mt-4 space-y-3 print:hidden">

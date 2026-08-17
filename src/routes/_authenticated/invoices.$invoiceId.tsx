@@ -25,6 +25,8 @@ import { toast } from "sonner";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { useTechnicians } from "@/hooks/use-active-technician";
 import { PrintPreview } from "@/components/PrintPreview";
+import { readWorkPerformed } from "@/components/job/WorkPerformedSection";
+
 import {
   AlertDialog,
   AlertDialogAction,
@@ -242,7 +244,7 @@ function InvoiceDetail() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("invoices")
-        .select("*, customers(*), motorcycles(*), jobs(job_number, title, description, odometer, technician_id, assigned_tech_id)")
+        .select("*, customers(*), motorcycles(*), jobs(job_number, title, description, odometer, technician_id, assigned_tech_id, service_data)")
         .eq("id", invoiceId)
         .maybeSingle();
       if (error) throw error;
@@ -954,6 +956,61 @@ function InvoiceDetail() {
               onSaveDetails={(v) => saveSnapshotMeta({ work_details: v })}
             />
           </div>
+
+          {/* Work performed / additional work recorded on the job card */}
+          {(() => {
+            const wp = readWorkPerformed((inv.jobs as any)?.service_data);
+            if (!wp.length) return null;
+            const wpHours = wp.reduce((s, w) => s + Number(w.hours ?? 0), 0);
+            const counted = Boolean((inv.snapshot as any)?.work_performed_hours_added);
+            return (
+              <div className="pt-5 border-t border-border" data-print-section="work-performed">
+                <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground mb-2">
+                  Work performed
+                </div>
+                <div className="space-y-3">
+                  {wp.map((w) => (
+                    <div key={w.id}>
+                      <div className="text-sm font-semibold">
+                        {w.title}
+                        {w.hours > 0 && (
+                          <span className="ml-2 font-normal text-muted-foreground">
+                            {w.hours} h
+                          </span>
+                        )}
+                      </div>
+                      {w.detail && (
+                        <div className="text-xs text-muted-foreground whitespace-pre-wrap mt-0.5">
+                          {w.detail}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+                {!counted && wpHours > 0 && (
+                  <div className="no-print mt-3 flex items-center gap-3 rounded-lg border border-amber-500/40 bg-amber-500/10 p-3 text-xs">
+                    <span>
+                      {wpHours} h of work performed {wpHours === 1 ? "is" : "are"} not billed on this
+                      invoice yet.
+                    </span>
+                    <Button
+                      size="sm"
+                      className="ml-auto"
+                      onClick={async () => {
+                        await recomputeInvoiceTotals(
+                          Math.round((Number(inv.labour_total) + wpHours * LABOUR_RATE) * 100) / 100,
+                        );
+                        await saveSnapshotMeta({ work_performed_hours_added: true });
+                      }}
+                    >
+                      Add {wpHours} h to labour
+                    </Button>
+                  </div>
+                )}
+              </div>
+            );
+          })()}
+
 
           {/* Line items */}
           <div className="pt-5 border-t border-border">
