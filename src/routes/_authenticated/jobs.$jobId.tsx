@@ -676,8 +676,8 @@ function JobDetail() {
                     {s === "new" && "Booked, not started"}
                     {s === "assigned" && "Technician assigned"}
                     {s === "in_progress" && "Work actively happening"}
-                    {s === "awaiting_parts" && "Waiting on parts"}
-                    {s === "awaiting_approval" && "Customer approval needed"}
+                    {s === "waiting_parts" && "Waiting on parts"}
+                    {s === "waiting_approval" && "Customer approval needed"}
                     {s === "ready_for_pickup" && "Done, ready for customer"}
                     {s === "completed" && "Collected / paid"}
                   </span>
