@@ -319,7 +319,7 @@ export function PrintPreview({
   const [extraVariant, setExtraVariant] = useState<Record<string, string>>({});
   const [extraSize, setExtraSize] = useState(100);
   const [extraRotate, setExtraRotate] = useState(0);
-  const [fitOnePage, setFitOnePage] = useState(true);
+  const [fitOnePage, setFitOnePage] = useState(false);
   const [scale, setScale] = useState(100);
   const [margin, setMargin] = useState(10);
   const [paper, setPaper] = useState<PaperKey>("A4");

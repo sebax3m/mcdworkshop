@@ -110,7 +110,7 @@ function EditableNumber({
     <button
       type="button"
       onClick={() => setEditing(true)}
-      className={`group inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 hover:bg-primary/10 hover:text-foreground transition-colors tabular-nums ${className}`}
+      className={`group/edit inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 hover:bg-primary/10 hover:text-foreground transition-colors tabular-nums ${className}`}
       title="Click to edit"
     >
       <span>
@@ -118,7 +118,7 @@ function EditableNumber({
         {fmt(value)}
         {suffix}
       </span>
-      <Pencil className="h-3 w-3 opacity-0 group-hover:opacity-60 no-print" />
+      <Pencil className="h-3 w-3 opacity-0 group-hover/edit:opacity-60 no-print" />
     </button>
   );
 }
@@ -220,7 +220,7 @@ function EditableText({
     <button
       type="button"
       onClick={() => setEditing(true)}
-      className={`group inline-flex items-start gap-1 text-left rounded-md px-1 -mx-1 hover:bg-primary/10 transition-colors ${
+      className={`group/edit inline-flex items-start gap-1 text-left rounded-md px-1 -mx-1 hover:bg-primary/10 transition-colors ${
         multiline ? "w-full" : ""
       } ${className}`}
       title={multiline ? "Click to edit (Enter for new line, Esc to cancel)" : "Click to edit"}
@@ -228,7 +228,7 @@ function EditableText({
       <span className={multiline ? "whitespace-pre-wrap flex-1" : ""}>
         {value || <span className="opacity-50">{placeholder ?? "Add details…"}</span>}
       </span>
-      <Pencil className="h-3 w-3 mt-1 opacity-0 group-hover:opacity-60 no-print flex-none" />
+      <Pencil className="h-3 w-3 mt-1 opacity-0 group-hover/edit:opacity-60 no-print flex-none" />
     </button>
   );
 }
