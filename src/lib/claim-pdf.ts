@@ -214,35 +214,50 @@ export async function buildClaimPdf(d: ClaimPdfData): Promise<Blob> {
   pdf.setTextColor(0);
   y += 4;
 
-  const cols = {
-    type: margin,
-    desc: margin + 22,
-    qty: pageW - margin - 60,
-    unit: pageW - margin - 40,
-    line: pageW - margin - 20,
+  // Column geometry (x = left edge, w = width). Numbers are right-aligned to
+  // their column's right edge so every row lines up under its header.
+  const tableL = margin;
+  const tableR = pageW - margin;
+  const pad = 1.5;
+  const colQtyW = 18;
+  const colUnitW = 22;
+  const colLineW = 24;
+  const colTypeW = 20;
+  const colDescW = tableR - tableL - colTypeW - colQtyW - colUnitW - colLineW;
+  const xType = tableL;
+  const xDesc = xType + colTypeW;
+  const xQty = xDesc + colDescW;
+  const xUnit = xQty + colQtyW;
+  const xLine = xUnit + colUnitW;
+  const rQty = xQty + colQtyW - pad;
+  const rUnit = xUnit + colUnitW - pad;
+  const rLine = xLine + colLineW - pad;
+  const lineH = 3.8;
+  const rowPadY = 1.6;
+
+  const drawHeader = () => {
+    pdf.setFontSize(8);
+    pdf.setFont("helvetica", "bold");
+    pdf.setFillColor(240, 240, 240);
+    pdf.rect(tableL, y, tableR - tableL, 6, "F");
+    const base = y + 4.1;
+    pdf.text("Type", xType + pad, base);
+    pdf.text("Description", xDesc + pad, base);
+    pdf.text("Qty/Hrs", rQty, base, { align: "right" });
+    pdf.text("Unit $", rUnit, base, { align: "right" });
+    pdf.text("Line $", rLine, base, { align: "right" });
+    pdf.setFont("helvetica", "normal");
+    y += 6;
   };
-  pdf.setFontSize(8);
-  pdf.setFont("helvetica", "bold");
-  pdf.setFillColor(240, 240, 240);
-  pdf.rect(margin, y - 3, pageW - margin * 2, 5, "F");
-  pdf.text("Type", cols.type + 1, y);
-  pdf.text("Description", cols.desc, y);
-  pdf.text("Qty/Hrs", cols.qty, y, { align: "right" });
-  pdf.text("Unit $", cols.unit, y, { align: "right" });
-  pdf.text("Line $", cols.line, y, { align: "right" });
-  pdf.setFont("helvetica", "normal");
-  y += 4;
+
+  drawHeader();
 
   let subtotal = 0;
   for (const it of items) {
     const line = (Number(it.qty) || 0) * (Number(it.unit_price) || 0);
     subtotal += line;
-    if (y + 5 > pageH - margin) {
-      pdf.addPage();
-      y = margin;
-    }
+
     pdf.setFontSize(8);
-    pdf.text(it.kind.toUpperCase(), cols.type + 1, y);
     const descParts = [
       (it.item_code ?? "").trim() && `[${(it.item_code ?? "").trim()}]`,
       (it.item_name ?? "").trim(),
@@ -251,14 +266,27 @@ export async function buildClaimPdf(d: ClaimPdfData): Promise<Blob> {
     ]
       .filter(Boolean)
       .join(" ");
-    const desc = pdf.splitTextToSize(descParts || "—", cols.qty - cols.desc - 2);
-    pdf.text(desc, cols.desc, y);
-    pdf.text(Number(it.qty).toFixed(2), cols.qty, y, { align: "right" });
-    pdf.text(`$${Number(it.unit_price).toFixed(2)}`, cols.unit, y, { align: "right" });
-    pdf.text(`$${line.toFixed(2)}`, cols.line, y, { align: "right" });
-    y += Math.max(4, desc.length * 4);
+    const desc: string[] = pdf.splitTextToSize(descParts || "—", colDescW - pad * 2);
+    const typeLines: string[] = pdf.splitTextToSize(it.kind.toUpperCase(), colTypeW - pad * 2);
+    const rowH = Math.max(desc.length, typeLines.length) * lineH + rowPadY * 2;
+
+    if (y + rowH > pageH - margin) {
+      pdf.addPage();
+      y = margin;
+      drawHeader();
+    }
+
+    const base = y + rowPadY + 2.7;
+    pdf.text(typeLines, xType + pad, base);
+    pdf.text(desc, xDesc + pad, base);
+    pdf.text(Number(it.qty).toFixed(2), rQty, base, { align: "right" });
+    pdf.text(`$${Number(it.unit_price).toFixed(2)}`, rUnit, base, { align: "right" });
+    pdf.text(`$${line.toFixed(2)}`, rLine, base, { align: "right" });
+
+    y += rowH;
     pdf.setDrawColor(220);
-    pdf.line(margin, y - 1, pageW - margin, y - 1);
+    pdf.setLineWidth(0.2);
+    pdf.line(tableL, y, tableR, y);
   }
   const gst = subtotal * 0.15;
   const total = subtotal + gst;
