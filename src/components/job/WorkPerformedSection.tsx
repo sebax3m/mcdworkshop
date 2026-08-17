@@ -109,6 +109,23 @@ export default function WorkPerformedSection({
     if (ok) setDraft({ id: "", title: "", detail: "", hours: 0 });
   }
 
+  async function saveEdit() {
+    if (!editDraft.title.trim()) {
+      toast.error("Give the work a short title.");
+      return;
+    }
+    const ok = await persist(
+      entries.map((x) =>
+        x.id === editingId
+          ? { ...editDraft, id: x.id, title: editDraft.title.trim(), detail: editDraft.detail.trim() }
+          : x,
+      ),
+    );
+    if (ok) setEditingId(null);
+  }
+
+
+
   function applyPreset(presetId: string) {
     const preset = WORK_PRESETS.find((p) => p.id === presetId);
     if (!preset) return;
