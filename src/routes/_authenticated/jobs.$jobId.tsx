@@ -615,6 +615,15 @@ function JobDetail() {
               </Button>
             )}
             <StatusDropdown current={j.status} onChange={setStatus} />
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowReference((s) => !s)}
+              className="gap-1.5 h-8 px-2.5"
+            >
+              <BookOpen className="h-4 w-4" />
+              <span className="hidden sm:inline">Reference</span>
+            </Button>
           </div>
         </div>
         <div className="min-w-0">
