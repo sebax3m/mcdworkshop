@@ -828,13 +828,13 @@ function InvoiceDetail() {
       </header>
 
       <div ref={sheetRef} className="card-surface invoice-sheet overflow-hidden">
-        {/* Gold banner */}
-        <div className="red-surface px-8 py-6 flex items-start justify-between gap-4 flex-wrap">
+        {/* Clean white header */}
+        <div className="bg-background border-b border-border px-8 py-6 flex items-center justify-between gap-4 flex-wrap text-foreground">
           <div className="flex items-center gap-4">
             <img
               src={logoAsset.url}
               alt="Motorcycle Doctors"
-              className="h-14 w-14 rounded-md object-contain bg-black/10 p-1"
+              className="h-20 w-20 object-contain"
             />
             <div>
               <div className="font-display text-3xl font-black tracking-tight">
