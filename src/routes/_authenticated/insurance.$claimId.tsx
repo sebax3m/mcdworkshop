@@ -41,6 +41,7 @@ import { CLAIM_PIPELINE, CLAIM_STATUS_META, type ClaimStatus, nextStatus } from 
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { ClaimDamageSection } from "@/components/ClaimDamageSection";
 import { ClaimBikeCard } from "@/components/ClaimBikeCard";
+import { ClaimPdfExportDialog } from "@/components/insurance/ClaimPdfExportDialog";
 
 export const Route = createFileRoute("/_authenticated/insurance/$claimId")({
   component: ClaimDetail,
@@ -423,6 +424,7 @@ function QuoteBuilder({
   const [rate, setRate] = useState<number>(Number(c.quote_labour_rate ?? 110));
   const [dirty, setDirty] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [pdfOpen, setPdfOpen] = useState(false);
 
   const subtotal = items.reduce(
     (s, it) => s + (Number(it.qty) || 0) * (Number(it.unit_price) || 0),
@@ -818,36 +820,16 @@ function QuoteBuilder({
             size="sm"
             variant="outline"
             className="gap-2"
-            onClick={async () => {
-              const t = toast.loading("Building PDF with photos…");
-              try {
-                const { buildClaimPdf } = await import("@/lib/claim-pdf");
-                const { preparePdfAttachments, downloadFile } = await import(
-                  "@/lib/pdf-attachments"
-                );
-                const blob = await buildClaimPdf({
-                  claim: c,
-                  bikeText,
-                  marks: [],
-                  items,
-                });
-                const prepared = await preparePdfAttachments(blob, `Claim-${c.claim_number}`);
-                prepared.forEach((p, i) => setTimeout(() => downloadFile(p.file), i * 400));
-                const zipped = prepared.some((p) => p.zipped);
-                toast.success(
-                  zipped
-                    ? `PDF over 24 MB — downloaded as ${prepared.length > 1 ? `${prepared.length} zip parts` : "a zip"} for email`
-                    : "PDF downloaded",
-                  { id: t },
-                );
-
-              } catch (e: any) {
-                toast.error(e?.message ?? "Failed to generate PDF", { id: t });
-              }
-            }}
+            onClick={() => setPdfOpen(true)}
           >
             <Printer className="h-3.5 w-3.5" /> Download PDF
           </Button>
+          <ClaimPdfExportDialog
+            open={pdfOpen}
+            onOpenChange={setPdfOpen}
+            data={{ claim: c, bikeText, marks: [], items }}
+            fileBaseName={`Claim-${c.claim_number}`}
+          />
         </div>
       </div>
 

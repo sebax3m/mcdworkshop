@@ -31,11 +31,23 @@ export type QuoteItem = {
   unit_price: number;
 };
 
+export type ClaimPdfOptions = {
+  /** include damage photos in the PDF (default true) */
+  includePhotos?: boolean;
+  /** max number of photos to embed (default all) */
+  maxPhotos?: number;
+  /** JPEG quality 0.3 - 0.95 (default 0.7) */
+  photoQuality?: number;
+  /** max pixel width per embedded photo (default 1000) */
+  photoMaxWidth?: number;
+};
+
 export type ClaimPdfData = {
   claim: any;
   bikeText: string;
   marks: DamageMark[];
   items: QuoteItem[];
+  options?: ClaimPdfOptions;
 };
 
 const SEV_COLOR: Record<DamageMark["severity"], [number, number, number]> = {
@@ -75,25 +87,61 @@ async function fetchAsDataUrl(url: string): Promise<string | null> {
   }
 }
 
-async function loadClaimPhotos(claimId: string): Promise<string[]> {
+async function compressDataUrl(dataUrl: string, maxW: number, quality: number): Promise<string> {
+  try {
+    const img = await new Promise<HTMLImageElement>((res, rej) => {
+      const i = new Image();
+      i.onload = () => res(i);
+      i.onerror = rej;
+      i.src = dataUrl;
+    });
+    const scale = Math.min(1, maxW / (img.naturalWidth || maxW));
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.max(1, Math.round(img.naturalWidth * scale));
+    canvas.height = Math.max(1, Math.round(img.naturalHeight * scale));
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return dataUrl;
+    ctx.fillStyle = "#fff";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    return canvas.toDataURL("image/jpeg", quality);
+  } catch {
+    return dataUrl;
+  }
+}
+
+export async function countClaimPhotos(claimId: string): Promise<number> {
+  const { count } = await supabase
+    .from("job_photos")
+    .select("id", { count: "exact", head: true })
+    .ilike("caption", `CLAIM_DAMAGE: ${claimId}%`);
+  return count ?? 0;
+}
+
+async function loadClaimPhotos(claimId: string, opts: ClaimPdfOptions): Promise<string[]> {
   const { data } = await supabase
     .from("job_photos")
     .select("storage_path")
     .ilike("caption", `CLAIM_DAMAGE: ${claimId}%`)
     .order("created_at", { ascending: false });
-  const rows = data ?? [];
+  let rows = data ?? [];
+  if (!rows.length) return [];
+  if (opts.maxPhotos != null) rows = rows.slice(0, Math.max(0, opts.maxPhotos));
   if (!rows.length) return [];
   const { data: signed } = await supabase.storage.from("workshop-photos").createSignedUrls(
     rows.map((r) => r.storage_path),
     60 * 60,
   );
   const urls = (signed ?? []).map((s) => s.signedUrl).filter(Boolean) as string[];
-  const datas = await Promise.all(urls.map(fetchAsDataUrl));
-  return datas.filter(Boolean) as string[];
+  const datas = (await Promise.all(urls.map(fetchAsDataUrl))).filter(Boolean) as string[];
+  const maxW = opts.photoMaxWidth ?? 1000;
+  const q = opts.photoQuality ?? 0.7;
+  return await Promise.all(datas.map((u) => compressDataUrl(u, maxW, q)));
 }
 
 export async function buildClaimPdf(d: ClaimPdfData): Promise<Blob> {
   const { claim: c, bikeText, marks, items } = d;
+  const opts: ClaimPdfOptions = d.options ?? {};
   const pdf = new jsPDF("p", "mm", "a4");
   const pageW = 210;
   const pageH = 297;
@@ -314,7 +362,7 @@ export async function buildClaimPdf(d: ClaimPdfData): Promise<Blob> {
   y += 7;
 
   // ---------- Photo thumbnails ----------
-  const photos = await loadClaimPhotos(c.id);
+  const photos = opts.includePhotos === false ? [] : await loadClaimPhotos(c.id, opts);
   if (photos.length) {
     if (y + 40 > pageH - margin) {
       pdf.addPage();

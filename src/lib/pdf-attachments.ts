@@ -39,26 +39,29 @@ async function splitPdfBytes(bytes: Uint8Array, parts: number): Promise<Uint8Arr
 export async function preparePdfAttachments(
   blob: Blob,
   baseName: string,
+  opts?: { forceZip?: boolean; minParts?: number },
 ): Promise<PreparedAttachment[]> {
   const name = baseName.replace(/\.pdf$/i, "");
-  if (blob.size <= MAX_ATTACHMENT_BYTES) {
+  const minParts = Math.max(1, opts?.minParts ?? 1);
+  if (blob.size <= MAX_ATTACHMENT_BYTES && minParts === 1 && !opts?.forceZip) {
     return [{ file: new File([blob], `${name}.pdf`, { type: "application/pdf" }), zipped: false }];
   }
 
   const bytes = new Uint8Array(await blob.arrayBuffer());
-  const zipped = zipFile(`${name}.pdf`, bytes);
-  if (zipped.byteLength <= MAX_ATTACHMENT_BYTES) {
-    return [
-      {
-        file: new File([zipped as BlobPart], `${name}.zip`, { type: "application/zip" }),
-        zipped: true,
-      },
-    ];
+  if (minParts === 1) {
+    const zipped = zipFile(`${name}.pdf`, bytes);
+    if (zipped.byteLength <= MAX_ATTACHMENT_BYTES) {
+      return [
+        {
+          file: new File([zipped as BlobPart], `${name}.zip`, { type: "application/zip" }),
+          zipped: true,
+        },
+      ];
+    }
   }
 
-  // Still too big: split the PDF in halves (more if needed) and zip each part.
-  let parts = 2;
-  for (; parts <= 8; parts++) {
+  // Split the PDF by pages and zip each part — every attachment stays a real .zip.
+  for (let parts = Math.max(2, minParts); parts <= 24; parts++) {
     const chunks = await splitPdfBytes(bytes, parts);
     const zips = chunks.map((c, i) => zipFile(`${name}-part${i + 1}.pdf`, c));
     if (zips.every((z) => z.byteLength <= MAX_ATTACHMENT_BYTES)) {
@@ -69,10 +72,14 @@ export async function preparePdfAttachments(
     }
   }
 
-  // Fallback: raw byte split of the zip into 2 parts.
-  const half = Math.ceil(zipped.byteLength / 2);
-  return [zipped.slice(0, half), zipped.slice(half)].map((z, i) => ({
-    file: new File([z as BlobPart], `${name}.zip.00${i + 1}`, { type: "application/octet-stream" }),
+  // Last resort: as many single-page zips as the document has pages.
+  const { PDFDocument } = await import("pdf-lib");
+  const pageCount = (await PDFDocument.load(bytes)).getPageCount();
+  const chunks = await splitPdfBytes(bytes, pageCount);
+  return chunks.map((c, i) => ({
+    file: new File([zipFile(`${name}-part${i + 1}.pdf`, c) as BlobPart], `${name}-part${i + 1}.zip`, {
+      type: "application/zip",
+    }),
     zipped: true,
   }));
 }
