@@ -1136,7 +1136,7 @@ function JobDetail() {
                 }
               >
                 <Sparkles className="h-4 w-4" />
-                Generate Invoice Draft
+                Generate Invoice
               </Button>
               <Button onClick={createInvoice} className="gold-surface h-11 px-4 font-bold gap-2">
                 <FileText className="h-4 w-4" />

@@ -40,13 +40,13 @@ export const Route = createFileRoute("/_authenticated/jobs_/$jobId/invoice-draft
   component: SmartInvoiceDraft,
   head: () => ({
     meta: [
-      { title: "Smart Invoice Draft — Motorcycle Doctors" },
+      { title: "Smart Invoice — Motorcycle Doctors" },
       {
         name: "description",
         content:
           "Review workshop-detected labour, parts and fluids before creating a customer invoice.",
       },
-      { property: "og:title", content: "Smart Invoice Draft — Motorcycle Doctors" },
+      { property: "og:title", content: "Smart Invoice — Motorcycle Doctors" },
       {
         property: "og:description",
         content: "Review detected work and generate the customer work report before invoicing.",
@@ -222,7 +222,7 @@ function SmartInvoiceDraft() {
   function regenerateLines() {
     if (!computed) return;
     setLines(computed.lines);
-    toast.success("Draft rebuilt from job data");
+    toast.success("Rebuilt from job data");
   }
 
   async function makeReport() {
@@ -268,7 +268,7 @@ function SmartInvoiceDraft() {
       toast.error(error.message);
       return false;
     }
-    if (!silent) toast.success("Draft saved");
+    if (!silent) toast.success("Saved");
     saved.refetch();
     return true;
   }
@@ -378,7 +378,7 @@ function SmartInvoiceDraft() {
           </Link>
         </Button>
         <div>
-          <h1 className="font-display text-xl font-bold tracking-tight">Smart Invoice Draft</h1>
+          <h1 className="font-display text-xl font-bold tracking-tight">Smart Invoice</h1>
           <p className="text-xs text-muted-foreground">
             Job #{j.job_number} · {displayCustomerName(j.customers)} ·{" "}
             {[bike.year, bike.make, bike.model].filter(Boolean).join(" ")}
@@ -581,7 +581,7 @@ function SmartInvoiceDraft() {
 
           <div className="flex flex-wrap gap-2 justify-end pt-2">
             <Button variant="outline" onClick={() => saveDraft()} disabled={busy === "save"}>
-              <Save className="h-4 w-4 mr-1" /> Save draft
+              <Save className="h-4 w-4 mr-1" /> Save
             </Button>
             <Button
               className="gold-surface font-bold"
@@ -625,7 +625,7 @@ function SmartInvoiceDraft() {
           )}
           {!isAdmin && (
             <p className="text-[0.65rem] text-muted-foreground pt-1">
-              You can prepare and save this draft; an admin creates the final invoice.
+              You can prepare and save this; an admin creates the final invoice.
             </p>
           )}
         </section>

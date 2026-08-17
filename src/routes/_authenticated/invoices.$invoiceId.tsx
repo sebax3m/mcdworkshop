@@ -818,7 +818,7 @@ function InvoiceDetail() {
                 <AlertDialogHeader>
                   <AlertDialogTitle>Delete invoice {inv.invoice_number}?</AlertDialogTitle>
                   <AlertDialogDescription>
-                    This permanently removes the draft invoice. This action cannot be undone.
+                    This permanently removes the invoice. This action cannot be undone.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>

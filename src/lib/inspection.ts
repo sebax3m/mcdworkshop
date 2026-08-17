@@ -66,7 +66,7 @@ export const FINDING_STATUSES = [
 export type FindingStatus = (typeof FINDING_STATUSES)[number];
 
 export const FINDING_STATUS_META: Record<string, { label: string; chip: string }> = {
-  draft: { label: "Draft", chip: "bg-muted text-muted-foreground border-border" },
+  draft: { label: "New", chip: "bg-muted text-muted-foreground border-border" },
   pending_approval: {
     label: "Awaiting approval",
     chip: "bg-amber-500/15 text-amber-400 border-amber-500/40",
