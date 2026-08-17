@@ -688,6 +688,52 @@ function JobDetail() {
         </div>
       )}
 
+      {/* Live timer / Labour logged — first thing technicians see */}
+      <div className="card-surface p-4 print:hidden">
+        <div className="flex items-center justify-between gap-3 flex-wrap">
+          <div>
+            <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">
+              Labour logged
+            </div>
+            <div className="font-display text-3xl font-bold gold-gradient-text">
+              {formatMinutes(totalMinutes)}
+            </div>
+            <div className="text-xs text-muted-foreground mt-0.5">
+              Tech: {techProfile.data?.full_name ?? <span className="italic">Unassigned</span>}
+              {j.estimated_hours ? ` · est. ${j.estimated_hours}h` : ""}
+            </div>
+          </div>
+          {canEdit && (
+            <div className="flex items-center gap-2 flex-wrap">
+              {activeTimer ? (
+                <LiveTimerButton startedAt={activeTimer.started_at} onStop={stopTimer} />
+              ) : (
+                <Button onClick={startTimer} className="gold-surface h-12 px-5 font-bold gap-2">
+                  <Play className="h-4 w-4" /> Clock In
+                </Button>
+              )}
+              {j.status !== "completed" && j.status !== "ready_for_pickup" && (
+                <Button
+                  onClick={async () => {
+                    if (activeTimer) await stopTimer();
+                    await setStatus("ready_for_pickup");
+                  }}
+                  className="h-12 px-5 font-bold gap-2 bg-green-600 hover:bg-green-700 text-white"
+                >
+                  <Check className="h-4 w-4" /> Finish Job
+                </Button>
+              )}
+            </div>
+          )}
+        </div>
+        <TimeEntriesEditor
+          entries={time.data ?? []}
+          jobId={jobId}
+          currentUserId={user?.id}
+          isAdmin={isAdmin}
+        />
+      </div>
+
       {/* Print-only compact summary */}
       <style>{`
         @media print {
