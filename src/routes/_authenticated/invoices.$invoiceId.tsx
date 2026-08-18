@@ -27,6 +27,7 @@ import { useTechnicians } from "@/hooks/use-active-technician";
 import { PrintPreview } from "@/components/PrintPreview";
 import { readWorkPerformed } from "@/components/job/WorkPerformedSection";
 import { learnInventoryPrice } from "@/lib/inventory-price-sync";
+import { PaymentsCard } from "@/components/invoice/PaymentsCard";
 
 import {
   AlertDialog,
@@ -711,7 +712,7 @@ function InvoiceDetail() {
     window.location.href = `mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
   }
 
-  const canDelete = isAdmin && (inv.status ?? "").toLowerCase() === "draft";
+  const canDelete = isAdmin && ["draft", "unpaid"].includes((inv.status ?? "").toLowerCase());
 
   // Disc % column only appears when at least one line has a discount.
   const snapshotItems: any[] = Array.isArray((inv.snapshot as any)?.line_items)
@@ -830,6 +831,14 @@ function InvoiceDetail() {
           )}
         </div>
       </header>
+
+      <PaymentsCard
+        invoiceId={invoiceId}
+        total={Number(inv.total ?? 0)}
+        status={String(inv.status ?? "unpaid")}
+        paidAmount={Number(inv.paid_amount ?? 0)}
+      />
+
 
       <div ref={sheetRef} className="card-surface invoice-sheet overflow-hidden">
         {/* Clean white header */}
