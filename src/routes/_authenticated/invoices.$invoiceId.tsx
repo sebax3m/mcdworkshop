@@ -831,6 +831,14 @@ function InvoiceDetail() {
         </div>
       </header>
 
+      <PaymentsCard
+        invoiceId={invoiceId}
+        total={Number(inv.total ?? 0)}
+        status={String(inv.status ?? "unpaid")}
+        paidAmount={Number(inv.paid_amount ?? 0)}
+      />
+
+
       <div ref={sheetRef} className="card-surface invoice-sheet overflow-hidden">
         {/* Clean white header */}
         <div className="bg-background border-b border-border px-8 py-6 flex items-center justify-between gap-4 flex-wrap text-foreground">
