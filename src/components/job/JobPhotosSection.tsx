@@ -65,9 +65,10 @@ export function JobPhotosSection({
     queryFn: async (): Promise<Row[]> => {
       const { data, error } = await supabase
         .from("job_photos")
-        .select("id, storage_path, caption, created_at")
+        .select("id, storage_path, caption, created_at, sort_order")
         .eq("job_id", jobId)
         .ilike("caption", `${JOB_PHOTO_PREFIX}:%`)
+        .order("sort_order", { ascending: true })
         .order("created_at", { ascending: false });
       if (error) throw error;
       const rows = data ?? [];
@@ -84,6 +85,24 @@ export function JobPhotosSection({
     () => (photos.data ?? []).filter((p) => filter === "all" || p.category === filter),
     [photos.data, filter],
   );
+
+  async function reorder(fromId: string, toId: string) {
+    if (fromId === toId) return;
+    const list = [...(photos.data ?? [])];
+    const from = list.findIndex((p) => p.id === fromId);
+    const to = list.findIndex((p) => p.id === toId);
+    if (from < 0 || to < 0) return;
+    const [moved] = list.splice(from, 1);
+    list.splice(to, 0, moved);
+    qc.setQueryData(["job-photos", jobId], list);
+    await Promise.all(
+      list.map((p, i) =>
+        supabase.from("job_photos").update({ sort_order: i } as any).eq("id", p.id),
+      ),
+    );
+    qc.invalidateQueries({ queryKey: ["job-photos", jobId] });
+  }
+
 
   async function handleFiles(files: File[]) {
     if (!files.length) return;
