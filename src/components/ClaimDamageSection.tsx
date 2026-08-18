@@ -12,6 +12,8 @@ const PRINT_PREFIX = "CLAIM_DAMAGE: ";
 export function ClaimDamageSection({ claimId, canEdit }: { claimId: string; canEdit: boolean }) {
   const qc = useQueryClient();
   const [uploading, setUploading] = useState(false);
+  const [preview, setPreview] = useState<any | null>(null);
+  const [dragId, setDragId] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const photos = useQuery({
@@ -19,8 +21,9 @@ export function ClaimDamageSection({ claimId, canEdit }: { claimId: string; canE
     queryFn: async () => {
       const { data, error } = await supabase
         .from("job_photos")
-        .select("id, storage_path, caption, created_at")
+        .select("id, storage_path, caption, created_at, sort_order")
         .ilike("caption", `${PRINT_PREFIX}${claimId}%`)
+        .order("sort_order", { ascending: true })
         .order("created_at", { ascending: false });
       if (error) throw error;
       const rows = data ?? [];
@@ -28,6 +31,24 @@ export function ClaimDamageSection({ claimId, canEdit }: { claimId: string; canE
       return rows.map((r, i) => ({ ...r, url: urls[i] }));
     },
   });
+
+  async function reorder(fromId: string, toId: string) {
+    if (fromId === toId) return;
+    const list = [...((photos.data ?? []) as any[])];
+    const from = list.findIndex((p) => p.id === fromId);
+    const to = list.findIndex((p) => p.id === toId);
+    if (from < 0 || to < 0) return;
+    const [moved] = list.splice(from, 1);
+    list.splice(to, 0, moved);
+    qc.setQueryData(["claim-damage-photos", claimId], list);
+    await Promise.all(
+      list.map((p, i) =>
+        supabase.from("job_photos").update({ sort_order: i } as any).eq("id", p.id),
+      ),
+    );
+    qc.invalidateQueries({ queryKey: ["claim-damage-photos", claimId] });
+  }
+
 
   async function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const files = Array.from(e.target.files ?? []);
@@ -114,14 +135,31 @@ export function ClaimDamageSection({ claimId, canEdit }: { claimId: string; canE
           {(photos.data ?? []).map((p: any) => (
             <div
               key={p.id}
-              className="relative group rounded-lg overflow-hidden border border-border bg-card aspect-square"
+              draggable
+              onDragStart={(e) => {
+                setDragId(p.id);
+                e.dataTransfer.effectAllowed = "move";
+              }}
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={(e) => {
+                e.preventDefault();
+                if (dragId) void reorder(dragId, p.id);
+                setDragId(null);
+              }}
+              onDragEnd={() => setDragId(null)}
+              title="Drag to reorder · click to preview"
+              className={`relative group rounded-lg overflow-hidden border border-border bg-card aspect-square cursor-grab active:cursor-grabbing ${
+                dragId === p.id ? "opacity-50 ring-2 ring-primary" : ""
+              }`}
             >
-              <img
-                src={p.url}
-                alt={p.caption ?? ""}
-                className="w-full h-full object-cover"
-                loading="lazy"
-              />
+              <button onClick={() => setPreview(p)} className="block h-full w-full">
+                <img
+                  src={p.url}
+                  alt={p.caption ?? ""}
+                  className="w-full h-full object-cover"
+                  loading="lazy"
+                />
+              </button>
               {canEdit && (
                 <button
                   onClick={() => deletePhoto(p.id, p.storage_path)}
@@ -134,6 +172,21 @@ export function ClaimDamageSection({ claimId, canEdit }: { claimId: string; canE
           ))}
         </div>
       )}
+
+      {preview && (
+        <div
+          className="fixed inset-0 z-50 grid place-items-center bg-black/80 p-4 print:hidden"
+          onClick={() => setPreview(null)}
+        >
+          <img
+            src={preview.url}
+            alt={preview.caption ?? "Damage photo"}
+            className="max-h-[85vh] max-w-4xl w-full rounded-lg object-contain bg-black"
+            onClick={(e) => e.stopPropagation()}
+          />
+        </div>
+      )}
+
     </section>
   );
 }

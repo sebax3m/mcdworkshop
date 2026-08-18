@@ -1,0 +1,1 @@
+ALTER TABLE public.job_photos ADD COLUMN IF NOT EXISTS sort_order integer NOT NULL DEFAULT 0;

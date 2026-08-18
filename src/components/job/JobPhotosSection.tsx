@@ -58,6 +58,8 @@ export function JobPhotosSection({
   const [lightbox, setLightbox] = useState<Row | null>(null);
   const [note, setNote] = useState("");
   const [editing, setEditing] = useState<{ id: string; text: string } | null>(null);
+  const [dragId, setDragId] = useState<string | null>(null);
+
 
 
   const photos = useQuery({
@@ -65,9 +67,10 @@ export function JobPhotosSection({
     queryFn: async (): Promise<Row[]> => {
       const { data, error } = await supabase
         .from("job_photos")
-        .select("id, storage_path, caption, created_at")
+        .select("id, storage_path, caption, created_at, sort_order")
         .eq("job_id", jobId)
         .ilike("caption", `${JOB_PHOTO_PREFIX}:%`)
+        .order("sort_order", { ascending: true })
         .order("created_at", { ascending: false });
       if (error) throw error;
       const rows = data ?? [];
@@ -84,6 +87,24 @@ export function JobPhotosSection({
     () => (photos.data ?? []).filter((p) => filter === "all" || p.category === filter),
     [photos.data, filter],
   );
+
+  async function reorder(fromId: string, toId: string) {
+    if (fromId === toId) return;
+    const list = [...(photos.data ?? [])];
+    const from = list.findIndex((p) => p.id === fromId);
+    const to = list.findIndex((p) => p.id === toId);
+    if (from < 0 || to < 0) return;
+    const [moved] = list.splice(from, 1);
+    list.splice(to, 0, moved);
+    qc.setQueryData(["job-photos", jobId], list);
+    await Promise.all(
+      list.map((p, i) =>
+        supabase.from("job_photos").update({ sort_order: i } as any).eq("id", p.id),
+      ),
+    );
+    qc.invalidateQueries({ queryKey: ["job-photos", jobId] });
+  }
+
 
   async function handleFiles(files: File[]) {
     if (!files.length) return;
@@ -266,8 +287,24 @@ export function JobPhotosSection({
           {visible.map((p) => (
             <div
               key={p.id}
-              className="rounded-lg overflow-hidden border border-border bg-card print:break-inside-avoid"
+              draggable
+              onDragStart={(e) => {
+                setDragId(p.id);
+                e.dataTransfer.effectAllowed = "move";
+              }}
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={(e) => {
+                e.preventDefault();
+                if (dragId) void reorder(dragId, p.id);
+                setDragId(null);
+              }}
+              onDragEnd={() => setDragId(null)}
+              title="Drag to reorder · click to preview"
+              className={`rounded-lg overflow-hidden border border-border bg-card print:break-inside-avoid cursor-grab active:cursor-grabbing ${
+                dragId === p.id ? "opacity-50 ring-2 ring-primary" : ""
+              }`}
             >
+
               <div className="relative group aspect-square">
                 <button onClick={() => setLightbox(p)} className="block h-full w-full">
                   <img
