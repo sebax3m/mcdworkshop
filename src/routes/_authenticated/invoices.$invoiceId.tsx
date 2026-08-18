@@ -493,7 +493,7 @@ function InvoiceDetail() {
         setOverKey(null);
         setDragArmed(null);
       },
-      className: `border-b border-border/40 group ${dragKey === key ? "opacity-40" : ""} ${
+      className: `border-b border-border/40 align-top group ${dragKey === key ? "opacity-40" : ""} ${
         overKey === key && dragKey !== key ? "bg-primary/5 outline outline-1 outline-primary/50" : ""
       }`,
     };
