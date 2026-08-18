@@ -520,11 +520,10 @@ function JobDetail() {
         created_by: user.id,
         snapshot: {
           work_performed_hours_added: true,
-          labour_desc: workPerformed.length
-            ? workPerformed
-                .map((w) => (w.detail ? `${w.title}\n${w.detail}` : w.title))
-                .join("\n\n")
-            : undefined,
+          // Work performed is shown in its own invoice section — don't repeat it
+          // in the labour line description.
+          labour_desc: undefined,
+
         } as any,
       })
 
