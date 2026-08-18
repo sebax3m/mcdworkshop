@@ -2504,6 +2504,7 @@ export type Database = {
           created_at: string
           id: string
           job_id: string | null
+          sort_order: number
           storage_path: string
           uploaded_by: string
         }
@@ -2512,6 +2513,7 @@ export type Database = {
           created_at?: string
           id?: string
           job_id?: string | null
+          sort_order?: number
           storage_path: string
           uploaded_by: string
         }
@@ -2520,6 +2522,7 @@ export type Database = {
           created_at?: string
           id?: string
           job_id?: string | null
+          sort_order?: number
           storage_path?: string
           uploaded_by?: string
         }
