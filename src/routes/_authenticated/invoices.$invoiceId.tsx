@@ -493,7 +493,7 @@ function InvoiceDetail() {
         setOverKey(null);
         setDragArmed(null);
       },
-      className: `border-b border-border/40 group ${dragKey === key ? "opacity-40" : ""} ${
+      className: `border-b border-border/40 align-top group ${dragKey === key ? "opacity-40" : ""} ${
         overKey === key && dragKey !== key ? "bg-primary/5 outline outline-1 outline-primary/50" : ""
       }`,
     };
@@ -991,16 +991,20 @@ function InvoiceDetail() {
 
           {/* Line items */}
           <div className="pt-5 border-t border-border">
-            <table className="w-full text-sm">
+            <table className="w-full text-sm align-top">
               <thead>
                 <tr className="text-left text-[0.625rem] uppercase tracking-wider text-muted-foreground border-b border-border">
-                  <th className="py-2.5">Description</th>
-                  <th className="py-2.5 text-right w-16">Qty</th>
-                  <th className="py-2.5 text-right w-24">Unit</th>
-                  {hasDiscount && <th className="py-2.5 text-right w-20">Disc %</th>}
-                  <th className="py-2.5 text-right w-28">Amount</th>
+                  <th className="py-2.5 pr-3 font-semibold w-[30%]">Item</th>
+                  <th className="py-2.5 pr-3 font-semibold">Description</th>
+                  <th className="py-2.5 pl-3 text-right font-semibold w-16">Qty</th>
+                  <th className="py-2.5 pl-3 text-right font-semibold w-24">Unit</th>
+                  {hasDiscount && (
+                    <th className="py-2.5 pl-3 text-right font-semibold w-20">Disc %</th>
+                  )}
+                  <th className="py-2.5 pl-3 text-right font-semibold w-28">Amount</th>
                 </tr>
               </thead>
+
               <tbody>
                 {inv.job_id &&
                   (() => {
@@ -1043,36 +1047,32 @@ function InvoiceDetail() {
                           : `${delta > 0 ? "+" : ""}${delta.toFixed(2)}h vs tracked`;
                       return (
                         <tr key="labour" {...rowDragProps("labour", onReorder)}>
-                          <td className="py-3">
+
+                          <td className="py-2.5 pr-3 align-top">
                             <div className="flex items-start gap-2">
                               <DragHandle rowKey="labour" />
-                              <div className="flex-1">
-                                <EditableText
-                                  value={title}
-                                  onCommit={(v) =>
-                                    saveSnapshotMeta({ labour_title: v || "Workshop labour" })
-                                  }
-                                  className="font-medium"
-                                />
-                                <div className="text-xs text-muted-foreground">
-                                  <EditableText
-                                    value={desc}
-                                    multiline
-                                    placeholder="Describe the work performed…"
-                                    onCommit={(v) => saveSnapshotMeta({ labour_desc: v })}
-                                    className="text-xs text-muted-foreground"
-                                  />
-                                  {defaultHours > 0 && (
-                                    <span className="no-print">
-                                      {" "}
-                                      · tracked {defaultHours.toFixed(2)}h
-                                    </span>
-                                  )}
-                                </div>
-                              </div>
+                              <EditableText
+                                value={title}
+                                onCommit={(v) =>
+                                  saveSnapshotMeta({ labour_title: v || "Workshop labour" })
+                                }
+                                className="font-medium leading-snug"
+                              />
                             </div>
                           </td>
-                          <td className="py-3 text-right">
+                          <td className="py-2.5 pr-3 align-top text-xs text-muted-foreground">
+                            <EditableText
+                              value={desc}
+                              multiline
+                              placeholder="Describe the work performed…"
+                              onCommit={(v) => saveSnapshotMeta({ labour_desc: v })}
+                              className="text-xs text-muted-foreground leading-snug whitespace-pre-wrap"
+                            />
+                            {defaultHours > 0 && (
+                              <span className="no-print"> · tracked {defaultHours.toFixed(2)}h</span>
+                            )}
+                          </td>
+                          <td className="py-2.5 pl-3 text-right align-top tabular-nums">
                             <EditableNumber
                               value={hours}
                               onCommit={(n) => updateLabour({ qty: n })}
@@ -1086,7 +1086,7 @@ function InvoiceDetail() {
                               </div>
                             )}
                           </td>
-                          <td className="py-3 text-right">
+                          <td className="py-2.5 pl-3 text-right align-top tabular-nums">
                             <EditableNumber
                               value={rate}
                               onCommit={(n) => updateLabour({ unit: n })}
@@ -1094,9 +1094,11 @@ function InvoiceDetail() {
                             />
                           </td>
                           {hasDiscount && (
-                            <td className="py-3 text-right text-muted-foreground">—</td>
+                            <td className="py-2.5 pl-3 text-right align-top text-muted-foreground">
+                              —
+                            </td>
                           )}
-                          <td className="py-3 text-right font-semibold align-top">
+                          <td className="py-2.5 pl-3 text-right font-semibold align-top tabular-nums">
                             <div className="flex items-start justify-end gap-1">
                               <EditableNumber
                                 value={Number(inv.labour_total)}
@@ -1113,6 +1115,7 @@ function InvoiceDetail() {
                             </div>
                           </td>
                         </tr>
+
                       );
                     };
 
@@ -1124,27 +1127,14 @@ function InvoiceDetail() {
                       const net = gross * (1 - disc / 100);
                       return (
                         <tr key={p.id} {...rowDragProps(p.id, onReorder)}>
-                          <td className="py-3">
+                          <td className="py-2.5 pr-3 align-top">
                             <div className="flex items-start gap-2">
                               <DragHandle rowKey={p.id} />
-                              <div className="flex-1">
-                                <EditableText
-                                  value={p.name ?? ""}
-                                  onCommit={(v) => updatePart(p.id, { name: v })}
-                                  className="font-medium"
-                                />
-                                <EditableText
-                                  value={p.supplier ?? ""}
-                                  onCommit={(v) => updatePart(p.id, { supplier: v })}
-                                  multiline={(p.name ?? "").toLowerCase().includes("consumable")}
-                                  placeholder={
-                                    (p.name ?? "").toLowerCase().includes("consumable")
-                                      ? "Washers, lubricants, cleaners, degreaser, rags…"
-                                      : undefined
-                                  }
-                                  className="text-xs text-muted-foreground block whitespace-pre-wrap"
-                                />
-                              </div>
+                              <EditableText
+                                value={p.name ?? ""}
+                                onCommit={(v) => updatePart(p.id, { name: v })}
+                                className="font-medium leading-snug flex-1"
+                              />
                               <button
                                 onClick={() => {
                                   setLibrarySearch("");
@@ -1157,7 +1147,20 @@ function InvoiceDetail() {
                               </button>
                             </div>
                           </td>
-                          <td className="py-3 text-right">
+                          <td className="py-2.5 pr-3 align-top">
+                            <EditableText
+                              value={p.supplier ?? ""}
+                              onCommit={(v) => updatePart(p.id, { supplier: v })}
+                              multiline={(p.name ?? "").toLowerCase().includes("consumable")}
+                              placeholder={
+                                (p.name ?? "").toLowerCase().includes("consumable")
+                                  ? "Washers, lubricants, cleaners, degreaser, rags…"
+                                  : "—"
+                              }
+                              className="text-xs text-muted-foreground block leading-snug whitespace-pre-wrap"
+                            />
+                          </td>
+                          <td className="py-2.5 pl-3 text-right align-top tabular-nums">
                             <EditableNumber
                               value={qty}
                               decimals={2}
@@ -1166,7 +1169,7 @@ function InvoiceDetail() {
                               onCommit={(n) => updatePart(p.id, { quantity: n })}
                             />
                           </td>
-                          <td className="py-3 text-right">
+                          <td className="py-2.5 pl-3 text-right align-top tabular-nums">
                             <EditableNumber
                               value={unit}
                               prefix="$"
@@ -1183,7 +1186,7 @@ function InvoiceDetail() {
                             )}
                           </td>
                           {hasDiscount && (
-                            <td className="py-3 text-right">
+                            <td className="py-2.5 pl-3 text-right align-top tabular-nums">
                               <div className="inline-flex items-center gap-1">
                                 <EditableNumber
                                   value={disc}
@@ -1207,7 +1210,8 @@ function InvoiceDetail() {
                               </div>
                             </td>
                           )}
-                          <td className="py-3 text-right font-semibold align-top">
+                          <td className="py-2.5 pl-3 text-right font-semibold align-top tabular-nums">
+
                             <div className="flex items-start justify-end gap-1">
                               <div className="text-right">
                                 {disc > 0 && (
@@ -1243,7 +1247,7 @@ function InvoiceDetail() {
                   })()}
                 {inv.job_id && (
                   <tr className="no-print">
-                    <td colSpan={hasDiscount ? 5 : 4} className="pt-2">
+                    <td colSpan={hasDiscount ? 6 : 5} className="pt-2">
                       <button
                         onClick={addJobPart}
                         className="text-xs text-primary hover:underline inline-flex items-center gap-1"
@@ -1272,6 +1276,7 @@ function InvoiceDetail() {
                 {!inv.job_id &&
                   (() => {
                     const items: {
+                      item_name?: string;
                       description: string;
                       quantity: number;
                       unit: number;
@@ -1283,7 +1288,7 @@ function InvoiceDetail() {
                       return (
                         <tr>
                           <td
-                            colSpan={hasDiscount ? 5 : 4}
+                            colSpan={hasDiscount ? 6 : 5}
                             className="py-6 text-center text-xs text-muted-foreground"
                           >
                             No line items.{" "}
@@ -1301,18 +1306,25 @@ function InvoiceDetail() {
                       const disc = Number(it.discount_pct ?? 0);
                       const gross = Number(it.unit) * Number(it.quantity);
                       const net = gross * (1 - disc / 100);
+                      const itemName = it.item_name?.trim() ? it.item_name : it.description;
+                      const detail = it.item_name?.trim() ? it.description : "";
                       return (
                         <tr key={idx} {...rowDragProps(String(idx), moveSnapshotLine)}>
-                          <td className="py-3">
+                          <td className="py-2.5 pr-3 align-top">
                             <div className="flex items-start gap-2">
                               <DragHandle rowKey={String(idx)} />
-                              <div className="flex-1">
-                                <EditableText
-                                  value={it.description}
-                                  onCommit={(v) => updateSnapshotLine(idx, { description: v })}
-                                  className="font-medium"
-                                />
-                              </div>
+                              <EditableText
+                                value={itemName}
+                                onCommit={(v) =>
+                                  updateSnapshotLine(
+                                    idx,
+                                    it.item_name?.trim()
+                                      ? ({ item_name: v } as any)
+                                      : { description: v },
+                                  )
+                                }
+                                className="font-medium leading-snug flex-1"
+                              />
                               <button
                                 onClick={() => {
                                   setLibrarySearch("");
@@ -1325,7 +1337,23 @@ function InvoiceDetail() {
                               </button>
                             </div>
                           </td>
-                          <td className="py-3 text-right">
+                          <td className="py-2.5 pr-3 align-top">
+                            <EditableText
+                              value={detail}
+                              multiline
+                              placeholder="—"
+                              onCommit={(v) =>
+                                updateSnapshotLine(
+                                  idx,
+                                  it.item_name?.trim()
+                                    ? { description: v }
+                                    : ({ item_name: itemName, description: v } as any),
+                                )
+                              }
+                              className="text-xs text-muted-foreground block leading-snug whitespace-pre-wrap"
+                            />
+                          </td>
+                          <td className="py-2.5 pl-3 text-right align-top tabular-nums">
                             <EditableNumber
                               value={Number(it.quantity)}
                               decimals={2}
@@ -1334,7 +1362,7 @@ function InvoiceDetail() {
                               onCommit={(n) => updateSnapshotLine(idx, { quantity: n })}
                             />
                           </td>
-                          <td className="py-3 text-right">
+                          <td className="py-2.5 pl-3 text-right align-top tabular-nums">
                             <EditableNumber
                               value={Number(it.unit)}
                               prefix="$"
@@ -1351,7 +1379,7 @@ function InvoiceDetail() {
                             )}
                           </td>
                           {hasDiscount && (
-                            <td className="py-3 text-right">
+                            <td className="py-2.5 pl-3 text-right align-top tabular-nums">
                               <div className="inline-flex items-center gap-1">
                                 <EditableNumber
                                   value={disc}
@@ -1375,33 +1403,38 @@ function InvoiceDetail() {
                               </div>
                             </td>
                           )}
-                          <td className="py-3 text-right font-semibold">
-                            {disc > 0 && (
-                              <div className="text-[0.625rem] text-muted-foreground line-through tabular-nums">
-                                ${gross.toFixed(2)}
+                          <td className="py-2.5 pl-3 text-right font-semibold align-top tabular-nums">
+                            <div className="flex items-start justify-end gap-1">
+                              <div className="text-right">
+                                {disc > 0 && (
+                                  <div className="text-[0.625rem] text-muted-foreground line-through tabular-nums">
+                                    ${gross.toFixed(2)}
+                                  </div>
+                                )}
+                                <span className="tabular-nums">${net.toFixed(2)}</span>
+                                {disc > 0 && (
+                                  <div className="text-[0.625rem] text-emerald-500 font-semibold">
+                                    −${(gross - net).toFixed(2)} ({disc}% off)
+                                  </div>
+                                )}
                               </div>
-                            )}
-                            <span className="tabular-nums">${net.toFixed(2)}</span>
-                            {disc > 0 && (
-                              <div className="text-[0.625rem] text-emerald-500 font-semibold">
-                                −${(gross - net).toFixed(2)} ({disc}% off)
-                              </div>
-                            )}
-                            <button
-                              onClick={() => removeSnapshotLine(idx)}
-                              className="ml-2 no-print opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive"
-                              title="Remove line"
-                            >
-                              <Trash2 className="h-3.5 w-3.5 inline" />
-                            </button>
+                              <button
+                                onClick={() => removeSnapshotLine(idx)}
+                                className="no-print w-4 shrink-0 opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive"
+                                title="Remove line"
+                              >
+                                <Trash2 className="h-3.5 w-3.5 inline" />
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       );
                     });
                   })()}
+
                 {!inv.job_id && (
                   <tr className="no-print">
-                    <td colSpan={hasDiscount ? 5 : 4} className="pt-2">
+                    <td colSpan={hasDiscount ? 6 : 5} className="pt-2">
                       <button
                         onClick={() => addSnapshotLine()}
                         className="text-xs text-primary hover:underline inline-flex items-center gap-1"
@@ -1416,7 +1449,7 @@ function InvoiceDetail() {
                   (parts.data ?? []).length === 0 && (
                     <tr>
                       <td
-                        colSpan={hasDiscount ? 5 : 4}
+                        colSpan={hasDiscount ? 6 : 5}
                         className="py-6 text-center text-xs text-muted-foreground"
                       >
                         No line items
