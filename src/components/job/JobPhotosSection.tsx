@@ -285,8 +285,24 @@ export function JobPhotosSection({
           {visible.map((p) => (
             <div
               key={p.id}
-              className="rounded-lg overflow-hidden border border-border bg-card print:break-inside-avoid"
+              draggable
+              onDragStart={(e) => {
+                setDragId(p.id);
+                e.dataTransfer.effectAllowed = "move";
+              }}
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={(e) => {
+                e.preventDefault();
+                if (dragId) void reorder(dragId, p.id);
+                setDragId(null);
+              }}
+              onDragEnd={() => setDragId(null)}
+              title="Drag to reorder · click to preview"
+              className={`rounded-lg overflow-hidden border border-border bg-card print:break-inside-avoid cursor-grab active:cursor-grabbing ${
+                dragId === p.id ? "opacity-50 ring-2 ring-primary" : ""
+              }`}
             >
+
               <div className="relative group aspect-square">
                 <button onClick={() => setLightbox(p)} className="block h-full w-full">
                   <img
