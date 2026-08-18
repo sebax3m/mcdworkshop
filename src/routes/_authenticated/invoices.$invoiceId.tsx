@@ -711,7 +711,7 @@ function InvoiceDetail() {
     window.location.href = `mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
   }
 
-  const canDelete = isAdmin && (inv.status ?? "").toLowerCase() === "draft";
+  const canDelete = isAdmin && ["draft", "unpaid"].includes((inv.status ?? "").toLowerCase());
 
   // Disc % column only appears when at least one line has a discount.
   const snapshotItems: any[] = Array.isArray((inv.snapshot as any)?.line_items)
