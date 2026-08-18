@@ -842,107 +842,97 @@ function InvoiceDetail() {
 
       <div ref={sheetRef} className="card-surface invoice-sheet overflow-hidden">
         {/* Clean white header */}
-        <div className="bg-background border-b border-border px-8 py-6 flex items-center justify-between gap-4 flex-wrap text-foreground">
-          <div className="flex items-center gap-4">
+        <div className="bg-background border-b border-border px-6 py-3 flex items-center justify-between gap-4 flex-wrap text-foreground">
+          <div className="flex items-center gap-3">
             <img
               src={logoAsset.url}
               alt="Motorcycle Doctors"
-              className="h-20 w-20 object-contain"
+              className="h-12 w-12 object-contain"
             />
             <div>
-              <div className="font-display text-3xl font-black tracking-tight">
+              <div className="font-display text-xl font-black tracking-tight leading-none">
                 Motorcycle Doctors
               </div>
-              <div className="text-[0.7rem] leading-snug opacity-90 mt-1 space-y-0.5">
-                <div>94 Wairau Rd, Wairau Valley, Auckland City, Auckland, New Zealand</div>
-                <div>services@mcdr.co.nz · www.motorcycle-doctors.co.nz</div>
-                <div>0800 668 663 · GST Reg N°: 99386185</div>
-                <div>Repairs / Service / Dyno Tuning / Collision Repairs</div>
+              <div className="text-[0.62rem] leading-tight opacity-80 mt-1">
+                94 Wairau Rd, Wairau Valley, Auckland · 0800 668 663 · services@mcdr.co.nz
+                <br />
+                www.motorcycle-doctors.co.nz · GST Reg N°: 99386185
               </div>
             </div>
           </div>
           <div className="text-right">
-            <div className="text-[0.625rem] uppercase tracking-[0.25em] opacity-80">
-              Tax Invoice
-            </div>
-            <div className="font-display text-2xl font-black">{inv.invoice_number}</div>
+            <div className="text-[0.6rem] uppercase tracking-[0.25em] opacity-80">Tax Invoice</div>
+            <div className="font-display text-xl font-black">{inv.invoice_number}</div>
           </div>
         </div>
 
 
-        <div className="p-8 space-y-7">
-          {/* Meta strip */}
-          <div data-print-section="meta" className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
-            <div>
-              <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">
-                Issued
-              </div>
-              <div className="font-semibold">{issuedAt.toLocaleDateString()}</div>
-            </div>
-            <div>
-              <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">
-                Due
-              </div>
-              <div className="font-semibold">{dueAt.toLocaleDateString()}</div>
-            </div>
-            <div>
-              <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">
-                Job
-              </div>
-              <div className="font-semibold">{inv.jobs ? `#${inv.jobs.job_number}` : "—"}</div>
-            </div>
-            <div>
-              <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">
-                Technician
-              </div>
-              <div className="font-semibold print:block hidden">{technicianName || "—"}</div>
-              <select
-                className="no-print w-full rounded-md border border-border bg-background px-1 py-0.5 text-sm font-semibold"
-                value={technicianId ?? ""}
-                onChange={(e) => saveSnapshotMeta({ technician_id: e.target.value || null })}
-              >
-                <option value="">—</option>
-                {technicians.map((t) => (
-                  <option key={t.id} value={t.id}>
-                    {t.full_name}
-                  </option>
-                ))}
-              </select>
-            </div>
 
-          </div>
-
-          {/* Bill to + Bike */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-5 border-t border-border">
-            <div>
-              <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground mb-2">
-                Bill To
-              </div>
-              <div className="font-display text-lg font-bold">
+        <div className="p-6 space-y-5">
+          {/* Compact summary: customer + bike + meta in one strip */}
+          <div
+            data-print-section="meta"
+            className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 text-xs rounded-md border border-border px-4 py-3"
+          >
+            <div className="min-w-0">
+              <span className="text-[0.6rem] uppercase tracking-wider text-muted-foreground">
+                Bill to
+              </span>
+              <div className="font-bold text-sm truncate">
                 {customer ? `${customer.first_name ?? ""} ${customer.last_name ?? ""}`.trim() : "—"}
               </div>
-              {customer?.email && (
-                <div className="text-sm text-muted-foreground">{customer.email}</div>
-              )}
-              {customer?.phone && (
-                <div className="text-sm text-muted-foreground">{customer.phone}</div>
-              )}
+              <div className="text-muted-foreground truncate">
+                {[customer?.phone, customer?.email].filter(Boolean).join(" · ") || "—"}
+              </div>
             </div>
-            <div>
-              <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground mb-2">
+            <div className="min-w-0">
+              <span className="text-[0.6rem] uppercase tracking-wider text-muted-foreground">
                 Motorcycle
+              </span>
+              <div className="font-bold text-sm truncate">{bike ? fullBike(bike as any) : "—"}</div>
+              <div className="text-muted-foreground truncate">
+                {[
+                  bike?.rego ? `Rego ${bike.rego}` : null,
+                  (inv.jobs?.odometer ?? bike?.mileage) != null
+                    ? `${Number(inv.jobs?.odometer ?? bike?.mileage).toLocaleString()} km`
+                    : null,
+                ]
+                  .filter(Boolean)
+                  .join(" · ") || "—"}
               </div>
-              <div className="font-display text-lg font-bold">
-                {bike ? fullBike(bike as any) : "—"}
-              </div>
-              {bike?.rego && <div className="text-sm text-muted-foreground">Rego: {bike.rego}</div>}
-              {(inv.jobs?.odometer ?? bike?.mileage) != null && (
-                <div className="text-sm text-muted-foreground">
-                  Odometer: {Number(inv.jobs?.odometer ?? bike?.mileage).toLocaleString()} km
-                </div>
-              )}
+            </div>
+            <div className="sm:col-span-2 flex flex-wrap items-center gap-x-5 gap-y-1 pt-2 border-t border-border text-muted-foreground">
+              <span>
+                Issued <b className="text-foreground">{issuedAt.toLocaleDateString()}</b>
+              </span>
+              <span>
+                Due <b className="text-foreground">{dueAt.toLocaleDateString()}</b>
+              </span>
+              <span>
+                Job{" "}
+                <b className="text-foreground">
+                  {inv.jobs ? `#${inv.jobs.job_number}` : "—"}
+                </b>
+              </span>
+              <span className="flex items-center gap-1">
+                Technician
+                <b className="text-foreground print:inline hidden">{technicianName || "—"}</b>
+                <select
+                  className="no-print rounded-md border border-border bg-background px-1 py-0.5 text-xs font-semibold text-foreground"
+                  value={technicianId ?? ""}
+                  onChange={(e) => saveSnapshotMeta({ technician_id: e.target.value || null })}
+                >
+                  <option value="">—</option>
+                  {technicians.map((t) => (
+                    <option key={t.id} value={t.id}>
+                      {t.full_name}
+                    </option>
+                  ))}
+                </select>
+              </span>
             </div>
           </div>
+
 
           {/* Work performed — recorded on the job card */}
           {(() => {
