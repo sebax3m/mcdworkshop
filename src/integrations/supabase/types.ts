@@ -2156,6 +2156,50 @@ export type Database = {
         }
         Relationships: []
       }
+      invoice_payments: {
+        Row: {
+          amount: number
+          created_at: string
+          created_by: string | null
+          id: string
+          invoice_id: string
+          method: string
+          note: string | null
+          paid_on: string
+          reference: string | null
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          invoice_id: string
+          method?: string
+          note?: string | null
+          paid_on?: string
+          reference?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          invoice_id?: string
+          method?: string
+          note?: string | null
+          paid_on?: string
+          reference?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoice_payments_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       invoices: {
         Row: {
           bike_snapshot: string | null
