@@ -1276,6 +1276,7 @@ function InvoiceDetail() {
                 {!inv.job_id &&
                   (() => {
                     const items: {
+                      item_name?: string;
                       description: string;
                       quantity: number;
                       unit: number;
@@ -1287,7 +1288,7 @@ function InvoiceDetail() {
                       return (
                         <tr>
                           <td
-                            colSpan={hasDiscount ? 5 : 4}
+                            colSpan={hasDiscount ? 6 : 5}
                             className="py-6 text-center text-xs text-muted-foreground"
                           >
                             No line items.{" "}
@@ -1305,18 +1306,25 @@ function InvoiceDetail() {
                       const disc = Number(it.discount_pct ?? 0);
                       const gross = Number(it.unit) * Number(it.quantity);
                       const net = gross * (1 - disc / 100);
+                      const itemName = it.item_name?.trim() ? it.item_name : it.description;
+                      const detail = it.item_name?.trim() ? it.description : "";
                       return (
                         <tr key={idx} {...rowDragProps(String(idx), moveSnapshotLine)}>
-                          <td className="py-3">
+                          <td className="py-2.5 pr-3 align-top">
                             <div className="flex items-start gap-2">
                               <DragHandle rowKey={String(idx)} />
-                              <div className="flex-1">
-                                <EditableText
-                                  value={it.description}
-                                  onCommit={(v) => updateSnapshotLine(idx, { description: v })}
-                                  className="font-medium"
-                                />
-                              </div>
+                              <EditableText
+                                value={itemName}
+                                onCommit={(v) =>
+                                  updateSnapshotLine(
+                                    idx,
+                                    it.item_name?.trim()
+                                      ? ({ item_name: v } as any)
+                                      : { description: v },
+                                  )
+                                }
+                                className="font-medium leading-snug flex-1"
+                              />
                               <button
                                 onClick={() => {
                                   setLibrarySearch("");
@@ -1329,7 +1337,23 @@ function InvoiceDetail() {
                               </button>
                             </div>
                           </td>
-                          <td className="py-3 text-right">
+                          <td className="py-2.5 pr-3 align-top">
+                            <EditableText
+                              value={detail}
+                              multiline
+                              placeholder="—"
+                              onCommit={(v) =>
+                                updateSnapshotLine(
+                                  idx,
+                                  it.item_name?.trim()
+                                    ? { description: v }
+                                    : ({ item_name: itemName, description: v } as any),
+                                )
+                              }
+                              className="text-xs text-muted-foreground block leading-snug whitespace-pre-wrap"
+                            />
+                          </td>
+                          <td className="py-2.5 pl-3 text-right align-top tabular-nums">
                             <EditableNumber
                               value={Number(it.quantity)}
                               decimals={2}
@@ -1338,7 +1362,7 @@ function InvoiceDetail() {
                               onCommit={(n) => updateSnapshotLine(idx, { quantity: n })}
                             />
                           </td>
-                          <td className="py-3 text-right">
+                          <td className="py-2.5 pl-3 text-right align-top tabular-nums">
                             <EditableNumber
                               value={Number(it.unit)}
                               prefix="$"
@@ -1355,7 +1379,7 @@ function InvoiceDetail() {
                             )}
                           </td>
                           {hasDiscount && (
-                            <td className="py-3 text-right">
+                            <td className="py-2.5 pl-3 text-right align-top tabular-nums">
                               <div className="inline-flex items-center gap-1">
                                 <EditableNumber
                                   value={disc}
@@ -1379,30 +1403,35 @@ function InvoiceDetail() {
                               </div>
                             </td>
                           )}
-                          <td className="py-3 text-right font-semibold">
-                            {disc > 0 && (
-                              <div className="text-[0.625rem] text-muted-foreground line-through tabular-nums">
-                                ${gross.toFixed(2)}
+                          <td className="py-2.5 pl-3 text-right font-semibold align-top tabular-nums">
+                            <div className="flex items-start justify-end gap-1">
+                              <div className="text-right">
+                                {disc > 0 && (
+                                  <div className="text-[0.625rem] text-muted-foreground line-through tabular-nums">
+                                    ${gross.toFixed(2)}
+                                  </div>
+                                )}
+                                <span className="tabular-nums">${net.toFixed(2)}</span>
+                                {disc > 0 && (
+                                  <div className="text-[0.625rem] text-emerald-500 font-semibold">
+                                    −${(gross - net).toFixed(2)} ({disc}% off)
+                                  </div>
+                                )}
                               </div>
-                            )}
-                            <span className="tabular-nums">${net.toFixed(2)}</span>
-                            {disc > 0 && (
-                              <div className="text-[0.625rem] text-emerald-500 font-semibold">
-                                −${(gross - net).toFixed(2)} ({disc}% off)
-                              </div>
-                            )}
-                            <button
-                              onClick={() => removeSnapshotLine(idx)}
-                              className="ml-2 no-print opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive"
-                              title="Remove line"
-                            >
-                              <Trash2 className="h-3.5 w-3.5 inline" />
-                            </button>
+                              <button
+                                onClick={() => removeSnapshotLine(idx)}
+                                className="no-print w-4 shrink-0 opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive"
+                                title="Remove line"
+                              >
+                                <Trash2 className="h-3.5 w-3.5 inline" />
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       );
                     });
                   })()}
+
                 {!inv.job_id && (
                   <tr className="no-print">
                     <td colSpan={hasDiscount ? 5 : 4} className="pt-2">
