@@ -991,16 +991,20 @@ function InvoiceDetail() {
 
           {/* Line items */}
           <div className="pt-5 border-t border-border">
-            <table className="w-full text-sm">
+            <table className="w-full text-sm align-top">
               <thead>
                 <tr className="text-left text-[0.625rem] uppercase tracking-wider text-muted-foreground border-b border-border">
-                  <th className="py-2.5">Description</th>
-                  <th className="py-2.5 text-right w-16">Qty</th>
-                  <th className="py-2.5 text-right w-24">Unit</th>
-                  {hasDiscount && <th className="py-2.5 text-right w-20">Disc %</th>}
-                  <th className="py-2.5 text-right w-28">Amount</th>
+                  <th className="py-2.5 pr-3 font-semibold w-[30%]">Item</th>
+                  <th className="py-2.5 pr-3 font-semibold">Description</th>
+                  <th className="py-2.5 pl-3 text-right font-semibold w-16">Qty</th>
+                  <th className="py-2.5 pl-3 text-right font-semibold w-24">Unit</th>
+                  {hasDiscount && (
+                    <th className="py-2.5 pl-3 text-right font-semibold w-20">Disc %</th>
+                  )}
+                  <th className="py-2.5 pl-3 text-right font-semibold w-28">Amount</th>
                 </tr>
               </thead>
+
               <tbody>
                 {inv.job_id &&
                   (() => {
