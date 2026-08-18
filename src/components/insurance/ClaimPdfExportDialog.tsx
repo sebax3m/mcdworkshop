@@ -35,6 +35,13 @@ export function ClaimPdfExportDialog({
   const [maxPhotos, setMaxPhotos] = useState(20);
   const [quality, setQuality] = useState(70);
   const [building, setBuilding] = useState(false);
+  const [estimating, setEstimating] = useState(false);
+  const [est, setEst] = useState<{
+    pdfSize: number;
+    zipSize: number;
+    photos: number;
+    parts: number;
+  } | null>(null);
   const [result, setResult] = useState<{ size: number; parts: number; names: string[] } | null>(
     null,
   );
@@ -42,6 +49,7 @@ export function ClaimPdfExportDialog({
   useEffect(() => {
     if (!open) return;
     setResult(null);
+    setEst(null);
     (async () => {
       const { countClaimPhotos } = await import("@/lib/claim-pdf");
       const n = await countClaimPhotos(data.claim.id);
@@ -51,20 +59,44 @@ export function ClaimPdfExportDialog({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, data.claim.id]);
 
+  // Any option change invalidates the previous estimate.
+  useEffect(() => {
+    setEst(null);
+  }, [includePhotos, maxPhotos, quality]);
+
+  const buildOptions = () => ({
+    includePhotos,
+    maxPhotos: includePhotos ? maxPhotos : 0,
+    photoQuality: quality / 100,
+    photoMaxWidth: quality >= 80 ? 1400 : quality >= 60 ? 1000 : 700,
+  });
+
+  const estimate = async () => {
+    setEstimating(true);
+    try {
+      const { buildClaimPdf } = await import("@/lib/claim-pdf");
+      const { estimateAttachments } = await import("@/lib/pdf-attachments");
+      const blob = await buildClaimPdf({ ...data, options: buildOptions() });
+      const e = await estimateAttachments(blob, fileBaseName);
+      setEst({
+        pdfSize: e.pdfSize,
+        zipSize: e.zipSize,
+        parts: e.parts,
+        photos: includePhotos ? Math.min(maxPhotos, photoCount ?? maxPhotos) : 0,
+      });
+    } catch (e: any) {
+      toast.error(e?.message ?? "Failed to calculate size");
+    } finally {
+      setEstimating(false);
+    }
+  };
+
   const build = async (minParts = 1) => {
     setBuilding(true);
     try {
       const { buildClaimPdf } = await import("@/lib/claim-pdf");
       const { preparePdfAttachments, downloadFile } = await import("@/lib/pdf-attachments");
-      const blob = await buildClaimPdf({
-        ...data,
-        options: {
-          includePhotos,
-          maxPhotos: includePhotos ? maxPhotos : 0,
-          photoQuality: quality / 100,
-          photoMaxWidth: quality >= 80 ? 1400 : quality >= 60 ? 1000 : 700,
-        },
-      });
+      const blob = await buildClaimPdf({ ...data, options: buildOptions() });
       const prepared = await preparePdfAttachments(blob, fileBaseName, { minParts });
       prepared.forEach((p, i) => setTimeout(() => downloadFile(p.file), i * 400));
       setResult({
@@ -74,7 +106,7 @@ export function ClaimPdfExportDialog({
       });
       toast.success(
         prepared.length > 1
-          ? `Downloaded ${prepared.length} zip parts`
+          ? `Downloaded ${prepared.length} volumes — open the .zip to extract the single PDF`
           : prepared[0].zipped
             ? "Downloaded as .zip (over 24 MB)"
             : "PDF downloaded",
