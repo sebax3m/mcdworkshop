@@ -1537,6 +1537,26 @@ function InvoiceDetail() {
               className="w-full pl-9 pr-3 py-2 rounded-lg border border-border bg-background text-sm outline-none focus:border-primary"
             />
           </div>
+
+          <NewInventoryItemForm
+            defaultName={librarySearch}
+            onCreated={async (it) => {
+              await library.refetch();
+              const price = Number(it.unit_price ?? 0);
+              const name = [it.sku, it.name].filter(Boolean).join(" — ");
+              if (libraryTarget?.kind === "snapshot") {
+                await updateSnapshotLine(libraryTarget.idx, { description: name, unit: price });
+              } else if (libraryTarget?.kind === "part") {
+                await updatePart(libraryTarget.id, {
+                  name,
+                  retail: price,
+                  supplier: it.brand ?? "",
+                });
+              }
+              setLibraryTarget(null);
+            }}
+          />
+
           <div className="overflow-y-auto flex-1 -mx-1 px-1">
             {(() => {
               const q = librarySearch.toLowerCase().trim();
