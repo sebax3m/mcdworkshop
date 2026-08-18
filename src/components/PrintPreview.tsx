@@ -412,7 +412,7 @@ export function PrintPreview({
     setSrcDoc(
       `<!doctype html><html><head><meta charset="utf-8"><base href="${window.location.origin}/">${headStyles}<style>${paperCss(margin)}${TEMPLATES[template].css}${pageCss}${hideRules}</style></head><body>${body}<script>${DRAG_SCRIPT}<\/script></body></html>`,
     );
-  }, [open, pages, hidden, margin, paper, template]);
+  }, [open, pages, hidden, margin, paper, template, duplex]);
 
   // Fit each page onto exactly one sheet once the frame content is ready.
   const fit = useCallback(() => {
@@ -763,6 +763,12 @@ export function PrintPreview({
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Close
           </Button>
+          {duplex ? (
+            <span className="mr-auto text-xs text-muted-foreground">
+              Double-sided requested — if your print dialog opens on single-sided, pick
+              &ldquo;Print on both sides&rdquo;.
+            </span>
+          ) : null}
           <Button className="red-surface gap-2" onClick={doPrint}>
             <Printer className="h-4 w-4" /> Print
           </Button>
