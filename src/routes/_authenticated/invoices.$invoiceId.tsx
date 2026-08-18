@@ -27,6 +27,7 @@ import { useTechnicians } from "@/hooks/use-active-technician";
 import { PrintPreview } from "@/components/PrintPreview";
 import { readWorkPerformed } from "@/components/job/WorkPerformedSection";
 import { learnInventoryPrice } from "@/lib/inventory-price-sync";
+import { PaymentsCard } from "@/components/invoice/PaymentsCard";
 
 import {
   AlertDialog,
