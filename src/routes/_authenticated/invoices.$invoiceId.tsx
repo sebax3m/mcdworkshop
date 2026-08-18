@@ -842,32 +842,30 @@ function InvoiceDetail() {
 
       <div ref={sheetRef} className="card-surface invoice-sheet overflow-hidden">
         {/* Clean white header */}
-        <div className="bg-background border-b border-border px-8 py-6 flex items-center justify-between gap-4 flex-wrap text-foreground">
-          <div className="flex items-center gap-4">
+        <div className="bg-background border-b border-border px-6 py-3 flex items-center justify-between gap-4 flex-wrap text-foreground">
+          <div className="flex items-center gap-3">
             <img
               src={logoAsset.url}
               alt="Motorcycle Doctors"
-              className="h-20 w-20 object-contain"
+              className="h-12 w-12 object-contain"
             />
             <div>
-              <div className="font-display text-3xl font-black tracking-tight">
+              <div className="font-display text-xl font-black tracking-tight leading-none">
                 Motorcycle Doctors
               </div>
-              <div className="text-[0.7rem] leading-snug opacity-90 mt-1 space-y-0.5">
-                <div>94 Wairau Rd, Wairau Valley, Auckland City, Auckland, New Zealand</div>
-                <div>services@mcdr.co.nz · www.motorcycle-doctors.co.nz</div>
-                <div>0800 668 663 · GST Reg N°: 99386185</div>
-                <div>Repairs / Service / Dyno Tuning / Collision Repairs</div>
+              <div className="text-[0.62rem] leading-tight opacity-80 mt-1">
+                94 Wairau Rd, Wairau Valley, Auckland · 0800 668 663 · services@mcdr.co.nz
+                <br />
+                www.motorcycle-doctors.co.nz · GST Reg N°: 99386185
               </div>
             </div>
           </div>
           <div className="text-right">
-            <div className="text-[0.625rem] uppercase tracking-[0.25em] opacity-80">
-              Tax Invoice
-            </div>
-            <div className="font-display text-2xl font-black">{inv.invoice_number}</div>
+            <div className="text-[0.6rem] uppercase tracking-[0.25em] opacity-80">Tax Invoice</div>
+            <div className="font-display text-xl font-black">{inv.invoice_number}</div>
           </div>
         </div>
+
 
 
         <div className="p-8 space-y-7">
