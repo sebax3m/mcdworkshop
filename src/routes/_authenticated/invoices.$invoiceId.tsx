@@ -1247,7 +1247,7 @@ function InvoiceDetail() {
                   })()}
                 {inv.job_id && (
                   <tr className="no-print">
-                    <td colSpan={hasDiscount ? 5 : 4} className="pt-2">
+                    <td colSpan={hasDiscount ? 6 : 5} className="pt-2">
                       <button
                         onClick={addJobPart}
                         className="text-xs text-primary hover:underline inline-flex items-center gap-1"
@@ -1434,7 +1434,7 @@ function InvoiceDetail() {
 
                 {!inv.job_id && (
                   <tr className="no-print">
-                    <td colSpan={hasDiscount ? 5 : 4} className="pt-2">
+                    <td colSpan={hasDiscount ? 6 : 5} className="pt-2">
                       <button
                         onClick={() => addSnapshotLine()}
                         className="text-xs text-primary hover:underline inline-flex items-center gap-1"
@@ -1449,7 +1449,7 @@ function InvoiceDetail() {
                   (parts.data ?? []).length === 0 && (
                     <tr>
                       <td
-                        colSpan={hasDiscount ? 5 : 4}
+                        colSpan={hasDiscount ? 6 : 5}
                         className="py-6 text-center text-xs text-muted-foreground"
                       >
                         No line items
