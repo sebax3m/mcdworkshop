@@ -36,6 +36,8 @@ type Props = {
   getPages: () => PrintPage[];
   sections?: PrintSection[];
   optionalPages?: OptionalPage[];
+  /** Ask the printer for double-sided (duplex) output — used for invoices. */
+  duplex?: boolean;
 };
 
 /** Paper sizes in mm (portrait). */
@@ -311,6 +313,7 @@ export function PrintPreview({
   getPages,
   sections = [],
   optionalPages = [],
+  duplex = false,
 }: Props) {
   const frameRef = useRef<HTMLIFrameElement>(null);
   const [basePages, setBasePages] = useState<PrintPage[]>([]);
@@ -387,7 +390,12 @@ export function PrintPreview({
     // preview exactly on any printer.
     const cw = Math.max(20, size.w - margin * 2);
     const ch = Math.max(20, size.h - margin * 2);
-    const pageCss = `@page { size: ${size.css} portrait; margin: ${margin}mm; }
+    // Duplex hint: print engines that support paged-media duplex (and Chrome
+    // policy-managed printers) pick two-sided up from these @page descriptors.
+    const duplexCss = duplex
+      ? `@page { -moz-duplex: duplex; -ms-duplex: duplex; duplex: duplex; }`
+      : "";
+    const pageCss = `@page { size: ${size.css} portrait; margin: ${margin}mm; }${duplexCss}
        /* 0.5mm slack absorbs mm→px rounding so a full sheet never spills into
           an extra printed page (preview page count == printed page count). */
        .sheet { width:${cw}mm; height:calc(${ch}mm - 0.5mm); max-height:calc(${ch}mm - 0.5mm); }`;
@@ -404,7 +412,7 @@ export function PrintPreview({
     setSrcDoc(
       `<!doctype html><html><head><meta charset="utf-8"><base href="${window.location.origin}/">${headStyles}<style>${paperCss(margin)}${TEMPLATES[template].css}${pageCss}${hideRules}</style></head><body>${body}<script>${DRAG_SCRIPT}<\/script></body></html>`,
     );
-  }, [open, pages, hidden, margin, paper, template]);
+  }, [open, pages, hidden, margin, paper, template, duplex]);
 
   // Fit each page onto exactly one sheet once the frame content is ready.
   const fit = useCallback(() => {
@@ -755,6 +763,12 @@ export function PrintPreview({
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Close
           </Button>
+          {duplex ? (
+            <span className="mr-auto text-xs text-muted-foreground">
+              Double-sided requested — if your print dialog opens on single-sided, pick
+              &ldquo;Print on both sides&rdquo;.
+            </span>
+          ) : null}
           <Button className="red-surface gap-2" onClick={doPrint}>
             <Printer className="h-4 w-4" /> Print
           </Button>

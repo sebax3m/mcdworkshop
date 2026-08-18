@@ -1553,6 +1553,7 @@ function InvoiceDetail() {
         open={previewOpen}
         onOpenChange={setPreviewOpen}
         title={`Invoice ${inv.invoice_number} — preview`}
+        duplex
         getPages={() => [{ html: sheetRef.current?.outerHTML ?? "" }]}
         sections={[
           { id: "meta", label: "Dates & status strip" },
