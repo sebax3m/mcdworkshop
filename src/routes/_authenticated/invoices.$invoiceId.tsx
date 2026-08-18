@@ -1046,37 +1046,36 @@ function InvoiceDetail() {
                           ? null
                           : `${delta > 0 ? "+" : ""}${delta.toFixed(2)}h vs tracked`;
                       return (
-                        <tr key="labour" {...rowDragProps("labour", onReorder)}>
-                          <td className="py-3">
+                        <tr
+                          key="labour"
+                          className="border-b border-border/40 align-top"
+                          {...rowDragProps("labour", onReorder)}
+                        >
+                          <td className="py-2.5 pr-3 align-top">
                             <div className="flex items-start gap-2">
                               <DragHandle rowKey="labour" />
-                              <div className="flex-1">
-                                <EditableText
-                                  value={title}
-                                  onCommit={(v) =>
-                                    saveSnapshotMeta({ labour_title: v || "Workshop labour" })
-                                  }
-                                  className="font-medium"
-                                />
-                                <div className="text-xs text-muted-foreground">
-                                  <EditableText
-                                    value={desc}
-                                    multiline
-                                    placeholder="Describe the work performed…"
-                                    onCommit={(v) => saveSnapshotMeta({ labour_desc: v })}
-                                    className="text-xs text-muted-foreground"
-                                  />
-                                  {defaultHours > 0 && (
-                                    <span className="no-print">
-                                      {" "}
-                                      · tracked {defaultHours.toFixed(2)}h
-                                    </span>
-                                  )}
-                                </div>
-                              </div>
+                              <EditableText
+                                value={title}
+                                onCommit={(v) =>
+                                  saveSnapshotMeta({ labour_title: v || "Workshop labour" })
+                                }
+                                className="font-medium leading-snug"
+                              />
                             </div>
                           </td>
-                          <td className="py-3 text-right">
+                          <td className="py-2.5 pr-3 align-top text-xs text-muted-foreground">
+                            <EditableText
+                              value={desc}
+                              multiline
+                              placeholder="Describe the work performed…"
+                              onCommit={(v) => saveSnapshotMeta({ labour_desc: v })}
+                              className="text-xs text-muted-foreground leading-snug whitespace-pre-wrap"
+                            />
+                            {defaultHours > 0 && (
+                              <span className="no-print"> · tracked {defaultHours.toFixed(2)}h</span>
+                            )}
+                          </td>
+                          <td className="py-2.5 pl-3 text-right align-top tabular-nums">
                             <EditableNumber
                               value={hours}
                               onCommit={(n) => updateLabour({ qty: n })}
@@ -1090,7 +1089,7 @@ function InvoiceDetail() {
                               </div>
                             )}
                           </td>
-                          <td className="py-3 text-right">
+                          <td className="py-2.5 pl-3 text-right align-top tabular-nums">
                             <EditableNumber
                               value={rate}
                               onCommit={(n) => updateLabour({ unit: n })}
@@ -1098,9 +1097,11 @@ function InvoiceDetail() {
                             />
                           </td>
                           {hasDiscount && (
-                            <td className="py-3 text-right text-muted-foreground">—</td>
+                            <td className="py-2.5 pl-3 text-right align-top text-muted-foreground">
+                              —
+                            </td>
                           )}
-                          <td className="py-3 text-right font-semibold align-top">
+                          <td className="py-2.5 pl-3 text-right font-semibold align-top tabular-nums">
                             <div className="flex items-start justify-end gap-1">
                               <EditableNumber
                                 value={Number(inv.labour_total)}
@@ -1117,6 +1118,7 @@ function InvoiceDetail() {
                             </div>
                           </td>
                         </tr>
+
                       );
                     };
 
