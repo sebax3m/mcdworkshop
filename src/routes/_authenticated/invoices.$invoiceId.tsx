@@ -1025,10 +1025,18 @@ function InvoiceDetail() {
                       const hours = Number(inv.labour_total) / rate;
                       const delta = hours - defaultHours;
                       const snap = (inv.snapshot as any) ?? {};
-                      const title = snap.labour_title ?? "Workshop labour";
-                      const desc =
-                        snap.labour_desc ??
-                        `Diagnostics, service & repair · $${rate}/hr (incl. GST)`;
+                      const title = snap.labour_title ?? "Labour";
+                      // Work performed is already listed in its own section above —
+                      // never repeat it in the labour line description.
+                      const wpText = readWorkPerformed((inv.jobs as any)?.service_data)
+                        .map((w) => (w.detail ? `${w.title}\n${w.detail}` : w.title))
+                        .join("\n\n");
+                      const savedDesc =
+                        snap.labour_desc && snap.labour_desc.trim() === wpText.trim()
+                          ? undefined
+                          : snap.labour_desc;
+                      const desc = savedDesc ?? `Workshop labour · $${rate}/hr (incl. GST)`;
+
                       const deltaLabel =
                         Math.abs(delta) < 0.01
                           ? null
