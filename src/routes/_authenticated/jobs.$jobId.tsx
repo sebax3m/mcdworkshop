@@ -482,7 +482,7 @@ function JobDetail() {
     // Labour is billed from the actual clocked time on the job.
     // Preset/estimated hours are only a suggestion and are never billed automatically.
     const trackedHours = totalMinutes / 60;
-    const workPerformed = readWorkPerformed(j.service_data);
+    
     const billedHours = trackedHours;
     const labour = Math.round(billedHours * LABOUR_RATE * 100) / 100;
 
