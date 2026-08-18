@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useState } from "react";
-import { Loader2, Download, FileArchive, Images } from "lucide-react";
+import { Loader2, Download, FileArchive, Images, Calculator } from "lucide-react";
 import {
   Dialog,
   DialogContent,
