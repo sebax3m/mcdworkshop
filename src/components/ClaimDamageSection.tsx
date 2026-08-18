@@ -12,6 +12,8 @@ const PRINT_PREFIX = "CLAIM_DAMAGE: ";
 export function ClaimDamageSection({ claimId, canEdit }: { claimId: string; canEdit: boolean }) {
   const qc = useQueryClient();
   const [uploading, setUploading] = useState(false);
+  const [preview, setPreview] = useState<any | null>(null);
+  const [dragId, setDragId] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const photos = useQuery({
@@ -19,8 +21,9 @@ export function ClaimDamageSection({ claimId, canEdit }: { claimId: string; canE
     queryFn: async () => {
       const { data, error } = await supabase
         .from("job_photos")
-        .select("id, storage_path, caption, created_at")
+        .select("id, storage_path, caption, created_at, sort_order")
         .ilike("caption", `${PRINT_PREFIX}${claimId}%`)
+        .order("sort_order", { ascending: true })
         .order("created_at", { ascending: false });
       if (error) throw error;
       const rows = data ?? [];
@@ -28,6 +31,24 @@ export function ClaimDamageSection({ claimId, canEdit }: { claimId: string; canE
       return rows.map((r, i) => ({ ...r, url: urls[i] }));
     },
   });
+
+  async function reorder(fromId: string, toId: string) {
+    if (fromId === toId) return;
+    const list = [...((photos.data ?? []) as any[])];
+    const from = list.findIndex((p) => p.id === fromId);
+    const to = list.findIndex((p) => p.id === toId);
+    if (from < 0 || to < 0) return;
+    const [moved] = list.splice(from, 1);
+    list.splice(to, 0, moved);
+    qc.setQueryData(["claim-damage-photos", claimId], list);
+    await Promise.all(
+      list.map((p, i) =>
+        supabase.from("job_photos").update({ sort_order: i } as any).eq("id", p.id),
+      ),
+    );
+    qc.invalidateQueries({ queryKey: ["claim-damage-photos", claimId] });
+  }
+
 
   async function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const files = Array.from(e.target.files ?? []);
