@@ -13,23 +13,6 @@ function zipFile(name: string, bytes: Uint8Array): Uint8Array {
   return zipSync({ [name]: bytes }, { level: 9 });
 }
 
-/** Split a PDF into N page-balanced PDFs. Returns the raw bytes of each part. */
-async function splitPdfBytes(bytes: Uint8Array, parts: number): Promise<Uint8Array[]> {
-  const { PDFDocument } = await import("pdf-lib");
-  const src = await PDFDocument.load(bytes);
-  const total = src.getPageCount();
-  const per = Math.ceil(total / parts);
-  const out: Uint8Array[] = [];
-  for (let i = 0; i < total; i += per) {
-    const doc = await PDFDocument.create();
-    const idx = Array.from({ length: Math.min(per, total - i) }, (_, k) => i + k);
-    const pages = await doc.copyPages(src, idx);
-    pages.forEach((p) => doc.addPage(p));
-    out.push(await doc.save());
-  }
-  return out;
-}
-
 /**
  * Split one zip archive into spanned volumes (WinZip/7-Zip style):
  *   Claim-1234.z01, Claim-1234.z02, … , Claim-1234.zip  (last volume)
