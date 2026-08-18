@@ -313,6 +313,7 @@ export function PrintPreview({
   getPages,
   sections = [],
   optionalPages = [],
+  duplex = false,
 }: Props) {
   const frameRef = useRef<HTMLIFrameElement>(null);
   const [basePages, setBasePages] = useState<PrintPage[]>([]);
