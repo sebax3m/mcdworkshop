@@ -58,6 +58,8 @@ export function JobPhotosSection({
   const [lightbox, setLightbox] = useState<Row | null>(null);
   const [note, setNote] = useState("");
   const [editing, setEditing] = useState<{ id: string; text: string } | null>(null);
+  const [dragId, setDragId] = useState<string | null>(null);
+
 
 
   const photos = useQuery({
