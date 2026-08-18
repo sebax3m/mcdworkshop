@@ -1127,27 +1127,14 @@ function InvoiceDetail() {
                       const net = gross * (1 - disc / 100);
                       return (
                         <tr key={p.id} {...rowDragProps(p.id, onReorder)}>
-                          <td className="py-3">
+                          <td className="py-2.5 pr-3 align-top">
                             <div className="flex items-start gap-2">
                               <DragHandle rowKey={p.id} />
-                              <div className="flex-1">
-                                <EditableText
-                                  value={p.name ?? ""}
-                                  onCommit={(v) => updatePart(p.id, { name: v })}
-                                  className="font-medium"
-                                />
-                                <EditableText
-                                  value={p.supplier ?? ""}
-                                  onCommit={(v) => updatePart(p.id, { supplier: v })}
-                                  multiline={(p.name ?? "").toLowerCase().includes("consumable")}
-                                  placeholder={
-                                    (p.name ?? "").toLowerCase().includes("consumable")
-                                      ? "Washers, lubricants, cleaners, degreaser, rags…"
-                                      : undefined
-                                  }
-                                  className="text-xs text-muted-foreground block whitespace-pre-wrap"
-                                />
-                              </div>
+                              <EditableText
+                                value={p.name ?? ""}
+                                onCommit={(v) => updatePart(p.id, { name: v })}
+                                className="font-medium leading-snug flex-1"
+                              />
                               <button
                                 onClick={() => {
                                   setLibrarySearch("");
@@ -1160,7 +1147,20 @@ function InvoiceDetail() {
                               </button>
                             </div>
                           </td>
-                          <td className="py-3 text-right">
+                          <td className="py-2.5 pr-3 align-top">
+                            <EditableText
+                              value={p.supplier ?? ""}
+                              onCommit={(v) => updatePart(p.id, { supplier: v })}
+                              multiline={(p.name ?? "").toLowerCase().includes("consumable")}
+                              placeholder={
+                                (p.name ?? "").toLowerCase().includes("consumable")
+                                  ? "Washers, lubricants, cleaners, degreaser, rags…"
+                                  : "—"
+                              }
+                              className="text-xs text-muted-foreground block leading-snug whitespace-pre-wrap"
+                            />
+                          </td>
+                          <td className="py-2.5 pl-3 text-right align-top tabular-nums">
                             <EditableNumber
                               value={qty}
                               decimals={2}
@@ -1169,7 +1169,7 @@ function InvoiceDetail() {
                               onCommit={(n) => updatePart(p.id, { quantity: n })}
                             />
                           </td>
-                          <td className="py-3 text-right">
+                          <td className="py-2.5 pl-3 text-right align-top tabular-nums">
                             <EditableNumber
                               value={unit}
                               prefix="$"
@@ -1186,7 +1186,7 @@ function InvoiceDetail() {
                             )}
                           </td>
                           {hasDiscount && (
-                            <td className="py-3 text-right">
+                            <td className="py-2.5 pl-3 text-right align-top tabular-nums">
                               <div className="inline-flex items-center gap-1">
                                 <EditableNumber
                                   value={disc}
@@ -1210,7 +1210,8 @@ function InvoiceDetail() {
                               </div>
                             </td>
                           )}
-                          <td className="py-3 text-right font-semibold align-top">
+                          <td className="py-2.5 pl-3 text-right font-semibold align-top tabular-nums">
+
                             <div className="flex items-start justify-end gap-1">
                               <div className="text-right">
                                 {disc > 0 && (
