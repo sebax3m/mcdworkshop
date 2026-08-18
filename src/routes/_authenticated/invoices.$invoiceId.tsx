@@ -1046,11 +1046,8 @@ function InvoiceDetail() {
                           ? null
                           : `${delta > 0 ? "+" : ""}${delta.toFixed(2)}h vs tracked`;
                       return (
-                        <tr
-                          key="labour"
-                          className="border-b border-border/40 align-top"
-                          {...rowDragProps("labour", onReorder)}
-                        >
+                        <tr key="labour" {...rowDragProps("labour", onReorder)}>
+
                           <td className="py-2.5 pr-3 align-top">
                             <div className="flex items-start gap-2">
                               <DragHandle rowKey="labour" />
