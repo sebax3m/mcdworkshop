@@ -36,6 +36,8 @@ type Props = {
   getPages: () => PrintPage[];
   sections?: PrintSection[];
   optionalPages?: OptionalPage[];
+  /** Ask the printer for double-sided (duplex) output — used for invoices. */
+  duplex?: boolean;
 };
 
 /** Paper sizes in mm (portrait). */
