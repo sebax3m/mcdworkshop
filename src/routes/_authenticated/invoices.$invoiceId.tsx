@@ -1025,10 +1025,18 @@ function InvoiceDetail() {
                       const hours = Number(inv.labour_total) / rate;
                       const delta = hours - defaultHours;
                       const snap = (inv.snapshot as any) ?? {};
-                      const title = snap.labour_title ?? "Workshop labour";
-                      const desc =
-                        snap.labour_desc ??
-                        `Diagnostics, service & repair · $${rate}/hr (incl. GST)`;
+                      const title = snap.labour_title ?? "Labour";
+                      // Work performed is already listed in its own section above —
+                      // never repeat it in the labour line description.
+                      const wpText = readWorkPerformed((inv.jobs as any)?.service_data)
+                        .map((w) => (w.detail ? `${w.title}\n${w.detail}` : w.title))
+                        .join("\n\n");
+                      const savedDesc =
+                        snap.labour_desc && snap.labour_desc.trim() === wpText.trim()
+                          ? undefined
+                          : snap.labour_desc;
+                      const desc = savedDesc ?? `Workshop labour · $${rate}/hr (incl. GST)`;
+
                       const deltaLabel =
                         Math.abs(delta) < 0.01
                           ? null
@@ -1529,6 +1537,26 @@ function InvoiceDetail() {
               className="w-full pl-9 pr-3 py-2 rounded-lg border border-border bg-background text-sm outline-none focus:border-primary"
             />
           </div>
+
+          <NewInventoryItemForm
+            defaultName={librarySearch}
+            onCreated={async (it) => {
+              await library.refetch();
+              const price = Number(it.unit_price ?? 0);
+              const name = [it.sku, it.name].filter(Boolean).join(" — ");
+              if (libraryTarget?.kind === "snapshot") {
+                await updateSnapshotLine(libraryTarget.idx, { description: name, unit: price });
+              } else if (libraryTarget?.kind === "part") {
+                await updatePart(libraryTarget.id, {
+                  name,
+                  retail: price,
+                  supplier: it.brand ?? "",
+                });
+              }
+              setLibraryTarget(null);
+            }}
+          />
+
           <div className="overflow-y-auto flex-1 -mx-1 px-1">
             {(() => {
               const q = librarySearch.toLowerCase().trim();
@@ -1592,7 +1620,106 @@ function InvoiceDetail() {
   );
 }
 
+/** Quickly add a brand-new inventory item without leaving the invoice. */
+function NewInventoryItemForm({
+  defaultName,
+  onCreated,
+}: {
+  defaultName: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  onCreated: (item: any) => void | Promise<void>;
+}) {
+  const [open, setOpen] = useState(false);
+  const [name, setName] = useState("");
+  const [sku, setSku] = useState("");
+  const [brand, setBrand] = useState("");
+  const [price, setPrice] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  async function save() {
+    const n = (name || defaultName).trim();
+    if (!n) return toast.error("Name is required");
+    setSaving(true);
+    const { data, error } = await supabase
+      .from("inventory_items")
+      .insert({
+        name: n,
+        sku: sku.trim() || null,
+        brand: brand.trim() || null,
+        unit_price: Number(price) || 0,
+        category: "General",
+      })
+      .select("*")
+      .maybeSingle();
+    setSaving(false);
+    if (error) return toast.error(error.message);
+    toast.success(`${n} added to inventory`);
+    setName("");
+    setSku("");
+    setBrand("");
+    setPrice("");
+    setOpen(false);
+    if (data) await onCreated(data);
+  }
+
+  if (!open) {
+    return (
+      <button
+        onClick={() => {
+          setName(defaultName);
+          setOpen(true);
+        }}
+        className="mt-2 self-start inline-flex items-center gap-1.5 rounded-lg border border-dashed border-border px-3 py-1.5 text-xs text-muted-foreground hover:text-foreground hover:border-primary"
+      >
+        + New inventory item
+      </button>
+    );
+  }
+
+  return (
+    <div className="mt-2 rounded-lg border border-border p-3 space-y-2">
+      <div className="grid grid-cols-2 gap-2">
+        <input
+          autoFocus
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="Name (e.g. Motul 7100 10W-40 1L)"
+          className="col-span-2 px-3 py-2 rounded-lg border border-border bg-background text-sm outline-none focus:border-primary"
+        />
+        <input
+          value={sku}
+          onChange={(e) => setSku(e.target.value)}
+          placeholder="SKU (optional)"
+          className="px-3 py-2 rounded-lg border border-border bg-background text-sm outline-none focus:border-primary"
+        />
+        <input
+          value={brand}
+          onChange={(e) => setBrand(e.target.value)}
+          placeholder="Brand / supplier (optional)"
+          className="px-3 py-2 rounded-lg border border-border bg-background text-sm outline-none focus:border-primary"
+        />
+        <input
+          value={price}
+          onChange={(e) => setPrice(e.target.value)}
+          inputMode="decimal"
+          placeholder="Price incl. GST"
+          className="px-3 py-2 rounded-lg border border-border bg-background text-sm outline-none focus:border-primary"
+        />
+      </div>
+      <div className="flex items-center gap-2">
+        <Button size="sm" onClick={save} disabled={saving}>
+          {saving ? "Saving…" : "Save & use"}
+        </Button>
+        <Button size="sm" variant="ghost" onClick={() => setOpen(false)}>
+          Cancel
+        </Button>
+      </div>
+    </div>
+  );
+}
+
 function NotesBox({
+
   invoiceId,
   initial,
   onSaved,
