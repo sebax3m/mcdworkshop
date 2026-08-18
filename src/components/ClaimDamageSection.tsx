@@ -135,14 +135,31 @@ export function ClaimDamageSection({ claimId, canEdit }: { claimId: string; canE
           {(photos.data ?? []).map((p: any) => (
             <div
               key={p.id}
-              className="relative group rounded-lg overflow-hidden border border-border bg-card aspect-square"
+              draggable
+              onDragStart={(e) => {
+                setDragId(p.id);
+                e.dataTransfer.effectAllowed = "move";
+              }}
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={(e) => {
+                e.preventDefault();
+                if (dragId) void reorder(dragId, p.id);
+                setDragId(null);
+              }}
+              onDragEnd={() => setDragId(null)}
+              title="Drag to reorder · click to preview"
+              className={`relative group rounded-lg overflow-hidden border border-border bg-card aspect-square cursor-grab active:cursor-grabbing ${
+                dragId === p.id ? "opacity-50 ring-2 ring-primary" : ""
+              }`}
             >
-              <img
-                src={p.url}
-                alt={p.caption ?? ""}
-                className="w-full h-full object-cover"
-                loading="lazy"
-              />
+              <button onClick={() => setPreview(p)} className="block h-full w-full">
+                <img
+                  src={p.url}
+                  alt={p.caption ?? ""}
+                  className="w-full h-full object-cover"
+                  loading="lazy"
+                />
+              </button>
               {canEdit && (
                 <button
                   onClick={() => deletePhoto(p.id, p.storage_path)}
@@ -155,6 +172,21 @@ export function ClaimDamageSection({ claimId, canEdit }: { claimId: string; canE
           ))}
         </div>
       )}
+
+      {preview && (
+        <div
+          className="fixed inset-0 z-50 grid place-items-center bg-black/80 p-4 print:hidden"
+          onClick={() => setPreview(null)}
+        >
+          <img
+            src={preview.url}
+            alt={preview.caption ?? "Damage photo"}
+            className="max-h-[85vh] max-w-4xl w-full rounded-lg object-contain bg-black"
+            onClick={(e) => e.stopPropagation()}
+          />
+        </div>
+      )}
+
     </section>
   );
 }
