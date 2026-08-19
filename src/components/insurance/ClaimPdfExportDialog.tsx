@@ -211,7 +211,7 @@ export function ClaimPdfExportDialog({
             <div className="rounded-md border border-border/60 bg-muted/40 p-3 text-xs space-y-1">
               <div>
                 Downloaded PDF: <strong>{mb(result.size)}</strong> ·{" "}
-                {result.parts > 1 ? `${result.parts} zip volumes` : "1 file"}
+                {result.parts > 1 ? `${result.parts} zip files` : "1 file"}
               </div>
               <div className="text-muted-foreground break-all">{result.names.join(", ")}</div>
               {result.parts > 1 && (
