@@ -5,7 +5,7 @@ export const MAX_ATTACHMENT_BYTES = 24 * 1024 * 1024;
 
 export type PreparedAttachment = {
   file: File;
-  /** true when the file is a zip (or a zip part) */
+  /** true when the file is a zip */
   zipped: boolean;
 };
 
@@ -14,23 +14,27 @@ function zipFile(name: string, bytes: Uint8Array): Uint8Array {
 }
 
 /**
- * Split one zip archive into spanned volumes (WinZip/7-Zip style):
- *   Claim-1234.z01, Claim-1234.z02, … , Claim-1234.zip  (last volume)
- * The user opens the final `.zip` and the archiver rejoins every volume,
- * extracting a single PDF.
+ * Split a PDF into `parts` page-range PDFs. Every part is a complete, valid
+ * PDF on its own (no spanned-archive tricks), so each zip opens normally.
  */
-function splitZipVolumes(name: string, zipped: Uint8Array, parts: number): File[] {
-  const size = Math.ceil(zipped.byteLength / parts);
-  const out: File[] = [];
-  for (let i = 0; i < parts; i++) {
-    const chunk = zipped.slice(i * size, Math.min((i + 1) * size, zipped.byteLength));
-    const isLast = i === parts - 1;
-    const ext = isLast ? "zip" : `z${String(i + 1).padStart(2, "0")}`;
-    out.push(
-      new File([chunk as BlobPart], `${name}.${ext}`, {
-        type: isLast ? "application/zip" : "application/octet-stream",
-      }),
+async function splitPdfByPages(bytes: Uint8Array, parts: number): Promise<Uint8Array[]> {
+  const { PDFDocument } = await import("pdf-lib");
+  const src = await PDFDocument.load(bytes);
+  const total = src.getPageCount();
+  const effective = Math.min(parts, Math.max(1, total));
+  const per = Math.ceil(total / effective);
+  const out: Uint8Array[] = [];
+  for (let i = 0; i < effective; i++) {
+    const from = i * per;
+    const to = Math.min(from + per, total);
+    if (from >= to) break;
+    const doc = await PDFDocument.create();
+    const pages = await doc.copyPages(
+      src,
+      Array.from({ length: to - from }, (_, k) => from + k),
     );
+    pages.forEach((p) => doc.addPage(p));
+    out.push(await doc.save());
   }
   return out;
 }
@@ -39,8 +43,8 @@ function splitZipVolumes(name: string, zipped: Uint8Array, parts: number): File[
  * Prepare a PDF for email attachment:
  *  - under 24 MB  -> the PDF itself
  *  - over 24 MB   -> a zip of the PDF
- *  - zip still over 24 MB -> spanned zip volumes (.z01 … .zip) of that SAME zip,
- *    so opening the final .zip restores one single PDF.
+ *  - zip still over 24 MB (or minParts > 1) -> the PDF is split by page ranges
+ *    into several standalone zips, each openable on its own.
  */
 export async function preparePdfAttachments(
   blob: Blob,
@@ -65,12 +69,28 @@ export async function preparePdfAttachments(
     ];
   }
 
-  const needed = Math.max(
-    minParts,
-    Math.ceil(zipped.byteLength / MAX_ATTACHMENT_BYTES),
-    2,
-  );
-  return splitZipVolumes(name, zipped, needed).map((file) => ({ file, zipped: true }));
+  const needed = Math.max(minParts, Math.ceil(zipped.byteLength / MAX_ATTACHMENT_BYTES), 2);
+  const pdfParts = await splitPdfByPages(bytes, needed);
+  const count = pdfParts.length;
+
+  if (count <= 1) {
+    // Single-page PDF that can't be split further — send the one zip.
+    return [
+      {
+        file: new File([zipped as BlobPart], `${name}.zip`, { type: "application/zip" }),
+        zipped: true,
+      },
+    ];
+  }
+
+  return pdfParts.map((part, i) => {
+    const partName = `${name}-part${i + 1}of${count}`;
+    const z = zipFile(`${partName}.pdf`, part);
+    return {
+      file: new File([z as BlobPart], `${partName}.zip`, { type: "application/zip" }),
+      zipped: true,
+    };
+  });
 }
 
 /** Estimated attachment layout for a PDF, without downloading anything. */
