@@ -235,9 +235,9 @@ export function ClaimPdfExportDialog({
             disabled={building}
             onClick={() => build(2)}
             className="gap-2"
-            title="Split into 2 zip volumes (open the .zip to get one PDF)"
+            title="Split the PDF by pages into 2 separate zip files"
           >
-            <FileArchive className="h-4 w-4" /> Split in 2 volumes
+            <FileArchive className="h-4 w-4" /> Split in 2 files
           </Button>
           <Button disabled={building} onClick={() => build(1)} className="gap-2">
             {building ? (
