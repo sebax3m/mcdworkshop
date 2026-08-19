@@ -106,7 +106,7 @@ export function ClaimPdfExportDialog({
       });
       toast.success(
         prepared.length > 1
-          ? `Downloaded ${prepared.length} volumes — open the .zip to extract the single PDF`
+          ? `Downloaded ${prepared.length} zip files — each one opens on its own with part of the PDF`
           : prepared[0].zipped
             ? "Downloaded as .zip (over 24 MB)"
             : "PDF downloaded",
