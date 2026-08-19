@@ -196,7 +196,7 @@ export function ClaimPdfExportDialog({
                 <div>
                   Zipped: <strong>{mb(est.zipSize)}</strong> ·{" "}
                   {est.zipSize > MAX_ATTACHMENT_BYTES
-                    ? `needs ${est.parts} volumes to email`
+                    ? `needs ${est.parts} separate zip files to email`
                     : "fits in one email attachment"}
                 </div>
               </>
