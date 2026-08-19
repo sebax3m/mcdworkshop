@@ -106,7 +106,7 @@ export function ClaimPdfExportDialog({
       });
       toast.success(
         prepared.length > 1
-          ? `Downloaded ${prepared.length} volumes — open the .zip to extract the single PDF`
+          ? `Downloaded ${prepared.length} zip files — each one opens on its own with part of the PDF`
           : prepared[0].zipped
             ? "Downloaded as .zip (over 24 MB)"
             : "PDF downloaded",
@@ -196,7 +196,7 @@ export function ClaimPdfExportDialog({
                 <div>
                   Zipped: <strong>{mb(est.zipSize)}</strong> ·{" "}
                   {est.zipSize > MAX_ATTACHMENT_BYTES
-                    ? `needs ${est.parts} volumes to email`
+                    ? `needs ${est.parts} separate zip files to email`
                     : "fits in one email attachment"}
                 </div>
               </>
@@ -211,13 +211,13 @@ export function ClaimPdfExportDialog({
             <div className="rounded-md border border-border/60 bg-muted/40 p-3 text-xs space-y-1">
               <div>
                 Downloaded PDF: <strong>{mb(result.size)}</strong> ·{" "}
-                {result.parts > 1 ? `${result.parts} zip volumes` : "1 file"}
+                {result.parts > 1 ? `${result.parts} zip files` : "1 file"}
               </div>
               <div className="text-muted-foreground break-all">{result.names.join(", ")}</div>
               {result.parts > 1 && (
                 <div className="text-muted-foreground">
-                  Keep all volumes in the same folder and open the <strong>.zip</strong> — it
-                  rejoins them into one single PDF.
+                  Each <strong>.zip</strong> opens on its own and contains one part of the PDF
+                  (split by pages) — attach them to separate emails if needed.
                 </div>
               )}
               {tooBig && (
@@ -235,9 +235,9 @@ export function ClaimPdfExportDialog({
             disabled={building}
             onClick={() => build(2)}
             className="gap-2"
-            title="Split into 2 zip volumes (open the .zip to get one PDF)"
+            title="Split the PDF by pages into 2 separate zip files"
           >
-            <FileArchive className="h-4 w-4" /> Split in 2 volumes
+            <FileArchive className="h-4 w-4" /> Split in 2 files
           </Button>
           <Button disabled={building} onClick={() => build(1)} className="gap-2">
             {building ? (
