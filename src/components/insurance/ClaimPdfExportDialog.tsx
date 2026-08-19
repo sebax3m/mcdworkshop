@@ -216,8 +216,8 @@ export function ClaimPdfExportDialog({
               <div className="text-muted-foreground break-all">{result.names.join(", ")}</div>
               {result.parts > 1 && (
                 <div className="text-muted-foreground">
-                  Keep all volumes in the same folder and open the <strong>.zip</strong> — it
-                  rejoins them into one single PDF.
+                  Each <strong>.zip</strong> opens on its own and contains one part of the PDF
+                  (split by pages) — attach them to separate emails if needed.
                 </div>
               )}
               {tooBig && (
