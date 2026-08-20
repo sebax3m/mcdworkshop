@@ -92,14 +92,14 @@ function NewBooking() {
   const customers = useQuery({
     queryKey: ["bk-customers"],
     queryFn: async () =>
-      (
-        await (supabase as any)
+      await fetchAllRows((from, to) =>
+        (supabase as any)
           .from("customers")
           .select("*")
-          .eq("is_archived", false)
+          .or("is_archived.is.null,is_archived.eq.false")
           .order("first_name")
-          .range(0, 49999)
-      ).data ?? [],
+          .range(from, to),
+      ),
   });
   const bikes = useQuery({
     queryKey: ["bk-bikes", customerId],
