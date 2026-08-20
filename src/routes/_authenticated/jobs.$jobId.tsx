@@ -949,9 +949,6 @@ function JobDetail() {
             />
           </div>
         )}
-
-        {/* Shift clock — technicians can clock in without leaving the job card */}
-        {isTechnician && user && <ShiftClockCard userId={user.id} jobId={jobId} />}
       </div>
 
       {/* Customer-approved extra work — right below the clock-in area */}
