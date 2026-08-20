@@ -1505,6 +1505,7 @@ function ServiceTemplateSection({
   onTemplateChanged: () => void;
 }) {
   const [switching, setSwitching] = useState<string | null>(null);
+  const [pendingTemplateId, setPendingTemplateId] = useState<string | null>(null);
 
   // All active service templates managed in Settings → Templates (master services + WOF etc.)
   const templates = useQuery({
@@ -1512,9 +1513,19 @@ function ServiceTemplateSection({
     queryFn: () => fetchServiceTemplates(),
   });
 
-  async function pickTemplate(tmpl: any) {
+  function pickTemplate(tmpl: any) {
     if (!canEdit) return;
     if (tmpl.id === currentTemplateId) return;
+    setPendingTemplateId(tmpl.id);
+  }
+
+  function cancelPending() {
+    setPendingTemplateId(null);
+  }
+
+  async function applyPending() {
+    const tmpl = (templates.data ?? []).find((t: any) => t.id === pendingTemplateId);
+    if (!tmpl) return;
     if (
       tasks.length > 0 &&
       !confirm(`Switch template to "${tmpl.name}"? This will replace the task list.`)
@@ -1537,6 +1548,7 @@ function ServiceTemplateSection({
         } as any)
         .eq("id", jobId);
       toast.success(`Template set to ${tmpl.name}`);
+      setPendingTemplateId(null);
       onTemplateChanged();
     } catch (e: any) {
       toast.error(e.message ?? "Failed to switch template");
