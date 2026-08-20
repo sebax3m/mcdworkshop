@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { fullBike } from "@/lib/format";
+import { fetchAllRows } from "@/lib/fetch-all";
 import logoAsset from "@/assets/motorcycle-doctors-logo.png.asset.json";
 
 export const Route = createFileRoute("/_authenticated/invoices/new")({
