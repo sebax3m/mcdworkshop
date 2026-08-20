@@ -158,7 +158,7 @@ export default function WorkPerformedSection({
       const t = (serviceTemplates.data ?? []).find((x) => `tmpl:${x.id}` === presetId);
       if (!t) return;
       setDraft(templateEntry(t));
-      setSelectedPreset("");
+      setSelectedPreset(presetId);
       return;
     }
     const preset = WORK_PRESETS.find((p) => p.id === presetId);
@@ -169,7 +169,12 @@ export default function WorkPerformedSection({
       detail: presetDetail(preset),
       hours: preset.hours,
     });
+    setSelectedPreset(presetId);
+  }
+
+  function clearPreset() {
     setSelectedPreset("");
+    setDraft({ id: "", title: "", detail: "", hours: 0 });
   }
 
   return (
