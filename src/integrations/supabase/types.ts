@@ -2591,6 +2591,9 @@ export type Database = {
           label: string
           note: string | null
           sort_order: number
+          status: string
+          template_id: string | null
+          template_version: number | null
         }
         Insert: {
           created_at?: string
@@ -2602,6 +2605,9 @@ export type Database = {
           label: string
           note?: string | null
           sort_order?: number
+          status?: string
+          template_id?: string | null
+          template_version?: number | null
         }
         Update: {
           created_at?: string
@@ -2613,6 +2619,9 @@ export type Database = {
           label?: string
           note?: string | null
           sort_order?: number
+          status?: string
+          template_id?: string | null
+          template_version?: number | null
         }
         Relationships: [
           {
@@ -2620,6 +2629,13 @@ export type Database = {
             columns: ["job_id"]
             isOneToOne: false
             referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_tasks_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "service_templates"
             referencedColumns: ["id"]
           },
         ]
@@ -2648,6 +2664,7 @@ export type Database = {
           status: Database["public"]["Enums"]["job_status"]
           technician_id: string | null
           template_id: string | null
+          template_version: number | null
           title: string
           updated_at: string
         }
@@ -2674,6 +2691,7 @@ export type Database = {
           status?: Database["public"]["Enums"]["job_status"]
           technician_id?: string | null
           template_id?: string | null
+          template_version?: number | null
           title: string
           updated_at?: string
         }
@@ -2700,6 +2718,7 @@ export type Database = {
           status?: Database["public"]["Enums"]["job_status"]
           technician_id?: string | null
           template_id?: string | null
+          template_version?: number | null
           title?: string
           updated_at?: string
         }
@@ -3495,6 +3514,7 @@ export type Database = {
       }
       service_templates: {
         Row: {
+          archived_at: string | null
           created_at: string
           description: string | null
           estimated_hours: number | null
@@ -3504,8 +3524,10 @@ export type Database = {
           sort_order: number
           tasks: Json
           updated_at: string
+          version: number
         }
         Insert: {
+          archived_at?: string | null
           created_at?: string
           description?: string | null
           estimated_hours?: number | null
@@ -3515,8 +3537,10 @@ export type Database = {
           sort_order?: number
           tasks?: Json
           updated_at?: string
+          version?: number
         }
         Update: {
+          archived_at?: string | null
           created_at?: string
           description?: string | null
           estimated_hours?: number | null
@@ -3526,6 +3550,7 @@ export type Database = {
           sort_order?: number
           tasks?: Json
           updated_at?: string
+          version?: number
         }
         Relationships: []
       }
