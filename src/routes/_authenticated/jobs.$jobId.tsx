@@ -1505,18 +1505,10 @@ function ServiceTemplateSection({
 }) {
   const [switching, setSwitching] = useState<string | null>(null);
 
+  // All active service templates managed in Settings → Templates (master services + WOF etc.)
   const templates = useQuery({
     queryKey: ["service-templates-pick"],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("service_templates")
-        .select("id,name,description,tasks,estimated_hours")
-        .eq("is_active", true)
-        .order("sort_order");
-      return (data ?? []).filter((t: any) =>
-        ["Basic Service", "Standard Service", "Annual Service", "Full Service"].includes(t.name),
-      );
-    },
+    queryFn: () => fetchServiceTemplates(),
   });
 
   async function pickTemplate(tmpl: any) {
