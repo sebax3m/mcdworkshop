@@ -174,14 +174,17 @@ export default function WorkPerformedSection({
 
   return (
     <div className="rounded-xl border border-border bg-card p-4" data-print-section="work-performed">
-      <div className="flex items-center gap-2 mb-3">
-        <Wrench className="h-4 w-4 text-primary" />
-        <h2 className="font-display text-lg font-semibold">Work Performed</h2>
+      <div className="flex items-center justify-between gap-2 mb-4">
+        <div className="flex items-center gap-2">
+          <Wrench className="h-4 w-4 text-primary" />
+          <h2 className="font-display text-lg font-semibold">Work Performed</h2>
+        </div>
+        {entries.length > 0 && (
+          <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-primary/10 text-primary">
+            {entries.length} item{entries.length === 1 ? "" : "s"}
+          </span>
+        )}
       </div>
-
-      {entries.length === 0 && (
-        <p className="text-sm text-muted-foreground italic">No work recorded.</p>
-      )}
 
       <div className="space-y-2">
         {entries.map((e) =>
@@ -269,7 +272,7 @@ export default function WorkPerformedSection({
                 <div className="flex items-center gap-2 shrink-0">
                   {e.hours > 0 && (
                     <span className="text-xs text-muted-foreground print:hidden">
-                      ~{e.hours} h suggested
+                      ~{e.hours} h
                     </span>
                   )}
                   {canEdit && (
@@ -303,14 +306,18 @@ export default function WorkPerformedSection({
         )}
       </div>
 
-
       {canEdit && (
-        <div className="mt-4 space-y-3 print:hidden">
-          <div className="rounded-lg border border-dashed border-border/70 p-3">
-            <Label className="text-xs">Quick template</Label>
+        <div className="mt-4 rounded-lg border border-dashed border-border/70 bg-background/30 p-3 space-y-3 print:hidden">
+          <div className="flex items-center gap-2 text-sm font-medium text-foreground">
+            <Plus className="h-4 w-4 text-primary" />
+            Add work
+          </div>
+
+          <div>
+            <Label className="text-xs">Start from a template</Label>
             <Select value={selectedPreset} onValueChange={applyPreset}>
-              <SelectTrigger className="mt-2 h-9 text-sm">
-                <SelectValue placeholder="Pick a preset to fill the form below…" />
+              <SelectTrigger className="mt-1.5 h-9 text-sm">
+                <SelectValue placeholder="Pick a preset…" />
               </SelectTrigger>
               <SelectContent>
                 {(serviceTemplates.data ?? []).length > 0 && (
@@ -347,7 +354,7 @@ export default function WorkPerformedSection({
               />
             </div>
             <div>
-              <Label className="text-xs">Suggested hours</Label>
+              <Label className="text-xs">Hours</Label>
               <Input
                 type="number"
                 min={0}
@@ -358,17 +365,17 @@ export default function WorkPerformedSection({
             </div>
           </div>
           <div>
-            <Label className="text-xs">Process / details</Label>
+            <Label className="text-xs">Details</Label>
             <Textarea
-              rows={6}
-              className="min-h-[160px] resize-y"
+              rows={4}
+              className="min-h-[100px] resize-y"
               value={draft.detail}
               placeholder="Stripped caliper, cleaned pistons and seals, new seal kit, bled system, tested."
               onChange={(ev) => setDraft({ ...draft, detail: ev.target.value })}
             />
           </div>
           <Button onClick={add} disabled={busy} className="gap-2">
-            <Plus className="h-4 w-4" /> Add work
+            <Plus className="h-4 w-4" /> Add to list
           </Button>
         </div>
       )}
