@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Check, Pencil, Plus, Trash2, Wrench } from "lucide-react";
+import { Check, Pencil, Plus, Trash2, Wrench, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -158,7 +158,7 @@ export default function WorkPerformedSection({
       const t = (serviceTemplates.data ?? []).find((x) => `tmpl:${x.id}` === presetId);
       if (!t) return;
       setDraft(templateEntry(t));
-      setSelectedPreset("");
+      setSelectedPreset(presetId);
       return;
     }
     const preset = WORK_PRESETS.find((p) => p.id === presetId);
@@ -169,7 +169,12 @@ export default function WorkPerformedSection({
       detail: presetDetail(preset),
       hours: preset.hours,
     });
+    setSelectedPreset(presetId);
+  }
+
+  function clearPreset() {
     setSelectedPreset("");
+    setDraft({ id: "", title: "", detail: "", hours: 0 });
   }
 
   return (
@@ -315,33 +320,47 @@ export default function WorkPerformedSection({
 
           <div>
             <Label className="text-xs">Start from a template</Label>
-            <Select value={selectedPreset} onValueChange={applyPreset}>
-              <SelectTrigger className="mt-1.5 h-9 text-sm">
-                <SelectValue placeholder="Pick a preset…" />
-              </SelectTrigger>
-              <SelectContent>
-                {(serviceTemplates.data ?? []).length > 0 && (
-                  <SelectGroup>
-                    <SelectLabel>Workshop service templates</SelectLabel>
-                    {(serviceTemplates.data ?? []).map((t) => (
-                      <SelectItem key={t.id} value={`tmpl:${t.id}`}>
-                        {t.name}
-                      </SelectItem>
-                    ))}
-                  </SelectGroup>
-                )}
-                {groups.map(([group, presets]) => (
-                  <SelectGroup key={group}>
-                    <SelectLabel>{group}</SelectLabel>
-                    {presets.map((p) => (
-                      <SelectItem key={p.id} value={p.id}>
-                        {p.label}
-                      </SelectItem>
-                    ))}
-                  </SelectGroup>
-                ))}
-              </SelectContent>
-            </Select>
+            <div className="flex items-center gap-2 mt-1.5">
+              <Select value={selectedPreset} onValueChange={applyPreset}>
+                <SelectTrigger className="h-9 text-sm flex-1">
+                  <SelectValue placeholder="Pick a preset…" />
+                </SelectTrigger>
+                <SelectContent>
+                  {(serviceTemplates.data ?? []).length > 0 && (
+                    <SelectGroup>
+                      <SelectLabel>Workshop service templates</SelectLabel>
+                      {(serviceTemplates.data ?? []).map((t) => (
+                        <SelectItem key={t.id} value={`tmpl:${t.id}`}>
+                          {t.name}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
+                  )}
+                  {groups.map(([group, presets]) => (
+                    <SelectGroup key={group}>
+                      <SelectLabel>{group}</SelectLabel>
+                      {presets.map((p) => (
+                        <SelectItem key={p.id} value={p.id}>
+                          {p.label}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
+                  ))}
+                </SelectContent>
+              </Select>
+              {selectedPreset && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="h-9 w-9 shrink-0"
+                  onClick={clearPreset}
+                  title="Clear template"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
           </div>
 
           <div className="grid gap-2 sm:grid-cols-[1fr_120px]">
