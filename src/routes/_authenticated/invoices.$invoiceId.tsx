@@ -471,9 +471,6 @@ function InvoiceDetail() {
   }
 
   // ---- Drag & drop reordering of line items -------------------------------
-  const [dragKey, setDragKey] = useState<string | null>(null);
-  const [overKey, setOverKey] = useState<string | null>(null);
-  const [dragArmed, setDragArmed] = useState<string | null>(null);
 
   function rowDragProps(key: string, onReorder: (from: string, to: string) => void) {
     return {
