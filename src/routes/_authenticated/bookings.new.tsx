@@ -14,6 +14,7 @@ import { ArrowLeft, Plus, Search, Bike as BikeIcon, Camera, X } from "lucide-rea
 import { toast } from "sonner";
 import { hasPhone } from "@/lib/data-quality";
 import { fullBike, initials } from "@/lib/format";
+import { fetchAllRows } from "@/lib/fetch-all";
 import { displayCustomerName } from "@/lib/display";
 import { uploadPhoto } from "@/lib/photos";
 import { useBookingTypes } from "@/hooks/useBookingTypes";
