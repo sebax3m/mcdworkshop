@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState } from "react";
-import { CheckCircle2, RotateCcw, User as UserIcon } from "lucide-react";
+import { CheckCircle2, RotateCcw, User as UserIcon, Bike as BikeIcon } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
