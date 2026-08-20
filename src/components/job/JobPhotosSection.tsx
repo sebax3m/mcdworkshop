@@ -178,7 +178,7 @@ export function JobPhotosSection({
   }
 
   return (
-    <section className="card-surface p-4 sm:p-5 print:break-inside-avoid">
+    <section className="card-surface p-4 sm:p-5 print:hidden">
       <div className="flex items-center justify-between gap-3 flex-wrap mb-3">
         <div className="flex items-center gap-2.5">
           <div className="grid h-9 w-9 place-items-center rounded-lg bg-sky-500/15 text-sky-400">
