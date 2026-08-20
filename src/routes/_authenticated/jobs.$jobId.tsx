@@ -42,6 +42,7 @@ import {
   Pencil,
   CheckCircle2,
   RotateCcw,
+  Loader2,
 } from "lucide-react";
 import { detectServiceKind, KIND_META, SERVICE_PARTS } from "@/lib/service-kinds";
 import { fetchServiceTemplates, snapshotRows } from "@/lib/service-templates";
