@@ -1562,20 +1562,25 @@ function ServiceTemplateSection({
     ? currentTmpl.name.replace(" Service", "").toUpperCase()
     : currentTitle.toUpperCase();
 
+  const pendingTmpl = (templates.data ?? []).find((t: any) => t.id === pendingTemplateId);
+
   return (
     <section className="card-surface p-5 print:p-0 print:border-0 print:shadow-none print:bg-transparent">
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-5 print:hidden">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-3 print:hidden">
         {(templates.data ?? []).map((tmpl: any) => {
           const active = tmpl.id === currentTemplateId;
+          const pending = tmpl.id === pendingTemplateId;
           return (
             <button
               key={tmpl.id}
               onClick={() => pickTemplate(tmpl)}
               disabled={!canEdit || switching === tmpl.id}
               className={`rounded-xl border p-2.5 text-center transition-all ${
-                active
-                  ? "border-primary bg-primary/10 shadow-[0_0_18px_-6px_oklch(0.81_0.13_82/0.6)]"
-                  : "border-border hover:border-primary/40"
+                pending
+                  ? "border-status-parts bg-status-parts/10 shadow-[0_0_18px_-6px_oklch(0.7_0.15_45/0.6)]"
+                  : active
+                    ? "border-primary bg-primary/10 shadow-[0_0_18px_-6px_oklch(0.81_0.13_82/0.6)]"
+                    : "border-border hover:border-primary/40"
               } disabled:opacity-60`}
             >
               <div className="text-[0.625rem] uppercase tracking-wider font-bold">
@@ -1584,6 +1589,9 @@ function ServiceTemplateSection({
               <div className="text-[0.625rem] text-muted-foreground mt-0.5">
                 {tmpl.estimated_hours ?? "—"}h
               </div>
+              {pending && (
+                <div className="text-[0.625rem] text-status-parts font-semibold">Selected</div>
+              )}
               {switching === tmpl.id && (
                 <div className="text-[0.625rem] text-muted-foreground">Switching…</div>
               )}
@@ -1591,6 +1599,31 @@ function ServiceTemplateSection({
           );
         })}
       </div>
+
+      {pendingTmpl && (
+        <div className="flex items-center justify-between rounded-lg border border-status-parts/30 bg-status-parts/10 p-3 mb-4 print:hidden">
+          <div className="text-sm">
+            <span className="font-semibold">{pendingTmpl.name}</span>
+            <span className="text-muted-foreground"> selected — apply this template?</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" size="sm" onClick={cancelPending} disabled={!!switching}>
+              Cancel
+            </Button>
+            <Button size="sm" onClick={applyPending} disabled={!!switching} className="gap-2">
+              {switching ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" /> Applying…
+                </>
+              ) : (
+                <>
+                  <Check className="h-4 w-4" /> Apply
+                </>
+              )}
+            </Button>
+          </div>
+        </div>
+      )}
 
       <div className="flex items-baseline justify-between mb-1 print:hidden">
         <h2 className="font-display text-xl font-bold tracking-wide">{currentKindLabel}</h2>
