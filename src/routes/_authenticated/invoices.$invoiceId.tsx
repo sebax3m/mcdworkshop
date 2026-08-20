@@ -384,6 +384,13 @@ function InvoiceDetail() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [action]);
 
+  // ---- Drag & drop reordering of line items -------------------------------
+  // NOTE: these must stay ABOVE the early returns below — declaring hooks after a
+  // conditional return crashes React with "Rendered more hooks than during the previous render".
+  const [dragKey, setDragKey] = useState<string | null>(null);
+  const [overKey, setOverKey] = useState<string | null>(null);
+  const [dragArmed, setDragArmed] = useState<string | null>(null);
+
   if (invoice.isLoading)
     return (
       <div className="card-surface p-8 text-center text-sm text-muted-foreground">Loading…</div>
