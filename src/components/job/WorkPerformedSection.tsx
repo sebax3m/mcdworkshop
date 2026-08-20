@@ -16,6 +16,8 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import { WORK_PRESETS, presetDetail, type WorkPreset } from "@/lib/work-presets";
+import { useQuery } from "@tanstack/react-query";
+import { fetchServiceTemplates, type ServiceTemplate } from "@/lib/service-templates";
 
 const groups: [string, WorkPreset[]][] = Array.from(
   WORK_PRESETS.reduce((m, p) => {
@@ -54,6 +56,24 @@ export default function WorkPerformedSection({
   onChanged: () => void;
 }) {
   const entries = readWorkPerformed(serviceData);
+  // Master service templates (Basic / Eco, Standard, Annual, Full, WOF…) live in the DB
+  // so anything the workshop edits in Settings shows up here immediately.
+  const serviceTemplates = useQuery({
+    queryKey: ["work-performed-service-templates"],
+    queryFn: () => fetchServiceTemplates(),
+    staleTime: 60_000,
+  });
+
+  function templateEntry(t: ServiceTemplate): WorkPerformedEntry {
+    return {
+      id: "",
+      title: t.name,
+      detail: t.tasks.length
+        ? t.tasks.map((x) => `• ${x.label}`).join("\n")
+        : (t.description ?? ""),
+      hours: Number(t.estimated_hours ?? 0) || 0,
+    };
+  }
   const [busy, setBusy] = useState(false);
   const [draft, setDraft] = useState<WorkPerformedEntry>({
     id: "",
@@ -71,6 +91,13 @@ export default function WorkPerformedSection({
   });
 
   function applyPresetToEdit(presetId: string) {
+    if (presetId.startsWith("tmpl:")) {
+      const t = (serviceTemplates.data ?? []).find((x) => `tmpl:${x.id}` === presetId);
+      if (!t) return;
+      const e = templateEntry(t);
+      setEditDraft((d) => ({ ...d, title: e.title, detail: e.detail, hours: e.hours }));
+      return;
+    }
     const preset = WORK_PRESETS.find((p) => p.id === presetId);
     if (!preset) return;
     setEditDraft((d) => ({
@@ -127,6 +154,13 @@ export default function WorkPerformedSection({
 
 
   function applyPreset(presetId: string) {
+    if (presetId.startsWith("tmpl:")) {
+      const t = (serviceTemplates.data ?? []).find((x) => `tmpl:${x.id}` === presetId);
+      if (!t) return;
+      setDraft(templateEntry(t));
+      setSelectedPreset("");
+      return;
+    }
     const preset = WORK_PRESETS.find((p) => p.id === presetId);
     if (!preset) return;
     setDraft({
@@ -193,6 +227,16 @@ export default function WorkPerformedSection({
                     <SelectValue placeholder="Replace with a template…" />
                   </SelectTrigger>
                   <SelectContent>
+                    {(serviceTemplates.data ?? []).length > 0 && (
+                      <SelectGroup>
+                        <SelectLabel>Workshop service templates</SelectLabel>
+                        {(serviceTemplates.data ?? []).map((t) => (
+                          <SelectItem key={t.id} value={`tmpl:${t.id}`}>
+                            {t.name}
+                          </SelectItem>
+                        ))}
+                      </SelectGroup>
+                    )}
                     {groups.map(([group, presets]) => (
                       <SelectGroup key={group}>
                         <SelectLabel>{group}</SelectLabel>
@@ -273,6 +317,16 @@ export default function WorkPerformedSection({
                 <SelectValue placeholder="Pick a preset to fill the form below…" />
               </SelectTrigger>
               <SelectContent>
+                {(serviceTemplates.data ?? []).length > 0 && (
+                  <SelectGroup>
+                    <SelectLabel>Workshop service templates</SelectLabel>
+                    {(serviceTemplates.data ?? []).map((t) => (
+                      <SelectItem key={t.id} value={`tmpl:${t.id}`}>
+                        {t.name}
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
+                )}
                 {groups.map(([group, presets]) => (
                   <SelectGroup key={group}>
                     <SelectLabel>{group}</SelectLabel>
