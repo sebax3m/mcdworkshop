@@ -174,17 +174,13 @@ export default function WorkPerformedSection({
 
   return (
     <div className="rounded-xl border border-border bg-card p-4" data-print-section="work-performed">
-      <div className="flex items-center gap-2 mb-1">
+      <div className="flex items-center gap-2 mb-3">
         <Wrench className="h-4 w-4 text-primary" />
-        <h2 className="font-display text-lg font-semibold">Work Performed / Additional Work</h2>
+        <h2 className="font-display text-lg font-semibold">Work Performed</h2>
       </div>
-      <p className="text-xs text-muted-foreground mb-3 print:hidden">
-        Anything outside the standard service — overhauls, chain &amp; sprocket replacement, repairs.
-        This is carried through to the customer invoice.
-      </p>
 
       {entries.length === 0 && (
-        <p className="text-sm text-muted-foreground italic">No additional work recorded.</p>
+        <p className="text-sm text-muted-foreground italic">No work recorded.</p>
       )}
 
       <div className="space-y-2">
