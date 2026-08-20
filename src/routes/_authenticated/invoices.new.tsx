@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { fullBike } from "@/lib/format";
+import { fetchAllRows } from "@/lib/fetch-all";
 import logoAsset from "@/assets/motorcycle-doctors-logo.png.asset.json";
 
 export const Route = createFileRoute("/_authenticated/invoices/new")({
@@ -73,13 +74,26 @@ function NewInvoice() {
   const customers = useQuery({
     queryKey: ["new-inv-customers"],
     queryFn: async () =>
-      (await (supabase as any).from("customers").select("*").eq("is_archived", false).order("first_name").range(0, 49999)).data ?? [],
+      await fetchAllRows((from, to) =>
+        (supabase as any)
+          .from("customers")
+          .select("*")
+          .or("is_archived.is.null,is_archived.eq.false")
+          .order("first_name")
+          .range(from, to),
+      ),
   });
   const bikes = useQuery({
     queryKey: ["new-inv-bikes", customerId],
     enabled: !!customerId,
     queryFn: async () =>
-      (await (supabase as any).from("motorcycles").select("*").eq("customer_id", customerId!).eq("is_archived", false)).data ?? [],
+      (
+        await (supabase as any)
+          .from("motorcycles")
+          .select("*")
+          .eq("customer_id", customerId!)
+          .or("is_archived.is.null,is_archived.eq.false")
+      ).data ?? [],
   });
   const library = useQuery({
     queryKey: ["inv-library"],

@@ -14,6 +14,7 @@ import { ArrowLeft, Plus, Search, Bike as BikeIcon, Camera, X } from "lucide-rea
 import { toast } from "sonner";
 import { hasPhone } from "@/lib/data-quality";
 import { fullBike, initials } from "@/lib/format";
+import { fetchAllRows } from "@/lib/fetch-all";
 import { displayCustomerName } from "@/lib/display";
 import { uploadPhoto } from "@/lib/photos";
 import { useBookingTypes } from "@/hooks/useBookingTypes";
@@ -92,14 +93,14 @@ function NewBooking() {
   const customers = useQuery({
     queryKey: ["bk-customers"],
     queryFn: async () =>
-      (
-        await (supabase as any)
+      await fetchAllRows((from, to) =>
+        (supabase as any)
           .from("customers")
           .select("*")
-          .eq("is_archived", false)
+          .or("is_archived.is.null,is_archived.eq.false")
           .order("first_name")
-          .range(0, 49999)
-      ).data ?? [],
+          .range(from, to),
+      ),
   });
   const bikes = useQuery({
     queryKey: ["bk-bikes", customerId],

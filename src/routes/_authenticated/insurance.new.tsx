@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { ArrowLeft, Search, ShieldCheck, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { fullBike } from "@/lib/format";
+import { fetchAllRows } from "@/lib/fetch-all";
 import { displayCustomerName } from "@/lib/display";
 import { NZ_INSURERS } from "@/lib/nz-insurers";
 import { BikeMakeModelYear } from "@/components/BikeMakeModelYear";
@@ -47,14 +48,14 @@ function NewClaim() {
   const customers = useQuery({
     queryKey: ["ins-customers"],
     queryFn: async () =>
-      (
-        await (supabase as any)
+      await fetchAllRows((from, to) =>
+        (supabase as any)
           .from("customers")
           .select("*")
-          .eq("is_archived", false)
+          .or("is_archived.is.null,is_archived.eq.false")
           .order("first_name")
-          .range(0, 49999)
-      ).data ?? [],
+          .range(from, to),
+      ),
   });
   const bikes = useQuery({
     queryKey: ["ins-bikes", customerId],
