@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState } from "react";
-import { CheckCircle2, RotateCcw, User as UserIcon } from "lucide-react";
+import { CheckCircle2, RotateCcw, User as UserIcon, Bike as BikeIcon } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -219,7 +219,12 @@ export function BookInCard({
           <div className="flex shrink-0 items-center gap-1">
             <TransportIndicator kind={kind} address={b.transport_address} />
             {b.loan_bike && (
-              <span className="h-1.5 w-1.5 rounded-full bg-fuchsia-500" title="Loan bike" />
+              <span
+                className="grid h-5 w-5 place-items-center rounded-full bg-fuchsia-500/15 text-fuchsia-500"
+                title="Loan bike assigned"
+              >
+                <BikeIcon className="h-3 w-3" />
+              </span>
             )}
             {b.notes && (
               <span className="h-1.5 w-1.5 rounded-full bg-muted-foreground/70" title="Has notes" />
