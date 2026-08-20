@@ -1523,20 +1523,18 @@ function ServiceTemplateSection({
     setSwitching(tmpl.id);
     try {
       await supabase.from("job_tasks").delete().eq("job_id", jobId);
-      const rows = ((tmpl.tasks as any[]) ?? []).map((t: any, i: number) => ({
-        job_id: jobId,
-        label: t.label,
-        sort_order: i,
-      }));
-      if (rows.length) await supabase.from("job_tasks").insert(rows);
+      // Snapshot the master checklist onto the job so later template edits never rewrite history.
+      const rows = snapshotRows(jobId, tmpl);
+      if (rows.length) await supabase.from("job_tasks").insert(rows as any);
       await supabase
         .from("jobs")
         .update({
           template_id: tmpl.id,
+          template_version: tmpl.version,
           title: tmpl.name,
           description: tmpl.description,
           estimated_hours: tmpl.estimated_hours,
-        })
+        } as any)
         .eq("id", jobId);
       toast.success(`Template set to ${tmpl.name}`);
       onTemplateChanged();
