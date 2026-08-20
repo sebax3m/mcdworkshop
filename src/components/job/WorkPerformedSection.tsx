@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Check, Pencil, Plus, Trash2, Wrench } from "lucide-react";
+import { Check, Pencil, Plus, Trash2, Wrench, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
