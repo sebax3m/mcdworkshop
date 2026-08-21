@@ -899,8 +899,10 @@ function InvoiceDetail() {
         /* Screen only: shrink the A4 sheet so the whole page width is visible
            and easier to navigate. Layout/print output is untouched. */
         @media screen {
-          .invoice-a4-scroll { overflow-x: hidden; max-width: 100%; }
+          .invoice-a4-scroll { overflow: auto; max-width: 100%; max-height: 80vh; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; cursor: grab; }
+          .invoice-a4-scroll:active { cursor: grabbing; }
           .invoice-a4-scroll > .invoice-sheet { zoom: var(--izoom, 0.9); }
+
         }
         @media print {
           .invoice-a4-scroll > .invoice-sheet { zoom: 1 !important; }
