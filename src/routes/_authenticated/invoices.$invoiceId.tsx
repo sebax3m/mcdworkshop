@@ -1126,7 +1126,7 @@ function InvoiceDetail() {
 
 
           {/* Line items */}
-          <div className="pt-5 border-t border-border">
+          <div className="pt-4 border-t border-border">
             <table className="w-full align-top">
               <colgroup>
                 <col className="w-[22%]" />
