@@ -3113,6 +3113,7 @@ export type Database = {
         Row: {
           brake_condition: string | null
           chain_condition: string | null
+          color: string | null
           created_at: string
           customer_id: string
           cylinders: number
@@ -3136,6 +3137,7 @@ export type Database = {
         Insert: {
           brake_condition?: string | null
           chain_condition?: string | null
+          color?: string | null
           created_at?: string
           customer_id: string
           cylinders?: number
@@ -3159,6 +3161,7 @@ export type Database = {
         Update: {
           brake_condition?: string | null
           chain_condition?: string | null
+          color?: string | null
           created_at?: string
           customer_id?: string
           cylinders?: number

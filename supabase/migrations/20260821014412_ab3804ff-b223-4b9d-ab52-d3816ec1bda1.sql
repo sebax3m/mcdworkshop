@@ -1,0 +1,1 @@
+ALTER TABLE public.motorcycles ADD COLUMN IF NOT EXISTS color text;
