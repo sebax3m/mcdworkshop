@@ -303,7 +303,7 @@ function LoanBikeDetail() {
             </div>
             <div className="text-sm font-semibold">
               {bike.last_service_date
-                ? format(new Date(bike.last_service_date + "T00:00:00"), "d MMM yyyy")
+                ? format(new Date(bike.last_service_date + "T00:00:00"), "dd/MM/yyyy")
                 : "—"}
             </div>
             <div className="text-[0.625rem] text-muted-foreground">
@@ -320,7 +320,7 @@ function LoanBikeDetail() {
                   {k === "wof" ? "WOF expiry" : "Rego expiry"}
                 </div>
                 <div className="text-sm font-semibold">
-                  {st ? format(new Date(st.date + "T00:00:00"), "d MMM yyyy") : "—"}
+                  {st ? format(new Date(st.date + "T00:00:00"), "dd/MM/yyyy") : "—"}
                 </div>
                 {st && (
                   <span
@@ -402,7 +402,7 @@ function LoanBikeDetail() {
               <div className="flex items-center justify-between gap-2">
                 <span className="font-semibold">{l.description}</span>
                 <span className="text-xs text-muted-foreground">
-                  {format(new Date(l.service_date + "T00:00:00"), "d MMM yyyy")}
+                  {format(new Date(l.service_date + "T00:00:00"), "dd/MM/yyyy")}
                 </span>
               </div>
               <div className="text-xs text-muted-foreground mt-1">
@@ -462,7 +462,7 @@ function LoanBikeDetail() {
               <div className="flex items-center justify-between gap-2 flex-wrap">
                 <span className="font-semibold">{displayCustomerName(a.customers)}</span>
                 <span className="text-xs text-muted-foreground">
-                  {format(new Date(a.scheduled_date + "T00:00:00"), "d MMM yyyy")}
+                  {format(new Date(a.scheduled_date + "T00:00:00"), "dd/MM/yyyy")}
                   {a.loan_bike_returned_at
                     ? ` → returned ${format(new Date(a.loan_bike_returned_at), "d MMM")}`
                     : a.loan_bike_expected_return

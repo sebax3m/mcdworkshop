@@ -151,7 +151,7 @@ function InsuranceList() {
                     </span>
                   )}
                   <span className="ml-auto text-[0.6875rem] text-muted-foreground">
-                    Received {format(new Date(c.date_received), "d MMM yyyy")}
+                    Received {format(new Date(c.date_received), "dd/MM/yyyy")}
                   </span>
                   <ChevronRight className="h-4 w-4 text-muted-foreground" />
                 </div>

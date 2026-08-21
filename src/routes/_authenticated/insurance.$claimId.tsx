@@ -981,7 +981,7 @@ function PrintQuoteHeader({ c, bikeText }: { c: any; bikeText: string }) {
               <b>Ref:</b> {c.insurer_claim_ref ?? "—"}
             </div>
             <div>
-              <b>Received:</b> {format(new Date(c.date_received), "d MMM yyyy")}
+              <b>Received:</b> {format(new Date(c.date_received), "dd/MM/yyyy")}
             </div>
           </div>
         </div>

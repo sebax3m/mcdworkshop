@@ -367,7 +367,7 @@ function BikeCard({
             {bike.rego && <span className="font-mono uppercase">{bike.rego}</span>}
             {bike.current_km != null && <span>{fmtKm(bike.current_km)} km</span>}
             {bike.last_service_date && (
-              <span>Last: {format(new Date(bike.last_service_date), "d MMM yy")}</span>
+              <span>Last: {format(new Date(bike.last_service_date), "dd/MM/yy")}</span>
             )}
           </div>
           {dueKm != null && (
@@ -510,7 +510,7 @@ function CalendarPostBikes({
                   <div className="mt-0.5 flex flex-wrap items-center gap-x-2 text-[0.6875rem] text-muted-foreground">
                     {b.rego && <span className="font-mono uppercase">{b.rego}</span>}
                     {b.mileage != null && <span>{fmtKm(b.mileage)} km</span>}
-                    <span>Last book-in: {format(new Date(b.lastDate), "d MMM yy")}</span>
+                    <span>Last book-in: {format(new Date(b.lastDate), "dd/MM/yy")}</span>
                     {b.count > 1 && <span>{b.count} book-ins</span>}
                   </div>
                 </div>
@@ -1007,7 +1007,7 @@ function CreateJobCardButton({ bike, onClose }: { bike: PostBike; onClose: () =>
                     </span>
                   </div>
                   <div className="text-[0.7rem] text-muted-foreground">
-                    {j.created_at ? format(new Date(j.created_at), "d MMM yyyy") : ""}
+                    {j.created_at ? format(new Date(j.created_at), "dd/MM/yyyy") : ""}
                   </div>
                 </button>
               </li>
@@ -1355,7 +1355,7 @@ function BikeDetailDialog({
                         {l.km != null ? `${fmtKm(l.km)} kms` : "— kms"}
                       </span>
                       <span className="text-sm font-semibold text-muted-foreground">
-                        {format(new Date(l.service_date), "d MMM yyyy")}
+                        {format(new Date(l.service_date), "dd/MM/yyyy")}
                       </span>
                       {l.performed_by && (
                         <span className="text-[0.6875rem] text-muted-foreground">
