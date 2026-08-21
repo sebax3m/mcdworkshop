@@ -24,7 +24,7 @@ import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { useTechnicians } from "@/hooks/use-active-technician";
-import { PrintPreview } from "@/components/PrintPreview";
+import { InvoicePrintPreview } from "@/components/InvoicePrintPreview";
 import { readCustomerNotes } from "@/components/job/CustomerNotesSection";
 import { readWorkPerformed } from "@/components/job/WorkPerformedSection";
 import { learnInventoryPrice } from "@/lib/inventory-price-sync";
