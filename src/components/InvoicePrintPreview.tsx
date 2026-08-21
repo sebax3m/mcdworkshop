@@ -24,6 +24,14 @@ export function InvoicePrintPreview({
 }) {
   const frameRef = useRef<HTMLIFrameElement>(null);
   const [zoom, setZoom] = useState(100);
+  const [paper, setPaper] = useState<"A4" | "Letter" | "Legal">("A4");
+
+  const PAPER: Record<string, { w: string; css: string }> = {
+    A4: { w: "210mm", css: "A4 portrait" },
+    Letter: { w: "216mm", css: "Letter portrait" },
+    Legal: { w: "216mm", css: "Legal portrait" },
+  };
+
 
   useEffect(() => {
     if (!open) return;
