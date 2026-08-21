@@ -1549,6 +1549,8 @@ function InvoiceDetail() {
           </div>
         </div>
       </div>
+      </div>
+
 
       {inv.job_id && (
         <div className="print:hidden text-center">
