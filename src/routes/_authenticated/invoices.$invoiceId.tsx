@@ -1203,13 +1203,13 @@ function InvoiceDetail() {
                               />
                             </div>
                           </td>
-                          <td className="py-2.5 pr-3 align-top text-xs text-muted-foreground">
+                          <td className="py-2.5 pr-3 align-top text-muted-foreground">
                             <EditableText
                               value={desc}
                               multiline
                               placeholder="Describe the work performed…"
                               onCommit={(v) => saveSnapshotMeta({ labour_desc: v })}
-                              className="text-xs text-muted-foreground leading-snug whitespace-pre-wrap"
+                              className="text-muted-foreground leading-snug whitespace-pre-wrap"
                             />
                             {hourly && defaultHours > 0 && (
                               <span className="no-print"> · tracked {defaultHours.toFixed(2)}h</span>
@@ -1301,7 +1301,7 @@ function InvoiceDetail() {
                                   ? "Washers, lubricants, cleaners, degreaser, rags…"
                                   : "—"
                               }
-                              className="text-xs text-muted-foreground block leading-snug whitespace-pre-wrap"
+                              className="text-muted-foreground block leading-snug whitespace-pre-wrap"
                             />
                           </td>
                           <td className="py-2.5 pl-3 pr-6 text-right align-top tabular-nums">
@@ -1494,7 +1494,7 @@ function InvoiceDetail() {
                                     : ({ item_name: itemName, description: v } as any),
                                 )
                               }
-                              className="text-xs text-muted-foreground block leading-snug whitespace-pre-wrap"
+                              className="text-muted-foreground block leading-snug whitespace-pre-wrap"
                             />
                           </td>
                           <td className="py-2.5 pl-3 pr-6 text-right align-top tabular-nums">
