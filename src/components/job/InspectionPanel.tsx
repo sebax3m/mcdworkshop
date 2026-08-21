@@ -206,8 +206,8 @@ export function InspectionPanel({
     <div className="card-surface p-4 space-y-4">
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">
-          <ClipboardCheck className="h-4 w-4 text-primary" />
-          <h2 className="font-display text-base font-bold uppercase tracking-wider text-status-parts">Inspection &amp; approval</h2>
+          <ClipboardCheck className="h-4 w-4 text-service-banana" />
+          <h2 className="font-display text-base font-bold uppercase tracking-wider text-service-banana bg-service-banana/10 px-2 py-0.5 rounded-md">Inspection &amp; approval</h2>
         </div>
         <Button
           size="sm"
