@@ -55,11 +55,11 @@ export function InvoicePrintPreview({
 <head><meta charset="utf-8"><title>${title.replace(/</g, "&lt;")}</title>
 ${styles}
 <style>
-  @page { size: A4 portrait; margin: 0; }
+  @page { size: ${PAPER[paper].css}; margin: 0; }
   html, body { margin:0; padding:0; background:#f4f4f5; }
   body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   .preview-viewport { padding: 16px 0; }
-  .invoice-page { width: 210mm; margin: 0 auto; }
+  .invoice-page { width: ${PAPER[paper].w}; margin: 0 auto; }
   /* Only screen-only controls are dropped; everything else renders exactly as
      it does in the app so the preview equals the printout. */
   .invoice-page .no-print, .invoice-page .print\\:hidden { display:none !important; }
@@ -87,7 +87,7 @@ ${styles}
 </body></html>`;
 
     frame.srcdoc = doc;
-  }, [open, title, getHtml]);
+  }, [open, title, getHtml, paper]);
 
   useEffect(() => {
     const d = frameRef.current?.contentDocument;
