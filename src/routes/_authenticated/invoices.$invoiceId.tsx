@@ -973,7 +973,10 @@ function InvoiceDetail() {
                   Motorcycle Doctors
                 </div>
                 <div className="text-[0.7rem] uppercase tracking-[0.22em] text-muted-foreground mt-1">
-                  Motorcycle Doctors LTD · GST Reg N° 99386185
+                  Motorcycle Doctors LTD
+                </div>
+                <div className="text-[0.68rem] uppercase tracking-[0.18em] text-muted-foreground">
+                  GST Reg N° 99386185
                 </div>
                 <div className="text-[0.72rem] leading-relaxed text-muted-foreground mt-2">
                   94 Wairau Rd, Wairau Valley, Auckland
