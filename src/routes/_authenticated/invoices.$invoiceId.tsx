@@ -376,16 +376,23 @@ function InvoiceDetail() {
     const el = sheetRef.current;
     if (!el) return;
     const PAGE_PX = (297 / 25.4) * 96;
+    let busy = false;
     const snap = () => {
+      if (busy) return;
+      busy = true;
       el.style.minHeight = "0px";
       const pages = Math.max(1, Math.ceil((el.scrollHeight - 1) / PAGE_PX));
       el.style.minHeight = `${pages * PAGE_PX}px`;
+      requestAnimationFrame(() => {
+        busy = false;
+      });
     };
     snap();
     const ro = new ResizeObserver(() => requestAnimationFrame(snap));
     ro.observe(el);
     return () => ro.disconnect();
   });
+
 
 
   /* Drag to pan when the sheet is bigger than the viewport. */
