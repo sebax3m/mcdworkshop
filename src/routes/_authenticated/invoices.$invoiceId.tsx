@@ -1601,10 +1601,11 @@ function InvoiceDetail() {
             </table>
           </div>
 
-          {/* Notes — pushed to the bottom so it sits right above the payment rule */}
+          {/* Notes + payment/totals block — always anchored to the bottom of the
+              A4 sheet, even when the notes are hidden (empty) in print. */}
+          <div style={{ marginTop: "auto" }}>
           <div
             data-print-section="notes"
-            style={{ marginTop: "auto" }}
             className={`pt-3 border-t border-border${(inv.notes ?? "").trim() ? "" : " print-hide-empty"}`}
           >
             <NotesBox
