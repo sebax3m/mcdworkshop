@@ -957,6 +957,8 @@ function CreateJobCardButton({ bike, onClose }: { bike: PostBike; onClose: () =>
 
       toast.success("Job card created");
       qc.invalidateQueries({ queryKey: ["jobs"] });
+      qc.invalidateQueries({ queryKey: ["post-bike-jobs", bike.id] });
+
       setOpen(false);
       onClose();
       nav({ to: "/jobs/$jobId", params: { jobId: job.id } });
