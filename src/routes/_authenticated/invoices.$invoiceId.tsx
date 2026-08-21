@@ -888,7 +888,10 @@ function InvoiceDetail() {
           .invoice-sheet .bg-background { background: #ffffff !important; }
           .invoice-sheet .border-border { border-color: #e5e7eb !important; }
           .no-print, .print\\:hidden { display: none !important; }
+          .print-only { display: inline !important; }
+          .print-hide-empty { display: none !important; }
         }
+        .print-only { display: none; }
       `}</style>
 
 
