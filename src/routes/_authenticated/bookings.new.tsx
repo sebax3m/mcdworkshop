@@ -36,7 +36,6 @@ const searchSchema = z.object({
   model: z.string().optional(),
   year: z.coerce.number().optional(),
   mileage: z.coerce.number().optional(),
-  postBikeId: z.string().optional(),
 });
 
 export const Route = createFileRoute("/_authenticated/bookings/new")({
