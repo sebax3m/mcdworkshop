@@ -25,6 +25,7 @@ import { toast } from "sonner";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { useTechnicians } from "@/hooks/use-active-technician";
 import { PrintPreview } from "@/components/PrintPreview";
+import { readCustomerNotes } from "@/components/job/CustomerNotesSection";
 import { readWorkPerformed } from "@/components/job/WorkPerformedSection";
 import { learnInventoryPrice } from "@/lib/inventory-price-sync";
 import { PaymentsCard } from "@/components/invoice/PaymentsCard";
@@ -1469,6 +1470,7 @@ function InvoiceDetail() {
               <NotesBox
                 invoiceId={invoiceId}
                 initial={inv.notes ?? ""}
+                suggestion={readCustomerNotes((inv.jobs as any)?.service_data)}
                 onSaved={() => qc.invalidateQueries({ queryKey: ["invoice", invoiceId] })}
               />
             </div>
@@ -1756,13 +1758,14 @@ function NewInventoryItemForm({
 }
 
 function NotesBox({
-
   invoiceId,
   initial,
+  suggestion,
   onSaved,
 }: {
   invoiceId: string;
   initial: string;
+  suggestion?: string;
   onSaved: () => void;
 }) {
   const [value, setValue] = useState(initial);
@@ -1776,10 +1779,11 @@ function NotesBox({
   // instructions never leak onto the customer invoice.
   // (kept empty intentionally)
 
-  async function save() {
-    if (value === initial) return;
+  async function save(next?: string) {
+    const text = next ?? value;
+    if (text === initial) return;
     setSaving(true);
-    const { error } = await supabase.from("invoices").update({ notes: value }).eq("id", invoiceId);
+    const { error } = await supabase.from("invoices").update({ notes: text }).eq("id", invoiceId);
     setSaving(false);
     if (error) {
       toast.error(error.message);
@@ -1800,11 +1804,29 @@ function NotesBox({
       <textarea
         value={value}
         onChange={(e) => setValue(e.target.value)}
-        onBlur={save}
+        onBlur={() => save()}
         placeholder="Add notes for the customer — recommendations, follow-ups, parts to order next service…"
         rows={4}
         className="w-full rounded-lg border border-border bg-background/50 p-3 text-sm leading-relaxed outline-none focus:border-primary resize-y print:border-border print:bg-transparent print:resize-none"
       />
+      {suggestion?.trim() && suggestion.trim() !== value.trim() && (
+        <div className="mt-2 rounded-lg border border-dashed border-border bg-muted/30 p-3 no-print print:hidden">
+          <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground mb-1">
+            Technician notes from the job card
+          </div>
+          <p className="text-xs whitespace-pre-wrap text-muted-foreground">{suggestion}</p>
+          <button
+            onClick={() => {
+              const merged = value.trim() ? `${value.trim()}\n${suggestion.trim()}` : suggestion.trim();
+              setValue(merged);
+              save(merged);
+            }}
+            className="mt-2 text-xs text-primary hover:underline"
+          >
+            Use these notes
+          </button>
+        </div>
+      )}
     </div>
   );
 }
