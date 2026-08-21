@@ -1105,7 +1105,7 @@ function InvoiceDetail() {
               </div>
               <div className="text-muted-foreground truncate">{customer?.email || ""}</div>
             </div>
-            <div className={`min-w-0${bike ? "" : " print-hide-empty"}`}>
+            <div className={`min-w-0${bike && fullBike(bike as any).trim() ? "" : " print-hide-empty"}`}>
               <div className="text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-muted-foreground pb-1 mb-1.5 border-b border-border">
                 Motorcycle
               </div>
