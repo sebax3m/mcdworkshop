@@ -1008,8 +1008,42 @@ function InvoiceDetail() {
         paidAmount={Number(inv.paid_amount ?? 0)}
       />
 
+      <div className="flex items-center justify-end gap-2 print:hidden">
+        <span className="text-xs text-muted-foreground tabular-nums">
+          {Math.round(screenZoom * 100)}%
+        </span>
+        <button
+          onClick={() => setZoomAdjust((z) => Math.max(0.4, z - 0.15))}
+          className="rounded-lg border border-border px-2.5 py-1 text-sm"
+          title="Zoom out"
+        >
+          −
+        </button>
+        <button
+          onClick={() => setZoomAdjust((z) => Math.min(3, z + 0.15))}
+          className="rounded-lg border border-border px-2.5 py-1 text-sm"
+          title="Zoom in"
+        >
+          +
+        </button>
+        <button
+          onClick={() => setZoomAdjust(1)}
+          className="rounded-lg border border-border px-2.5 py-1 text-xs"
+        >
+          Fit
+        </button>
+      </div>
 
-      <div ref={scrollRef} className="invoice-a4-scroll">
+      <div
+        ref={scrollRef}
+        className="invoice-a4-scroll"
+        style={{ ["--izoom" as any]: String(screenZoom) }}
+        onPointerDown={onSheetPointerDown}
+        onPointerMove={onSheetPointerMove}
+        onPointerUp={endDrag}
+        onPointerLeave={endDrag}
+      >
+
       <div ref={sheetRef} className="card-surface invoice-sheet overflow-hidden">
         {/* Letterhead — the logo is the strongest brand element, so it leads */}
         <div className="bg-background border-b-2 border-border px-6 pt-3 pb-4 text-foreground">
