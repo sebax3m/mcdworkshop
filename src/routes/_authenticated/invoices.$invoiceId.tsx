@@ -1127,7 +1127,15 @@ function InvoiceDetail() {
 
           {/* Line items */}
           <div className="pt-5 border-t border-border">
-            <table className="w-full text-sm align-top">
+            <table className="w-full align-top">
+              <colgroup>
+                <col className="w-[30%]" />
+                <col />
+                <col className="w-16" />
+                <col className="w-24" />
+                {hasDiscount && <col className="w-20" />}
+                <col className="w-28" />
+              </colgroup>
               <thead>
                 <tr className="text-left text-[0.7rem] uppercase tracking-wider text-muted-foreground border-b border-border">
                   <th className="py-2.5 pr-3 font-semibold w-[30%]">Item</th>
