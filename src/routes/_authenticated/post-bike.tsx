@@ -92,6 +92,7 @@ function PostBikePage() {
   const [dragId, setDragId] = useState<string | null>(null);
   const [overBranch, setOverBranch] = useState<string | null>(null);
   const [branchOpen, setBranchOpen] = useState(false);
+  const [editBranch, setEditBranch] = useState<Branch | null>(null);
   const [bikeOpen, setBikeOpen] = useState(false);
   const [bikeBranchId, setBikeBranchId] = useState<string | null>(null);
   const [detailBike, setDetailBike] = useState<PostBike | null>(null);
