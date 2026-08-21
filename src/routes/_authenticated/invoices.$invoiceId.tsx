@@ -1595,7 +1595,7 @@ function InvoiceDetail() {
           { id: "checks", label: "Service checks" },
           { id: "notes", label: "Notes" },
           { id: "payment", label: "Payment details" },
-          { id: "footer", label: "Footer line" },
+          
         ]}
       />
 
