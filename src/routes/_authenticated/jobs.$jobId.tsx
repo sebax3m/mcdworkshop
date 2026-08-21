@@ -2761,11 +2761,7 @@ function InstructionsSection({
         </div>
       ) : (
         <>
-          {instructions ? (
-            <p className="text-sm whitespace-pre-wrap">{instructions}</p>
-          ) : (
-            <p className="text-sm text-muted-foreground print:hidden">No instructions yet.</p>
-          )}
+          {instructions && <p className="text-sm whitespace-pre-wrap">{instructions}</p>}
           {notes && (
             <div className="mt-2 pt-2 border-t border-border/40">
               <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground mb-0.5">
