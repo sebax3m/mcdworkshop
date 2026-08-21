@@ -438,6 +438,8 @@ ${styles}
               setOrientation("portrait");
               setPaper("A4");
               setZoom(100);
+              setDensity(100);
+
             }}
             className="rounded-md border border-border px-2 py-1 text-[0.65rem] text-muted-foreground hover:text-foreground"
           >
