@@ -51,15 +51,13 @@ ${styles}
   html, body { margin:0; padding:0; background:#f4f4f5; }
   body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   .preview-viewport { padding: 16px 0; }
-  .invoice-page { width: 210mm; margin: 0 auto; background:#ffffff; }
-  /* Exactly what the invoice's print rules do, applied on screen too so the
-     preview equals the printout. */
+  .invoice-page { width: 210mm; margin: 0 auto; }
+  /* Only screen-only controls are dropped; everything else renders exactly as
+     it does in the app so the preview equals the printout. */
   .invoice-page .no-print, .invoice-page .print\\:hidden { display:none !important; }
-  .invoice-sheet { box-shadow:none !important; border:0 !important; border-radius:0 !important; }
+  .invoice-sheet { box-shadow:none !important; border-radius:0 !important; }
   .invoice-sheet::after { display:none !important; }
-  .invoice-sheet .bg-background { background:#ffffff !important; }
-  .invoice-sheet .border-border { border-color:#e5e7eb !important; }
-  .invoice-sheet, .invoice-sheet * { color-scheme: light; }
+
   @media screen {
     .preview-viewport { zoom: var(--pzoom, 1); }
   }
