@@ -19,12 +19,29 @@ import { WORK_PRESETS, presetDetail, type WorkPreset } from "@/lib/work-presets"
 import { useQuery } from "@tanstack/react-query";
 import { fetchServiceTemplates, type ServiceTemplate } from "@/lib/service-templates";
 
+// The "Service" presets duplicate the master workshop templates that live in the
+// database (Basic / Eco, Standard, Annual, Full, WOF, Collision, Tuning), so they
+// are excluded here — the DB templates are the single source of truth.
 const groups: [string, WorkPreset[]][] = Array.from(
-  WORK_PRESETS.reduce((m, p) => {
+  WORK_PRESETS.filter((p) => p.group !== "Service").reduce((m, p) => {
     m.set(p.group, [...(m.get(p.group) ?? []), p]);
     return m;
   }, new Map<string, WorkPreset[]>()),
 );
+
+/** Distinct colour per dropdown section so the groups are easy to tell apart. */
+const GROUP_LABEL_CLASS: Record<string, string> = {
+  "Workshop service templates": "text-service-gold",
+  Engine: "text-service-red",
+  Brakes: "text-service-orange",
+  Suspension: "text-service-light-blue",
+  Drivetrain: "text-service-purple",
+  Electrical: "text-status-progress",
+  "Tyres & Wheels": "text-status-ready",
+};
+
+const groupLabelClass = (g: string) =>
+  `text-sm font-bold uppercase tracking-wider ${GROUP_LABEL_CLASS[g] ?? "text-muted-foreground"}`;
 
 export type WorkPerformedEntry = {
   id: string;
@@ -182,7 +199,7 @@ export default function WorkPerformedSection({
       <div className="flex items-center justify-between gap-2 mb-4">
         <div className="flex items-center gap-2">
           <Wrench className="h-4 w-4 text-primary" />
-          <h2 className="font-display text-xl font-semibold tracking-tight">Work Performed</h2>
+          <h2 className="font-display text-xl font-semibold tracking-tight text-service-gold">Work Performed</h2>
         </div>
         {entries.length > 0 && (
           <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-primary/10 text-primary">
@@ -233,7 +250,7 @@ export default function WorkPerformedSection({
                   <SelectContent>
                     {(serviceTemplates.data ?? []).length > 0 && (
                       <SelectGroup>
-                        <SelectLabel>Workshop service templates</SelectLabel>
+                        <SelectLabel className={groupLabelClass("Workshop service templates")}>Workshop service templates</SelectLabel>
                         {(serviceTemplates.data ?? []).map((t) => (
                           <SelectItem key={t.id} value={`tmpl:${t.id}`}>
                             {t.name}
@@ -243,7 +260,7 @@ export default function WorkPerformedSection({
                     )}
                     {groups.map(([group, presets]) => (
                       <SelectGroup key={group}>
-                        <SelectLabel>{group}</SelectLabel>
+                        <SelectLabel className={groupLabelClass(group)}>{group}</SelectLabel>
                         {presets.map((p) => (
                           <SelectItem key={p.id} value={p.id}>
                             {p.label}
@@ -323,7 +340,7 @@ export default function WorkPerformedSection({
                 <SelectContent>
                   {(serviceTemplates.data ?? []).length > 0 && (
                     <SelectGroup>
-                      <SelectLabel>Workshop service templates</SelectLabel>
+                      <SelectLabel className={groupLabelClass("Workshop service templates")}>Workshop service templates</SelectLabel>
                       {(serviceTemplates.data ?? []).map((t) => (
                         <SelectItem key={t.id} value={`tmpl:${t.id}`}>
                           {t.name}
@@ -333,7 +350,7 @@ export default function WorkPerformedSection({
                   )}
                   {groups.map(([group, presets]) => (
                     <SelectGroup key={group}>
-                      <SelectLabel>{group}</SelectLabel>
+                      <SelectLabel className={groupLabelClass(group)}>{group}</SelectLabel>
                       {presets.map((p) => (
                         <SelectItem key={p.id} value={p.id}>
                           {p.label}

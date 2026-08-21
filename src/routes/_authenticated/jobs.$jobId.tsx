@@ -961,7 +961,7 @@ function JobDetail() {
             className="card-surface p-4 border-l-4 border-emerald-500/70"
           >
             <div className="flex items-center gap-2 mb-2">
-              <h2 className="font-display text-xl font-semibold tracking-tight">Approved by customer</h2>
+              <h2 className="font-display text-xl font-semibold tracking-tight text-status-ready">Approved by customer</h2>
               <span className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">
                 proceed with this work
               </span>
@@ -1121,7 +1121,7 @@ function JobDetail() {
         <section className="card-surface p-4 print:hidden">
           <div className="flex items-center justify-between gap-3 flex-wrap">
             <div>
-              <h2 className="font-display text-xl font-semibold tracking-tight">Invoice</h2>
+              <h2 className="font-display text-xl font-semibold tracking-tight text-service-gold">Invoice</h2>
               {existingInvoice.data ? (
                 <p className="text-xs text-muted-foreground mt-0.5">
                   {existingInvoice.data.invoice_number} · {existingInvoice.data.status} · $
@@ -1215,14 +1215,14 @@ function JobDetail() {
       </div>
 
       <section className="hidden print:block card-surface p-4" data-print-section="notes">
-        <h2 className="font-display text-xl font-semibold tracking-tight mb-3">Notes</h2>
+        <h2 className="font-display text-xl font-semibold tracking-tight mb-3 text-service-purple">Notes</h2>
         <NotesList notes={notes.data ?? []} />
       </section>
     </div>
 
     <aside className="no-print lg:sticky lg:top-20 lg:self-start space-y-4 max-h-[calc(100vh-6rem)] overflow-y-auto">
       <section className="card-surface p-4">
-        <h2 className="font-display text-xl font-semibold tracking-tight mb-3">Notes</h2>
+        <h2 className="font-display text-xl font-semibold tracking-tight mb-3 text-service-purple">Notes</h2>
         {canEdit && (
           <AddNote
             jobId={jobId}
@@ -1794,7 +1794,7 @@ function PartsSection({
     <section className="card-surface p-4">
       <div className="flex items-center gap-2 mb-3">
         <Droplet className="h-4 w-4 text-primary" />
-        <h2 className="font-display text-xl font-semibold tracking-tight">Parts & Fluids Used</h2>
+        <h2 className="font-display text-xl font-semibold tracking-tight text-service-orange">Parts &amp; Fluids Used</h2>
       </div>
       {fields.length === 0 && (
         <p className="mb-3 text-xs text-muted-foreground">
@@ -2298,7 +2298,7 @@ function ValveClearanceSection({
       <section className="card-surface p-4 print:hidden">
         <div className="flex items-center gap-2 mb-1 flex-wrap">
           <Wrench className="h-4 w-4 text-primary" />
-          <h2 className="font-display text-xl font-semibold tracking-tight">Valve Clearance Check</h2>
+          <h2 className="font-display text-xl font-semibold tracking-tight text-service-light-blue">Valve Clearance Check</h2>
           {canEdit && (
             <div className="ml-auto flex items-center gap-2 flex-wrap">
               <div className="flex items-center gap-1">
@@ -2702,7 +2702,7 @@ function InstructionsSection({
       className="card-surface p-4 border-l-4 border-primary/60"
     >
       <div className="flex items-center gap-2 mb-2">
-        <h2 className="font-display text-xl font-semibold tracking-tight">Instructions</h2>
+        <h2 className="font-display text-xl font-semibold tracking-tight text-status-progress">Instructions</h2>
         <span className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">
           from book-in
         </span>
