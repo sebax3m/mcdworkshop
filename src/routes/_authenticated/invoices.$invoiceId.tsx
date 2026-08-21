@@ -1080,8 +1080,8 @@ function InvoiceDetail() {
             const wp = all.filter((w) => !hidden.includes(w.id));
             if (!all.length) return null;
             return (
-              <div className="pt-5 border-t border-border" data-print-section="work-performed">
-                <div className="font-display text-sm uppercase tracking-wider text-muted-foreground mb-2 font-semibold">
+              <div className="pt-4 border-t border-border" data-print-section="work-performed">
+                <div className="font-display text-sm uppercase tracking-wider text-muted-foreground mb-1.5 font-semibold">
                   Work performed
                 </div>
                 {wp.length === 0 && (
@@ -1089,7 +1089,7 @@ function InvoiceDetail() {
                     All entries hidden on this invoice.
                   </div>
                 )}
-                <div className="space-y-3">
+                <div className="space-y-2">
                   {wp.map((w) => (
                     <div key={w.id} className="group flex items-start gap-2">
                       <div className="min-w-0 flex-1">
