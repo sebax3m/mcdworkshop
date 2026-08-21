@@ -1019,7 +1019,7 @@ function InvoiceDetail() {
               </div>
               <div className="text-muted-foreground truncate">{customer?.email || ""}</div>
             </div>
-            <div className="min-w-0">
+            <div className={`min-w-0${bike ? "" : " print-hide-empty"}`}>
               <div className="text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-muted-foreground pb-1 mb-1.5 border-b border-border">
                 Motorcycle
               </div>
@@ -1046,11 +1046,11 @@ function InvoiceDetail() {
                 <span className="text-[0.62rem] uppercase tracking-[0.18em] text-muted-foreground">Due</span>
                 <b className="text-foreground tabular-nums">{dueAt.toLocaleDateString()}</b>
               </span>
-              <span className="flex flex-col">
+              <span className={`flex flex-col${inv.jobs ? "" : " print-hide-empty"}`}>
                 <span className="text-[0.62rem] uppercase tracking-[0.18em] text-muted-foreground">Job</span>
                 <b className="text-foreground">{inv.jobs ? `#${inv.jobs.job_number}` : "—"}</b>
               </span>
-              <span className="flex flex-col min-w-0">
+              <span className={`flex flex-col min-w-0${technicianName ? "" : " print-hide-empty"}`}>
                 <span className="text-[0.62rem] uppercase tracking-[0.18em] text-muted-foreground">Technician</span>
                 <b className="text-foreground print-only">{technicianName || "—"}</b>
 
