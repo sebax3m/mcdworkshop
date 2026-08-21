@@ -984,7 +984,7 @@ function InvoiceDetail() {
       />
 
 
-      <div className="invoice-a4-scroll">
+      <div ref={scrollRef} className="invoice-a4-scroll">
       <div ref={sheetRef} className="card-surface invoice-sheet overflow-hidden">
         {/* Letterhead — the logo is the strongest brand element, so it leads */}
         <div className="bg-background border-b-2 border-border px-6 pt-3 pb-4 text-foreground">
