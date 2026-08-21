@@ -843,31 +843,44 @@ function InvoiceDetail() {
       />
 
 
+      <div className="invoice-a4-scroll">
       <div ref={sheetRef} className="card-surface invoice-sheet overflow-hidden">
-        {/* Clean white header */}
-        <div className="bg-background border-b border-border px-6 py-3 flex items-center justify-between gap-4 flex-wrap text-foreground">
-          <div className="flex items-center gap-3">
-            <img
-              src={logoAsset.url}
-              alt="Motorcycle Doctors"
-              className="h-12 w-12 object-contain"
-            />
-            <div>
-              <div className="font-display text-2xl font-black tracking-tight leading-none">
-                Motorcycle Doctors
+        {/* Letterhead — the logo is the strongest brand element, so it leads */}
+        <div className="bg-background border-b-2 border-border px-8 pt-7 pb-5 text-foreground">
+          <div className="flex items-start justify-between gap-6">
+            <div className="flex items-center gap-5">
+              <img
+                src={logoAsset.url}
+                alt="Motorcycle Doctors"
+                className="h-28 w-28 object-contain shrink-0"
+              />
+              <div className="min-w-0">
+                <div className="font-display text-3xl font-black tracking-tight leading-none">
+                  Motorcycle Doctors
+                </div>
+                <div className="text-[0.7rem] uppercase tracking-[0.22em] text-muted-foreground mt-1">
+                  Motorcycle Doctors LTD · GST Reg N° 99386185
+                </div>
+                <div className="text-[0.72rem] leading-relaxed text-muted-foreground mt-2">
+                  94 Wairau Rd, Wairau Valley, Auckland
+                  <br />
+                  0800 668 663 · services@mcdr.co.nz
+                  <br />
+                  www.motorcycle-doctors.co.nz
+                </div>
               </div>
-              <div className="text-[0.7rem] leading-tight opacity-80 mt-1">
-                94 Wairau Rd, Wairau Valley, Auckland · 0800 668 663 · services@mcdr.co.nz
-                <br />
-                www.motorcycle-doctors.co.nz · GST Reg N°: 99386185
+            </div>
+            <div className="text-right shrink-0">
+              <div className="text-[0.7rem] uppercase tracking-[0.3em] text-muted-foreground">
+                Tax Invoice
+              </div>
+              <div className="font-display text-3xl font-black leading-none mt-1">
+                {inv.invoice_number}
               </div>
             </div>
           </div>
-          <div className="text-right">
-            <div className="text-[0.7rem] uppercase tracking-[0.25em] opacity-80">Tax Invoice</div>
-            <div className="font-display text-2xl font-black">{inv.invoice_number}</div>
-          </div>
         </div>
+
 
 
 
