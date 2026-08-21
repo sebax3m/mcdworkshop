@@ -88,7 +88,7 @@ ${styles}
   }
 
   /* --- Vertical density: shrink gaps only, never the type size --- */
-  .invoice-page td, .invoice-page th { padding-top: calc(0.5rem * var(--pdense)) !important; padding-bottom: calc(0.5rem * var(--pdense)) !important; }
+  .invoice-page td, .invoice-page th { padding-top: calc(0.25rem * var(--pdense)) !important; padding-bottom: calc(0.25rem * var(--pdense)) !important; }
   .invoice-page .space-y-5 > * + * { margin-top: calc(1.25rem * var(--pdense)) !important; }
   .invoice-page .space-y-4 > * + * { margin-top: calc(1rem * var(--pdense)) !important; }
   .invoice-page .space-y-3 > * + * { margin-top: calc(0.75rem * var(--pdense)) !important; }
