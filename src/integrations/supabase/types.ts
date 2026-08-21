@@ -2648,15 +2648,16 @@ export type Database = {
           completed_at: string | null
           created_at: string
           created_by: string | null
-          customer_id: string
+          customer_id: string | null
           customer_report: string | null
           customer_report_at: string | null
           description: string | null
           estimated_hours: number | null
           id: string
           job_number: number
-          motorcycle_id: string
+          motorcycle_id: string | null
           odometer: number | null
+          post_bike_id: string | null
           scheduled_at: string | null
           scheduled_for: string | null
           service_data: Json
@@ -2675,15 +2676,16 @@ export type Database = {
           completed_at?: string | null
           created_at?: string
           created_by?: string | null
-          customer_id: string
+          customer_id?: string | null
           customer_report?: string | null
           customer_report_at?: string | null
           description?: string | null
           estimated_hours?: number | null
           id?: string
           job_number?: number
-          motorcycle_id: string
+          motorcycle_id?: string | null
           odometer?: number | null
+          post_bike_id?: string | null
           scheduled_at?: string | null
           scheduled_for?: string | null
           service_data?: Json
@@ -2702,15 +2704,16 @@ export type Database = {
           completed_at?: string | null
           created_at?: string
           created_by?: string | null
-          customer_id?: string
+          customer_id?: string | null
           customer_report?: string | null
           customer_report_at?: string | null
           description?: string | null
           estimated_hours?: number | null
           id?: string
           job_number?: number
-          motorcycle_id?: string
+          motorcycle_id?: string | null
           odometer?: number | null
+          post_bike_id?: string | null
           scheduled_at?: string | null
           scheduled_for?: string | null
           service_data?: Json
@@ -2735,6 +2738,13 @@ export type Database = {
             columns: ["motorcycle_id"]
             isOneToOne: false
             referencedRelation: "motorcycles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "jobs_post_bike_id_fkey"
+            columns: ["post_bike_id"]
+            isOneToOne: false
+            referencedRelation: "post_bikes"
             referencedColumns: ["id"]
           },
           {
