@@ -180,16 +180,9 @@ export function JobPhotosSection({
   return (
     <section className="card-surface p-4 sm:p-5 print:hidden">
       <div className="flex items-center justify-between gap-3 flex-wrap mb-3">
-        <div className="flex items-center gap-2.5">
-          <div className="grid h-9 w-9 place-items-center rounded-lg bg-sky-500/15 text-sky-400">
-            <ImageIcon className="h-5 w-5" />
-          </div>
-          <div>
-            <div className="text-[0.625rem] uppercase tracking-[0.25em] text-muted-foreground font-bold">
-              Evidence
-            </div>
-            <h2 className="font-display text-xl font-semibold tracking-tight text-service-gold">Job photos</h2>
-          </div>
+        <div className="flex items-center gap-2">
+          <ImageIcon className="h-4 w-4 text-service-banana" />
+          <h2 className="font-display text-base font-bold uppercase tracking-wider text-service-banana bg-service-banana/10 px-2 py-0.5 rounded-md">Job photos</h2>
         </div>
 
         <div className="flex items-center gap-2 print:hidden">

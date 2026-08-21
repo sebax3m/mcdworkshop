@@ -72,8 +72,8 @@ export default function CustomerNotesSection({
     <div className="rounded-xl border border-border bg-card p-4" data-print-section="customer-notes">
       <div className="flex items-center justify-between gap-2 mb-3">
         <div className="flex items-center gap-2">
-          <StickyNote className="h-4 w-4 text-amber-500" />
-          <h2 className="font-display text-xl font-semibold tracking-tight text-service-gold">Notes for Invoice</h2>
+          <StickyNote className="h-4 w-4 text-service-banana" />
+          <h2 className="font-display text-base font-bold uppercase tracking-wider text-service-banana bg-service-banana/10 px-2 py-0.5 rounded-md">Notes for Invoice</h2>
         </div>
         <span className="text-[0.625rem] uppercase tracking-wider text-muted-foreground no-print">
           {saving ? "Saving…" : saved ? "Saved" : "Shown on the invoice"}
