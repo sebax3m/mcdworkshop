@@ -2756,6 +2756,27 @@ export type Database = {
           },
         ]
       }
+      labour_rate_defaults: {
+        Row: {
+          rate: number
+          service_type: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          rate: number
+          service_type: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          rate?: number
+          service_type?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       loan_bike_notes: {
         Row: {
           created_at: string
