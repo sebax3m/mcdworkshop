@@ -25,13 +25,19 @@ export function InvoicePrintPreview({
   const frameRef = useRef<HTMLIFrameElement>(null);
   const [zoom, setZoom] = useState(100);
   const [paper, setPaper] = useState<"A4" | "Letter" | "Legal">("A4");
+  const [orientation, setOrientation] = useState<"portrait" | "landscape">("portrait");
+  /** Real print scale — affects the printed output, not just the on-screen preview. */
+  const [printScale, setPrintScale] = useState(100);
+  const [margin, setMargin] = useState<"none" | "narrow" | "normal">("none");
 
-  const PAPER: Record<string, { w: string; css: string }> = {
-    A4: { w: "210mm", css: "A4 portrait" },
-    Letter: { w: "216mm", css: "Letter portrait" },
-    Legal: { w: "216mm", css: "Legal portrait" },
+  const PAPER: Record<string, { w: string; h: string; css: string }> = {
+    A4: { w: "210mm", h: "297mm", css: "A4" },
+    Letter: { w: "216mm", h: "279mm", css: "Letter" },
+    Legal: { w: "216mm", h: "356mm", css: "Legal" },
   };
-
+  const MARGIN = { none: "0mm", narrow: "6mm", normal: "12mm" } as const;
+  const landscape = orientation === "landscape";
+  const pageW = landscape ? PAPER[paper].h : PAPER[paper].w;
 
   useEffect(() => {
     if (!open) return;
@@ -51,15 +57,19 @@ export function InvoicePrintPreview({
     const bodyClass = document.body.className;
 
     const doc = `<!doctype html>
-<html class="${rootClass}" style="${rootStyle.replace(/"/g, "&quot;")}">
+<html class="${rootClass}" style="${rootStyle.replace(/"/g, "&quot;")}; --pzoom:${zoom / 100}; --pscale:${printScale / 100}">
 <head><meta charset="utf-8"><title>${title.replace(/</g, "&lt;")}</title>
 ${styles}
 <style>
-  @page { size: ${PAPER[paper].css}; margin: 0; }
+  @page { size: ${PAPER[paper].css} ${orientation}; margin: ${MARGIN[margin]}; }
   html, body { margin:0; padding:0; background:#f4f4f5; }
   body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   .preview-viewport { padding: 16px 0; }
-  .invoice-page { width: ${PAPER[paper].w}; margin: 0 auto; }
+  .invoice-page {
+    width: ${pageW};
+    margin: 0 auto;
+    zoom: var(--pscale, 1);
+  }
   /* Only screen-only controls are dropped; everything else renders exactly as
      it does in the app so the preview equals the printout. */
   .invoice-page .no-print, .invoice-page .print\\:hidden { display:none !important; }
@@ -78,6 +88,7 @@ ${styles}
     .invoice-sheet .bg-background { background: var(--background) !important; }
     .invoice-sheet .border-border { border-color: var(--border) !important; }
     .preview-viewport { padding:0 !important; zoom:1 !important; }
+    .invoice-page { width: calc(${pageW} - 2 * ${MARGIN[margin]}); }
   }
 
 </style>
@@ -87,12 +98,13 @@ ${styles}
 </body></html>`;
 
     frame.srcdoc = doc;
-  }, [open, title, getHtml, paper]);
+  }, [open, title, getHtml, paper, orientation, margin, printScale]);
 
   useEffect(() => {
     const d = frameRef.current?.contentDocument;
     if (d) d.documentElement.style.setProperty("--pzoom", String(zoom / 100));
   }, [zoom, open]);
+
 
   if (!open) return null;
 
@@ -113,7 +125,7 @@ ${styles}
       {/* Floating preview window */}
       <div className="flex h-full w-full max-w-6xl overflow-hidden rounded-xl border border-border bg-background shadow-2xl">
         {/* Left tool rail */}
-        <aside className="flex w-56 shrink-0 flex-col gap-4 border-r border-border bg-muted/30 p-4">
+        <aside className="flex w-60 shrink-0 flex-col gap-4 overflow-y-auto border-r border-border bg-muted/30 p-4">
           <div className="min-w-0">
             <div className="text-[0.6rem] uppercase tracking-[0.18em] text-muted-foreground">
               Preview
@@ -174,8 +186,7 @@ ${styles}
               onClick={() => {
                 const el = frameRef.current;
                 if (!el) return;
-                const mm = parseFloat(PAPER[paper].w);
-                const pageWidthPx = (mm / 25.4) * 96;
+                const pageWidthPx = (parseFloat(pageW) / 25.4) * 96 * (printScale / 100);
                 setZoom(
                   Math.round(Math.min(200, Math.max(40, ((el.clientWidth - 32) / pageWidthPx) * 100))),
                 );
@@ -183,6 +194,75 @@ ${styles}
               className="w-full rounded-md border border-border px-2 py-1 text-[0.65rem] text-muted-foreground hover:text-foreground"
             >
               Fit to width
+            </button>
+            <p className="text-[0.6rem] leading-snug text-muted-foreground">
+              Screen only — does not change the printout.
+            </p>
+          </div>
+
+          {/* Real print scale */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <div className="text-[0.6rem] uppercase tracking-[0.18em] text-muted-foreground">
+                Print scale
+              </div>
+              <span className="text-xs tabular-nums font-semibold">{printScale}%</span>
+            </div>
+            <input
+              type="range"
+              min={50}
+              max={130}
+              step={1}
+              value={printScale}
+              onChange={(e) => setPrintScale(Number(e.target.value))}
+              className="w-full accent-primary"
+            />
+            <div className="flex gap-1">
+              {[80, 90, 100].map((s) => (
+                <button
+                  key={s}
+                  onClick={() => setPrintScale(s)}
+                  className={`flex-1 rounded-md border px-1 py-1 text-[0.65rem] ${
+                    printScale === s
+                      ? "border-primary text-primary"
+                      : "border-border text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  {s}%
+                </button>
+              ))}
+            </div>
+            <div className="flex gap-1">
+              <button
+                onClick={() => setPrintScale((s) => Math.max(50, s - 1))}
+                className="flex-1 rounded-md border border-border px-1 py-1 text-[0.65rem] text-muted-foreground hover:text-foreground"
+              >
+                −1%
+              </button>
+              <button
+                onClick={() => setPrintScale((s) => Math.min(130, s + 1))}
+                className="flex-1 rounded-md border border-border px-1 py-1 text-[0.65rem] text-muted-foreground hover:text-foreground"
+              >
+                +1%
+              </button>
+            </div>
+            <button
+              onClick={() => {
+                const d = frameRef.current?.contentDocument;
+                const sheet = d?.querySelector(".invoice-page") as HTMLElement | null;
+                if (!sheet) return;
+                const contentPx = sheet.scrollHeight * (printScale / 100);
+                const pageMm = parseFloat(landscape ? PAPER[paper].w : PAPER[paper].h);
+                const usableMm = pageMm - 2 * parseFloat(MARGIN[margin]);
+                const pagePx = (usableMm / 25.4) * 96;
+                if (!contentPx) return;
+                setPrintScale(
+                  Math.round(Math.min(130, Math.max(50, (pagePx / contentPx) * printScale))),
+                );
+              }}
+              className="w-full rounded-md border border-border px-2 py-1 text-[0.65rem] text-muted-foreground hover:text-foreground"
+            >
+              Fit to one page
             </button>
           </div>
 
@@ -205,7 +285,57 @@ ${styles}
                 </button>
               ))}
             </div>
+            <div className="flex gap-1">
+              {(["portrait", "landscape"] as const).map((o) => (
+                <button
+                  key={o}
+                  onClick={() => setOrientation(o)}
+                  className={`flex-1 rounded-md border px-1 py-1 text-[0.65rem] capitalize ${
+                    orientation === o
+                      ? "border-primary text-primary"
+                      : "border-border text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  {o}
+                </button>
+              ))}
+            </div>
           </div>
+
+          <div className="space-y-2">
+            <div className="text-[0.6rem] uppercase tracking-[0.18em] text-muted-foreground">
+              Margins
+            </div>
+            <div className="flex gap-1">
+              {(["none", "narrow", "normal"] as const).map((m) => (
+                <button
+                  key={m}
+                  onClick={() => setMargin(m)}
+                  className={`flex-1 rounded-md border px-1 py-1 text-[0.65rem] capitalize ${
+                    margin === m
+                      ? "border-primary text-primary"
+                      : "border-border text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  {m}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <button
+            onClick={() => {
+              setPrintScale(100);
+              setMargin("none");
+              setOrientation("portrait");
+              setPaper("A4");
+              setZoom(100);
+            }}
+            className="rounded-md border border-border px-2 py-1 text-[0.65rem] text-muted-foreground hover:text-foreground"
+          >
+            Reset defaults
+          </button>
+
 
 
           <div className="mt-auto space-y-2">
