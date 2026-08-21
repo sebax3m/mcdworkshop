@@ -47,7 +47,7 @@ export function JobTechnicalBrief({ jobId }: { jobId: string }) {
     <div className="card-surface p-4 space-y-4">
       <div className="flex items-start gap-2 flex-wrap">
         <div>
-          <h3 className="font-display text-sm font-semibold tracking-wide">JOB TECHNICAL BRIEF</h3>
+          <h3 className="font-display text-base font-semibold tracking-wide">JOB TECHNICAL BRIEF</h3>
           <div className="text-xs font-mono text-muted-foreground">
             {brief.bikeLabel} · {brief.jobLabel}
           </div>

@@ -207,7 +207,7 @@ export function InspectionPanel({
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           <ClipboardCheck className="h-4 w-4 text-primary" />
-          <h2 className="text-sm font-bold uppercase tracking-wider">Inspection & approval</h2>
+          <h2 className="font-display text-base font-bold uppercase tracking-wider">Inspection & approval</h2>
         </div>
         <Button
           size="sm"

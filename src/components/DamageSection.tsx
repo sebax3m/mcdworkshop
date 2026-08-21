@@ -165,7 +165,7 @@ export function DamageSection({
             <div className="text-[0.625rem] uppercase tracking-[0.25em] text-muted-foreground font-bold">
               Collision
             </div>
-            <h2 className="font-display text-lg font-semibold">Damage report</h2>
+            <h2 className="font-display text-xl font-semibold tracking-tight">Damage report</h2>
           </div>
         </div>
         {canEdit && dirty && (

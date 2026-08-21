@@ -73,7 +73,7 @@ export default function CustomerNotesSection({
       <div className="flex items-center justify-between gap-2 mb-3">
         <div className="flex items-center gap-2">
           <StickyNote className="h-4 w-4 text-amber-500" />
-          <h2 className="font-display text-lg font-semibold">Notes for Invoice</h2>
+          <h2 className="font-display text-xl font-semibold tracking-tight">Notes for Invoice</h2>
         </div>
         <span className="text-[0.625rem] uppercase tracking-wider text-muted-foreground no-print">
           {saving ? "Saving…" : saved ? "Saved" : "Shown on the invoice"}
