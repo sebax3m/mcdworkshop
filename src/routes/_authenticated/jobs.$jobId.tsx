@@ -772,7 +772,7 @@ function JobDetail() {
               <div className="text-[0.625rem] uppercase tracking-[0.25em] text-gray-600">
                 Motorcycle Doctors · Job Card
               </div>
-              <h1 className="font-display text-2xl font-bold leading-tight">{j.title}</h1>
+              <h1 className="font-display text-2xl font-bold leading-tight text-service-gold">{j.title}</h1>
               <div className="text-xs text-gray-700 mt-1">
                 {kindMeta.label}
                 {j.estimated_hours ? ` · Est. ${j.estimated_hours}h` : ""}
@@ -1635,7 +1635,7 @@ function ServiceTemplateSection({
       )}
 
       <div className="flex items-baseline justify-between mb-1 print:hidden">
-        <h2 className="font-display text-xl font-bold tracking-wide">{currentKindLabel}</h2>
+        <h2 className="font-display text-xl font-bold tracking-wide text-service-gold">{currentKindLabel}</h2>
         <span className="text-xs text-muted-foreground">
           {tasks.filter((t) => t.is_done).length}/{tasks.length} done · {completion}%
         </span>
