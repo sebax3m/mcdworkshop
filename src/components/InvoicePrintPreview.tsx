@@ -169,8 +169,21 @@ ${
     .invoice-sheet .border-border { border-color: var(--border) !important; }
     .preview-viewport { padding:0 !important; zoom:1 !important; }
     .page-guides { display:none !important; }
-    .page-wrap { width: calc(${pageW} - 2 * ${MARGIN[margin]}); }
+    .page-wrap { width: calc(${pageW} - 2 * ${MARGIN[margin]}); margin:0 auto !important; }
+    /* The invoice route's own print rules pull the page out of flow
+       (position:absolute + full-viewport width). Inside this preview the page
+       box is provided by @page, so keep the clone exactly where the preview
+       shows it — this is what made the printout differ from the preview. */
+    .invoice-page {
+      position: static !important;
+      left: auto !important; top: auto !important;
+      width: 100% !important; max-width: none !important;
+      margin: 0 !important; padding: 0 !important;
+      visibility: visible !important;
+    }
+    body * { visibility: visible !important; }
   }
+
 
 </style>
 </head>
