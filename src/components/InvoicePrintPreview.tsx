@@ -29,6 +29,10 @@ export function InvoicePrintPreview({
   /** Real print scale — affects the printed output, not just the on-screen preview. */
   const [printScale, setPrintScale] = useState(100);
   const [margin, setMargin] = useState<"none" | "narrow" | "normal">("none");
+  /** Vertical density: 100 = normal spacing, lower = tighter gaps (no font rescaling). */
+  const [density, setDensity] = useState(100);
+  const [showGuides, setShowGuides] = useState(true);
+  const [pages, setPages] = useState(1);
 
   const PAPER: Record<string, { w: string; h: string; css: string }> = {
     A4: { w: "210mm", h: "297mm", css: "A4" },
@@ -38,6 +42,17 @@ export function InvoicePrintPreview({
   const MARGIN = { none: "0mm", narrow: "6mm", normal: "12mm" } as const;
   const landscape = orientation === "landscape";
   const pageW = landscape ? PAPER[paper].h : PAPER[paper].w;
+  const pageH = landscape ? PAPER[paper].w : PAPER[paper].h;
+  const usablePx =
+    ((parseFloat(pageH) - 2 * parseFloat(MARGIN[margin])) / 25.4) * 96;
+
+  const measure = () => {
+    const d = frameRef.current?.contentDocument;
+    const page = d?.querySelector(".invoice-page") as HTMLElement | null;
+    if (!page) return 0;
+    // scrollHeight is in unzoomed CSS px; multiply by the print scale.
+    return page.scrollHeight * (printScale / 100);
+  };
 
   useEffect(() => {
     if (!open) return;
@@ -57,7 +72,7 @@ export function InvoicePrintPreview({
     const bodyClass = document.body.className;
 
     const doc = `<!doctype html>
-<html class="${rootClass}" style="${rootStyle.replace(/"/g, "&quot;")}; --pzoom:${zoom / 100}; --pscale:${printScale / 100}">
+<html class="${rootClass}" style="${rootStyle.replace(/"/g, "&quot;")}; --pzoom:${zoom / 100}; --pscale:${printScale / 100}; --pdense:${density / 100}">
 <head><meta charset="utf-8"><title>${title.replace(/</g, "&lt;")}</title>
 ${styles}
 <style>
@@ -65,11 +80,28 @@ ${styles}
   html, body { margin:0; padding:0; background:#f4f4f5; }
   body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   .preview-viewport { padding: 16px 0; }
+  .page-wrap { position: relative; width: ${pageW}; margin: 0 auto; }
   .invoice-page {
-    width: ${pageW};
-    margin: 0 auto;
+    width: 100%;
+    margin: 0;
     zoom: var(--pscale, 1);
   }
+
+  /* --- Vertical density: shrink gaps only, never the type size --- */
+  .invoice-page td, .invoice-page th { padding-top: calc(0.5rem * var(--pdense)) !important; padding-bottom: calc(0.5rem * var(--pdense)) !important; }
+  .invoice-page .space-y-5 > * + * { margin-top: calc(1.25rem * var(--pdense)) !important; }
+  .invoice-page .space-y-4 > * + * { margin-top: calc(1rem * var(--pdense)) !important; }
+  .invoice-page .space-y-3 > * + * { margin-top: calc(0.75rem * var(--pdense)) !important; }
+  .invoice-page .space-y-2 > * + * { margin-top: calc(0.5rem * var(--pdense)) !important; }
+  .invoice-page .gap-y-4 { row-gap: calc(1rem * var(--pdense)) !important; }
+  .invoice-page .gap-y-2 { row-gap: calc(0.5rem * var(--pdense)) !important; }
+  .invoice-page .py-4 { padding-top: calc(1rem * var(--pdense)) !important; padding-bottom: calc(1rem * var(--pdense)) !important; }
+  .invoice-page .pt-4 { padding-top: calc(1rem * var(--pdense)) !important; }
+  .invoice-page .pb-3 { padding-bottom: calc(0.75rem * var(--pdense)) !important; }
+  .invoice-page .pt-3 { padding-top: calc(0.75rem * var(--pdense)) !important; }
+  .invoice-page .mt-2 { margin-top: calc(0.5rem * var(--pdense)) !important; }
+  .invoice-page .mt-3 { margin-top: calc(0.75rem * var(--pdense)) !important; }
+
   /* Only screen-only controls are dropped; everything else renders exactly as
      it does in the app so the preview equals the printout. */
   .invoice-page .no-print, .invoice-page .print\\:hidden { display:none !important; }
@@ -77,6 +109,18 @@ ${styles}
   .invoice-page .print-hide-empty { display:none !important; }
   .invoice-sheet { box-shadow:none !important; border-radius:0 !important; }
   .invoice-sheet::after { display:none !important; }
+
+  /* Page-break guides (screen only) */
+  .page-guides {
+    position:absolute; inset:0; pointer-events:none; display:${showGuides ? "block" : "none"};
+    background: repeating-linear-gradient(
+      to bottom,
+      transparent 0,
+      transparent calc(${usablePx}px - 2px),
+      rgba(239,68,68,0.9) calc(${usablePx}px - 2px),
+      rgba(239,68,68,0.9) ${usablePx}px
+    );
+  }
 
   @media screen {
     .preview-viewport { zoom: var(--pzoom, 1); }
@@ -88,22 +132,41 @@ ${styles}
     .invoice-sheet .bg-background { background: var(--background) !important; }
     .invoice-sheet .border-border { border-color: var(--border) !important; }
     .preview-viewport { padding:0 !important; zoom:1 !important; }
-    .invoice-page { width: calc(${pageW} - 2 * ${MARGIN[margin]}); }
+    .page-guides { display:none !important; }
+    .page-wrap { width: calc(${pageW} - 2 * ${MARGIN[margin]}); }
   }
 
 </style>
 </head>
 <body class="${bodyClass}">
-  <div class="preview-viewport"><div class="invoice-page">${getHtml()}</div></div>
+  <div class="preview-viewport"><div class="page-wrap"><div class="page-guides"></div><div class="invoice-page">${getHtml()}</div></div></div>
 </body></html>`;
 
     frame.srcdoc = doc;
-  }, [open, title, getHtml, paper, orientation, margin, printScale]);
+    const t = setTimeout(() => setPages(Math.max(1, Math.ceil(measure() / usablePx))), 300);
+    return () => clearTimeout(t);
+  }, [open, title, getHtml, paper, orientation, margin, printScale, density, showGuides, usablePx]);
 
   useEffect(() => {
     const d = frameRef.current?.contentDocument;
     if (d) d.documentElement.style.setProperty("--pzoom", String(zoom / 100));
   }, [zoom, open]);
+
+  /** Squeeze vertical spacing (never the font size) until the invoice fits one page. */
+  const fitOnePageByDensity = () => {
+    const d = frameRef.current?.contentDocument;
+    const page = d?.querySelector(".invoice-page") as HTMLElement | null;
+    if (!d || !page) return;
+    let value = 100;
+    for (let v = 100; v >= 30; v -= 2) {
+      d.documentElement.style.setProperty("--pdense", String(v / 100));
+      value = v;
+      if (page.scrollHeight * (printScale / 100) <= usablePx) break;
+    }
+    setDensity(value);
+    setPages(Math.max(1, Math.ceil((page.scrollHeight * (printScale / 100)) / usablePx)));
+  };
+
 
 
   if (!open) return null;
