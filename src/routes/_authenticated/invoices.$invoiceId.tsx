@@ -348,24 +348,47 @@ function InvoiceDetail() {
   const [previewOpen, setPreviewOpen] = useState(false);
   const sheetRef = useRef<HTMLDivElement>(null);
 
-  /* Screen-only: scale the A4 sheet down so its full width always fits the
-     viewport (no horizontal scrolling on phones). Print output is untouched. */
+  /* Screen-only zoom: fits the A4 sheet to the container by default, but the
+     user can zoom in and then scroll/drag the sheet around. Print is untouched. */
   const scrollRef = useRef<HTMLDivElement>(null);
+  const [fitZoom, setFitZoom] = useState(0.9);
+  const [zoomAdjust, setZoomAdjust] = useState(1);
+  const screenZoom = Math.min(2, Math.max(0.25, fitZoom * zoomAdjust));
+
   useEffect(() => {
     const el = scrollRef.current;
     if (!el) return;
     const A4_PX = (210 / 25.4) * 96; // 210mm in CSS px
     const apply = () => {
       const w = el.clientWidth;
-      if (!w) return;
-      const z = Math.min(0.9, Math.max(0.3, w / A4_PX));
-      el.style.setProperty("--izoom", String(z));
+      if (w) setFitZoom(Math.min(0.9, Math.max(0.25, w / A4_PX)));
     };
     apply();
     const ro = new ResizeObserver(apply);
     ro.observe(el);
     return () => ro.disconnect();
   }, []);
+
+  /* Drag to pan when the sheet is bigger than the viewport. */
+  const dragRef = useRef<{ x: number; y: number; sl: number; st: number } | null>(null);
+  const onSheetPointerDown = (e: React.PointerEvent) => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const target = e.target as HTMLElement;
+    if (target.closest("input, textarea, select, button, a, [contenteditable='true']")) return;
+    dragRef.current = { x: e.clientX, y: e.clientY, sl: el.scrollLeft, st: el.scrollTop };
+  };
+  const onSheetPointerMove = (e: React.PointerEvent) => {
+    const el = scrollRef.current;
+    const d = dragRef.current;
+    if (!el || !d) return;
+    el.scrollLeft = d.sl - (e.clientX - d.x);
+    el.scrollTop = d.st - (e.clientY - d.y);
+  };
+  const endDrag = () => {
+    dragRef.current = null;
+  };
+
 
 
   // Handle ?action=print|email passed in from "Create & print/email" on the new-invoice page.
