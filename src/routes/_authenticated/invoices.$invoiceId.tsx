@@ -935,22 +935,8 @@ function InvoiceDetail() {
               </span>
               <span className="flex flex-col min-w-0">
                 <span className="text-[0.62rem] uppercase tracking-[0.18em] text-muted-foreground">Technician</span>
-
-              <span>
-                Issued <b className="text-foreground">{issuedAt.toLocaleDateString()}</b>
-              </span>
-              <span>
-                Due <b className="text-foreground">{dueAt.toLocaleDateString()}</b>
-              </span>
-              <span>
-                Job{" "}
-                <b className="text-foreground">
-                  {inv.jobs ? `#${inv.jobs.job_number}` : "—"}
-                </b>
-              </span>
-              <span className="flex items-center gap-1">
-                Technician
                 <b className="text-foreground print:inline hidden">{technicianName || "—"}</b>
+
                 <select
                   className="no-print rounded-md border border-border bg-background px-1 py-0.5 text-xs font-semibold text-foreground"
                   value={technicianId ?? ""}
