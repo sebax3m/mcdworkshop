@@ -1656,9 +1656,9 @@ function InvoiceDetail() {
                 <span className="text-muted-foreground">GST 15% (incl.)</span>
                 <span className="tabular-nums">${Number(inv.gst).toFixed(2)}</span>
               </div>
-              <div className="flex items-baseline justify-between gap-4 pt-1.5 mt-1 border-t-2 border-foreground/80 font-display text-lg font-black leading-none">
-                <span>TOTAL</span>
-                <span className="red-gradient-text tabular-nums">
+              <div className="flex items-baseline justify-between gap-4 pt-2 mt-1 border-t-2 border-foreground/80 font-display font-black leading-none">
+                <span className="text-base tracking-wide">TOTAL</span>
+                <span className="red-gradient-text tabular-nums text-3xl">
                   ${Number(inv.total).toFixed(2)}
                 </span>
               </div>
