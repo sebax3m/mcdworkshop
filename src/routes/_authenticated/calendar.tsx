@@ -894,7 +894,7 @@ function CalendarPage() {
           <div className="text-sm font-semibold text-muted-foreground">
             {viewMode === "week" ? (
               <>
-                {format(weekStart, "MMM d")} — {format(weekEnd, "MMM d, yyyy")}
+                {format(weekStart, "MMM d")} — {format(weekEnd, "dd/MM/yyyy")}
               </>
             ) : (
               <>{format(monthStart, "MMMM yyyy")}</>
@@ -1682,7 +1682,7 @@ function CalendarPage() {
                               {b.scheduled_date
                                 ? format(
                                     new Date(b.scheduled_date + "T00:00:00"),
-                                    "EEE, MMM d, yyyy",
+                                    "EEE dd/MM/yyyy",
                                   )
                                 : "Pick a date"}
                             </button>
@@ -2123,7 +2123,7 @@ function CalendarPage() {
                               )}
                             >
                               {qEditDate
-                                ? format(new Date(qEditDate + "T00:00:00"), "EEE, MMM d, yyyy")
+                                ? format(new Date(qEditDate + "T00:00:00"), "EEE dd/MM/yyyy")
                                 : "Pick a date"}
                             </button>
                           </PopoverTrigger>
@@ -2676,7 +2676,7 @@ function CalendarPage() {
                   </span>{" "}
                   on{" "}
                   <span className="font-semibold text-foreground">
-                    {format(new Date(deleteBooking.scheduled_date + "T00:00:00"), "EEE d MMM yyyy")}
+                    {format(new Date(deleteBooking.scheduled_date + "T00:00:00"), "EEE dd/MM/yyyy")}
                   </span>
                   ? This cannot be undone.
                 </>
@@ -2743,7 +2743,7 @@ function CalendarPage() {
               onClick={(e) => e.stopPropagation()}
             >
               <div className="mb-1 text-[0.625rem] font-bold uppercase tracking-wider text-muted-foreground">
-                {format(slotChoice.date, "EEEE, d MMM yyyy")}
+                {format(slotChoice.date, "EEEE dd/MM/yyyy")}
                 {slotChoice.time ? ` · ${slotChoice.time}` : ""}
               </div>
               <div className="mb-4 font-display text-lg font-bold">What do you want to add?</div>

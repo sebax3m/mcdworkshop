@@ -34,7 +34,7 @@ export function JobTimeline({ jobId }: { jobId: string }) {
             <div className="min-w-0">
               <div className="text-sm">{e.summary}</div>
               <div className="text-[0.6875rem] text-muted-foreground">
-                {format(new Date(e.created_at), "d MMM yyyy · HH:mm")}
+                {format(new Date(e.created_at), "dd/MM/yyyy · HH:mm")}
                 {e.created_by ? ` · ${names.get(e.created_by) ?? "Staff"}` : ""}
               </div>
             </div>

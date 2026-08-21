@@ -293,13 +293,13 @@ function LoanBikesIndex() {
                       {(b as any).wof_expiry && (
                         <span>
                           WOF{" "}
-                          {format(new Date((b as any).wof_expiry + "T00:00:00"), "d MMM yyyy")}
+                          {format(new Date((b as any).wof_expiry + "T00:00:00"), "dd/MM/yyyy")}
                         </span>
                       )}
                       {(b as any).rego_expiry && (
                         <span>
                           Rego{" "}
-                          {format(new Date((b as any).rego_expiry + "T00:00:00"), "d MMM yyyy")}
+                          {format(new Date((b as any).rego_expiry + "T00:00:00"), "dd/MM/yyyy")}
                         </span>
                       )}
                       {isOut && (

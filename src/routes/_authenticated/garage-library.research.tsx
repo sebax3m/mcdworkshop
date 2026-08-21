@@ -54,7 +54,7 @@ export const Route = createFileRoute("/_authenticated/garage-library/research")(
 const head = "text-[0.65rem] font-mono uppercase tracking-widest text-muted-foreground";
 const card = "rounded-lg border border-border bg-card p-3";
 const dt = (s?: string | null) =>
-  s ? new Date(s).toLocaleDateString("en-NZ", { day: "2-digit", month: "short", year: "numeric" }) : "—";
+  s ? new Date(s).toLocaleDateString("en-GB") : "—";
 
 function ResearchPage() {
   const { isAdmin } = useCurrentUser();

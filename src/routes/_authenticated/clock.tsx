@@ -366,7 +366,7 @@ function ClockPage() {
                 ) : null}
               </span>
               <span className="text-muted-foreground text-xs">
-                {new Date(e.occurred_at).toLocaleString()}
+                {new Date(e.occurred_at).toLocaleString("en-GB")}
               </span>
             </div>
           ))}

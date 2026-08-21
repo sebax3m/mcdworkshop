@@ -393,7 +393,7 @@ export function JobPhotosSection({
             <div className="flex items-center justify-between gap-2 flex-wrap">
               <div className="text-xs text-white/80">
                 {CATEGORIES.find((c) => c.key === lightbox.category)?.label} ·{" "}
-                {new Date(lightbox.created_at).toLocaleString()}
+                {new Date(lightbox.created_at).toLocaleString("en-GB")}
               </div>
 
               <div className="flex items-center gap-2">

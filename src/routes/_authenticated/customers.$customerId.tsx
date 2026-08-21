@@ -329,8 +329,8 @@ function BikesSection({ customerId }: { customerId: string }) {
             <div className="text-xs text-muted-foreground truncate">
               {b.rego ? `Rego ${b.rego}` : "No rego"}
               {b.mileage ? ` · ${b.mileage.toLocaleString()} km` : ""}
-              {b.rego_expiry ? ` · Rego exp ${new Date(b.rego_expiry).toLocaleDateString()}` : ""}
-              {b.wof_expiry ? ` · WOF exp ${new Date(b.wof_expiry).toLocaleDateString()}` : ""}
+              {b.rego_expiry ? ` · Rego exp ${new Date(b.rego_expiry).toLocaleDateString("en-GB")}` : ""}
+              {b.wof_expiry ? ` · WOF exp ${new Date(b.wof_expiry).toLocaleDateString("en-GB")}` : ""}
             </div>
           </div>
           <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />

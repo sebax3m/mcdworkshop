@@ -793,7 +793,7 @@ function JobDetail() {
               <div className="text-xs text-gray-700 mt-1">
                 {kindMeta.label}
                 {j.estimated_hours ? ` · Est. ${j.estimated_hours}h` : ""}
-                {" · "}Booked {j.scheduled_at ? new Date(j.scheduled_at).toLocaleDateString() : "—"}
+                {" · "}Booked {j.scheduled_at ? new Date(j.scheduled_at).toLocaleDateString("en-GB") : "—"}
               </div>
             </div>
           </div>
@@ -824,7 +824,7 @@ function JobDetail() {
               <div>
                 <span className="text-gray-500">Odo:</span>{" "}
                 {(j.odometer ?? (j.motorcycles as any)?.mileage) != null
-                  ? `${Number(j.odometer ?? (j.motorcycles as any)?.mileage).toLocaleString()} km`
+                  ? `${Number(j.odometer ?? (j.motorcycles as any)?.mileage).toLocaleString("en-GB")} km`
                   : "—"}
               </div>
               <div>
@@ -837,13 +837,13 @@ function JobDetail() {
               <div>
                 <span className="text-gray-500">REGO exp:</span>{" "}
                 {(j.motorcycles as any)?.rego_expiry
-                  ? new Date((j.motorcycles as any).rego_expiry).toLocaleDateString()
+                  ? new Date((j.motorcycles as any).rego_expiry).toLocaleDateString("en-GB")
                   : "—"}
               </div>
               <div>
                 <span className="text-gray-500">WOF exp:</span>{" "}
                 {(j.motorcycles as any)?.wof_expiry
-                  ? new Date((j.motorcycles as any).wof_expiry).toLocaleDateString()
+                  ? new Date((j.motorcycles as any).wof_expiry).toLocaleDateString("en-GB")
                   : "—"}
               </div>
             </div>
@@ -1015,7 +1015,7 @@ function JobDetail() {
                   .filter((d) => d.decision !== "declined_all")
                   .map((d) => (
                     <p key={d.id} className="text-[0.6875rem] text-muted-foreground">
-                      Approved {d.resolved_at ? new Date(d.resolved_at).toLocaleString() : ""}
+                      Approved {d.resolved_at ? new Date(d.resolved_at).toLocaleString("en-GB") : ""}
                       {d.customer_contact_method ? ` · via ${d.customer_contact_method}` : ""}
                       {d.resolution_note ? ` · ${d.resolution_note}` : ""}
                     </p>
@@ -1435,7 +1435,7 @@ function NotesList({ notes }: { notes: any[] }) {
             </span>
             <span className="text-xs font-semibold">{n.author_name}</span>
             <span className="text-[0.625rem] text-muted-foreground">
-              {new Date(n.created_at).toLocaleString()}
+              {new Date(n.created_at).toLocaleString("en-GB")}
             </span>
           </div>
           <p className="text-sm whitespace-pre-wrap">{n.body}</p>
@@ -3311,9 +3311,9 @@ function TimeEntriesEditor({
                     <div className="min-w-0">
                       <div className="font-semibold truncate">{tech}</div>
                       <div className="text-[0.625rem] text-muted-foreground">
-                        {new Date(e.started_at).toLocaleString()} →{" "}
+                        {new Date(e.started_at).toLocaleString("en-GB")} →{" "}
                         {e.ended_at ? (
-                          new Date(e.ended_at).toLocaleString()
+                          new Date(e.ended_at).toLocaleString("en-GB")
                         ) : (
                           <span className="text-status-progress">running…</span>
                         )}

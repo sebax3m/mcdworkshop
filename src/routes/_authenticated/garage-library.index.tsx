@@ -414,7 +414,7 @@ function GarageLibraryIndex() {
                       {r.new_value ?? ""}
                     </span>
                     <span className="ml-auto font-mono text-[0.7rem] text-muted-foreground">
-                      {new Date(r.created_at).toLocaleDateString("en-NZ", { day: "2-digit", month: "short" })}
+                      {new Date(r.created_at).toLocaleDateString("en-GB", { day: "2-digit", month: "2-digit" })}
                     </span>
                   </div>
                 );

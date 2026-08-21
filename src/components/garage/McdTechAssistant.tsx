@@ -687,7 +687,7 @@ function HistoryPanel() {
           >
             <div className="text-sm">{r.context_label || r.title}</div>
             <div className="text-[0.65rem] font-mono text-muted-foreground">
-              {new Date(r.updated_at).toLocaleString("en-NZ")}
+              {new Date(r.updated_at).toLocaleString("en-GB")}
             </div>
           </button>
           {openId === r.id && (

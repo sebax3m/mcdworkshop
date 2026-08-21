@@ -12,7 +12,7 @@ import {
 const card = "rounded-lg border border-border bg-card p-3";
 const head = "text-[0.65rem] font-mono uppercase tracking-widest text-muted-foreground";
 const dt = (s?: string | null) =>
-  s ? new Date(s).toLocaleDateString("en-NZ", { day: "2-digit", month: "short", year: "numeric" }) : "—";
+  s ? new Date(s).toLocaleDateString("en-GB") : "—";
 
 /** WORKSHOP EXPERIENCE — what this workshop has actually done on the model. */
 export function ModelExperienceCard({ modelId }: { modelId: string }) {

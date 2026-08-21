@@ -42,12 +42,12 @@ function formatWhen(iso: string | null) {
   if (hrs < 24) return `${hrs}h ago`;
   const days = Math.floor(hrs / 24);
   if (days < 30) return `${days}d ago`;
-  return d.toLocaleDateString();
+  return d.toLocaleDateString("en-GB");
 }
 
 function fullDate(iso: string | null) {
   if (!iso) return "—";
-  return new Date(iso).toLocaleString();
+  return new Date(iso).toLocaleString("en-GB");
 }
 
 function SortHeader({

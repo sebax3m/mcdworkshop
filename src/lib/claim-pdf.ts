@@ -209,7 +209,7 @@ export async function buildClaimPdf(d: ClaimPdfData): Promise<Blob> {
     y,
   );
   y += 4;
-  pdf.text(`Date: ${new Date(c.date_received ?? Date.now()).toLocaleDateString()}`, margin, y);
+  pdf.text(`Date: ${new Date(c.date_received ?? Date.now()).toLocaleDateString("en-GB")}`, margin, y);
   y += 7;
 
   // ---------- Damage notes ----------

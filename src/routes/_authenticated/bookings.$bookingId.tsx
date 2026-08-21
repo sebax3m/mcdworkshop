@@ -207,7 +207,7 @@ function BookingDetail() {
         <InfoRow
           icon={Calendar}
           label="Date"
-          value={format(new Date(b.scheduled_date), "EEE d MMM yyyy")}
+          value={format(new Date(b.scheduled_date), "EEE dd/MM/yyyy")}
         />
         <InfoRow
           icon={Clock}
@@ -294,7 +294,7 @@ function BookingDetail() {
           {b.loan_bikes && (
             <div className="text-xs text-muted-foreground truncate">
               {b.loan_bike_returned_at
-                ? `Returned ${format(new Date(b.loan_bike_returned_at), "d MMM yyyy")}`
+                ? `Returned ${format(new Date(b.loan_bike_returned_at), "dd/MM/yyyy")}`
                 : b.loan_bike_expected_return
                   ? `Expected back ${format(new Date(b.loan_bike_expected_return + "T00:00:00"), "EEE d MMM")}`
                   : "Out"}
