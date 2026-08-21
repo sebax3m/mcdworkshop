@@ -1129,7 +1129,7 @@ function InvoiceDetail() {
           <div className="pt-5 border-t border-border">
             <table className="w-full align-top">
               <colgroup>
-                <col className="w-[30%]" />
+                <col className="w-[22%]" />
                 <col />
                 <col className="w-16" />
                 <col className="w-24" />
@@ -1138,19 +1138,19 @@ function InvoiceDetail() {
               </colgroup>
               <thead>
                 <tr className="text-left text-[0.7rem] uppercase tracking-wider text-muted-foreground border-b border-border">
-                  <th className="py-2.5 pr-3 font-semibold w-[30%]">Item</th>
-                  <th className="py-2.5 pr-3 font-semibold">Description</th>
-                  <th className="py-2.5 pl-3 pr-6 text-right font-semibold w-16">Qty</th>
-                  <th className="py-2.5 pl-3 pr-6 text-right font-semibold w-24">Price</th>
+                  <th className="py-2 pr-1.5 font-bold w-[22%]">Item</th>
+                  <th className="py-2 pr-1.5 font-bold">Description</th>
+                  <th className="py-2.5 pl-3 pr-6 text-right font-bold w-16">Qty</th>
+                  <th className="py-2.5 pl-3 pr-6 text-right font-bold w-24">Price</th>
                   {hasDiscount && (
-                    <th className="py-2.5 pl-3 pr-6 text-right font-semibold w-20">Disc %</th>
+                    <th className="py-2.5 pl-3 pr-6 text-right font-bold w-20">Disc %</th>
                   )}
-                  <th className="py-2.5 pl-3 pr-6 text-right font-semibold w-28">Total</th>
+                  <th className="py-2.5 pl-3 pr-6 text-right font-bold w-28">Total</th>
 
                 </tr>
               </thead>
 
-              <tbody className="text-[0.84rem]">
+              <tbody className="text-[0.72rem]">
                 {inv.job_id &&
                   (() => {
                     const labourVisible = !(inv.snapshot as any)?.labour_hidden;
@@ -1199,7 +1199,7 @@ function InvoiceDetail() {
                       return (
                         <tr key="labour" {...rowDragProps("labour", onReorder)}>
 
-                          <td className="py-2.5 pr-3 align-top">
+                          <td className="py-2 pr-1.5 align-top">
                             <div className="flex items-start gap-2">
                               <DragHandle rowKey="labour" />
                               <EditableText
@@ -1211,7 +1211,7 @@ function InvoiceDetail() {
                               />
                             </div>
                           </td>
-                          <td className="py-2.5 pr-3 align-top text-muted-foreground">
+                          <td className="py-2 pr-1.5 align-top text-muted-foreground">
                             <EditableText
                               value={desc}
                               multiline
@@ -1279,7 +1279,7 @@ function InvoiceDetail() {
                       const net = gross * (1 - disc / 100);
                       return (
                         <tr key={p.id} {...rowDragProps(p.id, onReorder)}>
-                          <td className="py-2.5 pr-3 align-top">
+                          <td className="py-2 pr-1.5 align-top">
                             <div className="flex items-start gap-2">
                               <DragHandle rowKey={p.id} />
                               <EditableText
@@ -1299,7 +1299,7 @@ function InvoiceDetail() {
                               </button>
                             </div>
                           </td>
-                          <td className="py-2.5 pr-3 align-top">
+                          <td className="py-2 pr-1.5 align-top">
                             <EditableText
                               value={p.supplier ?? ""}
                               onCommit={(v) => updatePart(p.id, { supplier: v })}
@@ -1462,7 +1462,7 @@ function InvoiceDetail() {
                       const detail = it.item_name?.trim() ? it.description : "";
                       return (
                         <tr key={idx} {...rowDragProps(String(idx), moveSnapshotLine)}>
-                          <td className="py-2.5 pr-3 align-top">
+                          <td className="py-2 pr-1.5 align-top">
                             <div className="flex items-start gap-2">
                               <DragHandle rowKey={String(idx)} />
                               <EditableText
@@ -1489,7 +1489,7 @@ function InvoiceDetail() {
                               </button>
                             </div>
                           </td>
-                          <td className="py-2.5 pr-3 align-top">
+                          <td className="py-2 pr-1.5 align-top">
                             <EditableText
                               value={detail}
                               multiline

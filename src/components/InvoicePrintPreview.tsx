@@ -24,6 +24,14 @@ export function InvoicePrintPreview({
 }) {
   const frameRef = useRef<HTMLIFrameElement>(null);
   const [zoom, setZoom] = useState(100);
+  const [paper, setPaper] = useState<"A4" | "Letter" | "Legal">("A4");
+
+  const PAPER: Record<string, { w: string; css: string }> = {
+    A4: { w: "210mm", css: "A4 portrait" },
+    Letter: { w: "216mm", css: "Letter portrait" },
+    Legal: { w: "216mm", css: "Legal portrait" },
+  };
+
 
   useEffect(() => {
     if (!open) return;
@@ -47,11 +55,11 @@ export function InvoicePrintPreview({
 <head><meta charset="utf-8"><title>${title.replace(/</g, "&lt;")}</title>
 ${styles}
 <style>
-  @page { size: A4 portrait; margin: 0; }
+  @page { size: ${PAPER[paper].css}; margin: 0; }
   html, body { margin:0; padding:0; background:#f4f4f5; }
   body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   .preview-viewport { padding: 16px 0; }
-  .invoice-page { width: 210mm; margin: 0 auto; }
+  .invoice-page { width: ${PAPER[paper].w}; margin: 0 auto; }
   /* Only screen-only controls are dropped; everything else renders exactly as
      it does in the app so the preview equals the printout. */
   .invoice-page .no-print, .invoice-page .print\\:hidden { display:none !important; }
@@ -79,7 +87,7 @@ ${styles}
 </body></html>`;
 
     frame.srcdoc = doc;
-  }, [open, title, getHtml]);
+  }, [open, title, getHtml, paper]);
 
   useEffect(() => {
     const d = frameRef.current?.contentDocument;
@@ -162,7 +170,43 @@ ${styles}
                 </button>
               ))}
             </div>
+            <button
+              onClick={() => {
+                const el = frameRef.current;
+                if (!el) return;
+                const mm = parseFloat(PAPER[paper].w);
+                const pageWidthPx = (mm / 25.4) * 96;
+                setZoom(
+                  Math.round(Math.min(200, Math.max(40, ((el.clientWidth - 32) / pageWidthPx) * 100))),
+                );
+              }}
+              className="w-full rounded-md border border-border px-2 py-1 text-[0.65rem] text-muted-foreground hover:text-foreground"
+            >
+              Fit to width
+            </button>
           </div>
+
+          <div className="space-y-2">
+            <div className="text-[0.6rem] uppercase tracking-[0.18em] text-muted-foreground">
+              Paper size
+            </div>
+            <div className="flex gap-1">
+              {(["A4", "Letter", "Legal"] as const).map((p) => (
+                <button
+                  key={p}
+                  onClick={() => setPaper(p)}
+                  className={`flex-1 rounded-md border px-1 py-1 text-[0.65rem] ${
+                    paper === p
+                      ? "border-primary text-primary"
+                      : "border-border text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  {p}
+                </button>
+              ))}
+            </div>
+          </div>
+
 
           <div className="mt-auto space-y-2">
             <Button className="red-surface w-full gap-2" onClick={print}>
