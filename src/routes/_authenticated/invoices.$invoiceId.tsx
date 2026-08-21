@@ -904,7 +904,7 @@ function InvoiceDetail() {
 
 
 
-        <div className="p-8 space-y-6">
+        <div className="p-8 space-y-6 flex-1 flex flex-col">
           {/* Bill to · Motorcycle · invoice meta */}
           <div
             data-print-section="meta"
