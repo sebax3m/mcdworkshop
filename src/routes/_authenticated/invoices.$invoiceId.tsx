@@ -1150,7 +1150,7 @@ function InvoiceDetail() {
                 </tr>
               </thead>
 
-              <tbody>
+              <tbody className="text-[0.86rem]">
                 {inv.job_id &&
                   (() => {
                     const labourVisible = !(inv.snapshot as any)?.labour_hidden;
