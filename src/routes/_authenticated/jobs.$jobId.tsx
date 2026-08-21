@@ -623,7 +623,7 @@ function JobDetail() {
             )}
             {isAdmin && (
               <Button
-                onClick={deleteJob}
+                onClick={() => setDeleteOpen(true)}
                 variant="outline"
                 size="sm"
                 disabled={deleting}
