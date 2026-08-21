@@ -55,6 +55,8 @@ ${styles}
   /* Only screen-only controls are dropped; everything else renders exactly as
      it does in the app so the preview equals the printout. */
   .invoice-page .no-print, .invoice-page .print\\:hidden { display:none !important; }
+  .invoice-page .print-only { display:inline !important; }
+  .invoice-page .print-hide-empty { display:none !important; }
   .invoice-sheet { box-shadow:none !important; border-radius:0 !important; }
   .invoice-sheet::after { display:none !important; }
 
