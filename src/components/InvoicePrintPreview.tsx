@@ -95,10 +95,11 @@ ${styles}
     border: 0 !important;
     display: flex !important;
     flex-direction: column !important;
-    min-height: calc((${pageH} - 2 * ${MARGIN[margin]}) / var(--pscale, 1)) !important;
+    min-height: var(--sheetmin, calc((${pageH} - 2 * ${MARGIN[margin]}) / var(--pscale, 1))) !important;
     padding-block: ${margin === "none" ? "6mm" : "0mm"} !important;
     overflow: visible !important;
   }
+
 
 
   /* --- Vertical density: shrink gaps only, never the type size --- */
