@@ -19,6 +19,16 @@ import { JobTechnicalBrief } from "@/components/job/JobTechnicalBrief";
 
 
 import { displayCustomerName } from "@/lib/display";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 import { toast } from "sonner";
 import {
@@ -232,6 +242,7 @@ function JobDetail() {
 
   const [previewOpen, setPreviewOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
   const [completingAll, setCompletingAll] = useState(false);
   const [reversingAll, setReversingAll] = useState(false);
   const [showReference, setShowReference] = useState(false);
@@ -327,7 +338,6 @@ function JobDetail() {
 
   /** Admin-only: permanently delete this job card and unlink it from its booking. */
   async function deleteJob() {
-    if (!confirm("Delete this job card permanently? This cannot be undone.")) return;
     setDeleting(true);
     // Unlink the booking first so it returns to the day board instead of dangling.
     await supabase.from("bookings").update({ job_id: null }).eq("job_id", jobId);
@@ -623,7 +633,7 @@ function JobDetail() {
             )}
             {isAdmin && (
               <Button
-                onClick={deleteJob}
+                onClick={() => setDeleteOpen(true)}
                 variant="outline"
                 size="sm"
                 disabled={deleting}
@@ -1166,6 +1176,31 @@ function JobDetail() {
           </div>
         </section>
       )}
+
+      <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete job card #{j.job_number}?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This permanently removes the job card and its tasks, time entries and photos. The
+              book-in will return to the day board. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => {
+                e.preventDefault();
+                deleteJob();
+              }}
+              disabled={deleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deleting ? "Deleting…" : "Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <PrintPreview
         open={previewOpen}
