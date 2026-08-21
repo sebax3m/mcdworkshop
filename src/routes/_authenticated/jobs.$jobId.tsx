@@ -232,6 +232,7 @@ function JobDetail() {
 
   const [previewOpen, setPreviewOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
   const [completingAll, setCompletingAll] = useState(false);
   const [reversingAll, setReversingAll] = useState(false);
   const [showReference, setShowReference] = useState(false);
