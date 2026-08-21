@@ -2,7 +2,7 @@ import { useState } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
-import { Truck, MapPin, Plus, Bike as BikeIcon, Wrench, Trash2, GripVertical } from "lucide-react";
+import { Truck, MapPin, Plus, Bike as BikeIcon, Wrench, Trash2, GripVertical, Pencil } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useTechnicians } from "@/hooks/use-active-technician";
 
