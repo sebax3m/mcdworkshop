@@ -348,6 +348,26 @@ function InvoiceDetail() {
   const [previewOpen, setPreviewOpen] = useState(false);
   const sheetRef = useRef<HTMLDivElement>(null);
 
+  /* Screen-only: scale the A4 sheet down so its full width always fits the
+     viewport (no horizontal scrolling on phones). Print output is untouched. */
+  const scrollRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const A4_PX = (210 / 25.4) * 96; // 210mm in CSS px
+    const apply = () => {
+      const w = el.clientWidth;
+      if (!w) return;
+      const z = Math.min(0.9, Math.max(0.3, w / A4_PX));
+      el.style.setProperty("--izoom", String(z));
+    };
+    apply();
+    const ro = new ResizeObserver(apply);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
+
   // Handle ?action=print|email passed in from "Create & print/email" on the new-invoice page.
   const actionFiredRef = useRef(false);
   useEffect(() => {
@@ -856,21 +876,13 @@ function InvoiceDetail() {
         /* Screen only: shrink the A4 sheet so the whole page width is visible
            and easier to navigate. Layout/print output is untouched. */
         @media screen {
-          .invoice-a4-scroll { overflow-x: auto; }
-          .invoice-a4-scroll > .invoice-sheet { zoom: 0.9; }
-        }
-        @media screen and (max-width: 1280px) {
-          .invoice-a4-scroll > .invoice-sheet { zoom: 0.8; }
-        }
-        @media screen and (max-width: 1024px) {
-          .invoice-a4-scroll > .invoice-sheet { zoom: 0.7; }
-        }
-        @media screen and (max-width: 768px) {
-          .invoice-a4-scroll > .invoice-sheet { zoom: 0.55; }
+          .invoice-a4-scroll { overflow-x: hidden; max-width: 100%; }
+          .invoice-a4-scroll > .invoice-sheet { zoom: var(--izoom, 0.9); }
         }
         @media print {
           .invoice-a4-scroll > .invoice-sheet { zoom: 1 !important; }
         }
+
 
 
         @media print {
@@ -972,7 +984,7 @@ function InvoiceDetail() {
       />
 
 
-      <div className="invoice-a4-scroll">
+      <div ref={scrollRef} className="invoice-a4-scroll">
       <div ref={sheetRef} className="card-surface invoice-sheet overflow-hidden">
         {/* Letterhead — the logo is the strongest brand element, so it leads */}
         <div className="bg-background border-b-2 border-border px-6 pt-3 pb-4 text-foreground">
