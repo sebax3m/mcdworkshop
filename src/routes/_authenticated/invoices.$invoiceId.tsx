@@ -365,7 +365,8 @@ function InvoiceDetail() {
           const subject = `Invoice ${inv.invoice_number} from Motorcycle Doctors`;
           const issuedAt = new Date(inv.created_at);
           const dueAt = new Date(issuedAt);
-          dueAt.setDate(dueAt.getDate() + 14);
+          dueAt.setDate(dueAt.getDate() + 5);
+
           const body = [
             `Hi ${name || "there"},`,
             ``,
