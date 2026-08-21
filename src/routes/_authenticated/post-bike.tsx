@@ -134,6 +134,30 @@ function PostBikePage() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const updateBranch = useMutation({
+    mutationFn: async ({ id, name }: { id: string; name: string }) => {
+      const { error } = await supabase.from("post_bike_branches").update({ name: name.trim() }).eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["post-bike-branches"] }),
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const deleteBranch = useMutation({
+    mutationFn: async (id: string) => {
+      // Move any bikes still in this branch to unassigned first
+      const { error: moveErr } = await supabase.from("post_bikes").update({ branch_id: null }).eq("branch_id", id);
+      if (moveErr) throw moveErr;
+      const { error } = await supabase.from("post_bike_branches").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["post-bike-branches"] });
+      qc.invalidateQueries({ queryKey: ["post-bikes"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   const columns: { id: string | null; name: string }[] = [
     ...branches.map((b) => ({ id: b.id as string | null, name: b.name })),
     { id: null, name: "Unassigned" },
