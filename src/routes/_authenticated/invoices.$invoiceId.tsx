@@ -24,7 +24,7 @@ import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { useTechnicians } from "@/hooks/use-active-technician";
-import { PrintPreview } from "@/components/PrintPreview";
+import { InvoicePrintPreview } from "@/components/InvoicePrintPreview";
 import { readCustomerNotes } from "@/components/job/CustomerNotesSection";
 import { readWorkPerformed } from "@/components/job/WorkPerformedSection";
 import { learnInventoryPrice } from "@/lib/inventory-price-sync";
@@ -365,7 +365,8 @@ function InvoiceDetail() {
           const subject = `Invoice ${inv.invoice_number} from Motorcycle Doctors`;
           const issuedAt = new Date(inv.created_at);
           const dueAt = new Date(issuedAt);
-          dueAt.setDate(dueAt.getDate() + 14);
+          dueAt.setDate(dueAt.getDate() + 5);
+
           const body = [
             `Hi ${name || "there"},`,
             ``,
@@ -736,7 +737,7 @@ function InvoiceDetail() {
   const bike = inv.motorcycles;
   const issuedAt = new Date(inv.created_at);
   const dueAt = new Date(issuedAt);
-  dueAt.setDate(dueAt.getDate() + 14);
+  dueAt.setDate(dueAt.getDate() + 5);
   const subtotalInc = Number(inv.labour_total) + Number(inv.parts_total);
   const subtotalEx = subtotalInc / (1 + GST_RATE);
 
@@ -1657,20 +1658,13 @@ function InvoiceDetail() {
         </div>
       )}
 
-      <PrintPreview
+      <InvoicePrintPreview
         open={previewOpen}
         onOpenChange={setPreviewOpen}
         title={`Invoice ${inv.invoice_number} — preview`}
-        duplex
-        getPages={() => [{ html: sheetRef.current?.outerHTML ?? "" }]}
-        sections={[
-          { id: "meta", label: "Dates & status strip" },
-          { id: "checks", label: "Service checks" },
-          { id: "notes", label: "Notes" },
-          { id: "payment", label: "Payment details" },
-          
-        ]}
+        getHtml={() => sheetRef.current?.outerHTML ?? ""}
       />
+
 
       {/* Inventory library picker — used by both job-linked parts and standalone snapshot lines */}
       <Dialog open={!!libraryTarget} onOpenChange={(o) => !o && setLibraryTarget(null)}>
