@@ -643,8 +643,8 @@ function JobDetail() {
           </div>
         </div>
         <div className="min-w-0">
-          <div className="text-[0.625rem] uppercase tracking-[0.25em] text-muted-foreground flex flex-wrap items-center gap-2">
-            <span>Job #{j.job_number}</span>
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">Job #{j.job_number}</span>
             <span
               className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[0.625rem] font-bold uppercase tracking-wider ${kindMeta.cls}`}
             >
