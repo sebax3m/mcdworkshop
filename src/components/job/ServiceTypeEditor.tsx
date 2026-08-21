@@ -6,7 +6,7 @@ import { serviceColor } from "@/lib/service-colors";
 import { displayServiceType } from "@/lib/display";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Pencil, Check, X } from "lucide-react";
+import { Pencil, Check, X, Wrench } from "lucide-react";
 import { toast } from "sonner";
 
 /**
@@ -86,7 +86,8 @@ export function ServiceTypeEditor({
   if (!editing) {
     return (
       <div className="mt-1 flex items-start gap-2">
-        <h1 className="font-display text-xl sm:text-2xl font-bold break-words text-service-gold">{title}</h1>
+        <Wrench className="h-4 w-4 text-service-banana mt-1 shrink-0" />
+        <h1 className="font-display text-base font-bold uppercase tracking-wider text-service-banana bg-service-banana/10 px-2 py-0.5 rounded-md break-words">{title}</h1>
         {canEdit && (
           <button
             type="button"
