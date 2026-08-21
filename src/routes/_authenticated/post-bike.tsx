@@ -302,6 +302,12 @@ function PostBikePage() {
         onCreated={() => qc.invalidateQueries({ queryKey: ["post-bike-branches"] })}
         nextOrder={branches.length + 1}
       />
+      <EditBranchDialog
+        branch={editBranch}
+        onClose={() => setEditBranch(null)}
+        onSave={(id, name) => updateBranch.mutate({ id, name })}
+        saving={updateBranch.isPending}
+      />
       <NewBikeDialog
         open={bikeOpen}
         onOpenChange={setBikeOpen}
