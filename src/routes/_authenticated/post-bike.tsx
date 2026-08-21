@@ -6,6 +6,7 @@ import { Truck, MapPin, Plus, Bike as BikeIcon, Wrench, Trash2, GripVertical, Pe
 import { supabase } from "@/integrations/supabase/client";
 import { useTechnicians } from "@/hooks/use-active-technician";
 import { useBookingTypes } from "@/hooks/useBookingTypes";
+import { fullBike } from "@/lib/format";
 
 import { toast } from "sonner";
 import {
