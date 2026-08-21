@@ -348,6 +348,26 @@ function InvoiceDetail() {
   const [previewOpen, setPreviewOpen] = useState(false);
   const sheetRef = useRef<HTMLDivElement>(null);
 
+  /* Screen-only: scale the A4 sheet down so its full width always fits the
+     viewport (no horizontal scrolling on phones). Print output is untouched. */
+  const scrollRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const A4_PX = (210 / 25.4) * 96; // 210mm in CSS px
+    const apply = () => {
+      const w = el.clientWidth;
+      if (!w) return;
+      const z = Math.min(0.9, Math.max(0.3, w / A4_PX));
+      el.style.setProperty("--izoom", String(z));
+    };
+    apply();
+    const ro = new ResizeObserver(apply);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
+
   // Handle ?action=print|email passed in from "Create & print/email" on the new-invoice page.
   const actionFiredRef = useRef(false);
   useEffect(() => {
