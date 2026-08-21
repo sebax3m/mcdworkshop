@@ -86,7 +86,7 @@ export function ServiceTypeEditor({
   if (!editing) {
     return (
       <div className="mt-1 flex items-start gap-2">
-        <h1 className="font-display text-xl sm:text-2xl font-bold break-words">{title}</h1>
+        <h1 className="font-display text-xl sm:text-2xl font-bold break-words text-service-gold">{title}</h1>
         {canEdit && (
           <button
             type="button"
