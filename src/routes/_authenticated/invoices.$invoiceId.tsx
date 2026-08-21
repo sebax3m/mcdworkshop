@@ -1658,20 +1658,13 @@ function InvoiceDetail() {
         </div>
       )}
 
-      <PrintPreview
+      <InvoicePrintPreview
         open={previewOpen}
         onOpenChange={setPreviewOpen}
         title={`Invoice ${inv.invoice_number} — preview`}
-        duplex
-        getPages={() => [{ html: sheetRef.current?.outerHTML ?? "" }]}
-        sections={[
-          { id: "meta", label: "Dates & status strip" },
-          { id: "checks", label: "Service checks" },
-          { id: "notes", label: "Notes" },
-          { id: "payment", label: "Payment details" },
-          
-        ]}
+        getHtml={() => sheetRef.current?.outerHTML ?? ""}
       />
+
 
       {/* Inventory library picker — used by both job-linked parts and standalone snapshot lines */}
       <Dialog open={!!libraryTarget} onOpenChange={(o) => !o && setLibraryTarget(null)}>
