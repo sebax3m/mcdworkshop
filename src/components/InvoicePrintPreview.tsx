@@ -112,8 +112,13 @@ ${styles}
 
 
 
-  /* --- Vertical density: shrink gaps only, never the type size --- */
-  .invoice-page td, .invoice-page th { padding-top: calc(0.25rem * var(--pdense)) !important; padding-bottom: calc(0.25rem * var(--pdense)) !important; }
+  /* --- Vertical density: shrink gaps only, never the type size ---
+     Applied ONLY when the user actually tightens the spacing, so at 100% the
+     preview is byte-for-byte the same layout as the live invoice. */
+${
+  density === 100
+    ? ""
+    : `  .invoice-page td, .invoice-page th { padding-top: calc(0.25rem * var(--pdense)) !important; padding-bottom: calc(0.25rem * var(--pdense)) !important; }
   .invoice-page .space-y-5 > * + * { margin-top: calc(1.25rem * var(--pdense)) !important; }
   .invoice-page .space-y-4 > * + * { margin-top: calc(1rem * var(--pdense)) !important; }
   .invoice-page .space-y-3 > * + * { margin-top: calc(0.75rem * var(--pdense)) !important; }
@@ -125,7 +130,13 @@ ${styles}
   .invoice-page .pb-3 { padding-bottom: calc(0.75rem * var(--pdense)) !important; }
   .invoice-page .pt-3 { padding-top: calc(0.75rem * var(--pdense)) !important; }
   .invoice-page .mt-2 { margin-top: calc(0.5rem * var(--pdense)) !important; }
-  .invoice-page .mt-3 { margin-top: calc(0.75rem * var(--pdense)) !important; }
+  .invoice-page .mt-3 { margin-top: calc(0.75rem * var(--pdense)) !important; }`
+}
+
+  /* The live invoice route ships its own screen-only zoom; inside the preview
+     the sheet must always render at its natural size. */
+  .invoice-page .invoice-sheet { zoom: 1 !important; }
+
 
   /* Only screen-only controls are dropped; everything else renders exactly as
      it does in the app so the preview equals the printout. */
