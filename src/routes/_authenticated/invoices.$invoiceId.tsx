@@ -742,18 +742,18 @@ function InvoiceDetail() {
   return (
     <div className="space-y-5 mx-auto invoice-page w-full max-w-[220mm]">
       <style>{`
-        /* On screen the sheet is shown at true A4 width so what you see is
-           exactly what prints. Content flows onto extra A4 pages when needed. */
+        /* The sheet on screen is a true A4 page (210 x 297mm) including the
+           12mm print margins, so what you see is exactly what prints. */
         .invoice-sheet {
           width: 210mm;
           min-height: 297mm;
+          padding-block: 12mm;
           margin-inline: auto;
           display: flex;
           flex-direction: column;
           position: relative;
         }
-        /* On-screen guide showing where each A4 page ends (printable height
-           = 297mm - 12mm top - 12mm bottom margins). */
+        /* On-screen guide showing where each A4 sheet ends. */
         .invoice-sheet::after {
           content: "";
           position: absolute;
@@ -762,9 +762,9 @@ function InvoiceDetail() {
           background-image: repeating-linear-gradient(
             to bottom,
             transparent 0,
-            transparent calc(273mm - 1px),
-            color-mix(in oklab, var(--primary) 70%, transparent) calc(273mm - 1px),
-            color-mix(in oklab, var(--primary) 70%, transparent) 273mm
+            transparent calc(297mm - 1px),
+            color-mix(in oklab, var(--primary) 70%, transparent) calc(297mm - 1px),
+            color-mix(in oklab, var(--primary) 70%, transparent) 297mm
           );
         }
 
@@ -773,7 +773,8 @@ function InvoiceDetail() {
         }
 
         @media print {
-          @page { size: A4 portrait; margin: 12mm; }
+          /* Margins live inside the sheet so screen and print match exactly. */
+          @page { size: A4 portrait; margin: 0; }
           html, body {
             background: #ffffff !important;
             -webkit-print-color-adjust: exact !important;
@@ -788,9 +789,12 @@ function InvoiceDetail() {
           .invoice-sheet {
             box-shadow: none !important;
             border: none !important;
-            width: 100% !important;
-            min-height: 0 !important;
+            border-radius: 0 !important;
+            width: 210mm !important;
+            min-height: 297mm !important;
+            padding-block: 12mm !important;
           }
+          .invoice-sheet::after { display: none !important; }
           /* Keep blocks intact but allow the invoice to run onto more pages */
           .invoice-sheet table { page-break-inside: auto; }
           .invoice-sheet tr { page-break-inside: avoid; }
@@ -800,6 +804,7 @@ function InvoiceDetail() {
           .no-print, .print\\:hidden { display: none !important; }
         }
       `}</style>
+
 
 
       <header className="flex items-center gap-3 print:hidden">
