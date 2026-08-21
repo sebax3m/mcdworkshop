@@ -1,0 +1,1 @@
+CREATE POLICY "mcd_tech_settings_admin_delete" ON public.mcd_tech_settings FOR DELETE TO authenticated USING (private.has_role(auth.uid(), 'admin'::app_role));
