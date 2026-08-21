@@ -739,10 +739,21 @@ function InvoiceDetail() {
   }
 
   return (
-    <div className="space-y-5 max-w-3xl mx-auto invoice-page">
+    <div className="space-y-5 mx-auto invoice-page w-full max-w-[220mm]">
       <style>{`
+        /* On screen the sheet is shown at true A4 width so what you see is
+           exactly what prints. Content flows onto extra A4 pages when needed. */
+        .invoice-sheet {
+          width: 210mm;
+          min-height: 297mm;
+          margin-inline: auto;
+          background: hsl(var(--card, 0 0% 100%));
+        }
+        @media (max-width: 230mm) {
+          .invoice-a4-scroll { overflow-x: auto; }
+        }
         @media print {
-          @page { size: A4; margin: 10mm; }
+          @page { size: A4 portrait; margin: 12mm; }
           html, body {
             background: #ffffff !important;
             -webkit-print-color-adjust: exact !important;
@@ -753,36 +764,23 @@ function InvoiceDetail() {
           .invoice-page {
             position: absolute; left: 0; top: 0;
             width: 100%; max-width: none; margin: 0; padding: 0;
-            font-size: 11px;
           }
           .invoice-sheet {
             box-shadow: none !important;
             border: none !important;
-            page-break-inside: avoid;
+            width: 100% !important;
+            min-height: 0 !important;
           }
-          /* Clean white header for print */
-          .invoice-sheet .bg-background {
-            background: #ffffff !important;
-          }
-          .invoice-sheet .border-border {
-            border-color: #e5e7eb !important;
-          }
-          /* Tighten spacing so it fits on one page */
-          .invoice-sheet .p-8 { padding: 14px 18px !important; }
-          .invoice-sheet .px-8 { padding-left: 18px !important; padding-right: 18px !important; }
-          .invoice-sheet .py-6 { padding-top: 12px !important; padding-bottom: 12px !important; }
-          .invoice-sheet .space-y-7 > * + * { margin-top: 10px !important; }
-          .invoice-sheet .space-y-5 > * + * { margin-top: 8px !important; }
-          .invoice-sheet .gap-6 { gap: 12px !important; }
-          .invoice-sheet .pt-5 { padding-top: 8px !important; }
-          .invoice-sheet .mt-6, .invoice-sheet .mt-8 { margin-top: 10px !important; }
-          .invoice-sheet h1, .invoice-sheet h2, .invoice-sheet h3 { margin: 0 !important; }
-          .invoice-sheet table { font-size: 10.5px !important; }
-          .invoice-sheet th, .invoice-sheet td { padding: 4px 6px !important; }
-          .invoice-sheet img { max-height: 64px !important; }
+          /* Keep blocks intact but allow the invoice to run onto more pages */
+          .invoice-sheet table { page-break-inside: auto; }
+          .invoice-sheet tr { page-break-inside: avoid; }
+          .invoice-sheet [data-print-section] { page-break-inside: avoid; }
+          .invoice-sheet .bg-background { background: #ffffff !important; }
+          .invoice-sheet .border-border { border-color: #e5e7eb !important; }
           .no-print, .print\\:hidden { display: none !important; }
         }
       `}</style>
+
 
       <header className="flex items-center gap-3 print:hidden">
         <button
