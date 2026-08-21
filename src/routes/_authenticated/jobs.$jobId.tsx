@@ -328,7 +328,6 @@ function JobDetail() {
 
   /** Admin-only: permanently delete this job card and unlink it from its booking. */
   async function deleteJob() {
-    if (!confirm("Delete this job card permanently? This cannot be undone.")) return;
     setDeleting(true);
     // Unlink the booking first so it returns to the day board instead of dangling.
     await supabase.from("bookings").update({ job_id: null }).eq("job_id", jobId);
