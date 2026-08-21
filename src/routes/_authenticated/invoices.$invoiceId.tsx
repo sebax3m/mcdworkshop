@@ -791,11 +791,11 @@ function InvoiceDetail() {
     <div className="space-y-5 mx-auto invoice-page w-full max-w-[220mm]">
       <style>{`
         /* The sheet on screen is a true A4 page (210 x 297mm) including the
-           12mm print margins, so what you see is exactly what prints. */
+           print margins, so what you see is exactly what prints. */
         .invoice-sheet {
           width: 210mm;
           min-height: 297mm;
-          padding-block: 12mm;
+          padding-block: 6mm;
           margin-inline: auto;
           display: flex;
           flex-direction: column;
@@ -816,9 +816,25 @@ function InvoiceDetail() {
           );
         }
 
+        /* Inside the print-preview iframe the page box is provided by @page,
+           so the sheet must fill it instead of forcing its own A4 size. */
+        .sheet .invoice-sheet,
+        .sheet-inner .invoice-sheet {
+          width: 100% !important;
+          min-height: 0 !important;
+          padding-block: 0 !important;
+          margin: 0 !important;
+          border: 0 !important;
+          border-radius: 0 !important;
+          overflow: visible !important;
+        }
+        .sheet .invoice-sheet::after,
+        .sheet-inner .invoice-sheet::after { display: none !important; }
+
         @media (max-width: 230mm) {
           .invoice-a4-scroll { overflow-x: auto; }
         }
+
 
         @media print {
           /* Margins live inside the sheet so screen and print match exactly. */
