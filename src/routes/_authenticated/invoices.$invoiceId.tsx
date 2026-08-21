@@ -1093,7 +1093,7 @@ function InvoiceDetail() {
                               <span className="no-print"> · tracked {defaultHours.toFixed(2)}h</span>
                             )}
                           </td>
-                          <td className="py-2.5 pl-3 text-right align-top tabular-nums">
+                          <td className="py-2.5 pl-3 pr-6 text-right align-top tabular-nums">
                             <EditableNumber
                               value={hours}
                               onCommit={(n) => updateLabour({ qty: n })}
@@ -1107,7 +1107,7 @@ function InvoiceDetail() {
                               </div>
                             )}
                           </td>
-                          <td className="py-2.5 pl-3 text-right align-top tabular-nums">
+                          <td className="py-2.5 pl-3 pr-6 text-right align-top tabular-nums">
                             <EditableNumber
                               value={rate}
                               onCommit={(n) => updateLabour({ unit: n })}
@@ -1115,12 +1115,12 @@ function InvoiceDetail() {
                             />
                           </td>
                           {hasDiscount && (
-                            <td className="py-2.5 pl-3 text-right align-top text-muted-foreground">
+                            <td className="py-2.5 pl-3 pr-6 text-right align-top text-muted-foreground">
                               —
                             </td>
                           )}
-                          <td className="py-2.5 pl-3 text-right font-semibold align-top tabular-nums">
-                            <div className="flex items-start justify-end gap-1">
+                          <td className="py-2.5 pl-3 pr-6 text-right font-semibold align-top tabular-nums relative">
+                            <div className="flex items-start justify-end">
                               <EditableNumber
                                 value={Number(inv.labour_total)}
                                 onCommit={(n) => updateLabour({ amount: n })}
@@ -1128,7 +1128,7 @@ function InvoiceDetail() {
                               />
                               <button
                                 onClick={removeLabourLine}
-                                className="no-print w-4 shrink-0 opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive"
+                                className="no-print absolute right-0 top-3 opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive"
                                 title="Remove labour line"
                               >
                                 <Trash2 className="h-3.5 w-3.5 inline" />
@@ -1181,7 +1181,7 @@ function InvoiceDetail() {
                               className="text-xs text-muted-foreground block leading-snug whitespace-pre-wrap"
                             />
                           </td>
-                          <td className="py-2.5 pl-3 text-right align-top tabular-nums">
+                          <td className="py-2.5 pl-3 pr-6 text-right align-top tabular-nums">
                             <EditableNumber
                               value={qty}
                               decimals={2}
@@ -1190,7 +1190,7 @@ function InvoiceDetail() {
                               onCommit={(n) => updatePart(p.id, { quantity: n })}
                             />
                           </td>
-                          <td className="py-2.5 pl-3 text-right align-top tabular-nums">
+                          <td className="py-2.5 pl-3 pr-6 text-right align-top tabular-nums">
                             <EditableNumber
                               value={unit}
                               prefix="$"
@@ -1207,7 +1207,7 @@ function InvoiceDetail() {
                             )}
                           </td>
                           {hasDiscount && (
-                            <td className="py-2.5 pl-3 text-right align-top tabular-nums">
+                            <td className="py-2.5 pl-3 pr-6 text-right align-top tabular-nums">
                               <div className="inline-flex items-center gap-1">
                                 <EditableNumber
                                   value={disc}
@@ -1231,9 +1231,9 @@ function InvoiceDetail() {
                               </div>
                             </td>
                           )}
-                          <td className="py-2.5 pl-3 text-right font-semibold align-top tabular-nums">
+                          <td className="py-2.5 pl-3 pr-6 text-right font-semibold align-top tabular-nums relative">
 
-                            <div className="flex items-start justify-end gap-1">
+                            <div className="flex items-start justify-end">
                               <div className="text-right">
                                 {disc > 0 && (
                                   <div className="text-[0.625rem] text-muted-foreground line-through tabular-nums">
@@ -1249,7 +1249,7 @@ function InvoiceDetail() {
                               </div>
                               <button
                                 onClick={() => deletePart(p.id)}
-                                className="no-print w-4 shrink-0 opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive"
+                                className="no-print absolute right-0 top-3 opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive"
                                 title="Remove line"
                               >
                                 <Trash2 className="h-3.5 w-3.5 inline" />
@@ -1374,7 +1374,7 @@ function InvoiceDetail() {
                               className="text-xs text-muted-foreground block leading-snug whitespace-pre-wrap"
                             />
                           </td>
-                          <td className="py-2.5 pl-3 text-right align-top tabular-nums">
+                          <td className="py-2.5 pl-3 pr-6 text-right align-top tabular-nums">
                             <EditableNumber
                               value={Number(it.quantity)}
                               decimals={2}
@@ -1383,7 +1383,7 @@ function InvoiceDetail() {
                               onCommit={(n) => updateSnapshotLine(idx, { quantity: n })}
                             />
                           </td>
-                          <td className="py-2.5 pl-3 text-right align-top tabular-nums">
+                          <td className="py-2.5 pl-3 pr-6 text-right align-top tabular-nums">
                             <EditableNumber
                               value={Number(it.unit)}
                               prefix="$"
@@ -1400,7 +1400,7 @@ function InvoiceDetail() {
                             )}
                           </td>
                           {hasDiscount && (
-                            <td className="py-2.5 pl-3 text-right align-top tabular-nums">
+                            <td className="py-2.5 pl-3 pr-6 text-right align-top tabular-nums">
                               <div className="inline-flex items-center gap-1">
                                 <EditableNumber
                                   value={disc}
@@ -1424,8 +1424,8 @@ function InvoiceDetail() {
                               </div>
                             </td>
                           )}
-                          <td className="py-2.5 pl-3 text-right font-semibold align-top tabular-nums">
-                            <div className="flex items-start justify-end gap-1">
+                          <td className="py-2.5 pl-3 pr-6 text-right font-semibold align-top tabular-nums relative">
+                            <div className="flex items-start justify-end">
                               <div className="text-right">
                                 {disc > 0 && (
                                   <div className="text-[0.625rem] text-muted-foreground line-through tabular-nums">
@@ -1441,7 +1441,7 @@ function InvoiceDetail() {
                               </div>
                               <button
                                 onClick={() => removeSnapshotLine(idx)}
-                                className="no-print w-4 shrink-0 opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive"
+                                className="no-print absolute right-0 top-3 opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive"
                                 title="Remove line"
                               >
                                 <Trash2 className="h-3.5 w-3.5 inline" />
