@@ -1503,7 +1503,7 @@ function InvoiceDetail() {
           {/* Payment info */}
           <div data-print-section="payment" className="pt-5 border-t border-border text-sm">
             <div>
-              <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground mb-2">
+              <div className="font-display text-sm font-semibold uppercase tracking-wider text-muted-foreground mb-2">
                 Payment Details
               </div>
               <div className="space-y-0.5 text-xs">
