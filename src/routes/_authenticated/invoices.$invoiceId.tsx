@@ -973,7 +973,10 @@ function InvoiceDetail() {
                   Motorcycle Doctors
                 </div>
                 <div className="text-[0.7rem] uppercase tracking-[0.22em] text-muted-foreground mt-1">
-                  Motorcycle Doctors LTD · GST Reg N° 99386185
+                  Motorcycle Doctors LTD
+                </div>
+                <div className="text-[0.68rem] uppercase tracking-[0.18em] text-muted-foreground">
+                  GST Reg N° 99386185
                 </div>
                 <div className="text-[0.72rem] leading-relaxed text-muted-foreground mt-2">
                   94 Wairau Rd, Wairau Valley, Auckland
@@ -1016,7 +1019,7 @@ function InvoiceDetail() {
               </div>
               <div className="text-muted-foreground truncate">{customer?.email || ""}</div>
             </div>
-            <div className="min-w-0">
+            <div className={`min-w-0${bike ? "" : " print-hide-empty"}`}>
               <div className="text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-muted-foreground pb-1 mb-1.5 border-b border-border">
                 Motorcycle
               </div>
@@ -1043,11 +1046,11 @@ function InvoiceDetail() {
                 <span className="text-[0.62rem] uppercase tracking-[0.18em] text-muted-foreground">Due</span>
                 <b className="text-foreground tabular-nums">{dueAt.toLocaleDateString()}</b>
               </span>
-              <span className="flex flex-col">
+              <span className={`flex flex-col${inv.jobs ? "" : " print-hide-empty"}`}>
                 <span className="text-[0.62rem] uppercase tracking-[0.18em] text-muted-foreground">Job</span>
                 <b className="text-foreground">{inv.jobs ? `#${inv.jobs.job_number}` : "—"}</b>
               </span>
-              <span className="flex flex-col min-w-0">
+              <span className={`flex flex-col min-w-0${technicianName ? "" : " print-hide-empty"}`}>
                 <span className="text-[0.62rem] uppercase tracking-[0.18em] text-muted-foreground">Technician</span>
                 <b className="text-foreground print-only">{technicianName || "—"}</b>
 
@@ -1601,10 +1604,11 @@ function InvoiceDetail() {
             </table>
           </div>
 
-          {/* Notes — pushed to the bottom so it sits right above the payment rule */}
+          {/* Notes + payment/totals block — always anchored to the bottom of the
+              A4 sheet, even when the notes are hidden (empty) in print. */}
+          <div style={{ marginTop: "auto" }}>
           <div
             data-print-section="notes"
-            style={{ marginTop: "auto" }}
             className={`pt-3 border-t border-border${(inv.notes ?? "").trim() ? "" : " print-hide-empty"}`}
           >
             <NotesBox
@@ -1664,6 +1668,8 @@ function InvoiceDetail() {
               </div>
             </div>
           </div>
+          </div>
+
 
         </div>
       </div>
