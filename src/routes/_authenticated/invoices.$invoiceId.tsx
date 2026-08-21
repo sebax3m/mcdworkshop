@@ -747,7 +747,7 @@ function InvoiceDetail() {
           width: 210mm;
           min-height: 297mm;
           margin-inline: auto;
-          background: hsl(var(--card, 0 0% 100%));
+          }
         }
         @media (max-width: 230mm) {
           .invoice-a4-scroll { overflow-x: auto; }
