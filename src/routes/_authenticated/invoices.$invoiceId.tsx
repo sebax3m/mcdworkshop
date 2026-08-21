@@ -742,18 +742,18 @@ function InvoiceDetail() {
   return (
     <div className="space-y-5 mx-auto invoice-page w-full max-w-[220mm]">
       <style>{`
-        /* On screen the sheet is shown at true A4 width so what you see is
-           exactly what prints. Content flows onto extra A4 pages when needed. */
+        /* The sheet on screen is a true A4 page (210 x 297mm) including the
+           12mm print margins, so what you see is exactly what prints. */
         .invoice-sheet {
           width: 210mm;
           min-height: 297mm;
+          padding-block: 12mm;
           margin-inline: auto;
           display: flex;
           flex-direction: column;
           position: relative;
         }
-        /* On-screen guide showing where each A4 page ends (printable height
-           = 297mm - 12mm top - 12mm bottom margins). */
+        /* On-screen guide showing where each A4 sheet ends. */
         .invoice-sheet::after {
           content: "";
           position: absolute;
@@ -762,9 +762,9 @@ function InvoiceDetail() {
           background-image: repeating-linear-gradient(
             to bottom,
             transparent 0,
-            transparent calc(273mm - 1px),
-            color-mix(in oklab, var(--primary) 70%, transparent) calc(273mm - 1px),
-            color-mix(in oklab, var(--primary) 70%, transparent) 273mm
+            transparent calc(297mm - 1px),
+            color-mix(in oklab, var(--primary) 70%, transparent) calc(297mm - 1px),
+            color-mix(in oklab, var(--primary) 70%, transparent) 297mm
           );
         }
 
@@ -773,7 +773,8 @@ function InvoiceDetail() {
         }
 
         @media print {
-          @page { size: A4 portrait; margin: 12mm; }
+          /* Margins live inside the sheet so screen and print match exactly. */
+          @page { size: A4 portrait; margin: 0; }
           html, body {
             background: #ffffff !important;
             -webkit-print-color-adjust: exact !important;
@@ -788,9 +789,12 @@ function InvoiceDetail() {
           .invoice-sheet {
             box-shadow: none !important;
             border: none !important;
-            width: 100% !important;
-            min-height: 0 !important;
+            border-radius: 0 !important;
+            width: 210mm !important;
+            min-height: 297mm !important;
+            padding-block: 12mm !important;
           }
+          .invoice-sheet::after { display: none !important; }
           /* Keep blocks intact but allow the invoice to run onto more pages */
           .invoice-sheet table { page-break-inside: auto; }
           .invoice-sheet tr { page-break-inside: avoid; }
@@ -800,6 +804,7 @@ function InvoiceDetail() {
           .no-print, .print\\:hidden { display: none !important; }
         }
       `}</style>
+
 
 
       <header className="flex items-center gap-3 print:hidden">
@@ -1500,53 +1505,27 @@ function InvoiceDetail() {
             </table>
           </div>
 
-          {/* Notes + Totals — anchored to the bottom of the A4 sheet */}
-          <div
-            style={{ marginTop: "auto" }}
-            className="pt-8 border-t border-border grid grid-cols-1 sm:grid-cols-[1fr_18rem] gap-6"
-          >
-
-            <div data-print-section="notes">
-              <NotesBox
-                invoiceId={invoiceId}
-                initial={inv.notes ?? ""}
-                suggestion={readCustomerNotes((inv.jobs as any)?.service_data)}
-                onSaved={() => qc.invalidateQueries({ queryKey: ["invoice", invoiceId] })}
-              />
-            </div>
-            <div className="space-y-2 text-sm">
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Labour (incl GST)</span>
-                <span className="tabular-nums">${Number(inv.labour_total).toFixed(2)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Parts (incl GST)</span>
-                <span className="tabular-nums">${Number(inv.parts_total).toFixed(2)}</span>
-              </div>
-              <div className="flex justify-between pb-2 border-b border-border">
-                <span className="text-muted-foreground">Subtotal (excl GST)</span>
-                <span className="tabular-nums">${subtotalEx.toFixed(2)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">GST 15% (incl. in above)</span>
-                <span className="tabular-nums">${Number(inv.gst).toFixed(2)}</span>
-              </div>
-              <div className="flex justify-between pt-3 mt-1 border-t-2 border-foreground/80 font-display text-xl font-black">
-                <span>TOTAL</span>
-                <span className="red-gradient-text tabular-nums">
-                  ${Number(inv.total).toFixed(2)}
-                </span>
-              </div>
-            </div>
+          {/* Notes */}
+          <div data-print-section="notes" className="pt-4 border-t border-border">
+            <NotesBox
+              invoiceId={invoiceId}
+              initial={inv.notes ?? ""}
+              suggestion={readCustomerNotes((inv.jobs as any)?.service_data)}
+              onSaved={() => qc.invalidateQueries({ queryKey: ["invoice", invoiceId] })}
+            />
           </div>
 
-          {/* Payment info */}
-          <div data-print-section="payment" className="pt-5 border-t border-border text-sm">
-            <div>
-              <div className="font-display text-sm font-semibold uppercase tracking-wider text-muted-foreground mb-2">
+          {/* Payment details + totals — anchored to the bottom of the A4 sheet,
+              with the final total sitting in the bottom-right corner. */}
+          <div
+            style={{ marginTop: "auto" }}
+            className="pt-4 border-t border-border grid grid-cols-1 sm:grid-cols-[1fr_17rem] gap-6 items-end"
+          >
+            <div data-print-section="payment" className="text-xs">
+              <div className="font-display text-[0.7rem] font-semibold uppercase tracking-wider text-muted-foreground mb-1">
                 Payment Details
               </div>
-              <div className="space-y-0.5 text-xs">
+              <div className="space-y-0.5">
                 <div>
                   <span className="text-muted-foreground">Account:</span> Motorcycle Doctors LTD
                 </div>
@@ -1561,15 +1540,33 @@ function InvoiceDetail() {
                 </div>
               </div>
             </div>
+
+            <div className="text-xs">
+              <div className="flex items-baseline justify-between gap-4">
+                <span className="text-muted-foreground">Labour (incl GST)</span>
+                <span className="tabular-nums">${Number(inv.labour_total).toFixed(2)}</span>
+              </div>
+              <div className="flex items-baseline justify-between gap-4">
+                <span className="text-muted-foreground">Parts (incl GST)</span>
+                <span className="tabular-nums">${Number(inv.parts_total).toFixed(2)}</span>
+              </div>
+              <div className="flex items-baseline justify-between gap-4">
+                <span className="text-muted-foreground">Subtotal (excl GST)</span>
+                <span className="tabular-nums">${subtotalEx.toFixed(2)}</span>
+              </div>
+              <div className="flex items-baseline justify-between gap-4 pb-1 border-b border-border">
+                <span className="text-muted-foreground">GST 15% (incl.)</span>
+                <span className="tabular-nums">${Number(inv.gst).toFixed(2)}</span>
+              </div>
+              <div className="flex items-baseline justify-between gap-4 pt-1.5 mt-1 border-t-2 border-foreground/80 font-display text-lg font-black leading-none">
+                <span>TOTAL</span>
+                <span className="red-gradient-text tabular-nums">
+                  ${Number(inv.total).toFixed(2)}
+                </span>
+              </div>
+            </div>
           </div>
 
-          {/* Footer */}
-          <div
-            data-print-section="footer"
-            className="pt-5 border-t border-border text-center text-[0.625rem] uppercase tracking-[0.25em] text-muted-foreground"
-          >
-            Motorcycle Doctors · Workshop OS · Thank you for your business
-          </div>
         </div>
       </div>
       </div>
@@ -1598,7 +1595,7 @@ function InvoiceDetail() {
           { id: "checks", label: "Service checks" },
           { id: "notes", label: "Notes" },
           { id: "payment", label: "Payment details" },
-          { id: "footer", label: "Footer line" },
+          
         ]}
       />
 
