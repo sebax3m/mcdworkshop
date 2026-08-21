@@ -112,8 +112,13 @@ ${styles}
 
 
 
-  /* --- Vertical density: shrink gaps only, never the type size --- */
-  .invoice-page td, .invoice-page th { padding-top: calc(0.25rem * var(--pdense)) !important; padding-bottom: calc(0.25rem * var(--pdense)) !important; }
+  /* --- Vertical density: shrink gaps only, never the type size ---
+     Applied ONLY when the user actually tightens the spacing, so at 100% the
+     preview is byte-for-byte the same layout as the live invoice. */
+${
+  density === 100
+    ? ""
+    : `  .invoice-page td, .invoice-page th { padding-top: calc(0.25rem * var(--pdense)) !important; padding-bottom: calc(0.25rem * var(--pdense)) !important; }
   .invoice-page .space-y-5 > * + * { margin-top: calc(1.25rem * var(--pdense)) !important; }
   .invoice-page .space-y-4 > * + * { margin-top: calc(1rem * var(--pdense)) !important; }
   .invoice-page .space-y-3 > * + * { margin-top: calc(0.75rem * var(--pdense)) !important; }
@@ -125,7 +130,13 @@ ${styles}
   .invoice-page .pb-3 { padding-bottom: calc(0.75rem * var(--pdense)) !important; }
   .invoice-page .pt-3 { padding-top: calc(0.75rem * var(--pdense)) !important; }
   .invoice-page .mt-2 { margin-top: calc(0.5rem * var(--pdense)) !important; }
-  .invoice-page .mt-3 { margin-top: calc(0.75rem * var(--pdense)) !important; }
+  .invoice-page .mt-3 { margin-top: calc(0.75rem * var(--pdense)) !important; }`
+}
+
+  /* The live invoice route ships its own screen-only zoom; inside the preview
+     the sheet must always render at its natural size. */
+  .invoice-page .invoice-sheet { zoom: 1 !important; }
+
 
   /* Only screen-only controls are dropped; everything else renders exactly as
      it does in the app so the preview equals the printout. */
@@ -158,8 +169,21 @@ ${styles}
     .invoice-sheet .border-border { border-color: var(--border) !important; }
     .preview-viewport { padding:0 !important; zoom:1 !important; }
     .page-guides { display:none !important; }
-    .page-wrap { width: calc(${pageW} - 2 * ${MARGIN[margin]}); }
+    .page-wrap { width: calc(${pageW} - 2 * ${MARGIN[margin]}); margin:0 auto !important; }
+    /* The invoice route's own print rules pull the page out of flow
+       (position:absolute + full-viewport width). Inside this preview the page
+       box is provided by @page, so keep the clone exactly where the preview
+       shows it — this is what made the printout differ from the preview. */
+    .invoice-page {
+      position: static !important;
+      left: auto !important; top: auto !important;
+      width: 100% !important; max-width: none !important;
+      margin: 0 !important; padding: 0 !important;
+      visibility: visible !important;
+    }
+    body * { visibility: visible !important; }
   }
+
 
 </style>
 </head>
