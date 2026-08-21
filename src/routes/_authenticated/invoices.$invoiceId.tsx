@@ -876,21 +876,13 @@ function InvoiceDetail() {
         /* Screen only: shrink the A4 sheet so the whole page width is visible
            and easier to navigate. Layout/print output is untouched. */
         @media screen {
-          .invoice-a4-scroll { overflow-x: auto; }
-          .invoice-a4-scroll > .invoice-sheet { zoom: 0.9; }
-        }
-        @media screen and (max-width: 1280px) {
-          .invoice-a4-scroll > .invoice-sheet { zoom: 0.8; }
-        }
-        @media screen and (max-width: 1024px) {
-          .invoice-a4-scroll > .invoice-sheet { zoom: 0.7; }
-        }
-        @media screen and (max-width: 768px) {
-          .invoice-a4-scroll > .invoice-sheet { zoom: 0.55; }
+          .invoice-a4-scroll { overflow-x: hidden; max-width: 100%; }
+          .invoice-a4-scroll > .invoice-sheet { zoom: var(--izoom, 0.9); }
         }
         @media print {
           .invoice-a4-scroll > .invoice-sheet { zoom: 1 !important; }
         }
+
 
 
         @media print {
