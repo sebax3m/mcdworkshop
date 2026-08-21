@@ -201,16 +201,21 @@ ${styles}
   const fitOnePageByDensity = () => {
     const d = frameRef.current?.contentDocument;
     const page = d?.querySelector(".invoice-page") as HTMLElement | null;
+    const sheet = d?.querySelector(".invoice-sheet") as HTMLElement | null;
     if (!d || !page) return;
+    sheet?.style.setProperty("--sheetmin", "0px");
     let value = 100;
     for (let v = 100; v >= 30; v -= 2) {
       d.documentElement.style.setProperty("--pdense", String(v / 100));
       value = v;
       if (page.scrollHeight * (printScale / 100) <= usablePx) break;
     }
+    const content = page.scrollHeight * (printScale / 100);
     setDensity(value);
-    setPages(Math.max(1, Math.ceil((page.scrollHeight * (printScale / 100)) / usablePx)));
+    setPages(Math.max(1, Math.ceil(content / usablePx)));
+    sheet?.style.removeProperty("--sheetmin");
   };
+
 
 
 
