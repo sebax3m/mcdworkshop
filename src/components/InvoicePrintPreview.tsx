@@ -155,7 +155,27 @@ ${styles}
 </head>
 <body class="${bodyClass}">
   <div class="preview-viewport"><div class="page-wrap"><div class="page-guides"></div><div class="invoice-page">${getHtml()}</div></div></div>
+  <script>
+    (function () {
+      // Rule for every invoice: the sheet always ends on a whole page boundary,
+      // so notes + payment details + TOTAL stay pinned to the bottom of the
+      // last page instead of floating up right after the last line item.
+      var unit = ${usablePx} / (${printScale} / 100);
+      function snap() {
+        var s = document.querySelector('.invoice-sheet');
+        if (!s) return;
+        s.style.setProperty('--sheetmin', '0px');
+        var pages = Math.max(1, Math.ceil((s.scrollHeight - 2) / unit));
+        s.style.setProperty('--sheetmin', (pages * unit) + 'px');
+      }
+      snap();
+      setTimeout(snap, 150);
+      window.addEventListener('load', snap);
+      window.addEventListener('beforeprint', snap);
+    })();
+  </script>
 </body></html>`;
+
 
     frame.srcdoc = doc;
     const t = setTimeout(() => setPages(Math.max(1, Math.ceil(measure() / usablePx))), 300);
