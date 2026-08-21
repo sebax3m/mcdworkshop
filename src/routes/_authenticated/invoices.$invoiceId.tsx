@@ -112,18 +112,19 @@ function EditableNumber({
     <button
       type="button"
       onClick={() => setEditing(true)}
-      className={`group/edit inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 hover:bg-primary/10 hover:text-foreground transition-colors tabular-nums ${className}`}
+      className={`group/edit relative inline-flex items-center justify-end rounded-md pl-5 pr-0 py-0.5 hover:bg-primary/10 hover:text-foreground transition-colors tabular-nums ${className}`}
       title="Click to edit"
     >
+      <Pencil className="absolute left-0.5 h-3 w-3 opacity-0 group-hover/edit:opacity-60 no-print" />
       <span>
         {prefix}
         {fmt(value)}
         {suffix}
       </span>
-      <Pencil className="h-3 w-3 opacity-0 group-hover/edit:opacity-60 no-print" />
     </button>
   );
 }
+
 
 function EditableText({
   value,
