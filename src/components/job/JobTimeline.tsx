@@ -24,8 +24,8 @@ export function JobTimeline({ jobId }: { jobId: string }) {
   return (
     <div className="card-surface p-4">
       <div className="flex items-center gap-2 mb-3">
-        <History className="h-4 w-4 text-primary" />
-        <h2 className="font-display text-base font-bold uppercase tracking-wider text-status-assigned">Approval history</h2>
+        <History className="h-4 w-4 text-service-banana" />
+        <h2 className="font-display text-base font-bold uppercase tracking-wider text-service-banana bg-service-banana/10 px-2 py-0.5 rounded-md">Approval history</h2>
       </div>
       <ol className="space-y-2.5">
         {events.map((e) => (
