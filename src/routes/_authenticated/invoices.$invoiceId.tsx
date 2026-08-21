@@ -856,7 +856,7 @@ function InvoiceDetail() {
             border-radius: 0 !important;
             width: 210mm !important;
             min-height: 297mm !important;
-            padding-block: 12mm !important;
+            padding-block: 6mm !important;
           }
           .invoice-sheet::after { display: none !important; }
           /* Keep blocks intact but allow the invoice to run onto more pages */
