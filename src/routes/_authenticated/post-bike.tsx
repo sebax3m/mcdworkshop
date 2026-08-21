@@ -1,10 +1,12 @@
-import { useState } from "react";
-import { createFileRoute } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
-import { Truck, MapPin, Plus, Bike as BikeIcon, Wrench, Trash2, GripVertical } from "lucide-react";
+import { Truck, MapPin, Plus, Bike as BikeIcon, Wrench, Trash2, GripVertical, Pencil } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useTechnicians } from "@/hooks/use-active-technician";
+import { useBookingTypes } from "@/hooks/useBookingTypes";
+import { fullBike } from "@/lib/format";
 
 import { toast } from "sonner";
 import {
@@ -92,6 +94,7 @@ function PostBikePage() {
   const [dragId, setDragId] = useState<string | null>(null);
   const [overBranch, setOverBranch] = useState<string | null>(null);
   const [branchOpen, setBranchOpen] = useState(false);
+  const [editBranch, setEditBranch] = useState<Branch | null>(null);
   const [bikeOpen, setBikeOpen] = useState(false);
   const [bikeBranchId, setBikeBranchId] = useState<string | null>(null);
   const [detailBike, setDetailBike] = useState<PostBike | null>(null);
@@ -130,6 +133,30 @@ function PostBikePage() {
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["post-bikes"] }),
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const updateBranch = useMutation({
+    mutationFn: async ({ id, name }: { id: string; name: string }) => {
+      const { error } = await supabase.from("post_bike_branches").update({ name: name.trim() }).eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["post-bike-branches"] }),
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const deleteBranch = useMutation({
+    mutationFn: async (id: string) => {
+      // Move any bikes still in this branch to unassigned first
+      const { error: moveErr } = await supabase.from("post_bikes").update({ branch_id: null }).eq("branch_id", id);
+      if (moveErr) throw moveErr;
+      const { error } = await supabase.from("post_bike_branches").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["post-bike-branches"] });
+      qc.invalidateQueries({ queryKey: ["post-bikes"] });
+    },
     onError: (e: Error) => toast.error(e.message),
   });
 
@@ -206,7 +233,38 @@ function PostBikePage() {
                   <h2 className="text-[0.6875rem] font-bold uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-1.5">
                     <MapPin className="h-3.5 w-3.5" /> {col.name}
                   </h2>
-                  <span className="font-display text-sm font-bold tabular-nums">{list.length}</span>
+                  <div className="flex items-center gap-1.5">
+                    {col.id && (
+                      <>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            const branch = branches.find((b) => b.id === col.id);
+                            if (branch) setEditBranch(branch);
+                          }}
+                          className="p-1 rounded-md text-muted-foreground hover:text-primary hover:bg-primary/10"
+                          aria-label="Edit branch"
+                        >
+                          <Pencil className="h-3 w-3" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (!confirm(`Delete branch "${col.name}"? Bikes in this branch will become Unassigned.`)) return;
+                            deleteBranch.mutate(col.id!);
+                          }}
+                          disabled={deleteBranch.isPending}
+                          className="p-1 rounded-md text-muted-foreground hover:text-destructive hover:bg-destructive/10 disabled:opacity-50"
+                          aria-label="Delete branch"
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </button>
+                      </>
+                    )}
+                    <span className="font-display text-sm font-bold tabular-nums">{list.length}</span>
+                  </div>
                 </header>
 
                 {list.length === 0 ? (
@@ -245,6 +303,12 @@ function PostBikePage() {
         onOpenChange={setBranchOpen}
         onCreated={() => qc.invalidateQueries({ queryKey: ["post-bike-branches"] })}
         nextOrder={branches.length + 1}
+      />
+      <EditBranchDialog
+        branch={editBranch}
+        onClose={() => setEditBranch(null)}
+        onSave={(id, name) => updateBranch.mutate({ id, name })}
+        saving={updateBranch.isPending}
       />
       <NewBikeDialog
         open={bikeOpen}
@@ -495,6 +559,63 @@ function CalendarPostBikes({
 const inputCls =
   "w-full rounded-lg border border-border bg-background px-2.5 h-9 text-sm focus:border-primary outline-none";
 
+function EditBranchDialog({
+  branch,
+  onClose,
+  onSave,
+  saving,
+}: {
+  branch: Branch | null;
+  onClose: () => void;
+  onSave: (id: string, name: string) => void;
+  saving: boolean;
+}) {
+  const [name, setName] = useState("");
+
+  // Sync name when branch changes
+  useState(() => {
+    if (branch) setName(branch.name);
+  });
+
+  useEffect(() => {
+    if (branch) setName(branch.name);
+  }, [branch?.id]);
+
+  async function save() {
+    if (!branch) return;
+    if (!name.trim()) return toast.error("Branch name is required");
+    onSave(branch.id, name.trim());
+  }
+
+  return (
+    <Dialog open={!!branch} onOpenChange={(v) => !v && onClose()}>
+      <DialogContent className="sm:max-w-sm">
+        <DialogHeader>
+          <DialogTitle>Edit branch</DialogTitle>
+        </DialogHeader>
+        <label className="block space-y-1">
+          <span className="text-xs font-semibold text-muted-foreground">Branch name</span>
+          <input
+            className={inputCls}
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="e.g. Papakura"
+          />
+        </label>
+        <DialogFooter>
+          <button
+            onClick={save}
+            disabled={saving}
+            className="h-9 rounded-lg bg-primary px-4 text-xs font-semibold text-primary-foreground disabled:opacity-60"
+          >
+            {saving ? "Saving…" : "Save changes"}
+          </button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 function NewBranchDialog({
   open,
   onOpenChange,
@@ -726,6 +847,181 @@ const QUICK_ITEMS = [
   "Wash & check",
 ];
 
+function CreateJobCardButton({ bike, onClose }: { bike: PostBike; onClose: () => void }) {
+  const nav = useNavigate();
+  const qc = useQueryClient();
+  const [open, setOpen] = useState(false);
+  const [title, setTitle] = useState("Post bike service");
+  const [serviceType, setServiceType] = useState("Standard Service");
+  const [description, setDescription] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  const bookingTypesQuery = useBookingTypes(true);
+  const activeServiceTypes = (bookingTypesQuery.data ?? []).map((t: any) => t.name);
+  const serviceTypeOptions =
+    activeServiceTypes.length > 0 ? activeServiceTypes : ["Standard Service", "Other"];
+
+  useEffect(() => {
+    if (!open) return;
+    setTitle("Post bike service");
+    setServiceType(serviceTypeOptions[0] ?? "Standard Service");
+    setDescription("");
+  }, [open, serviceTypeOptions[0]]);
+
+  async function createJob() {
+    setSaving(true);
+    try {
+      // Reuse a single fleet customer for all post-bike job cards
+      const { data: existingCustomer } = await supabase
+        .from("customers")
+        .select("id")
+        .ilike("first_name", "Post Bike Fleet")
+        .limit(1)
+        .maybeSingle();
+
+      let customerId = existingCustomer?.id;
+      if (!customerId) {
+        const { data: newCustomer, error: custErr } = await supabase
+          .from("customers")
+          .insert({ first_name: "Post Bike Fleet", last_name: "", phone: null, email: null })
+          .select("id")
+          .single();
+        if (custErr) throw custErr;
+        customerId = newCustomer.id;
+      }
+
+      // Reuse a motorcycle record by rego, or create one from the post bike details
+      let motorcycleId: string | null = null;
+      if (bike.rego) {
+        const { data: existingBike } = await supabase
+          .from("motorcycles")
+          .select("id")
+          .ilike("rego", bike.rego)
+          .limit(1)
+          .maybeSingle();
+        motorcycleId = existingBike?.id ?? null;
+      }
+
+      if (!motorcycleId) {
+        const { data: newBike, error: bikeErr } = await supabase
+          .from("motorcycles")
+          .insert({
+            customer_id: customerId,
+            make: bike.make || "Unknown",
+            model: bike.model || "Unknown",
+            year: bike.year,
+            rego: bike.rego,
+            color: bike.color,
+            mileage: bike.current_km,
+          })
+          .select("id")
+          .single();
+        if (bikeErr) throw bikeErr;
+        motorcycleId = newBike.id;
+      }
+
+      const { data: job, error: jobErr } = await supabase
+        .from("jobs")
+        .insert({
+          customer_id: customerId,
+          motorcycle_id: motorcycleId,
+          post_bike_id: bike.id,
+          title: title.trim() || "Post bike service",
+          description: description.trim() || null,
+          status: "new",
+        })
+        .select("id")
+        .single();
+      if (jobErr) throw jobErr;
+
+      toast.success("Job card created");
+      qc.invalidateQueries({ queryKey: ["jobs"] });
+      setOpen(false);
+      onClose();
+      nav({ to: "/jobs/$jobId", params: { jobId: job.id } });
+    } catch (e: any) {
+      toast.error(e.message || "Failed to create job card");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <>
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        className="w-full h-10 rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground hover:opacity-90 inline-flex items-center justify-center gap-2"
+      >
+        <Wrench className="h-4 w-4" /> Create job card
+      </button>
+
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Create job card</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div className="text-xs text-muted-foreground">
+              {bike.name || "Post bike"} · {fullBike(bike as any)} · {bike.rego || "No rego"}
+            </div>
+            <label className="block space-y-1">
+              <span className="text-xs font-semibold text-muted-foreground">Title</span>
+              <input
+                className={inputCls}
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="e.g. Post bike service"
+              />
+            </label>
+            <label className="block space-y-1">
+              <span className="text-xs font-semibold text-muted-foreground">Service type</span>
+              <select
+                className={inputCls}
+                value={serviceType}
+                onChange={(e) => setServiceType(e.target.value)}
+              >
+                {serviceTypeOptions.map((s) => (
+                  <option key={s} value={s}>
+                    {s}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="block space-y-1">
+              <span className="text-xs font-semibold text-muted-foreground">Notes / description</span>
+              <textarea
+                className="w-full rounded-lg border border-border bg-background px-2.5 py-2 text-sm outline-none focus:border-primary"
+                rows={3}
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="What needs to be done?"
+              />
+            </label>
+          </div>
+          <DialogFooter>
+            <button
+              type="button"
+              onClick={() => setOpen(false)}
+              className="h-9 rounded-lg border border-border px-4 text-xs font-semibold hover:bg-muted"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={createJob}
+              disabled={saving}
+              className="h-9 rounded-lg bg-primary px-4 text-xs font-semibold text-primary-foreground disabled:opacity-60"
+            >
+              {saving ? "Creating…" : "Create job card"}
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+}
+
 function BikeDetailDialog({
   bike,
   branches,
@@ -841,6 +1137,8 @@ function BikeDetailDialog({
             )}
           </DialogTitle>
         </DialogHeader>
+
+        <CreateJobCardButton bike={bike} onClose={onClose} />
 
 
         <div className="grid gap-3 sm:grid-cols-3">

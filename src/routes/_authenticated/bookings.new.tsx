@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { z } from "zod";
 
@@ -28,7 +28,15 @@ import {
   validateTimeRange,
 } from "@/lib/booking-conflicts";
 
-const searchSchema = z.object({ date: z.string().optional(), time: z.string().optional() });
+const searchSchema = z.object({
+  date: z.string().optional(),
+  time: z.string().optional(),
+  rego: z.string().optional(),
+  make: z.string().optional(),
+  model: z.string().optional(),
+  year: z.coerce.number().optional(),
+  mileage: z.coerce.number().optional(),
+});
 
 export const Route = createFileRoute("/_authenticated/bookings/new")({
   validateSearch: (search) => searchSchema.parse(search),
