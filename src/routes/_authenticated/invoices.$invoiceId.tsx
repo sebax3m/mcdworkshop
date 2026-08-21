@@ -892,19 +892,22 @@ function InvoiceDetail() {
           color-scheme: light;
         }
 
-        /* On-screen guide showing where each A4 sheet ends. */
-        .invoice-sheet::after {
-          content: "";
-          position: absolute;
-          inset: 0;
-          pointer-events: none;
-          background-image: repeating-linear-gradient(
-            to bottom,
-            transparent 0,
-            transparent calc(297mm - 1px),
-            color-mix(in oklab, var(--primary) 70%, transparent) calc(297mm - 1px),
-            color-mix(in oklab, var(--primary) 70%, transparent) 297mm
-          );
+        /* On-screen guide showing where each A4 sheet ends.
+           Screen only — it must never reach the printed page. */
+        @media screen {
+          .invoice-sheet::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            background-image: repeating-linear-gradient(
+              to bottom,
+              transparent 0,
+              transparent calc(297mm - 1px),
+              color-mix(in oklab, var(--primary) 70%, transparent) calc(297mm - 1px),
+              color-mix(in oklab, var(--primary) 70%, transparent) 297mm
+            );
+          }
         }
 
         /* Inside the print-preview iframe the page box is provided by @page,
