@@ -1049,7 +1049,7 @@ function InvoiceDetail() {
               </span>
               <span className="flex flex-col min-w-0">
                 <span className="text-[0.62rem] uppercase tracking-[0.18em] text-muted-foreground">Technician</span>
-                <b className="text-foreground print:inline hidden">{technicianName || "—"}</b>
+                <b className="text-foreground print-only">{technicianName || "—"}</b>
 
                 <select
                   className="no-print rounded-md border border-border bg-background px-1 py-0.5 text-xs font-semibold text-foreground"
