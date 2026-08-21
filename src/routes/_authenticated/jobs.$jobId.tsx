@@ -47,6 +47,7 @@ import {
 import { detectServiceKind, KIND_META, SERVICE_PARTS } from "@/lib/service-kinds";
 import { fetchServiceTemplates, snapshotRows } from "@/lib/service-templates";
 import WorkPerformedSection, { readWorkPerformed } from "@/components/job/WorkPerformedSection";
+import CustomerNotesSection from "@/components/job/CustomerNotesSection";
 import { getValveSpec, formatRange, type ValveSpec } from "@/lib/valve-specs";
 import { valveSheetHtml } from "@/lib/valve-sheet-html";
 import { FrontArrow } from "@/components/job/FrontArrow";
@@ -1014,6 +1015,13 @@ function JobDetail() {
         onChanged={() => qc.invalidateQueries({ queryKey: ["job", jobId] })}
       />
 
+      {/* Notes for the invoice (technician recommendations) */}
+      <CustomerNotesSection
+        jobId={jobId}
+        serviceData={(j.service_data as any) ?? {}}
+        canEdit={canEdit}
+        onChanged={() => qc.invalidateQueries({ queryKey: ["job", jobId] })}
+      />
 
       {/* Parts used (service-kind aware) */}
       {(SERVICE_PARTS[kind].length > 0 || canEdit || (partsUsed.data ?? []).length > 0) && (
