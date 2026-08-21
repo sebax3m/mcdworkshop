@@ -855,10 +855,10 @@ function InvoiceDetail() {
               className="h-12 w-12 object-contain"
             />
             <div>
-              <div className="font-display text-xl font-black tracking-tight leading-none">
+              <div className="font-display text-2xl font-black tracking-tight leading-none">
                 Motorcycle Doctors
               </div>
-              <div className="text-[0.62rem] leading-tight opacity-80 mt-1">
+              <div className="text-[0.7rem] leading-tight opacity-80 mt-1">
                 94 Wairau Rd, Wairau Valley, Auckland · 0800 668 663 · services@mcdr.co.nz
                 <br />
                 www.motorcycle-doctors.co.nz · GST Reg N°: 99386185
@@ -866,8 +866,8 @@ function InvoiceDetail() {
             </div>
           </div>
           <div className="text-right">
-            <div className="text-[0.6rem] uppercase tracking-[0.25em] opacity-80">Tax Invoice</div>
-            <div className="font-display text-xl font-black">{inv.invoice_number}</div>
+            <div className="text-[0.7rem] uppercase tracking-[0.25em] opacity-80">Tax Invoice</div>
+            <div className="font-display text-2xl font-black">{inv.invoice_number}</div>
           </div>
         </div>
 
@@ -877,13 +877,13 @@ function InvoiceDetail() {
           {/* Compact summary: customer + bike + meta in one strip */}
           <div
             data-print-section="meta"
-            className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 text-xs rounded-md border border-border px-4 py-3"
+            className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 text-[0.8rem] rounded-md border border-border px-4 py-3"
           >
             <div className="min-w-0">
-              <span className="text-[0.6rem] uppercase tracking-wider text-muted-foreground">
+              <span className="text-[0.7rem] uppercase tracking-wider text-muted-foreground">
                 Bill to
               </span>
-              <div className="font-bold text-sm truncate">
+              <div className="font-bold text-base truncate">
                 {customer ? `${customer.first_name ?? ""} ${customer.last_name ?? ""}`.trim() : "—"}
               </div>
               <div className="text-muted-foreground truncate">
@@ -891,10 +891,10 @@ function InvoiceDetail() {
               </div>
             </div>
             <div className="min-w-0">
-              <span className="text-[0.6rem] uppercase tracking-wider text-muted-foreground">
+              <span className="text-[0.7rem] uppercase tracking-wider text-muted-foreground">
                 Motorcycle
               </span>
-              <div className="font-bold text-sm truncate">{bike ? fullBike(bike as any) : "—"}</div>
+              <div className="font-bold text-base truncate">{bike ? fullBike(bike as any) : "—"}</div>
               <div className="text-muted-foreground truncate">
                 {[
                   bike?.rego ? `Rego ${bike.rego}` : null,
@@ -949,7 +949,7 @@ function InvoiceDetail() {
             if (!all.length) return null;
             return (
               <div className="pt-5 border-t border-border" data-print-section="work-performed">
-                <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground mb-2">
+                <div className="font-display text-sm uppercase tracking-wider text-muted-foreground mb-2 font-semibold">
                   Work performed
                 </div>
                 {wp.length === 0 && (
@@ -961,7 +961,7 @@ function InvoiceDetail() {
                   {wp.map((w) => (
                     <div key={w.id} className="group flex items-start gap-2">
                       <div className="min-w-0 flex-1">
-                        <div className="text-sm font-semibold">{w.title}</div>
+                        <div className="text-base font-semibold">{w.title}</div>
                         {w.detail && (
                           <div className="text-xs text-muted-foreground whitespace-pre-wrap mt-0.5">
                             {w.detail}
@@ -997,7 +997,7 @@ function InvoiceDetail() {
           <div className="pt-5 border-t border-border">
             <table className="w-full text-sm align-top">
               <thead>
-                <tr className="text-left text-[0.625rem] uppercase tracking-wider text-muted-foreground border-b border-border">
+                <tr className="text-left text-[0.7rem] uppercase tracking-wider text-muted-foreground border-b border-border">
                   <th className="py-2.5 pr-3 font-semibold w-[30%]">Item</th>
                   <th className="py-2.5 pr-3 font-semibold">Description</th>
                   <th className="py-2.5 pl-3 text-right font-semibold w-16">Qty</th>
@@ -1503,7 +1503,7 @@ function InvoiceDetail() {
           {/* Payment info */}
           <div data-print-section="payment" className="pt-5 border-t border-border text-sm">
             <div>
-              <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground mb-2">
+              <div className="font-display text-sm font-semibold uppercase tracking-wider text-muted-foreground mb-2">
                 Payment Details
               </div>
               <div className="space-y-0.5 text-xs">
@@ -1796,7 +1796,7 @@ function NotesBox({
   return (
     <div>
       <div className="flex items-center justify-between mb-2">
-        <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">Notes</div>
+        <div className="font-display text-sm font-semibold uppercase tracking-wider text-muted-foreground">Notes</div>
         <div className="text-[0.625rem] text-muted-foreground no-print">
           {saving ? "Saving…" : savedAt ? "Saved" : "Auto-saves on blur"}
         </div>

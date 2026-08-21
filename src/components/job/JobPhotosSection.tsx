@@ -188,7 +188,7 @@ export function JobPhotosSection({
             <div className="text-[0.625rem] uppercase tracking-[0.25em] text-muted-foreground font-bold">
               Evidence
             </div>
-            <h2 className="font-display text-lg font-semibold">Job photos</h2>
+            <h2 className="font-display text-xl font-semibold tracking-tight">Job photos</h2>
           </div>
         </div>
 

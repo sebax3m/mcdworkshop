@@ -97,7 +97,7 @@ export function ClaimDamageSection({ claimId, canEdit }: { claimId: string; canE
             <div className="text-[0.625rem] uppercase tracking-[0.25em] text-muted-foreground font-bold">
               Collision
             </div>
-            <h2 className="font-display text-lg font-semibold">Damage photos</h2>
+            <h2 className="font-display text-xl font-semibold tracking-tight">Damage photos</h2>
           </div>
         </div>
         {canEdit && (
