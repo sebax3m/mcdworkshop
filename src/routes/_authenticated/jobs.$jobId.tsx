@@ -3001,22 +3001,22 @@ function BikeComplianceCard({
   const odoDisplay = odoValue ? Number(odoValue.replace(/\D/g, "")).toLocaleString() : "";
 
   return (
-    <div className="card-surface p-4 print:hidden">
-      <div className="mb-3">
-        <h3 className="font-display text-base font-semibold">Bike details</h3>
-        <p className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">
-          REGO, WOF & odometer
-        </p>
+    <div className="card-surface p-3.5 print:hidden">
+      <div className="mb-2.5 flex items-center gap-2">
+        <BikeIcon className="h-4 w-4 text-service-banana" />
+        <h3 className="font-display text-base font-bold uppercase tracking-wider text-service-banana bg-service-banana/10 px-2 py-0.5 rounded-md">
+          Bike details
+        </h3>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-x-3 gap-y-2">
         {/* Odometer */}
         <div className="space-y-1">
-          <label className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">
+          <label className="block text-[0.5625rem] font-semibold uppercase tracking-wider text-muted-foreground">
             Kilometers
           </label>
-          <div className="flex items-center gap-2">
-            <div className="relative flex-1">
+          <div className="flex items-center gap-1.5">
+            <div className="relative min-w-0 flex-1">
               <Input
                 inputMode="numeric"
                 placeholder="24,500"
@@ -3026,30 +3026,31 @@ function BikeComplianceCard({
                   setOdoDirty(true);
                 }}
                 disabled={!canEdit || odoSaving}
-                className="pr-10 h-9 font-mono text-sm"
+                className="h-8 pr-7 font-mono text-xs tabular-nums"
               />
-              <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground font-semibold pointer-events-none">
+              <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-[0.5625rem] font-semibold text-muted-foreground">
                 km
               </span>
             </div>
             <Button
               size="sm"
-              className="h-9 px-2.5"
+              variant="outline"
+              className="h-8 px-2 text-[0.625rem]"
               onClick={() => saveOdometer()}
               disabled={!canEdit || odoSaving || !odoDirty}
             >
               Save
             </Button>
           </div>
-          <div className="flex items-center gap-2 text-[0.625rem] text-muted-foreground">
-            {bikeMileage != null && <span>Last: {bikeMileage.toLocaleString()} km</span>}
+          <div className="flex items-center gap-2 text-[0.5625rem] text-muted-foreground/80">
+            {bikeMileage != null && <span className="truncate">Last {bikeMileage.toLocaleString()} km</span>}
             <span className="ml-auto">{odoDirty ? "unsaved" : odoTick ? "✓ saved" : "\u00A0"}</span>
           </div>
         </div>
 
         {/* REGO plate */}
         <div className="space-y-1">
-          <label className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">
+          <label className="block text-[0.5625rem] font-semibold uppercase tracking-wider text-muted-foreground">
             REGO plate
           </label>
           <Input
@@ -3060,16 +3061,16 @@ function BikeComplianceCard({
               setRegoDirty(true);
             }}
             disabled={!canEdit || regoSaving}
-            className="h-9 font-mono text-sm tracking-widest"
+            className="h-8 font-mono text-xs font-bold uppercase tracking-[0.18em]"
           />
-          <div className="text-[0.625rem] text-muted-foreground text-right">
+          <div className="text-right text-[0.5625rem] text-muted-foreground/80">
             {regoSaving || regoDirty ? "saving…" : regoTick ? "✓ saved" : "\u00A0"}
           </div>
         </div>
 
         {/* REGO expiry */}
         <div className="space-y-1">
-          <label className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">
+          <label className="block text-[0.5625rem] font-semibold uppercase tracking-wider text-muted-foreground">
             REGO expiry
           </label>
           <Input
@@ -3080,22 +3081,24 @@ function BikeComplianceCard({
               setRegoExpDirty(true);
             }}
             disabled={!canEdit || regoExpSaving}
-            className={`h-9 font-mono text-sm ${regoExpired ? "text-destructive" : ""}`}
+            className={`h-8 font-mono text-xs tabular-nums ${regoExpired ? "border-destructive/60 text-destructive" : ""}`}
           />
-          <div className="text-[0.625rem] text-muted-foreground text-right">
-            {regoExpSaving || regoExpDirty
-              ? "saving…"
-              : regoExpired
-              ? "expired"
-              : regoExpTick
-              ? "✓ saved"
-              : "\u00A0"}
+          <div className="text-right text-[0.5625rem] text-muted-foreground/80">
+            {regoExpSaving || regoExpDirty ? (
+              "saving…"
+            ) : regoExpired ? (
+              <span className="font-semibold uppercase tracking-wider text-destructive">expired</span>
+            ) : regoExpTick ? (
+              "✓ saved"
+            ) : (
+              "\u00A0"
+            )}
           </div>
         </div>
 
         {/* WOF expiry */}
         <div className="space-y-1">
-          <label className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">
+          <label className="block text-[0.5625rem] font-semibold uppercase tracking-wider text-muted-foreground">
             WOF expiry
           </label>
           <Input
@@ -3106,16 +3109,18 @@ function BikeComplianceCard({
               setWofExpDirty(true);
             }}
             disabled={!canEdit || wofExpSaving}
-            className={`h-9 font-mono text-sm ${wofExpired ? "text-destructive" : ""}`}
+            className={`h-8 font-mono text-xs tabular-nums ${wofExpired ? "border-destructive/60 text-destructive" : ""}`}
           />
-          <div className="text-[0.625rem] text-muted-foreground text-right">
-            {wofExpSaving || wofExpDirty
-              ? "saving…"
-              : wofExpired
-              ? "expired"
-              : wofExpTick
-              ? "✓ saved"
-              : "\u00A0"}
+          <div className="text-right text-[0.5625rem] text-muted-foreground/80">
+            {wofExpSaving || wofExpDirty ? (
+              "saving…"
+            ) : wofExpired ? (
+              <span className="font-semibold uppercase tracking-wider text-destructive">expired</span>
+            ) : wofExpTick ? (
+              "✓ saved"
+            ) : (
+              "\u00A0"
+            )}
           </div>
         </div>
       </div>
