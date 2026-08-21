@@ -855,6 +855,27 @@ function CreateJobCardButton({ bike, onClose }: { bike: PostBike; onClose: () =>
   const [serviceType, setServiceType] = useState("Standard Service");
   const [description, setDescription] = useState("");
   const [saving, setSaving] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
+
+  // Job cards already recorded against this fleet bike
+  const jobsQuery = useQuery({
+    queryKey: ["post-bike-jobs", bike.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("jobs")
+        .select("id, job_number, title, status, created_at")
+        .eq("post_bike_id", bike.id)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+  const jobs = jobsQuery.data ?? [];
+  const openJobs = jobs.filter(
+    (j: any) => !["completed", "ready_for_pickup"].includes(String(j.status)),
+  );
+  const visibleJobs = showHistory ? jobs : openJobs.length ? openJobs : jobs.slice(0, 1);
+
 
   const bookingTypesQuery = useBookingTypes(true);
   const activeServiceTypes = (bookingTypesQuery.data ?? []).map((t: any) => t.name);
