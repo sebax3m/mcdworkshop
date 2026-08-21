@@ -726,6 +726,32 @@ const QUICK_ITEMS = [
   "Wash & check",
 ];
 
+function CreateJobCardButton({ bike, onClose }: { bike: PostBike; onClose: () => void }) {
+  const nav = useNavigate();
+  return (
+    <button
+      type="button"
+      onClick={() => {
+        onClose();
+        nav({
+          to: "/bookings/new",
+          search: {
+            rego: bike.rego ?? undefined,
+            make: bike.make ?? undefined,
+            model: bike.model ?? undefined,
+            year: bike.year ?? undefined,
+            mileage: bike.current_km ?? undefined,
+            postBikeId: bike.id,
+          },
+        });
+      }}
+      className="w-full h-10 rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground hover:opacity-90 inline-flex items-center justify-center gap-2"
+    >
+      <Wrench className="h-4 w-4" /> Create job card
+    </button>
+  );
+}
+
 function BikeDetailDialog({
   bike,
   branches,
