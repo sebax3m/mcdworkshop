@@ -81,25 +81,21 @@ export function AppShell() {
   const tabs = isAdmin
     ? [
         { to: "/dashboard", label: "Today", icon: LayoutDashboard, color: "#f87171" },
-        { to: "/calendar", label: "Book-ins", icon: CalendarDays, color: "#60a5fa" },
-        { to: "/post-bike", label: "Post Bike", icon: Truck, color: "#38bdf8" },
-        { to: "/bookings", label: "List", icon: ClipboardList, color: "#f472b6" },
+        { to: "/calendar", label: "Calendar", icon: CalendarDays, color: "#60a5fa" },
         { to: "/jobs", label: "Jobs", icon: Wrench, color: "#fb923c" },
+        { to: "/post-bike", label: "Post Bikes", icon: Truck, color: "#38bdf8" },
+        { to: "/insurance", label: "Insurance", icon: ShieldCheck, color: "#a78bfa" },
+        { to: "/invoices", label: "Invoices", icon: FileText, color: "#22d3ee" },
+        { to: "/loan-bikes", label: "Loan Bikes", icon: KeyRound, color: "#f59e0b" },
         { to: "/motorcycles", label: "Bikes", icon: Bike, color: "#facc15" },
         { to: "/garage-library", label: "Garage Library", icon: Library, color: "#f59e0b" },
-        { to: "/clock", label: "Team Clock", icon: Timer, color: "#34d399" },
-        { to: "/invoices", label: "Invoices", icon: FileText, color: "#22d3ee" },
-        { to: "/insurance", label: "Insurance", icon: ShieldCheck, color: "#a78bfa" },
-        { to: "/loan-bikes", label: "Loan Bikes", icon: KeyRound, color: "#f59e0b" },
-        { to: "/analytics", label: "Analytics", icon: BarChart3, color: "#4ade80" },
-        { to: "/settings", label: "Settings", icon: SettingsIcon, color: "#94a3b8" },
+        { to: "/bookings", label: "List", icon: ClipboardList, color: "#f472b6" },
       ]
     : [
         { to: "/my-work", label: "My Work", icon: LayoutDashboard, color: "#f87171" },
-        { to: "/calendar", label: "Book-ins", icon: CalendarDays, color: "#60a5fa" },
-
-        { to: "/post-bike", label: "Post Bike", icon: Truck, color: "#38bdf8" },
+        { to: "/calendar", label: "Calendar", icon: CalendarDays, color: "#60a5fa" },
         { to: "/jobs", label: "Job Cards", icon: Wrench, color: "#fb923c" },
+        { to: "/post-bike", label: "Post Bikes", icon: Truck, color: "#38bdf8" },
         { to: "/motorcycles", label: "Bikes", icon: Bike, color: "#facc15" },
         { to: "/garage-library", label: "Garage Library", icon: Library, color: "#f59e0b" },
         { to: "/customers", label: "Customers", icon: Users, color: "#f472b6" },
