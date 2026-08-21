@@ -369,6 +369,25 @@ function InvoiceDetail() {
     return () => ro.disconnect();
   }, []);
 
+  /* Rule for every invoice: the sheet always ends exactly on a page boundary,
+     so the notes + payment details + TOTAL block stays pinned to the bottom of
+     the last A4 page instead of floating up after the last line item. */
+  useEffect(() => {
+    const el = sheetRef.current;
+    if (!el) return;
+    const PAGE_PX = (297 / 25.4) * 96;
+    const snap = () => {
+      el.style.minHeight = "0px";
+      const pages = Math.max(1, Math.ceil((el.scrollHeight - 1) / PAGE_PX));
+      el.style.minHeight = `${pages * PAGE_PX}px`;
+    };
+    snap();
+    const ro = new ResizeObserver(() => requestAnimationFrame(snap));
+    ro.observe(el);
+    return () => ro.disconnect();
+  });
+
+
   /* Drag to pan when the sheet is bigger than the viewport. */
   const dragRef = useRef<{ x: number; y: number; sl: number; st: number } | null>(null);
   const onSheetPointerDown = (e: React.PointerEvent) => {
