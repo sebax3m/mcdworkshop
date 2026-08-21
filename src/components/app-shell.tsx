@@ -281,7 +281,7 @@ export function AppShell() {
       </aside>
 
       {/* ===== MAIN ===== */}
-      <main className="flex-1 px-4 pt-5 pb-28 sm:pb-5 sm:ml-[220px]">
+      <main className="min-w-0 max-w-full flex-1 overflow-x-hidden px-3 pt-5 pb-28 sm:px-4 sm:pb-5 sm:ml-[220px]">
         <Outlet />
       </main>
 
