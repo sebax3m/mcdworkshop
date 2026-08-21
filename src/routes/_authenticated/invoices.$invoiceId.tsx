@@ -1203,13 +1203,13 @@ function InvoiceDetail() {
                               />
                             </div>
                           </td>
-                          <td className="py-2.5 pr-3 align-top text-xs text-muted-foreground">
+                          <td className="py-2.5 pr-3 align-top text-muted-foreground">
                             <EditableText
                               value={desc}
                               multiline
                               placeholder="Describe the work performed…"
                               onCommit={(v) => saveSnapshotMeta({ labour_desc: v })}
-                              className="text-xs text-muted-foreground leading-snug whitespace-pre-wrap"
+                              className="text-muted-foreground leading-snug whitespace-pre-wrap"
                             />
                             {hourly && defaultHours > 0 && (
                               <span className="no-print"> · tracked {defaultHours.toFixed(2)}h</span>
@@ -1301,7 +1301,7 @@ function InvoiceDetail() {
                                   ? "Washers, lubricants, cleaners, degreaser, rags…"
                                   : "—"
                               }
-                              className="text-xs text-muted-foreground block leading-snug whitespace-pre-wrap"
+                              className="text-muted-foreground block leading-snug whitespace-pre-wrap"
                             />
                           </td>
                           <td className="py-2.5 pl-3 pr-6 text-right align-top tabular-nums">
@@ -1494,7 +1494,7 @@ function InvoiceDetail() {
                                     : ({ item_name: itemName, description: v } as any),
                                 )
                               }
-                              className="text-xs text-muted-foreground block leading-snug whitespace-pre-wrap"
+                              className="text-muted-foreground block leading-snug whitespace-pre-wrap"
                             />
                           </td>
                           <td className="py-2.5 pl-3 pr-6 text-right align-top tabular-nums">
@@ -1620,17 +1620,12 @@ function InvoiceDetail() {
           </div>
 
           {/* Payment details + totals — anchored to the bottom of the A4 sheet.
-              Each payment detail row is horizontally aligned with its matching
-              totals row so the first detail line sits at the same level as
-              "Labour (incl GST)". */}
+              Both blocks share the same top edge: the "Payment Details" header
+              aligns with "Labour (incl GST)" and each following row lines up. */}
           <div className="pt-3 mt-3 border-t border-border text-xs">
-            <div className="font-display text-[0.7rem] font-semibold uppercase tracking-wider text-muted-foreground mb-1">
-              Payment Details
-            </div>
-
             <div className="flex flex-col sm:flex-row justify-between gap-1 sm:gap-6">
-              <div data-print-section="payment" className="flex-1">
-                <span className="text-muted-foreground">Account:</span> Motorcycle Doctors LTD
+              <div data-print-section="payment" className="flex-1 font-display text-[0.7rem] font-semibold uppercase tracking-wider text-muted-foreground">
+                Payment Details
               </div>
               <div className="w-full sm:w-[17rem] flex items-baseline justify-between gap-4">
                 <span className="text-muted-foreground">Labour (incl GST)</span>
@@ -1640,7 +1635,7 @@ function InvoiceDetail() {
 
             <div className="flex flex-col sm:flex-row justify-between gap-1 sm:gap-6">
               <div data-print-section="payment" className="flex-1">
-                <span className="text-muted-foreground">Bank:</span> ASB Bank
+                <span className="text-muted-foreground">Account:</span> Motorcycle Doctors LTD
               </div>
               <div className="w-full sm:w-[17rem] flex items-baseline justify-between gap-4">
                 <span className="text-muted-foreground">Parts (incl GST)</span>
@@ -1650,7 +1645,7 @@ function InvoiceDetail() {
 
             <div className="flex flex-col sm:flex-row justify-between gap-1 sm:gap-6">
               <div data-print-section="payment" className="flex-1">
-                <span className="text-muted-foreground">Account #:</span> 12-3072-0008398-00
+                <span className="text-muted-foreground">Bank:</span> ASB Bank
               </div>
               <div className="w-full sm:w-[17rem] flex items-baseline justify-between gap-4">
                 <span className="text-muted-foreground">Subtotal (excl GST)</span>
@@ -1660,7 +1655,7 @@ function InvoiceDetail() {
 
             <div className="flex flex-col sm:flex-row justify-between gap-1 sm:gap-6">
               <div data-print-section="payment" className="flex-1">
-                <span className="text-muted-foreground">Reference:</span> {inv.invoice_number}
+                <span className="text-muted-foreground">Account #:</span> 12-3072-0008398-00
               </div>
               <div className="w-full sm:w-[17rem] flex items-baseline justify-between gap-4 pb-1 border-b border-border">
                 <span className="text-muted-foreground">GST 15% (incl.)</span>
@@ -1669,7 +1664,9 @@ function InvoiceDetail() {
             </div>
 
             <div className="flex flex-col sm:flex-row justify-between gap-1 sm:gap-6">
-              <div className="flex-1" />
+              <div data-print-section="payment" className="flex-1">
+                <span className="text-muted-foreground">Reference:</span> {inv.invoice_number}
+              </div>
               <div className="w-full sm:w-[17rem] flex items-baseline justify-between gap-4 pt-2 mt-1 border-t-2 border-foreground/80 font-display font-black leading-none">
                 <span className="text-base tracking-wide">TOTAL</span>
                 <span className="red-gradient-text tabular-nums text-2xl">
