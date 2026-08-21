@@ -46,13 +46,23 @@ export function InvoicePrintPreview({
   const usablePx =
     ((parseFloat(pageH) - 2 * parseFloat(MARGIN[margin])) / 25.4) * 96;
 
+  /** Natural content height, ignoring the whole-page padding applied to the sheet. */
   const measure = () => {
     const d = frameRef.current?.contentDocument;
     const page = d?.querySelector(".invoice-page") as HTMLElement | null;
+    const sheet = d?.querySelector(".invoice-sheet") as HTMLElement | null;
     if (!page) return 0;
+    const prev = sheet?.style.getPropertyValue("--sheetmin") ?? "";
+    sheet?.style.setProperty("--sheetmin", "0px");
     // scrollHeight is in unzoomed CSS px; multiply by the print scale.
-    return page.scrollHeight * (printScale / 100);
+    const h = page.scrollHeight * (printScale / 100);
+    if (sheet) {
+      if (prev) sheet.style.setProperty("--sheetmin", prev);
+      else sheet.style.removeProperty("--sheetmin");
+    }
+    return h;
   };
+
 
   useEffect(() => {
     if (!open) return;
@@ -95,10 +105,11 @@ ${styles}
     border: 0 !important;
     display: flex !important;
     flex-direction: column !important;
-    min-height: calc((${pageH} - 2 * ${MARGIN[margin]}) / var(--pscale, 1)) !important;
+    min-height: var(--sheetmin, calc((${pageH} - 2 * ${MARGIN[margin]}) / var(--pscale, 1))) !important;
     padding-block: ${margin === "none" ? "6mm" : "0mm"} !important;
     overflow: visible !important;
   }
+
 
 
   /* --- Vertical density: shrink gaps only, never the type size --- */
@@ -154,7 +165,27 @@ ${styles}
 </head>
 <body class="${bodyClass}">
   <div class="preview-viewport"><div class="page-wrap"><div class="page-guides"></div><div class="invoice-page">${getHtml()}</div></div></div>
+  <script>
+    (function () {
+      // Rule for every invoice: the sheet always ends on a whole page boundary,
+      // so notes + payment details + TOTAL stay pinned to the bottom of the
+      // last page instead of floating up right after the last line item.
+      var unit = ${usablePx} / (${printScale} / 100);
+      function snap() {
+        var s = document.querySelector('.invoice-sheet');
+        if (!s) return;
+        s.style.setProperty('--sheetmin', '0px');
+        var pages = Math.max(1, Math.ceil((s.scrollHeight - 2) / unit));
+        s.style.setProperty('--sheetmin', (pages * unit) + 'px');
+      }
+      snap();
+      setTimeout(snap, 150);
+      window.addEventListener('load', snap);
+      window.addEventListener('beforeprint', snap);
+    })();
+  </script>
 </body></html>`;
+
 
     frame.srcdoc = doc;
     const t = setTimeout(() => setPages(Math.max(1, Math.ceil(measure() / usablePx))), 300);
@@ -170,16 +201,21 @@ ${styles}
   const fitOnePageByDensity = () => {
     const d = frameRef.current?.contentDocument;
     const page = d?.querySelector(".invoice-page") as HTMLElement | null;
+    const sheet = d?.querySelector(".invoice-sheet") as HTMLElement | null;
     if (!d || !page) return;
+    sheet?.style.setProperty("--sheetmin", "0px");
     let value = 100;
     for (let v = 100; v >= 30; v -= 2) {
       d.documentElement.style.setProperty("--pdense", String(v / 100));
       value = v;
       if (page.scrollHeight * (printScale / 100) <= usablePx) break;
     }
+    const content = page.scrollHeight * (printScale / 100);
     setDensity(value);
-    setPages(Math.max(1, Math.ceil((page.scrollHeight * (printScale / 100)) / usablePx)));
+    setPages(Math.max(1, Math.ceil(content / usablePx)));
+    sheet?.style.removeProperty("--sheetmin");
   };
+
 
 
 
