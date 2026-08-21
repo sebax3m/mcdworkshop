@@ -46,13 +46,23 @@ export function InvoicePrintPreview({
   const usablePx =
     ((parseFloat(pageH) - 2 * parseFloat(MARGIN[margin])) / 25.4) * 96;
 
+  /** Natural content height, ignoring the whole-page padding applied to the sheet. */
   const measure = () => {
     const d = frameRef.current?.contentDocument;
     const page = d?.querySelector(".invoice-page") as HTMLElement | null;
+    const sheet = d?.querySelector(".invoice-sheet") as HTMLElement | null;
     if (!page) return 0;
+    const prev = sheet?.style.getPropertyValue("--sheetmin") ?? "";
+    sheet?.style.setProperty("--sheetmin", "0px");
     // scrollHeight is in unzoomed CSS px; multiply by the print scale.
-    return page.scrollHeight * (printScale / 100);
+    const h = page.scrollHeight * (printScale / 100);
+    if (sheet) {
+      if (prev) sheet.style.setProperty("--sheetmin", prev);
+      else sheet.style.removeProperty("--sheetmin");
+    }
+    return h;
   };
+
 
   useEffect(() => {
     if (!open) return;
