@@ -166,6 +166,23 @@ function NewBooking() {
       ).data ?? [],
   });
 
+  // Pre-fill from Post Bike "Create job card" flow
+  useEffect(() => {
+    if (!search.rego && !search.make && !search.model) return;
+    if (search.rego) {
+      setSearchMode("rego");
+      setSearch$(search.rego);
+    }
+    if (search.make) setNbMake(search.make);
+    if (search.model) setNbModel(search.model);
+    if (search.year) setNbYear(String(search.year));
+    if (search.rego) setNbRego(search.rego);
+    if (search.mileage != null) {
+      setMileage(String(search.mileage));
+      setNbColor(""); // keep color empty unless we later pass it
+    }
+  }, []);
+
   const customer = (customers.data as any[] | undefined)?.find((c) => c.id === customerId);
   const bike = (bikes.data as any[] | undefined)?.find((b) => b.id === bikeId);
   const searchResults = useMemo(() => {
