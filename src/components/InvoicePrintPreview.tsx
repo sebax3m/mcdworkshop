@@ -25,13 +25,19 @@ export function InvoicePrintPreview({
   const frameRef = useRef<HTMLIFrameElement>(null);
   const [zoom, setZoom] = useState(100);
   const [paper, setPaper] = useState<"A4" | "Letter" | "Legal">("A4");
+  const [orientation, setOrientation] = useState<"portrait" | "landscape">("portrait");
+  /** Real print scale — affects the printed output, not just the on-screen preview. */
+  const [printScale, setPrintScale] = useState(100);
+  const [margin, setMargin] = useState<"none" | "narrow" | "normal">("none");
 
-  const PAPER: Record<string, { w: string; css: string }> = {
-    A4: { w: "210mm", css: "A4 portrait" },
-    Letter: { w: "216mm", css: "Letter portrait" },
-    Legal: { w: "216mm", css: "Legal portrait" },
+  const PAPER: Record<string, { w: string; h: string; css: string }> = {
+    A4: { w: "210mm", h: "297mm", css: "A4" },
+    Letter: { w: "216mm", h: "279mm", css: "Letter" },
+    Legal: { w: "216mm", h: "356mm", css: "Legal" },
   };
-
+  const MARGIN = { none: "0mm", narrow: "6mm", normal: "12mm" } as const;
+  const landscape = orientation === "landscape";
+  const pageW = landscape ? PAPER[paper].h : PAPER[paper].w;
 
   useEffect(() => {
     if (!open) return;
@@ -51,15 +57,19 @@ export function InvoicePrintPreview({
     const bodyClass = document.body.className;
 
     const doc = `<!doctype html>
-<html class="${rootClass}" style="${rootStyle.replace(/"/g, "&quot;")}">
+<html class="${rootClass}" style="${rootStyle.replace(/"/g, "&quot;")}; --pzoom:${zoom / 100}; --pscale:${printScale / 100}">
 <head><meta charset="utf-8"><title>${title.replace(/</g, "&lt;")}</title>
 ${styles}
 <style>
-  @page { size: ${PAPER[paper].css}; margin: 0; }
+  @page { size: ${PAPER[paper].css} ${orientation}; margin: ${MARGIN[margin]}; }
   html, body { margin:0; padding:0; background:#f4f4f5; }
   body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   .preview-viewport { padding: 16px 0; }
-  .invoice-page { width: ${PAPER[paper].w}; margin: 0 auto; }
+  .invoice-page {
+    width: ${pageW};
+    margin: 0 auto;
+    zoom: var(--pscale, 1);
+  }
   /* Only screen-only controls are dropped; everything else renders exactly as
      it does in the app so the preview equals the printout. */
   .invoice-page .no-print, .invoice-page .print\\:hidden { display:none !important; }
@@ -78,6 +88,7 @@ ${styles}
     .invoice-sheet .bg-background { background: var(--background) !important; }
     .invoice-sheet .border-border { border-color: var(--border) !important; }
     .preview-viewport { padding:0 !important; zoom:1 !important; }
+    .invoice-page { width: calc(${pageW} - 2 * ${MARGIN[margin]}); }
   }
 
 </style>
@@ -87,12 +98,13 @@ ${styles}
 </body></html>`;
 
     frame.srcdoc = doc;
-  }, [open, title, getHtml, paper]);
+  }, [open, title, getHtml, paper, orientation, margin, printScale]);
 
   useEffect(() => {
     const d = frameRef.current?.contentDocument;
     if (d) d.documentElement.style.setProperty("--pzoom", String(zoom / 100));
   }, [zoom, open]);
+
 
   if (!open) return null;
 
