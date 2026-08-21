@@ -1619,48 +1619,58 @@ function InvoiceDetail() {
             />
           </div>
 
-          {/* Payment details + totals — anchored to the bottom of the A4 sheet,
-              with the final total sitting in the bottom-right corner. */}
-          <div className="pt-3 mt-3 border-t border-border grid grid-cols-1 sm:grid-cols-[1fr_17rem] gap-6 items-end">
-
-            <div data-print-section="payment" className="text-xs">
-              <div className="font-display text-[0.7rem] font-semibold uppercase tracking-wider text-muted-foreground mb-1">
-                Payment Details
-              </div>
-              <div className="space-y-0.5">
-                <div>
-                  <span className="text-muted-foreground">Account:</span> Motorcycle Doctors LTD
-                </div>
-                <div>
-                  <span className="text-muted-foreground">Bank:</span> ASB Bank
-                </div>
-                <div>
-                  <span className="text-muted-foreground">Account #:</span> 12-3072-0008398-00
-                </div>
-                <div>
-                  <span className="text-muted-foreground">Reference:</span> {inv.invoice_number}
-                </div>
-              </div>
+          {/* Payment details + totals — anchored to the bottom of the A4 sheet.
+              Each payment detail row is horizontally aligned with its matching
+              totals row so the first detail line sits at the same level as
+              "Labour (incl GST)". */}
+          <div className="pt-3 mt-3 border-t border-border text-xs">
+            <div className="font-display text-[0.7rem] font-semibold uppercase tracking-wider text-muted-foreground mb-1">
+              Payment Details
             </div>
 
-            <div className="text-xs">
-              <div className="flex items-baseline justify-between gap-4">
+            <div className="flex flex-col sm:flex-row justify-between gap-1 sm:gap-6">
+              <div data-print-section="payment" className="flex-1">
+                <span className="text-muted-foreground">Account:</span> Motorcycle Doctors LTD
+              </div>
+              <div className="w-full sm:w-[17rem] flex items-baseline justify-between gap-4">
                 <span className="text-muted-foreground">Labour (incl GST)</span>
                 <span className="tabular-nums">${Number(inv.labour_total).toFixed(2)}</span>
               </div>
-              <div className="flex items-baseline justify-between gap-4">
+            </div>
+
+            <div className="flex flex-col sm:flex-row justify-between gap-1 sm:gap-6">
+              <div data-print-section="payment" className="flex-1">
+                <span className="text-muted-foreground">Bank:</span> ASB Bank
+              </div>
+              <div className="w-full sm:w-[17rem] flex items-baseline justify-between gap-4">
                 <span className="text-muted-foreground">Parts (incl GST)</span>
                 <span className="tabular-nums">${Number(inv.parts_total).toFixed(2)}</span>
               </div>
-              <div className="flex items-baseline justify-between gap-4">
+            </div>
+
+            <div className="flex flex-col sm:flex-row justify-between gap-1 sm:gap-6">
+              <div data-print-section="payment" className="flex-1">
+                <span className="text-muted-foreground">Account #:</span> 12-3072-0008398-00
+              </div>
+              <div className="w-full sm:w-[17rem] flex items-baseline justify-between gap-4">
                 <span className="text-muted-foreground">Subtotal (excl GST)</span>
                 <span className="tabular-nums">${subtotalEx.toFixed(2)}</span>
               </div>
-              <div className="flex items-baseline justify-between gap-4 pb-1 border-b border-border">
+            </div>
+
+            <div className="flex flex-col sm:flex-row justify-between gap-1 sm:gap-6">
+              <div data-print-section="payment" className="flex-1">
+                <span className="text-muted-foreground">Reference:</span> {inv.invoice_number}
+              </div>
+              <div className="w-full sm:w-[17rem] flex items-baseline justify-between gap-4 pb-1 border-b border-border">
                 <span className="text-muted-foreground">GST 15% (incl.)</span>
                 <span className="tabular-nums">${Number(inv.gst).toFixed(2)}</span>
               </div>
-              <div className="flex items-baseline justify-between gap-4 pt-2 mt-1 border-t-2 border-foreground/80 font-display font-black leading-none">
+            </div>
+
+            <div className="flex flex-col sm:flex-row justify-between gap-1 sm:gap-6">
+              <div className="flex-1" />
+              <div className="w-full sm:w-[17rem] flex items-baseline justify-between gap-4 pt-2 mt-1 border-t-2 border-foreground/80 font-display font-black leading-none">
                 <span className="text-base tracking-wide">TOTAL</span>
                 <span className="red-gradient-text tabular-nums text-2xl">
                   ${Number(inv.total).toFixed(2)}
