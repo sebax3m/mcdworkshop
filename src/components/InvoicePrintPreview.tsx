@@ -62,9 +62,14 @@ ${styles}
     .preview-viewport { zoom: var(--pzoom, 1); }
   }
   @media print {
-    html, body { background:#ffffff; }
+    /* Neutralise the app's ink-saving print overrides so the printout is
+       byte-for-byte the same design as the preview / on-screen sheet. */
+    html, body { background: var(--background) !important; }
+    .invoice-sheet .bg-background { background: var(--background) !important; }
+    .invoice-sheet .border-border { border-color: var(--border) !important; }
     .preview-viewport { padding:0 !important; zoom:1 !important; }
   }
+
 </style>
 </head>
 <body class="${bodyClass}">
