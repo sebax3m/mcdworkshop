@@ -848,27 +848,176 @@ const QUICK_ITEMS = [
 
 function CreateJobCardButton({ bike, onClose }: { bike: PostBike; onClose: () => void }) {
   const nav = useNavigate();
+  const qc = useQueryClient();
+  const [open, setOpen] = useState(false);
+  const [title, setTitle] = useState("Post bike service");
+  const [serviceType, setServiceType] = useState("Standard Service");
+  const [description, setDescription] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  const bookingTypesQuery = useBookingTypes(true);
+  const activeServiceTypes = (bookingTypesQuery.data ?? []).map((t: any) => t.name);
+  const serviceTypeOptions =
+    activeServiceTypes.length > 0 ? activeServiceTypes : ["Standard Service", "Other"];
+
+  useEffect(() => {
+    if (!open) return;
+    setTitle("Post bike service");
+    setServiceType(serviceTypeOptions[0] ?? "Standard Service");
+    setDescription("");
+  }, [open, serviceTypeOptions[0]]);
+
+  async function createJob() {
+    setSaving(true);
+    try {
+      // Reuse a single fleet customer for all post-bike job cards
+      const { data: existingCustomer } = await supabase
+        .from("customers")
+        .select("id")
+        .ilike("first_name", "Post Bike Fleet")
+        .limit(1)
+        .maybeSingle();
+
+      let customerId = existingCustomer?.id;
+      if (!customerId) {
+        const { data: newCustomer, error: custErr } = await supabase
+          .from("customers")
+          .insert({ first_name: "Post Bike Fleet", last_name: "", phone: null, email: null })
+          .select("id")
+          .single();
+        if (custErr) throw custErr;
+        customerId = newCustomer.id;
+      }
+
+      // Reuse a motorcycle record by rego, or create one from the post bike details
+      let motorcycleId: string | null = null;
+      if (bike.rego) {
+        const { data: existingBike } = await supabase
+          .from("motorcycles")
+          .select("id")
+          .ilike("rego", bike.rego)
+          .limit(1)
+          .maybeSingle();
+        motorcycleId = existingBike?.id ?? null;
+      }
+
+      if (!motorcycleId) {
+        const { data: newBike, error: bikeErr } = await supabase
+          .from("motorcycles")
+          .insert({
+            customer_id: customerId,
+            make: bike.make || "Unknown",
+            model: bike.model || "Unknown",
+            year: bike.year,
+            rego: bike.rego,
+            color: bike.color,
+            mileage: bike.current_km,
+          })
+          .select("id")
+          .single();
+        if (bikeErr) throw bikeErr;
+        motorcycleId = newBike.id;
+      }
+
+      const { data: job, error: jobErr } = await supabase
+        .from("jobs")
+        .insert({
+          customer_id: customerId,
+          motorcycle_id: motorcycleId,
+          post_bike_id: bike.id,
+          title: title.trim() || "Post bike service",
+          description: description.trim() || null,
+          status: "new",
+        })
+        .select("id")
+        .single();
+      if (jobErr) throw jobErr;
+
+      toast.success("Job card created");
+      qc.invalidateQueries({ queryKey: ["jobs"] });
+      setOpen(false);
+      onClose();
+      nav({ to: "/jobs/$jobId", params: { jobId: job.id } });
+    } catch (e: any) {
+      toast.error(e.message || "Failed to create job card");
+    } finally {
+      setSaving(false);
+    }
+  }
+
   return (
-    <button
-      type="button"
-      onClick={() => {
-        onClose();
-        nav({
-          to: "/bookings/new",
-          search: {
-            rego: bike.rego ?? undefined,
-            make: bike.make ?? undefined,
-            model: bike.model ?? undefined,
-            year: bike.year ?? undefined,
-            mileage: bike.current_km ?? undefined,
-            postBikeId: bike.id,
-          },
-        });
-      }}
-      className="w-full h-10 rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground hover:opacity-90 inline-flex items-center justify-center gap-2"
-    >
-      <Wrench className="h-4 w-4" /> Create job card
-    </button>
+    <>
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        className="w-full h-10 rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground hover:opacity-90 inline-flex items-center justify-center gap-2"
+      >
+        <Wrench className="h-4 w-4" /> Create job card
+      </button>
+
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Create job card</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div className="text-xs text-muted-foreground">
+              {bike.name || "Post bike"} · {fullBike(bike as any)} · {bike.rego || "No rego"}
+            </div>
+            <label className="block space-y-1">
+              <span className="text-xs font-semibold text-muted-foreground">Title</span>
+              <input
+                className={inputCls}
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="e.g. Post bike service"
+              />
+            </label>
+            <label className="block space-y-1">
+              <span className="text-xs font-semibold text-muted-foreground">Service type</span>
+              <select
+                className={inputCls}
+                value={serviceType}
+                onChange={(e) => setServiceType(e.target.value)}
+              >
+                {serviceTypeOptions.map((s) => (
+                  <option key={s} value={s}>
+                    {s}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="block space-y-1">
+              <span className="text-xs font-semibold text-muted-foreground">Notes / description</span>
+              <textarea
+                className="w-full rounded-lg border border-border bg-background px-2.5 py-2 text-sm outline-none focus:border-primary"
+                rows={3}
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="What needs to be done?"
+              />
+            </label>
+          </div>
+          <DialogFooter>
+            <button
+              type="button"
+              onClick={() => setOpen(false)}
+              className="h-9 rounded-lg border border-border px-4 text-xs font-semibold hover:bg-muted"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={createJob}
+              disabled={saving}
+              className="h-9 rounded-lg bg-primary px-4 text-xs font-semibold text-primary-foreground disabled:opacity-60"
+            >
+              {saving ? "Creating…" : "Create job card"}
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
 
