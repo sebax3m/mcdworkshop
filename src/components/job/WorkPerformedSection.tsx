@@ -313,11 +313,6 @@ export default function WorkPerformedSection({
 
       {canEdit && (
         <div className="mt-4 rounded-lg border border-dashed border-border/70 bg-background/30 p-3 space-y-3 print:hidden">
-          <div className="flex items-center gap-2 text-sm font-medium text-foreground">
-            <Plus className="h-4 w-4 text-primary" />
-            Add work
-          </div>
-
           <div>
             <Label className="text-xs">Start from a template</Label>
             <div className="flex items-center gap-2 mt-1.5">
