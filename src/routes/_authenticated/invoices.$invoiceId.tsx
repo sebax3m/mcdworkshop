@@ -1138,14 +1138,14 @@ function InvoiceDetail() {
               </colgroup>
               <thead>
                 <tr className="text-left text-[0.7rem] uppercase tracking-wider text-muted-foreground border-b border-border">
-                  <th className="py-2 pr-1.5 font-bold w-[22%]">Item</th>
-                  <th className="py-2 pr-1.5 font-bold">Description</th>
-                  <th className="py-2.5 pl-3 pr-6 text-right font-bold w-16">Qty</th>
-                  <th className="py-2.5 pl-3 pr-6 text-right font-bold w-24">Price</th>
+                  <th className="py-1 pr-1.5 font-bold w-[22%]">Item</th>
+                  <th className="py-1 pr-1.5 font-bold">Description</th>
+                  <th className="py-1.5 pl-3 pr-6 text-right font-bold w-16">Qty</th>
+                  <th className="py-1.5 pl-3 pr-6 text-right font-bold w-24">Price</th>
                   {hasDiscount && (
-                    <th className="py-2.5 pl-3 pr-6 text-right font-bold w-20">Disc %</th>
+                    <th className="py-1.5 pl-3 pr-6 text-right font-bold w-20">Disc %</th>
                   )}
-                  <th className="py-2.5 pl-3 pr-6 text-right font-bold w-28">Total</th>
+                  <th className="py-1.5 pl-3 pr-6 text-right font-bold w-28">Total</th>
 
                 </tr>
               </thead>
