@@ -1815,7 +1815,7 @@ function NotesBox({
       <div className="flex items-center justify-between mb-2">
         <div className="font-display text-sm font-semibold uppercase tracking-wider text-muted-foreground">Notes</div>
         <div className="text-[0.625rem] text-muted-foreground no-print">
-          {saving ? "Saving…" : savedAt ? "Saved" : "Auto-saves on blur"}
+          {saving ? "Saving…" : savedAt ? "Saved" : ""}
         </div>
       </div>
       <textarea
