@@ -737,7 +737,7 @@ function InvoiceDetail() {
   const bike = inv.motorcycles;
   const issuedAt = new Date(inv.created_at);
   const dueAt = new Date(issuedAt);
-  dueAt.setDate(dueAt.getDate() + 14);
+  dueAt.setDate(dueAt.getDate() + 5);
   const subtotalInc = Number(inv.labour_total) + Number(inv.parts_total);
   const subtotalEx = subtotalInc / (1 + GST_RATE);
 
