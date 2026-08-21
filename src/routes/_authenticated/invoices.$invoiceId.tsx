@@ -112,18 +112,19 @@ function EditableNumber({
     <button
       type="button"
       onClick={() => setEditing(true)}
-      className={`group/edit inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 hover:bg-primary/10 hover:text-foreground transition-colors tabular-nums ${className}`}
+      className={`group/edit relative inline-flex items-center justify-end rounded-md pl-5 pr-0 py-0.5 hover:bg-primary/10 hover:text-foreground transition-colors tabular-nums ${className}`}
       title="Click to edit"
     >
+      <Pencil className="absolute left-0.5 h-3 w-3 opacity-0 group-hover/edit:opacity-60 no-print" />
       <span>
         {prefix}
         {fmt(value)}
         {suffix}
       </span>
-      <Pencil className="h-3 w-3 opacity-0 group-hover/edit:opacity-60 no-print" />
     </button>
   );
 }
+
 
 function EditableText({
   value,
@@ -739,10 +740,21 @@ function InvoiceDetail() {
   }
 
   return (
-    <div className="space-y-5 max-w-3xl mx-auto invoice-page">
+    <div className="space-y-5 mx-auto invoice-page w-full max-w-[220mm]">
       <style>{`
+        /* On screen the sheet is shown at true A4 width so what you see is
+           exactly what prints. Content flows onto extra A4 pages when needed. */
+        .invoice-sheet {
+          width: 210mm;
+          min-height: 297mm;
+          margin-inline: auto;
+        }
+
+        @media (max-width: 230mm) {
+          .invoice-a4-scroll { overflow-x: auto; }
+        }
         @media print {
-          @page { size: A4; margin: 10mm; }
+          @page { size: A4 portrait; margin: 12mm; }
           html, body {
             background: #ffffff !important;
             -webkit-print-color-adjust: exact !important;
@@ -753,36 +765,23 @@ function InvoiceDetail() {
           .invoice-page {
             position: absolute; left: 0; top: 0;
             width: 100%; max-width: none; margin: 0; padding: 0;
-            font-size: 11px;
           }
           .invoice-sheet {
             box-shadow: none !important;
             border: none !important;
-            page-break-inside: avoid;
+            width: 100% !important;
+            min-height: 0 !important;
           }
-          /* Clean white header for print */
-          .invoice-sheet .bg-background {
-            background: #ffffff !important;
-          }
-          .invoice-sheet .border-border {
-            border-color: #e5e7eb !important;
-          }
-          /* Tighten spacing so it fits on one page */
-          .invoice-sheet .p-8 { padding: 14px 18px !important; }
-          .invoice-sheet .px-8 { padding-left: 18px !important; padding-right: 18px !important; }
-          .invoice-sheet .py-6 { padding-top: 12px !important; padding-bottom: 12px !important; }
-          .invoice-sheet .space-y-7 > * + * { margin-top: 10px !important; }
-          .invoice-sheet .space-y-5 > * + * { margin-top: 8px !important; }
-          .invoice-sheet .gap-6 { gap: 12px !important; }
-          .invoice-sheet .pt-5 { padding-top: 8px !important; }
-          .invoice-sheet .mt-6, .invoice-sheet .mt-8 { margin-top: 10px !important; }
-          .invoice-sheet h1, .invoice-sheet h2, .invoice-sheet h3 { margin: 0 !important; }
-          .invoice-sheet table { font-size: 10.5px !important; }
-          .invoice-sheet th, .invoice-sheet td { padding: 4px 6px !important; }
-          .invoice-sheet img { max-height: 64px !important; }
+          /* Keep blocks intact but allow the invoice to run onto more pages */
+          .invoice-sheet table { page-break-inside: auto; }
+          .invoice-sheet tr { page-break-inside: avoid; }
+          .invoice-sheet [data-print-section] { page-break-inside: avoid; }
+          .invoice-sheet .bg-background { background: #ffffff !important; }
+          .invoice-sheet .border-border { border-color: #e5e7eb !important; }
           .no-print, .print\\:hidden { display: none !important; }
         }
       `}</style>
+
 
       <header className="flex items-center gap-3 print:hidden">
         <button
@@ -845,57 +844,73 @@ function InvoiceDetail() {
       />
 
 
+      <div className="invoice-a4-scroll">
       <div ref={sheetRef} className="card-surface invoice-sheet overflow-hidden">
-        {/* Clean white header */}
-        <div className="bg-background border-b border-border px-6 py-3 flex items-center justify-between gap-4 flex-wrap text-foreground">
-          <div className="flex items-center gap-3">
-            <img
-              src={logoAsset.url}
-              alt="Motorcycle Doctors"
-              className="h-12 w-12 object-contain"
-            />
-            <div>
-              <div className="font-display text-2xl font-black tracking-tight leading-none">
-                Motorcycle Doctors
-              </div>
-              <div className="text-[0.7rem] leading-tight opacity-80 mt-1">
-                94 Wairau Rd, Wairau Valley, Auckland · 0800 668 663 · services@mcdr.co.nz
-                <br />
-                www.motorcycle-doctors.co.nz · GST Reg N°: 99386185
+        {/* Letterhead — the logo is the strongest brand element, so it leads */}
+        <div className="bg-background border-b-2 border-border px-8 pt-7 pb-5 text-foreground">
+          <div className="flex items-start justify-between gap-6">
+            <div className="flex items-center gap-5">
+              <img
+                src={logoAsset.url}
+                alt="Motorcycle Doctors"
+                className="h-28 w-28 object-contain shrink-0"
+              />
+              <div className="min-w-0">
+                <div className="font-display text-3xl font-black tracking-tight leading-none">
+                  Motorcycle Doctors
+                </div>
+                <div className="text-[0.7rem] uppercase tracking-[0.22em] text-muted-foreground mt-1">
+                  Motorcycle Doctors LTD · GST Reg N° 99386185
+                </div>
+                <div className="text-[0.72rem] leading-relaxed text-muted-foreground mt-2">
+                  94 Wairau Rd, Wairau Valley, Auckland
+                  <br />
+                  0800 668 663 · services@mcdr.co.nz
+                  <br />
+                  www.motorcycle-doctors.co.nz
+                </div>
               </div>
             </div>
-          </div>
-          <div className="text-right">
-            <div className="text-[0.7rem] uppercase tracking-[0.25em] opacity-80">Tax Invoice</div>
-            <div className="font-display text-2xl font-black">{inv.invoice_number}</div>
+            <div className="text-right shrink-0">
+              <div className="text-[0.7rem] uppercase tracking-[0.3em] text-muted-foreground">
+                Tax Invoice
+              </div>
+              <div className="font-display text-3xl font-black leading-none mt-1">
+                {inv.invoice_number}
+              </div>
+            </div>
           </div>
         </div>
 
 
 
-        <div className="p-6 space-y-5">
-          {/* Compact summary: customer + bike + meta in one strip */}
+
+        <div className="p-8 space-y-6">
+          {/* Bill to · Motorcycle · invoice meta */}
           <div
             data-print-section="meta"
-            className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 text-[0.8rem] rounded-md border border-border px-4 py-3"
+            className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-4 text-[0.82rem] rounded-lg border border-border px-5 py-4"
           >
             <div className="min-w-0">
-              <span className="text-[0.7rem] uppercase tracking-wider text-muted-foreground">
+              <div className="text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-muted-foreground pb-1 mb-1.5 border-b border-border">
                 Bill to
-              </span>
-              <div className="font-bold text-base truncate">
+              </div>
+              <div className="font-bold text-base leading-tight truncate">
                 {customer ? `${customer.first_name ?? ""} ${customer.last_name ?? ""}`.trim() : "—"}
               </div>
-              <div className="text-muted-foreground truncate">
-                {[customer?.phone, customer?.email].filter(Boolean).join(" · ") || "—"}
+              <div className="text-muted-foreground truncate mt-0.5">
+                {customer?.phone || "—"}
               </div>
+              <div className="text-muted-foreground truncate">{customer?.email || ""}</div>
             </div>
             <div className="min-w-0">
-              <span className="text-[0.7rem] uppercase tracking-wider text-muted-foreground">
+              <div className="text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-muted-foreground pb-1 mb-1.5 border-b border-border">
                 Motorcycle
-              </span>
-              <div className="font-bold text-base truncate">{bike ? fullBike(bike as any) : "—"}</div>
-              <div className="text-muted-foreground truncate">
+              </div>
+              <div className="font-bold text-base leading-tight truncate">
+                {bike ? fullBike(bike as any) : "—"}
+              </div>
+              <div className="text-muted-foreground truncate mt-0.5">
                 {[
                   bike?.rego ? `Rego ${bike.rego}` : null,
                   (inv.jobs?.odometer ?? bike?.mileage) != null
@@ -906,22 +921,23 @@ function InvoiceDetail() {
                   .join(" · ") || "—"}
               </div>
             </div>
-            <div className="sm:col-span-2 flex flex-wrap items-center gap-x-5 gap-y-1 pt-2 border-t border-border text-muted-foreground">
-              <span>
-                Issued <b className="text-foreground">{issuedAt.toLocaleDateString()}</b>
+            <div className="sm:col-span-2 grid grid-cols-2 sm:grid-cols-4 gap-x-6 gap-y-2 pt-3 border-t border-border text-[0.78rem]">
+              <span className="flex flex-col">
+                <span className="text-[0.62rem] uppercase tracking-[0.18em] text-muted-foreground">Issued</span>
+                <b className="text-foreground tabular-nums">{issuedAt.toLocaleDateString()}</b>
               </span>
-              <span>
-                Due <b className="text-foreground">{dueAt.toLocaleDateString()}</b>
+              <span className="flex flex-col">
+                <span className="text-[0.62rem] uppercase tracking-[0.18em] text-muted-foreground">Due</span>
+                <b className="text-foreground tabular-nums">{dueAt.toLocaleDateString()}</b>
               </span>
-              <span>
-                Job{" "}
-                <b className="text-foreground">
-                  {inv.jobs ? `#${inv.jobs.job_number}` : "—"}
-                </b>
+              <span className="flex flex-col">
+                <span className="text-[0.62rem] uppercase tracking-[0.18em] text-muted-foreground">Job</span>
+                <b className="text-foreground">{inv.jobs ? `#${inv.jobs.job_number}` : "—"}</b>
               </span>
-              <span className="flex items-center gap-1">
-                Technician
+              <span className="flex flex-col min-w-0">
+                <span className="text-[0.62rem] uppercase tracking-[0.18em] text-muted-foreground">Technician</span>
                 <b className="text-foreground print:inline hidden">{technicianName || "—"}</b>
+
                 <select
                   className="no-print rounded-md border border-border bg-background px-1 py-0.5 text-xs font-semibold text-foreground"
                   value={technicianId ?? ""}
@@ -1000,12 +1016,13 @@ function InvoiceDetail() {
                 <tr className="text-left text-[0.7rem] uppercase tracking-wider text-muted-foreground border-b border-border">
                   <th className="py-2.5 pr-3 font-semibold w-[30%]">Item</th>
                   <th className="py-2.5 pr-3 font-semibold">Description</th>
-                  <th className="py-2.5 pl-3 text-right font-semibold w-16">Qty</th>
-                  <th className="py-2.5 pl-3 text-right font-semibold w-24">Unit</th>
+                  <th className="py-2.5 pl-3 pr-6 text-right font-semibold w-16">Qty</th>
+                  <th className="py-2.5 pl-3 pr-6 text-right font-semibold w-24">Price</th>
                   {hasDiscount && (
-                    <th className="py-2.5 pl-3 text-right font-semibold w-20">Disc %</th>
+                    <th className="py-2.5 pl-3 pr-6 text-right font-semibold w-20">Disc %</th>
                   )}
-                  <th className="py-2.5 pl-3 text-right font-semibold w-28">Amount</th>
+                  <th className="py-2.5 pl-3 pr-6 text-right font-semibold w-28">Total</th>
+
                 </tr>
               </thead>
 
@@ -1076,7 +1093,7 @@ function InvoiceDetail() {
                               <span className="no-print"> · tracked {defaultHours.toFixed(2)}h</span>
                             )}
                           </td>
-                          <td className="py-2.5 pl-3 text-right align-top tabular-nums">
+                          <td className="py-2.5 pl-3 pr-6 text-right align-top tabular-nums">
                             <EditableNumber
                               value={hours}
                               onCommit={(n) => updateLabour({ qty: n })}
@@ -1090,7 +1107,7 @@ function InvoiceDetail() {
                               </div>
                             )}
                           </td>
-                          <td className="py-2.5 pl-3 text-right align-top tabular-nums">
+                          <td className="py-2.5 pl-3 pr-6 text-right align-top tabular-nums">
                             <EditableNumber
                               value={rate}
                               onCommit={(n) => updateLabour({ unit: n })}
@@ -1098,12 +1115,12 @@ function InvoiceDetail() {
                             />
                           </td>
                           {hasDiscount && (
-                            <td className="py-2.5 pl-3 text-right align-top text-muted-foreground">
+                            <td className="py-2.5 pl-3 pr-6 text-right align-top text-muted-foreground">
                               —
                             </td>
                           )}
-                          <td className="py-2.5 pl-3 text-right font-semibold align-top tabular-nums">
-                            <div className="flex items-start justify-end gap-1">
+                          <td className="py-2.5 pl-3 pr-6 text-right font-semibold align-top tabular-nums relative">
+                            <div className="flex items-start justify-end">
                               <EditableNumber
                                 value={Number(inv.labour_total)}
                                 onCommit={(n) => updateLabour({ amount: n })}
@@ -1111,7 +1128,7 @@ function InvoiceDetail() {
                               />
                               <button
                                 onClick={removeLabourLine}
-                                className="no-print w-4 shrink-0 opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive"
+                                className="no-print absolute right-0 top-3 opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive"
                                 title="Remove labour line"
                               >
                                 <Trash2 className="h-3.5 w-3.5 inline" />
@@ -1164,7 +1181,7 @@ function InvoiceDetail() {
                               className="text-xs text-muted-foreground block leading-snug whitespace-pre-wrap"
                             />
                           </td>
-                          <td className="py-2.5 pl-3 text-right align-top tabular-nums">
+                          <td className="py-2.5 pl-3 pr-6 text-right align-top tabular-nums">
                             <EditableNumber
                               value={qty}
                               decimals={2}
@@ -1173,7 +1190,7 @@ function InvoiceDetail() {
                               onCommit={(n) => updatePart(p.id, { quantity: n })}
                             />
                           </td>
-                          <td className="py-2.5 pl-3 text-right align-top tabular-nums">
+                          <td className="py-2.5 pl-3 pr-6 text-right align-top tabular-nums">
                             <EditableNumber
                               value={unit}
                               prefix="$"
@@ -1190,7 +1207,7 @@ function InvoiceDetail() {
                             )}
                           </td>
                           {hasDiscount && (
-                            <td className="py-2.5 pl-3 text-right align-top tabular-nums">
+                            <td className="py-2.5 pl-3 pr-6 text-right align-top tabular-nums">
                               <div className="inline-flex items-center gap-1">
                                 <EditableNumber
                                   value={disc}
@@ -1214,9 +1231,9 @@ function InvoiceDetail() {
                               </div>
                             </td>
                           )}
-                          <td className="py-2.5 pl-3 text-right font-semibold align-top tabular-nums">
+                          <td className="py-2.5 pl-3 pr-6 text-right font-semibold align-top tabular-nums relative">
 
-                            <div className="flex items-start justify-end gap-1">
+                            <div className="flex items-start justify-end">
                               <div className="text-right">
                                 {disc > 0 && (
                                   <div className="text-[0.625rem] text-muted-foreground line-through tabular-nums">
@@ -1232,7 +1249,7 @@ function InvoiceDetail() {
                               </div>
                               <button
                                 onClick={() => deletePart(p.id)}
-                                className="no-print w-4 shrink-0 opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive"
+                                className="no-print absolute right-0 top-3 opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive"
                                 title="Remove line"
                               >
                                 <Trash2 className="h-3.5 w-3.5 inline" />
@@ -1357,7 +1374,7 @@ function InvoiceDetail() {
                               className="text-xs text-muted-foreground block leading-snug whitespace-pre-wrap"
                             />
                           </td>
-                          <td className="py-2.5 pl-3 text-right align-top tabular-nums">
+                          <td className="py-2.5 pl-3 pr-6 text-right align-top tabular-nums">
                             <EditableNumber
                               value={Number(it.quantity)}
                               decimals={2}
@@ -1366,7 +1383,7 @@ function InvoiceDetail() {
                               onCommit={(n) => updateSnapshotLine(idx, { quantity: n })}
                             />
                           </td>
-                          <td className="py-2.5 pl-3 text-right align-top tabular-nums">
+                          <td className="py-2.5 pl-3 pr-6 text-right align-top tabular-nums">
                             <EditableNumber
                               value={Number(it.unit)}
                               prefix="$"
@@ -1383,7 +1400,7 @@ function InvoiceDetail() {
                             )}
                           </td>
                           {hasDiscount && (
-                            <td className="py-2.5 pl-3 text-right align-top tabular-nums">
+                            <td className="py-2.5 pl-3 pr-6 text-right align-top tabular-nums">
                               <div className="inline-flex items-center gap-1">
                                 <EditableNumber
                                   value={disc}
@@ -1407,8 +1424,8 @@ function InvoiceDetail() {
                               </div>
                             </td>
                           )}
-                          <td className="py-2.5 pl-3 text-right font-semibold align-top tabular-nums">
-                            <div className="flex items-start justify-end gap-1">
+                          <td className="py-2.5 pl-3 pr-6 text-right font-semibold align-top tabular-nums relative">
+                            <div className="flex items-start justify-end">
                               <div className="text-right">
                                 {disc > 0 && (
                                   <div className="text-[0.625rem] text-muted-foreground line-through tabular-nums">
@@ -1424,7 +1441,7 @@ function InvoiceDetail() {
                               </div>
                               <button
                                 onClick={() => removeSnapshotLine(idx)}
-                                className="no-print w-4 shrink-0 opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive"
+                                className="no-print absolute right-0 top-3 opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive"
                                 title="Remove line"
                               >
                                 <Trash2 className="h-3.5 w-3.5 inline" />
@@ -1532,6 +1549,8 @@ function InvoiceDetail() {
           </div>
         </div>
       </div>
+      </div>
+
 
       {inv.job_id && (
         <div className="print:hidden text-center">
@@ -1798,7 +1817,7 @@ function NotesBox({
       <div className="flex items-center justify-between mb-2">
         <div className="font-display text-sm font-semibold uppercase tracking-wider text-muted-foreground">Notes</div>
         <div className="text-[0.625rem] text-muted-foreground no-print">
-          {saving ? "Saving…" : savedAt ? "Saved" : "Auto-saves on blur"}
+          {saving ? "Saving…" : savedAt ? "Saved" : ""}
         </div>
       </div>
       <textarea

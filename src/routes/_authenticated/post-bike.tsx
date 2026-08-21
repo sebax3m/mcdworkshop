@@ -855,6 +855,27 @@ function CreateJobCardButton({ bike, onClose }: { bike: PostBike; onClose: () =>
   const [serviceType, setServiceType] = useState("Standard Service");
   const [description, setDescription] = useState("");
   const [saving, setSaving] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
+
+  // Job cards already recorded against this fleet bike
+  const jobsQuery = useQuery({
+    queryKey: ["post-bike-jobs", bike.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("jobs")
+        .select("id, job_number, title, status, created_at")
+        .eq("post_bike_id", bike.id)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+  const jobs = jobsQuery.data ?? [];
+  const openJobs = jobs.filter(
+    (j: any) => !["completed", "ready_for_pickup"].includes(String(j.status)),
+  );
+  const visibleJobs = showHistory ? jobs : openJobs.length ? openJobs : jobs.slice(0, 1);
+
 
   const bookingTypesQuery = useBookingTypes(true);
   const activeServiceTypes = (bookingTypesQuery.data ?? []).map((t: any) => t.name);
@@ -936,6 +957,8 @@ function CreateJobCardButton({ bike, onClose }: { bike: PostBike; onClose: () =>
 
       toast.success("Job card created");
       qc.invalidateQueries({ queryKey: ["jobs"] });
+      qc.invalidateQueries({ queryKey: ["post-bike-jobs", bike.id] });
+
       setOpen(false);
       onClose();
       nav({ to: "/jobs/$jobId", params: { jobId: job.id } });
@@ -948,13 +971,59 @@ function CreateJobCardButton({ bike, onClose }: { bike: PostBike; onClose: () =>
 
   return (
     <>
+      {jobs.length > 0 && (
+        <div className="rounded-lg border border-border p-3 space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              Job cards ({jobs.length})
+            </span>
+            {jobs.length > visibleJobs.length || showHistory ? (
+              <button
+                type="button"
+                onClick={() => setShowHistory((v) => !v)}
+                className="text-xs text-primary hover:underline"
+              >
+                {showHistory ? "Show current" : `View history (${jobs.length})`}
+              </button>
+            ) : null}
+          </div>
+          <ul className="space-y-1.5">
+            {visibleJobs.map((j: any) => (
+              <li key={j.id}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    onClose();
+                    nav({ to: "/jobs/$jobId", params: { jobId: j.id } });
+                  }}
+                  className="w-full rounded-md border border-border px-3 py-2 text-left hover:border-primary"
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-sm font-semibold truncate">
+                      #{j.job_number} · {j.title || "Job card"}
+                    </span>
+                    <span className="text-[0.65rem] uppercase tracking-wider text-muted-foreground shrink-0">
+                      {String(j.status).replace(/_/g, " ")}
+                    </span>
+                  </div>
+                  <div className="text-[0.7rem] text-muted-foreground">
+                    {j.created_at ? format(new Date(j.created_at), "d MMM yyyy") : ""}
+                  </div>
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
       <button
         type="button"
         onClick={() => setOpen(true)}
         className="w-full h-10 rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground hover:opacity-90 inline-flex items-center justify-center gap-2"
       >
-        <Wrench className="h-4 w-4" /> Create job card
+        <Wrench className="h-4 w-4" /> {jobs.length ? "Create new job card" : "Create job card"}
       </button>
+
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="sm:max-w-md">
