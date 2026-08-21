@@ -1658,7 +1658,7 @@ function InvoiceDetail() {
               </div>
               <div className="flex items-baseline justify-between gap-4 pt-2 mt-1 border-t-2 border-foreground/80 font-display font-black leading-none">
                 <span className="text-base tracking-wide">TOTAL</span>
-                <span className="red-gradient-text tabular-nums text-3xl">
+                <span className="red-gradient-text tabular-nums text-2xl">
                   ${Number(inv.total).toFixed(2)}
                 </span>
               </div>
