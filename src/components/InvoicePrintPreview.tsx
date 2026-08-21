@@ -311,23 +311,68 @@ ${styles}
             </div>
             <button
               onClick={() => {
-                const d = frameRef.current?.contentDocument;
-                const sheet = d?.querySelector(".invoice-page") as HTMLElement | null;
-                if (!sheet) return;
-                const contentPx = sheet.scrollHeight * (printScale / 100);
-                const pageMm = parseFloat(landscape ? PAPER[paper].w : PAPER[paper].h);
-                const usableMm = pageMm - 2 * parseFloat(MARGIN[margin]);
-                const pagePx = (usableMm / 25.4) * 96;
+                const contentPx = measure();
                 if (!contentPx) return;
                 setPrintScale(
-                  Math.round(Math.min(130, Math.max(50, (pagePx / contentPx) * printScale))),
+                  Math.round(Math.min(130, Math.max(50, (usablePx / contentPx) * printScale))),
                 );
               }}
               className="w-full rounded-md border border-border px-2 py-1 text-[0.65rem] text-muted-foreground hover:text-foreground"
             >
-              Fit to one page
+              Fit to one page (shrink type)
             </button>
           </div>
+
+          {/* Vertical density — fits by tightening spacing, not by rescaling */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <div className="text-[0.6rem] uppercase tracking-[0.18em] text-muted-foreground">
+                Spacing
+              </div>
+              <span className="text-xs tabular-nums font-semibold">{density}%</span>
+            </div>
+            <input
+              type="range"
+              min={30}
+              max={100}
+              step={2}
+              value={density}
+              onChange={(e) => setDensity(Number(e.target.value))}
+              className="w-full accent-primary"
+            />
+            <button
+              onClick={fitOnePageByDensity}
+              className="w-full rounded-md border border-primary/60 px-2 py-1 text-[0.65rem] font-semibold text-primary hover:bg-primary/10"
+            >
+              Fit to 1 page (tighten spacing)
+            </button>
+            <p className="text-[0.6rem] leading-snug text-muted-foreground">
+              Reduces the gaps between items only — font sizes stay the same.
+            </p>
+          </div>
+
+          {/* Page breaks */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <div className="text-[0.6rem] uppercase tracking-[0.18em] text-muted-foreground">
+                Page breaks
+              </div>
+              <span className="text-xs tabular-nums font-semibold">
+                {pages} {pages === 1 ? "page" : "pages"}
+              </span>
+            </div>
+            <button
+              onClick={() => setShowGuides((v) => !v)}
+              className={`w-full rounded-md border px-2 py-1 text-[0.65rem] ${
+                showGuides
+                  ? "border-primary text-primary"
+                  : "border-border text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              {showGuides ? "Hide split lines" : "Show split lines"}
+            </button>
+          </div>
+
 
           <div className="space-y-2">
             <div className="text-[0.6rem] uppercase tracking-[0.18em] text-muted-foreground">
