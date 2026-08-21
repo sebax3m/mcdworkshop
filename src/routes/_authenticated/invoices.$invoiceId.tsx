@@ -1665,6 +1665,8 @@ function InvoiceDetail() {
               </div>
             </div>
           </div>
+          </div>
+
 
         </div>
       </div>
