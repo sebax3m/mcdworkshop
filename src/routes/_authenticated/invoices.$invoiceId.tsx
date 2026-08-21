@@ -748,11 +748,30 @@ function InvoiceDetail() {
           width: 210mm;
           min-height: 297mm;
           margin-inline: auto;
+          display: flex;
+          flex-direction: column;
+          position: relative;
+        }
+        /* On-screen guide showing where each A4 page ends (printable height
+           = 297mm - 12mm top - 12mm bottom margins). */
+        .invoice-sheet::after {
+          content: "";
+          position: absolute;
+          inset: 0;
+          pointer-events: none;
+          background-image: repeating-linear-gradient(
+            to bottom,
+            transparent 0,
+            transparent calc(273mm - 1px),
+            color-mix(in oklab, var(--primary) 70%, transparent) calc(273mm - 1px),
+            color-mix(in oklab, var(--primary) 70%, transparent) 273mm
+          );
         }
 
         @media (max-width: 230mm) {
           .invoice-a4-scroll { overflow-x: auto; }
         }
+
         @media print {
           @page { size: A4 portrait; margin: 12mm; }
           html, body {
