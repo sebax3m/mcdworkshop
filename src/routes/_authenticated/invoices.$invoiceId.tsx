@@ -801,7 +801,28 @@ function InvoiceDetail() {
           display: flex;
           flex-direction: column;
           position: relative;
+
+          /* The invoice is always printed on white paper, so the sheet uses a
+             light version of the app palette (brand red kept) regardless of
+             the active theme. Screen = preview = printout. */
+          --background: oklch(1 0 0);
+          --foreground: oklch(0.18 0 0);
+          --card: oklch(1 0 0);
+          --card-foreground: oklch(0.18 0 0);
+          --muted: oklch(0.96 0 0);
+          --muted-foreground: oklch(0.44 0 0);
+          --accent: oklch(0.96 0.01 255);
+          --accent-foreground: oklch(0.18 0 0);
+          --border: oklch(0.86 0 0);
+          --input: oklch(0.9 0 0);
+          --primary: oklch(0.52 0.22 25);
+          --primary-foreground: oklch(0.99 0.01 90);
+          --destructive: oklch(0.5 0.22 25);
+          background: oklch(1 0 0) !important;
+          color: oklch(0.18 0 0) !important;
+          color-scheme: light;
         }
+
         /* On-screen guide showing where each A4 sheet ends. */
         .invoice-sheet::after {
           content: "";
