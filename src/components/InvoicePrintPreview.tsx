@@ -88,49 +88,102 @@ ${styles}
 
   if (!open) return null;
 
+  const print = () => {
+    const w = frameRef.current?.contentWindow;
+    if (!w) return;
+    w.focus();
+    w.print();
+  };
+
   return (
-    <div className="fixed inset-0 z-[100] flex flex-col bg-black/80 backdrop-blur-sm">
-      <div className="flex items-center gap-2 border-b border-border bg-background px-4 py-2">
-        <div className="min-w-0 flex-1 truncate text-sm font-semibold">{title}</div>
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={() => setZoom((z) => Math.max(40, z - 10))}
-          title="Zoom out"
-        >
-          <ZoomOut className="h-4 w-4" />
-        </Button>
-        <span className="w-12 text-center text-xs tabular-nums text-muted-foreground">
-          {zoom}%
-        </span>
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={() => setZoom((z) => Math.min(150, z + 10))}
-          title="Zoom in"
-        >
-          <ZoomIn className="h-4 w-4" />
-        </Button>
-        <Button
-          className="red-surface gap-2"
-          onClick={() => {
-            const w = frameRef.current?.contentWindow;
-            if (!w) return;
-            w.focus();
-            w.print();
-          }}
-        >
-          <Printer className="h-4 w-4" /> Print / Save PDF
-        </Button>
-        <Button variant="outline" size="icon" onClick={() => onOpenChange(false)} title="Close">
-          <X className="h-4 w-4" />
-        </Button>
+    <div
+      className="fixed inset-0 z-[100] grid place-items-center bg-black/90 p-4 sm:p-8"
+      onMouseDown={(e) => {
+        if (e.target === e.currentTarget) onOpenChange(false);
+      }}
+    >
+      {/* Floating preview window */}
+      <div className="flex h-full w-full max-w-6xl overflow-hidden rounded-xl border border-border bg-background shadow-2xl">
+        {/* Left tool rail */}
+        <aside className="flex w-56 shrink-0 flex-col gap-4 border-r border-border bg-muted/30 p-4">
+          <div className="min-w-0">
+            <div className="text-[0.6rem] uppercase tracking-[0.18em] text-muted-foreground">
+              Preview
+            </div>
+            <div className="truncate text-sm font-semibold">{title}</div>
+          </div>
+
+          <div className="space-y-2">
+            <div className="text-[0.6rem] uppercase tracking-[0.18em] text-muted-foreground">
+              Zoom
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => setZoom((z) => Math.max(40, z - 10))}
+                title="Zoom out"
+              >
+                <ZoomOut className="h-4 w-4" />
+              </Button>
+              <span className="flex-1 text-center text-xs tabular-nums text-muted-foreground">
+                {zoom}%
+              </span>
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => setZoom((z) => Math.min(200, z + 10))}
+                title="Zoom in"
+              >
+                <ZoomIn className="h-4 w-4" />
+              </Button>
+            </div>
+            <input
+              type="range"
+              min={40}
+              max={200}
+              step={5}
+              value={zoom}
+              onChange={(e) => setZoom(Number(e.target.value))}
+              className="w-full accent-primary"
+            />
+            <div className="flex gap-1">
+              {[75, 100, 125].map((z) => (
+                <button
+                  key={z}
+                  onClick={() => setZoom(z)}
+                  className={`flex-1 rounded-md border px-1 py-1 text-[0.65rem] ${
+                    zoom === z
+                      ? "border-primary text-primary"
+                      : "border-border text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  {z}%
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="mt-auto space-y-2">
+            <Button className="red-surface w-full gap-2" onClick={print}>
+              <Printer className="h-4 w-4" /> Print / Save PDF
+            </Button>
+            <Button variant="outline" className="w-full gap-2" onClick={() => onOpenChange(false)}>
+              <X className="h-4 w-4" /> Close
+            </Button>
+            <p className="text-[0.65rem] leading-snug text-muted-foreground">
+              Edit any field on the invoice behind this window — close, adjust and re-open to see
+              changes.
+            </p>
+          </div>
+        </aside>
+
+        <iframe
+          ref={frameRef}
+          title={title}
+          className="min-h-0 min-w-0 flex-1 border-0 bg-neutral-200"
+        />
       </div>
-      <iframe
-        ref={frameRef}
-        title={title}
-        className="min-h-0 flex-1 w-full border-0 bg-neutral-200"
-      />
     </div>
   );
 }
