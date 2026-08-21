@@ -125,7 +125,7 @@ ${styles}
       {/* Floating preview window */}
       <div className="flex h-full w-full max-w-6xl overflow-hidden rounded-xl border border-border bg-background shadow-2xl">
         {/* Left tool rail */}
-        <aside className="flex w-56 shrink-0 flex-col gap-4 border-r border-border bg-muted/30 p-4">
+        <aside className="flex w-60 shrink-0 flex-col gap-4 overflow-y-auto border-r border-border bg-muted/30 p-4">
           <div className="min-w-0">
             <div className="text-[0.6rem] uppercase tracking-[0.18em] text-muted-foreground">
               Preview
