@@ -182,7 +182,7 @@ export default function WorkPerformedSection({
       <div className="flex items-center justify-between gap-2 mb-4">
         <div className="flex items-center gap-2">
           <Wrench className="h-4 w-4 text-primary" />
-          <h2 className="font-display text-xl font-semibold tracking-tight">Work Performed</h2>
+          <h2 className="font-display text-xl font-semibold tracking-tight text-service-gold">Work Performed</h2>
         </div>
         {entries.length > 0 && (
           <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-primary/10 text-primary">
