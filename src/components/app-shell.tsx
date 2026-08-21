@@ -90,6 +90,9 @@ export function AppShell() {
         { to: "/motorcycles", label: "Bikes", icon: Bike, color: "#facc15" },
         { to: "/garage-library", label: "Garage Library", icon: Library, color: "#f59e0b" },
         { to: "/bookings", label: "List", icon: ClipboardList, color: "#f472b6" },
+        { to: "/clock", label: "Team Clock", icon: Timer, color: "#34d399" },
+        { to: "/analytics", label: "Analytics", icon: BarChart3, color: "#4ade80" },
+        { to: "/settings", label: "Settings", icon: SettingsIcon, color: "#94a3b8" },
       ]
     : [
         { to: "/my-work", label: "My Work", icon: LayoutDashboard, color: "#f87171" },
