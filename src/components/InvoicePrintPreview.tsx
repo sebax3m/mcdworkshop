@@ -86,6 +86,20 @@ ${styles}
     margin: 0;
     zoom: var(--pscale, 1);
   }
+  /* Keep the sheet exactly one page tall so the bottom-anchored blocks
+     (notes + payment details + totals) stay pinned to the bottom edge,
+     just like on screen and in the direct printout. */
+  .invoice-page .invoice-sheet {
+    width: 100% !important;
+    margin: 0 !important;
+    border: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    min-height: calc((${pageH} - 2 * ${MARGIN[margin]}) / var(--pscale, 1)) !important;
+    padding-block: ${margin === "none" ? "6mm" : "0mm"} !important;
+    overflow: visible !important;
+  }
+
 
   /* --- Vertical density: shrink gaps only, never the type size --- */
   .invoice-page td, .invoice-page th { padding-top: calc(0.25rem * var(--pdense)) !important; padding-bottom: calc(0.25rem * var(--pdense)) !important; }
