@@ -1758,13 +1758,14 @@ function NewInventoryItemForm({
 }
 
 function NotesBox({
-
   invoiceId,
   initial,
+  suggestion,
   onSaved,
 }: {
   invoiceId: string;
   initial: string;
+  suggestion?: string;
   onSaved: () => void;
 }) {
   const [value, setValue] = useState(initial);
