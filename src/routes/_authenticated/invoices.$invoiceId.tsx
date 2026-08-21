@@ -888,7 +888,10 @@ function InvoiceDetail() {
           .invoice-sheet .bg-background { background: #ffffff !important; }
           .invoice-sheet .border-border { border-color: #e5e7eb !important; }
           .no-print, .print\\:hidden { display: none !important; }
+          .print-only { display: inline !important; }
+          .print-hide-empty { display: none !important; }
         }
+        .print-only { display: none; }
       `}</style>
 
 
@@ -1046,7 +1049,7 @@ function InvoiceDetail() {
               </span>
               <span className="flex flex-col min-w-0">
                 <span className="text-[0.62rem] uppercase tracking-[0.18em] text-muted-foreground">Technician</span>
-                <b className="text-foreground print:inline hidden">{technicianName || "—"}</b>
+                <b className="text-foreground print-only">{technicianName || "—"}</b>
 
                 <select
                   className="no-print rounded-md border border-border bg-background px-1 py-0.5 text-xs font-semibold text-foreground"
@@ -1602,7 +1605,7 @@ function InvoiceDetail() {
           <div
             data-print-section="notes"
             style={{ marginTop: "auto" }}
-            className="pt-3 border-t border-border"
+            className={`pt-3 border-t border-border${(inv.notes ?? "").trim() ? "" : " print-hide-empty"}`}
           >
             <NotesBox
               invoiceId={invoiceId}
@@ -1653,9 +1656,9 @@ function InvoiceDetail() {
                 <span className="text-muted-foreground">GST 15% (incl.)</span>
                 <span className="tabular-nums">${Number(inv.gst).toFixed(2)}</span>
               </div>
-              <div className="flex items-baseline justify-between gap-4 pt-1.5 mt-1 border-t-2 border-foreground/80 font-display text-lg font-black leading-none">
-                <span>TOTAL</span>
-                <span className="red-gradient-text tabular-nums">
+              <div className="flex items-baseline justify-between gap-4 pt-2 mt-1 border-t-2 border-foreground/80 font-display font-black leading-none">
+                <span className="text-base tracking-wide">TOTAL</span>
+                <span className="red-gradient-text tabular-nums text-3xl">
                   ${Number(inv.total).toFixed(2)}
                 </span>
               </div>
