@@ -1605,7 +1605,7 @@ function InvoiceDetail() {
           <div
             data-print-section="notes"
             style={{ marginTop: "auto" }}
-            className="pt-3 border-t border-border"
+            className={`pt-3 border-t border-border${(inv.notes ?? "").trim() ? "" : " print-hide-empty"}`}
           >
             <NotesBox
               invoiceId={invoiceId}
