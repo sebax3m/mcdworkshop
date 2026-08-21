@@ -552,8 +552,9 @@ function JobDetail() {
   return (
     <div ref={jobRef} className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-5 items-start jobcard-print">
       <style>{`
-        /* Slightly larger job card on screen. `zoom` reflows the layout (unlike
+        /* Slightly larger job card on screen. Zoom reflows the layout (unlike
            transform: scale, which overflowed and clipped the right sidebar). */
+
         @media screen { .jobcard-print { zoom: 1.05; } }
         @media print {
 
