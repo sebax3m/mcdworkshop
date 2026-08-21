@@ -842,6 +842,8 @@ function BikeDetailDialog({
           </DialogTitle>
         </DialogHeader>
 
+        <CreateJobCardButton bike={bike} onClose={onClose} />
+
 
         <div className="grid gap-3 sm:grid-cols-3">
           <label className="space-y-1">
