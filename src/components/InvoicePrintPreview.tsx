@@ -168,7 +168,7 @@ ${
     .invoice-sheet .bg-background { background: var(--background) !important; }
     .invoice-sheet .border-border { border-color: var(--border) !important; }
     .preview-viewport { padding:0 !important; zoom:1 !important; }
-    .page-guides { display:none !important; }
+    .page-guides, .invoice-sheet::after, .invoice-page .invoice-sheet::after { display:none !important; background:none !important; }
     .page-wrap { width: calc(${pageW} - 2 * ${MARGIN[margin]}); margin:0 auto !important; }
     /* The invoice route's own print rules pull the page out of flow
        (position:absolute + full-viewport width). Inside this preview the page
