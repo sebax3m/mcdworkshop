@@ -557,6 +557,63 @@ function CalendarPostBikes({
 const inputCls =
   "w-full rounded-lg border border-border bg-background px-2.5 h-9 text-sm focus:border-primary outline-none";
 
+function EditBranchDialog({
+  branch,
+  onClose,
+  onSave,
+  saving,
+}: {
+  branch: Branch | null;
+  onClose: () => void;
+  onSave: (id: string, name: string) => void;
+  saving: boolean;
+}) {
+  const [name, setName] = useState("");
+
+  // Sync name when branch changes
+  useState(() => {
+    if (branch) setName(branch.name);
+  });
+
+  useEffect(() => {
+    if (branch) setName(branch.name);
+  }, [branch?.id]);
+
+  async function save() {
+    if (!branch) return;
+    if (!name.trim()) return toast.error("Branch name is required");
+    onSave(branch.id, name.trim());
+  }
+
+  return (
+    <Dialog open={!!branch} onOpenChange={(v) => !v && onClose()}>
+      <DialogContent className="sm:max-w-sm">
+        <DialogHeader>
+          <DialogTitle>Edit branch</DialogTitle>
+        </DialogHeader>
+        <label className="block space-y-1">
+          <span className="text-xs font-semibold text-muted-foreground">Branch name</span>
+          <input
+            className={inputCls}
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="e.g. Papakura"
+          />
+        </label>
+        <DialogFooter>
+          <button
+            onClick={save}
+            disabled={saving}
+            className="h-9 rounded-lg bg-primary px-4 text-xs font-semibold text-primary-foreground disabled:opacity-60"
+          >
+            {saving ? "Saving…" : "Save changes"}
+          </button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 function NewBranchDialog({
   open,
   onOpenChange,
