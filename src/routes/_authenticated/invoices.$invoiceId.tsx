@@ -884,29 +884,32 @@ function InvoiceDetail() {
 
 
 
-        <div className="p-6 space-y-5">
-          {/* Compact summary: customer + bike + meta in one strip */}
+        <div className="p-8 space-y-6">
+          {/* Bill to · Motorcycle · invoice meta */}
           <div
             data-print-section="meta"
-            className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 text-[0.8rem] rounded-md border border-border px-4 py-3"
+            className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-4 text-[0.82rem] rounded-lg border border-border px-5 py-4"
           >
             <div className="min-w-0">
-              <span className="text-[0.7rem] uppercase tracking-wider text-muted-foreground">
+              <div className="text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-muted-foreground pb-1 mb-1.5 border-b border-border">
                 Bill to
-              </span>
-              <div className="font-bold text-base truncate">
+              </div>
+              <div className="font-bold text-base leading-tight truncate">
                 {customer ? `${customer.first_name ?? ""} ${customer.last_name ?? ""}`.trim() : "—"}
               </div>
-              <div className="text-muted-foreground truncate">
-                {[customer?.phone, customer?.email].filter(Boolean).join(" · ") || "—"}
+              <div className="text-muted-foreground truncate mt-0.5">
+                {customer?.phone || "—"}
               </div>
+              <div className="text-muted-foreground truncate">{customer?.email || ""}</div>
             </div>
             <div className="min-w-0">
-              <span className="text-[0.7rem] uppercase tracking-wider text-muted-foreground">
+              <div className="text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-muted-foreground pb-1 mb-1.5 border-b border-border">
                 Motorcycle
-              </span>
-              <div className="font-bold text-base truncate">{bike ? fullBike(bike as any) : "—"}</div>
-              <div className="text-muted-foreground truncate">
+              </div>
+              <div className="font-bold text-base leading-tight truncate">
+                {bike ? fullBike(bike as any) : "—"}
+              </div>
+              <div className="text-muted-foreground truncate mt-0.5">
                 {[
                   bike?.rego ? `Rego ${bike.rego}` : null,
                   (inv.jobs?.odometer ?? bike?.mileage) != null
@@ -917,7 +920,22 @@ function InvoiceDetail() {
                   .join(" · ") || "—"}
               </div>
             </div>
-            <div className="sm:col-span-2 flex flex-wrap items-center gap-x-5 gap-y-1 pt-2 border-t border-border text-muted-foreground">
+            <div className="sm:col-span-2 grid grid-cols-2 sm:grid-cols-4 gap-x-6 gap-y-2 pt-3 border-t border-border text-[0.78rem]">
+              <span className="flex flex-col">
+                <span className="text-[0.62rem] uppercase tracking-[0.18em] text-muted-foreground">Issued</span>
+                <b className="text-foreground tabular-nums">{issuedAt.toLocaleDateString()}</b>
+              </span>
+              <span className="flex flex-col">
+                <span className="text-[0.62rem] uppercase tracking-[0.18em] text-muted-foreground">Due</span>
+                <b className="text-foreground tabular-nums">{dueAt.toLocaleDateString()}</b>
+              </span>
+              <span className="flex flex-col">
+                <span className="text-[0.62rem] uppercase tracking-[0.18em] text-muted-foreground">Job</span>
+                <b className="text-foreground">{inv.jobs ? `#${inv.jobs.job_number}` : "—"}</b>
+              </span>
+              <span className="flex flex-col min-w-0">
+                <span className="text-[0.62rem] uppercase tracking-[0.18em] text-muted-foreground">Technician</span>
+
               <span>
                 Issued <b className="text-foreground">{issuedAt.toLocaleDateString()}</b>
               </span>
