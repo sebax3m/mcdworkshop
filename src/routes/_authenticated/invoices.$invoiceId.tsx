@@ -1500,8 +1500,12 @@ function InvoiceDetail() {
             </table>
           </div>
 
-          {/* Notes + Totals */}
-          <div className="pt-5 border-t border-border grid grid-cols-1 sm:grid-cols-[1fr_18rem] gap-6">
+          {/* Notes + Totals — anchored to the bottom of the A4 sheet */}
+          <div
+            style={{ marginTop: "auto" }}
+            className="pt-8 border-t border-border grid grid-cols-1 sm:grid-cols-[1fr_18rem] gap-6"
+          >
+
             <div data-print-section="notes">
               <NotesBox
                 invoiceId={invoiceId}
