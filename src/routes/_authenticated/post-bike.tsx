@@ -231,7 +231,38 @@ function PostBikePage() {
                   <h2 className="text-[0.6875rem] font-bold uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-1.5">
                     <MapPin className="h-3.5 w-3.5" /> {col.name}
                   </h2>
-                  <span className="font-display text-sm font-bold tabular-nums">{list.length}</span>
+                  <div className="flex items-center gap-1.5">
+                    {col.id && (
+                      <>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            const branch = branches.find((b) => b.id === col.id);
+                            if (branch) setEditBranch(branch);
+                          }}
+                          className="p-1 rounded-md text-muted-foreground hover:text-primary hover:bg-primary/10"
+                          aria-label="Edit branch"
+                        >
+                          <Pencil className="h-3 w-3" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (!confirm(`Delete branch "${col.name}"? Bikes in this branch will become Unassigned.`)) return;
+                            deleteBranch.mutate(col.id!);
+                          }}
+                          disabled={deleteBranch.isPending}
+                          className="p-1 rounded-md text-muted-foreground hover:text-destructive hover:bg-destructive/10 disabled:opacity-50"
+                          aria-label="Delete branch"
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </button>
+                      </>
+                    )}
+                    <span className="font-display text-sm font-bold tabular-nums">{list.length}</span>
+                  </div>
                 </header>
 
                 {list.length === 0 ? (
