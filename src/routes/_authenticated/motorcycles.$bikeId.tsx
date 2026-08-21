@@ -471,12 +471,12 @@ function BikeProfile() {
               <Stat
                 icon={<Calendar className="h-4 w-4" />}
                 label="Rego expiry"
-                value={b.rego_expiry ? new Date(b.rego_expiry).toLocaleDateString() : "—"}
+                value={b.rego_expiry ? new Date(b.rego_expiry).toLocaleDateString("en-GB") : "—"}
               />
               <Stat
                 icon={<ShieldCheck className="h-4 w-4" />}
                 label="WOF expiry"
-                value={b.wof_expiry ? new Date(b.wof_expiry).toLocaleDateString() : "—"}
+                value={b.wof_expiry ? new Date(b.wof_expiry).toLocaleDateString("en-GB") : "—"}
               />
             </div>
           )}
@@ -590,7 +590,7 @@ function BikeProfile() {
                 <div className="min-w-0">
                   <div className="font-semibold truncate text-sm">{j.title || j.job_number}</div>
                   <div className="text-xs text-muted-foreground">
-                    {j.job_number} · {new Date(j.created_at).toLocaleDateString()}
+                    {j.job_number} · {new Date(j.created_at).toLocaleDateString("en-GB")}
                   </div>
                 </div>
                 <span className="text-[0.625rem] uppercase tracking-wider px-2 py-1 rounded-md bg-muted">

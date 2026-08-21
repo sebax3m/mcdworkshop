@@ -206,7 +206,7 @@ function KnowledgeUpdates() {
                 </div>
                 {p.note && <div className="text-xs text-muted-foreground">{p.note}</div>}
                 <div className="font-mono text-[0.65rem] text-muted-foreground">
-                  {new Date(p.created_at).toLocaleString("en-NZ")} · source {p.source}
+                  {new Date(p.created_at).toLocaleString("en-GB")} · source {p.source}
                 </div>
                 {p.status === "pending" && isAdmin && (
                   <div className="flex flex-wrap gap-2 pt-1">

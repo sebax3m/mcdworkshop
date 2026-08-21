@@ -19,7 +19,7 @@ const thCls =
 const tdCls = "px-3 py-2 align-top text-sm";
 
 const dt = (s?: string | null) =>
-  s ? new Date(s).toLocaleDateString("en-NZ", { day: "2-digit", month: "short", year: "numeric" }) : "—";
+  s ? new Date(s).toLocaleDateString("en-GB") : "—";
 
 /**
  * Workshop observations for a model: what actually happened on completed jobs.

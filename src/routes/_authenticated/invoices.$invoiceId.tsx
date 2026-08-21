@@ -442,8 +442,8 @@ function InvoiceDetail() {
             `Please find your invoice ${inv.invoice_number} below.`,
             ``,
             `Bike: ${bike ? fullBike(bike) : "—"}`,
-            `Issued: ${issuedAt.toLocaleDateString()}`,
-            `Due: ${dueAt.toLocaleDateString()}`,
+            `Issued: ${issuedAt.toLocaleDateString("en-GB")}`,
+            `Due: ${dueAt.toLocaleDateString("en-GB")}`,
             ``,
             `Labour:  $${Number(inv.labour_total).toFixed(2)}`,
             `Parts:   $${Number(inv.parts_total).toFixed(2)}`,
@@ -820,8 +820,8 @@ function InvoiceDetail() {
       `Please find your invoice ${inv.invoice_number} below.`,
       ``,
       `Bike: ${bike ? fullBike(bike as any) : "—"}`,
-      `Issued: ${issuedAt.toLocaleDateString()}`,
-      `Due: ${dueAt.toLocaleDateString()}`,
+      `Issued: ${issuedAt.toLocaleDateString("en-GB")}`,
+      `Due: ${dueAt.toLocaleDateString("en-GB")}`,
       ``,
       `Labour:  $${Number(inv.labour_total).toFixed(2)}`,
       `Parts:   $${Number(inv.parts_total).toFixed(2)}`,
@@ -1155,11 +1155,11 @@ function InvoiceDetail() {
             <div className="sm:col-span-2 grid grid-cols-2 sm:grid-cols-4 gap-x-6 gap-y-2 pt-3 border-t border-border text-[0.78rem]">
               <span className="flex flex-col">
                 <span className="text-[0.62rem] uppercase tracking-[0.18em] text-muted-foreground">Issued</span>
-                <b className="text-foreground tabular-nums">{issuedAt.toLocaleDateString()}</b>
+                <b className="text-foreground tabular-nums">{issuedAt.toLocaleDateString("en-GB")}</b>
               </span>
               <span className="flex flex-col">
                 <span className="text-[0.62rem] uppercase tracking-[0.18em] text-muted-foreground">Due</span>
-                <b className="text-foreground tabular-nums">{dueAt.toLocaleDateString()}</b>
+                <b className="text-foreground tabular-nums">{dueAt.toLocaleDateString("en-GB")}</b>
               </span>
               <span className={`flex flex-col${inv.jobs ? "" : " print-hide-empty"}`}>
                 <span className="text-[0.62rem] uppercase tracking-[0.18em] text-muted-foreground">Job</span>

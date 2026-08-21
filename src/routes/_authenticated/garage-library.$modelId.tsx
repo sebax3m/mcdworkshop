@@ -353,7 +353,7 @@ function GarageModelPage() {
           <div className={`${cardCls} p-4`}>
             <div className="text-[0.65rem] font-mono uppercase tracking-widest text-muted-foreground">Last worked on</div>
             <div className="mt-1 text-sm font-mono">
-              {usage?.last ? new Date(usage.last).toLocaleDateString("en-NZ", { day: "2-digit", month: "short", year: "numeric" }) : "—"}
+              {usage?.last ? new Date(usage.last).toLocaleDateString("en-GB") : "—"}
             </div>
           </div>
           <div className="sm:col-span-3">
@@ -677,7 +677,7 @@ function GarageModelPage() {
               {n.title ? <div className="text-sm font-medium">{n.title}</div> : null}
               <p className="whitespace-pre-wrap text-sm text-muted-foreground">{n.body}</p>
               <div className="mt-1 flex items-center gap-2 font-mono text-[0.65rem] text-muted-foreground">
-                {new Date(n.created_at).toLocaleDateString("en-NZ", { day: "2-digit", month: "short", year: "numeric" })}
+                {new Date(n.created_at).toLocaleDateString("en-GB")}
                 {isAdmin && (
                   <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => archiveRow.mutate({ table: "garage_notes", id: n.id, label: "Workshop note" })}>
                     <Trash2 className="h-3 w-3" />
@@ -701,7 +701,7 @@ function GarageModelPage() {
                   </span>
                   <span className="ml-auto font-mono text-[0.65rem] uppercase text-muted-foreground">{r.action}</span>
                   <span className="font-mono text-[0.65rem] text-muted-foreground">
-                    {new Date(r.created_at).toLocaleDateString("en-NZ", { day: "2-digit", month: "short", year: "numeric" })}
+                    {new Date(r.created_at).toLocaleDateString("en-GB")}
                   </span>
                 </div>
                 {r.note ? <div className="text-xs text-muted-foreground">{r.note}</div> : null}

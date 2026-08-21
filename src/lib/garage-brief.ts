@@ -204,7 +204,7 @@ export async function buildJobBrief(jobId: string): Promise<JobBrief> {
       sections.push({
         title: "This motorcycle — history",
         rows: (rows as any[]).slice(0, 6).map((j) => ({
-          label: new Date(j.created_at).toLocaleDateString("en-NZ", { day: "2-digit", month: "short", year: "numeric" }),
+          label: new Date(j.created_at).toLocaleDateString("en-GB"),
           value: j.title ?? "Job",
         })),
       });

@@ -30,7 +30,7 @@ export function SpecMeta({
       <VerificationBadge value={verificationValue} />
       <span>Source: {sourceLabel(source)}</span>
       {updatedByName ? <span>· {updatedByName}</span> : null}
-      {updatedAt ? <span>· {new Date(updatedAt).toLocaleDateString("en-NZ", { day: "2-digit", month: "short", year: "numeric" })}</span> : null}
+      {updatedAt ? <span>· {new Date(updatedAt).toLocaleDateString("en-GB")}</span> : null}
     </div>
   );
 }

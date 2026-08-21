@@ -395,7 +395,7 @@ function PrintableTemplate({ template, onClose }: { template: any; onClose: () =
 
               <div className="text-center text-[0.625rem] text-muted-foreground pt-4 border-t border-border">
                 Motorcycle Doctors · Service reference sheet · Generated{" "}
-                {new Date().toLocaleDateString()}
+                {new Date().toLocaleDateString("en-GB")}
               </div>
             </div>
           </div>
