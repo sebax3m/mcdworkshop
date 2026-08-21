@@ -297,6 +297,14 @@ function InvoiceDetail() {
         .data ?? [],
   });
 
+  // Learned labour/flat rates per service label (e.g. "Dyno" → 950)
+  const learnedRates = useQuery({
+    queryKey: ["labour-rate-defaults"],
+    queryFn: async () =>
+      (await supabase.from("labour_rate_defaults").select("service_type, rate")).data ?? [],
+  });
+
+
 
   // Ensure every invoice carries a default $30 shop consumables line. Auto-insert
   // once per job if missing, then it behaves like any other editable part line.
@@ -432,6 +440,31 @@ function InvoiceDetail() {
     qc.invalidateQueries({ queryKey: ["invoice", invoiceId] });
   }
 
+  // ---- Labour / flat-rate line ------------------------------------------
+  const labourTitle = ((inv.snapshot as any)?.labour_title ?? "Labour") as string;
+  const rateKey = labourTitle.trim().toLowerCase() || "labour";
+  const learnedRate = (learnedRates.data ?? []).find(
+    (r: any) => String(r.service_type).toLowerCase() === rateKey,
+  )?.rate;
+  const snapRate = (inv.snapshot as any)?.labour_rate;
+  const labourRate =
+    Number(snapRate) > 0
+      ? Number(snapRate)
+      : Number(learnedRate) > 0
+        ? Number(learnedRate)
+        : LABOUR_RATE;
+
+  async function learnRate(rate: number) {
+    if (!(rate > 0)) return;
+    await supabase
+      .from("labour_rate_defaults")
+      .upsert(
+        { service_type: rateKey, rate, updated_at: new Date().toISOString(), updated_by: user?.id ?? null },
+        { onConflict: "service_type" },
+      );
+    qc.invalidateQueries({ queryKey: ["labour-rate-defaults"] });
+  }
+
   async function updateLabour({
     qty,
     unit,
@@ -442,15 +475,30 @@ function InvoiceDetail() {
     amount?: number;
   }) {
     const currentLabour = Number(inv.labour_total);
-    const currentUnit = LABOUR_RATE;
-    const currentQty = currentLabour / currentUnit;
+    const currentUnit = labourRate;
+    const currentQty = currentUnit > 0 ? currentLabour / currentUnit : 0;
     let nextAmount = currentLabour;
-    if (amount !== undefined) nextAmount = amount;
-    else if (qty !== undefined) nextAmount = qty * (unit ?? currentUnit);
-    else if (unit !== undefined) nextAmount = currentQty * unit;
+    let nextRate: number | undefined;
+    if (amount !== undefined) {
+      nextAmount = amount;
+      // Keep qty as-is and derive the rate so a flat charge (qty 1 · $950) sticks
+      if (currentQty > 0) nextRate = amount / currentQty;
+    } else if (qty !== undefined) {
+      nextAmount = qty * (unit ?? currentUnit);
+      if (unit !== undefined) nextRate = unit;
+    } else if (unit !== undefined) {
+      nextAmount = (currentQty || 1) * unit;
+      nextRate = unit;
+    }
     nextAmount = Math.round(nextAmount * 100) / 100;
+    if (nextRate !== undefined && nextRate > 0) {
+      const rounded = Math.round(nextRate * 100) / 100;
+      await saveSnapshotMeta({ labour_rate: rounded });
+      await learnRate(rounded);
+    }
     await recomputeInvoiceTotals(nextAmount);
   }
+
 
   const snapTechId = (inv?.snapshot as any)?.technician_id as string | null | undefined;
   const technicianId =
@@ -564,7 +612,7 @@ function InvoiceDetail() {
 
   async function restoreLabourLine() {
     await saveSnapshotMeta({ labour_hidden: false });
-    await recomputeInvoiceTotals(defaultHours * LABOUR_RATE);
+    await recomputeInvoiceTotals(defaultHours * labourRate);
   }
 
   async function updatePart(
@@ -871,7 +919,7 @@ function InvoiceDetail() {
       <div className="invoice-a4-scroll">
       <div ref={sheetRef} className="card-surface invoice-sheet overflow-hidden">
         {/* Letterhead — the logo is the strongest brand element, so it leads */}
-        <div className="bg-background border-b-2 border-border px-8 pt-7 pb-5 text-foreground">
+        <div className="bg-background border-b-2 border-border px-6 pt-3 pb-4 text-foreground">
           <div className="flex items-start justify-between gap-6">
             <div className="flex items-center gap-5">
               <img
@@ -909,7 +957,7 @@ function InvoiceDetail() {
 
 
 
-        <div className="p-8 space-y-6 flex-1 flex flex-col">
+        <div className="px-6 pt-4 pb-3 space-y-4 flex-1 flex flex-col">
           {/* Bill to · Motorcycle · invoice meta */}
           <div
             data-print-section="meta"
@@ -1070,8 +1118,9 @@ function InvoiceDetail() {
                       persistPartOrder(reorderKeys(keys, from, to));
 
                     const renderLabour = () => {
-                      const rate = LABOUR_RATE;
-                      const hours = Number(inv.labour_total) / rate;
+                      const rate = labourRate;
+                      const hourly = Math.abs(rate - LABOUR_RATE) < 0.01;
+                      const hours = rate > 0 ? Number(inv.labour_total) / rate : 0;
                       const delta = hours - defaultHours;
                       const snap = (inv.snapshot as any) ?? {};
                       const title = snap.labour_title ?? "Labour";
@@ -1084,12 +1133,17 @@ function InvoiceDetail() {
                         snap.labour_desc && snap.labour_desc.trim() === wpText.trim()
                           ? undefined
                           : snap.labour_desc;
-                      const desc = savedDesc ?? `Workshop labour · $${rate}/hr (incl. GST)`;
+                      const desc =
+                        savedDesc ??
+                        (hourly
+                          ? `Workshop labour · $${rate}/hr (incl. GST)`
+                          : `${title} · $${rate.toFixed(2)} each (incl. GST)`);
 
                       const deltaLabel =
-                        Math.abs(delta) < 0.01
+                        !hourly || Math.abs(delta) < 0.01
                           ? null
                           : `${delta > 0 ? "+" : ""}${delta.toFixed(2)}h vs tracked`;
+
                       return (
                         <tr key="labour" {...rowDragProps("labour", onReorder)}>
 
@@ -1113,7 +1167,7 @@ function InvoiceDetail() {
                               onCommit={(v) => saveSnapshotMeta({ labour_desc: v })}
                               className="text-xs text-muted-foreground leading-snug whitespace-pre-wrap"
                             />
-                            {defaultHours > 0 && (
+                            {hourly && defaultHours > 0 && (
                               <span className="no-print"> · tracked {defaultHours.toFixed(2)}h</span>
                             )}
                           </td>
@@ -1121,8 +1175,9 @@ function InvoiceDetail() {
                             <EditableNumber
                               value={hours}
                               onCommit={(n) => updateLabour({ qty: n })}
-                              suffix="h"
+                              suffix={hourly ? "h" : ""}
                             />
+
                             {deltaLabel && (
                               <div
                                 className={`text-[0.625rem] mt-0.5 no-print ${delta > 0 ? "text-amber-500" : "text-emerald-500"}`}
@@ -1505,8 +1560,12 @@ function InvoiceDetail() {
             </table>
           </div>
 
-          {/* Notes */}
-          <div data-print-section="notes" className="pt-4 border-t border-border">
+          {/* Notes — pushed to the bottom so it sits right above the payment rule */}
+          <div
+            data-print-section="notes"
+            style={{ marginTop: "auto" }}
+            className="pt-3 border-t border-border"
+          >
             <NotesBox
               invoiceId={invoiceId}
               initial={inv.notes ?? ""}
@@ -1517,10 +1576,8 @@ function InvoiceDetail() {
 
           {/* Payment details + totals — anchored to the bottom of the A4 sheet,
               with the final total sitting in the bottom-right corner. */}
-          <div
-            style={{ marginTop: "auto" }}
-            className="pt-4 border-t border-border grid grid-cols-1 sm:grid-cols-[1fr_17rem] gap-6 items-end"
-          >
+          <div className="pt-3 mt-3 border-t border-border grid grid-cols-1 sm:grid-cols-[1fr_17rem] gap-6 items-end">
+
             <div data-print-section="payment" className="text-xs">
               <div className="font-display text-[0.7rem] font-semibold uppercase tracking-wider text-muted-foreground mb-1">
                 Payment Details
