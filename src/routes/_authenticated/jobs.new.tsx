@@ -31,7 +31,7 @@ function NewJob() {
   const nav = useNavigate();
   const { bookingId } = Route.useSearch();
   const { isAdmin, isTechnician, loading: userLoading } = useCurrentUser();
-  const canCreate = isAdmin || isTechnician;
+  const canCreate = Boolean(isAdmin || isTechnician);
   const [search, setSearch] = useState("");
   const [busyId, setBusyId] = useState<string | null>(null);
   const autoRan = useRef(false);
