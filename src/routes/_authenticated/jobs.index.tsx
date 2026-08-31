@@ -130,7 +130,7 @@ function JobsList() {
                 Select
               </button>
             ))}
-          {isAdmin && !selectMode && (
+          {!selectMode && (
             <Link
               to="/jobs/new"
               className="inline-flex items-center gap-1.5 rounded-lg gold-surface px-3 py-2 text-sm font-semibold"
