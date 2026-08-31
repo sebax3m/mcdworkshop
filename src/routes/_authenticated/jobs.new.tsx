@@ -30,7 +30,8 @@ export const Route = createFileRoute("/_authenticated/jobs/new")({
 function NewJob() {
   const nav = useNavigate();
   const { bookingId } = Route.useSearch();
-  const { isAdmin, loading: userLoading } = useCurrentUser();
+  const { isAdmin, isTechnician, loading: userLoading } = useCurrentUser();
+  const canCreate = Boolean(isAdmin || isTechnician);
   const [search, setSearch] = useState("");
   const [busyId, setBusyId] = useState<string | null>(null);
   const autoRan = useRef(false);
@@ -62,7 +63,7 @@ function NewJob() {
 
   // If we arrive with ?bookingId=..., allocate that booking straight away
   useEffect(() => {
-    if (!bookingId || autoRan.current || userLoading || !isAdmin) return;
+    if (!bookingId || autoRan.current || userLoading || !canCreate) return;
     autoRan.current = true;
     (async () => {
       const { data, error } = await supabase
@@ -80,16 +81,16 @@ function NewJob() {
       }
       await allocate(data);
     })();
-  }, [bookingId, userLoading, isAdmin]);
+  }, [bookingId, userLoading, canCreate]);
 
   if (userLoading) {
     return <div className="card-surface p-8 text-center text-muted-foreground">Loading…</div>;
   }
 
-  if (!isAdmin) {
+  if (!canCreate) {
     return (
       <div className="card-surface p-8 text-center">
-        <p className="text-muted-foreground">Only admins can create jobs.</p>
+        <p className="text-muted-foreground">Only workshop staff can create jobs.</p>
         <Link to="/jobs" className="text-primary text-sm font-semibold mt-3 inline-block">
           Back to jobs
         </Link>
