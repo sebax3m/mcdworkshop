@@ -30,7 +30,8 @@ export const Route = createFileRoute("/_authenticated/jobs/new")({
 function NewJob() {
   const nav = useNavigate();
   const { bookingId } = Route.useSearch();
-  const { isAdmin, loading: userLoading } = useCurrentUser();
+  const { isAdmin, isTechnician, loading: userLoading } = useCurrentUser();
+  const canCreate = isAdmin || isTechnician;
   const [search, setSearch] = useState("");
   const [busyId, setBusyId] = useState<string | null>(null);
   const autoRan = useRef(false);
