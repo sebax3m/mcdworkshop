@@ -2142,9 +2142,12 @@ function AddCustomPart({
   // The inventory row the line was picked from (so we can learn from edits).
   const [linked, setLinked] = useState<any>(null);
   // Pending question shown after saving the part to the job.
-  const [ask, setAsk] = useState<null | { kind: "create" | "update"; name: string; price: number }>(
-    null,
-  );
+  const [ask, setAsk] = useState<null | {
+    kind: "create" | "update";
+    name: string;
+    price: number;
+    inventoryId?: string;
+  }>(null);
 
   // Inventory list — only fetched once the form is open; suggestions appear while typing.
   const inventory = useQuery({
@@ -2222,8 +2225,12 @@ function AddCustomPart({
       (match.name ?? "").trim() !== n ||
       Math.abs(Number(match.unit_price ?? 0) - p) > 0.005
     ) {
-      setLinked(match);
-      setAsk({ kind: "update", name: n, price: p });
+      setAsk({
+        kind: "update",
+        name: n,
+        price: p,
+        inventoryId: match.id,
+      });
     }
     reset();
   }
@@ -2247,11 +2254,11 @@ function AddCustomPart({
         .insert({ name: ask.name, category: "part", unit_price: ask.price } as any);
       if (error) toast.error(error.message);
       else toast.success(`${ask.name} added to inventory`);
-    } else if (linked) {
+    } else if (ask.inventoryId) {
       const { error } = await supabase
         .from("inventory_items")
         .update({ name: ask.name, unit_price: ask.price })
-        .eq("id", linked.id);
+        .eq("id", ask.inventoryId);
       if (error) toast.error(error.message);
       else toast.success(`Inventory updated — ${ask.name} $${ask.price.toFixed(2)}`);
     }
@@ -2260,28 +2267,48 @@ function AddCustomPart({
     qc.invalidateQueries({ queryKey: ["inventory-suggest"] });
   }
 
-  const askDialog = (
-    <AlertDialog open={Boolean(ask)} onOpenChange={(o) => !o && setAsk(null)}>
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>
-            {ask?.kind === "create" ? "Add to inventory library?" : "Update inventory item?"}
-          </AlertDialogTitle>
-          <AlertDialogDescription>
-            {ask?.kind === "create"
-              ? `“${ask?.name}” isn’t in the inventory yet. Save it at $${(ask?.price ?? 0).toFixed(2)} so it shows up next time?`
-              : `Update “${linked?.name}” in the inventory to “${ask?.name}” at $${(ask?.price ?? 0).toFixed(2)}?`}
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel>No, keep as is</AlertDialogCancel>
-          <AlertDialogAction onClick={confirmAsk}>
-            {ask?.kind === "create" ? "Add to inventory" : "Update item"}
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
-  );
+  const askDialog = (() => {
+    const target =
+      ask?.kind === "update"
+        ? (inventory.data ?? []).find((i: any) => i.id === ask?.inventoryId)
+        : null;
+    const nameChanged =
+      ask?.kind === "update" &&
+      target &&
+      (target.name ?? "").trim().toLowerCase() !== (ask?.name ?? "").trim().toLowerCase();
+    return (
+      <AlertDialog open={Boolean(ask)} onOpenChange={(o) => !o && setAsk(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {ask?.kind === "create"
+                ? "Add to inventory library?"
+                : nameChanged
+                  ? "Update inventory item?"
+                  : "Save new price for this item?"}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {ask?.kind === "create"
+                ? `“${ask?.name}” isn’t in the inventory yet. Save it at $${(ask?.price ?? 0).toFixed(2)} so it shows up next time?`
+                : nameChanged
+                  ? `Update “${target?.name}” in the inventory to “${ask?.name}” at $${(ask?.price ?? 0).toFixed(2)}?`
+                  : `Save the new price for “${target?.name}” in the inventory at $${(ask?.price ?? 0).toFixed(2)}?`}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>No, keep as is</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmAsk}>
+              {ask?.kind === "create"
+                ? "Add to inventory"
+                : nameChanged
+                  ? "Update item"
+                  : "Save price"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    );
+  })();
 
   if (!open) {
     return (
