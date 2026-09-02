@@ -2181,6 +2181,7 @@ function AddCustomPart({
     setPrice("0");
     setLinked(null);
     setOpen(false);
+    onClose?.();
   }
 
   async function save() {
@@ -2190,17 +2191,28 @@ function AddCustomPart({
     if (!n) return toast.error("Item name required");
     if (!q || q <= 0) return toast.error("Qty must be > 0");
     setSaving(true);
-    const { error } = await supabase.from("parts").insert({
-      job_id: jobId,
-      name: n,
-      quantity: q,
-      cost: p,
-      retail: p,
-      added_by: user?.id,
-    } as any);
+
+    let error: any = null;
+    if (isEdit) {
+      const { error: updateError } = await supabase
+        .from("parts")
+        .update({ name: n, quantity: q, cost: p, retail: p })
+        .eq("id", part.id);
+      error = updateError;
+    } else {
+      const { error: insertError } = await supabase.from("parts").insert({
+        job_id: jobId,
+        name: n,
+        quantity: q,
+        cost: p,
+        retail: p,
+        added_by: user?.id,
+      } as any);
+      error = insertError;
+    }
     setSaving(false);
     if (error) return toast.error(error.message);
-    toast.success("Part added");
+    toast.success(isEdit ? "Part updated" : "Part added");
     onAdded();
 
     const match = linked ?? exactMatch(n);
@@ -2213,6 +2225,17 @@ function AddCustomPart({
       setLinked(match);
       setAsk({ kind: "update", name: n, price: p });
     }
+    reset();
+  }
+
+  async function remove() {
+    if (!isEdit || !confirm("Delete this part from the job?")) return;
+    setDeleting(true);
+    const { error } = await supabase.from("parts").delete().eq("id", part.id);
+    setDeleting(false);
+    if (error) return toast.error(error.message);
+    toast.success("Part deleted");
+    onAdded();
     reset();
   }
 
