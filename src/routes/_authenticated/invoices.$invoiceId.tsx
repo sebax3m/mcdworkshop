@@ -2041,9 +2041,19 @@ function NotesBox({
     setValue(initial);
   }, [initial]);
 
-  // Notes are invoice-only; do not auto-seed job/book-in notes so internal
-  // instructions never leak onto the customer invoice.
-  // (kept empty intentionally)
+  // Customer-facing notes written on the job card ("Notes for Invoice") are
+  // seeded onto the invoice automatically when the invoice has none yet.
+  const seeded = useRef(false);
+  useEffect(() => {
+    if (seeded.current) return;
+    if (initial.trim()) return;
+    const s = (suggestion ?? "").trim();
+    if (!s) return;
+    seeded.current = true;
+    setValue(s);
+    void save(s);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initial, suggestion]);
 
   async function save(next?: string) {
     const text = next ?? value;
