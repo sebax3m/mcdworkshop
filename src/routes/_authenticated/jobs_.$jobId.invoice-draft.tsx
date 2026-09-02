@@ -26,6 +26,7 @@ import { generateCustomerReport } from "@/lib/customer-report.functions";
 import { displayCustomerName } from "@/lib/display";
 import { collectJobObservations, saveObservations, suggestLabourReferenceUpdates } from "@/lib/garage-learning";
 import { readWorkPerformed } from "@/components/job/WorkPerformedSection";
+import { readCustomerNotes } from "@/components/job/CustomerNotesSection";
 import {
   buildInvoiceDraft,
   buildPlainReport,
@@ -173,6 +174,7 @@ function SmartInvoiceDraft() {
       setReport(s.customer_report ?? "");
     } else {
       setLines(computed.lines);
+      setDraftNotes(readCustomerNotes(((job.data as any)?.service_data ?? {}) as any));
       setReport("");
     }
     setHydrated(true);
