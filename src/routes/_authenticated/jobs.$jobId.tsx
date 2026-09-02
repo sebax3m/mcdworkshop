@@ -2315,26 +2315,8 @@ function AddCustomPart({ jobId, onAdded }: { jobId: string; onAdded: () => void 
         </div>
       </div>
 
-      <AlertDialog open={Boolean(ask)} onOpenChange={(o) => !o && setAsk(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>
-              {ask?.kind === "create" ? "Add to inventory library?" : "Update inventory item?"}
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              {ask?.kind === "create"
-                ? `“${ask?.name}” isn’t in the inventory yet. Save it at $${(ask?.price ?? 0).toFixed(2)} so it shows up next time?`
-                : `Update “${linked?.name}” in the inventory to “${ask?.name}” at $${(ask?.price ?? 0).toFixed(2)}?`}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>No, keep as is</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmAsk}>
-              {ask?.kind === "create" ? "Add to inventory" : "Update item"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      {askDialog}
+
     </div>
   );
 }
