@@ -2101,6 +2101,30 @@ function AddCustomPart({ jobId, onAdded }: { jobId: string; onAdded: () => void 
   const [qty, setQty] = useState("1");
   const [price, setPrice] = useState("0");
   const [saving, setSaving] = useState(false);
+  const [showSuggest, setShowSuggest] = useState(false);
+
+  // Full inventory list — used for the type-ahead suggestions below the name box.
+  const inventory = useQuery({
+    queryKey: ["inventory-suggest"],
+    enabled: open,
+    staleTime: 60_000,
+    queryFn: async () =>
+      (await supabase
+        .from("inventory_items")
+        .select("id, name, sku, category, unit_price")
+        .order("name")
+        .limit(1000)).data ?? [],
+  });
+
+  const term = name.trim().toLowerCase();
+  const suggestions = (inventory.data ?? [])
+    .filter((i: any) =>
+      !term
+        ? true
+        : `${i.name ?? ""} ${i.sku ?? ""}`.toLowerCase().includes(term),
+    )
+    .slice(0, 8);
+
 
   async function save() {
     const n = name.trim();
@@ -2140,13 +2164,49 @@ function AddCustomPart({ jobId, onAdded }: { jobId: string; onAdded: () => void 
   return (
     <div className="mt-3 rounded-lg border border-primary/40 p-3 space-y-2 bg-primary/5">
       <div className="grid grid-cols-1 sm:grid-cols-[2fr_70px_90px_auto] gap-2">
-        <Input
-          autoFocus
-          placeholder="Item name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          className="h-9 text-sm"
-        />
+        <div className="relative">
+          <Input
+            autoFocus
+            placeholder="Start typing — search inventory…"
+            value={name}
+            onChange={(e) => {
+              setName(e.target.value);
+              setShowSuggest(true);
+            }}
+            onFocus={() => setShowSuggest(true)}
+            onBlur={() => setTimeout(() => setShowSuggest(false), 150)}
+            className="h-9 text-sm w-full"
+          />
+          {showSuggest && suggestions.length > 0 && (
+            <ul className="absolute z-50 mt-1 w-full max-h-64 overflow-auto rounded-md border border-border bg-popover shadow-lg">
+              {suggestions.map((i: any) => (
+                <li key={i.id}>
+                  <button
+                    type="button"
+                    className="w-full text-left px-3 py-2 text-sm hover:bg-muted flex items-center justify-between gap-2"
+                    onMouseDown={(e) => e.preventDefault()}
+                    onClick={() => {
+                      setName(i.name ?? "");
+                      setPrice(String(Number(i.unit_price ?? 0)));
+                      setShowSuggest(false);
+                    }}
+                  >
+                    <span className="min-w-0 truncate">
+                      {i.name}
+                      {i.sku ? (
+                        <span className="text-muted-foreground"> · {i.sku}</span>
+                      ) : null}
+                    </span>
+                    <span className="shrink-0 font-mono text-xs text-muted-foreground">
+                      ${Number(i.unit_price ?? 0).toFixed(2)}
+                    </span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+
         <Input
           type="number"
           step="0.1"
