@@ -2101,6 +2101,30 @@ function AddCustomPart({ jobId, onAdded }: { jobId: string; onAdded: () => void 
   const [qty, setQty] = useState("1");
   const [price, setPrice] = useState("0");
   const [saving, setSaving] = useState(false);
+  const [showSuggest, setShowSuggest] = useState(false);
+
+  // Full inventory list — used for the type-ahead suggestions below the name box.
+  const inventory = useQuery({
+    queryKey: ["inventory-suggest"],
+    enabled: open,
+    staleTime: 60_000,
+    queryFn: async () =>
+      (await supabase
+        .from("inventory_items")
+        .select("id, name, sku, category, unit_price")
+        .order("name")
+        .limit(1000)).data ?? [],
+  });
+
+  const term = name.trim().toLowerCase();
+  const suggestions = (inventory.data ?? [])
+    .filter((i: any) =>
+      !term
+        ? true
+        : `${i.name ?? ""} ${i.sku ?? ""}`.toLowerCase().includes(term),
+    )
+    .slice(0, 8);
+
 
   async function save() {
     const n = name.trim();
