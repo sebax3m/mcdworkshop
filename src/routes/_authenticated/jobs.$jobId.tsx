@@ -1924,14 +1924,37 @@ function PartsSection({
           </div>
           <ul className="text-xs space-y-1">
             {parts.map((p) => (
-              <li key={p.id} className="flex justify-between text-muted-foreground">
-                <span>
-                  {p.name} × {Number(p.quantity)}
-                </span>
-                <span>${(Number(p.retail) * Number(p.quantity)).toFixed(2)}</span>
+              <li key={p.id} className="flex justify-between group">
+                <button
+                  type="button"
+                  onClick={() => canEdit && setEditingPart(p)}
+                  disabled={!canEdit}
+                  className="flex flex-1 items-center justify-between text-left disabled:cursor-default disabled:opacity-100"
+                >
+                  <span className="text-muted-foreground group-hover:text-foreground transition-colors">
+                    {p.name} × {Number(p.quantity)}
+                  </span>
+                  <span className="text-muted-foreground group-hover:text-foreground transition-colors">
+                    ${(Number(p.retail) * Number(p.quantity)).toFixed(2)}
+                  </span>
+                </button>
               </li>
             ))}
           </ul>
+        </div>
+      )}
+
+      {editingPart && (
+        <div className="mt-3">
+          <AddCustomPart
+            jobId={jobId}
+            part={editingPart}
+            onAdded={() => {
+              onChanged();
+              setEditingPart(null);
+            }}
+            onClose={() => setEditingPart(null)}
+          />
         </div>
       )}
 
