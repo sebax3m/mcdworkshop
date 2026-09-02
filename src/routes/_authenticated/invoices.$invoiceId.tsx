@@ -345,6 +345,36 @@ function InvoiceDetail() {
     })();
   }, [invoice.data?.job_id, (invoice.data?.snapshot as any)?.consumables_removed, parts.data, invoiceId, qc]);
 
+  /* Keep the invoice totals in sync with the job card: parts/fluids added or
+     changed on the job after the invoice was created are picked up here. */
+  useEffect(() => {
+    const jobId = invoice.data?.job_id;
+    if (!jobId || !parts.data) return;
+    const partsSum =
+      Math.round(
+        (parts.data as any[]).reduce(
+          (s, p) =>
+            s +
+            Number(p.retail ?? 0) *
+              Number(p.quantity ?? 1) *
+              (1 - Number(p.discount_pct ?? 0) / 100),
+          0,
+        ) * 100,
+      ) / 100;
+    if (Math.abs(partsSum - Number(invoice.data?.parts_total ?? 0)) < 0.005) return;
+    (async () => {
+      const subtotal = Number(invoice.data!.labour_total ?? 0) + partsSum;
+      const gst = Math.round(((subtotal * GST_RATE) / (1 + GST_RATE)) * 100) / 100;
+      const total = Math.round(subtotal * 100) / 100;
+      const { error } = await supabase
+        .from("invoices")
+        .update({ parts_total: partsSum, gst, total })
+        .eq("id", invoiceId);
+      if (!error) qc.invalidateQueries({ queryKey: ["invoice", invoiceId] });
+    })();
+  }, [parts.data, invoice.data?.job_id, invoice.data?.parts_total, invoice.data?.labour_total, invoiceId, qc]);
+
+
   const [previewOpen, setPreviewOpen] = useState(false);
   const sheetRef = useRef<HTMLDivElement>(null);
 
