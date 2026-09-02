@@ -2096,35 +2096,56 @@ function InventoryPicker({
 
 function AddCustomPart({ jobId, onAdded }: { jobId: string; onAdded: () => void }) {
   const { user } = useCurrentUser();
+  const qc = useQueryClient();
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [qty, setQty] = useState("1");
   const [price, setPrice] = useState("0");
   const [saving, setSaving] = useState(false);
   const [showSuggest, setShowSuggest] = useState(false);
+  // The inventory row the line was picked from (so we can learn from edits).
+  const [linked, setLinked] = useState<any>(null);
+  // Pending question shown after saving the part to the job.
+  const [ask, setAsk] = useState<null | { kind: "create" | "update"; name: string; price: number }>(
+    null,
+  );
 
-  // Full inventory list — used for the type-ahead suggestions below the name box.
+  // Inventory list — only fetched once the form is open; suggestions appear while typing.
   const inventory = useQuery({
     queryKey: ["inventory-suggest"],
     enabled: open,
     staleTime: 60_000,
     queryFn: async () =>
-      (await supabase
-        .from("inventory_items")
-        .select("id, name, sku, category, unit_price")
-        .order("name")
-        .limit(1000)).data ?? [],
+      (
+        await supabase
+          .from("inventory_items")
+          .select("id, name, sku, category, unit, unit_price")
+          .order("name")
+          .limit(1000)
+      ).data ?? [],
   });
 
   const term = name.trim().toLowerCase();
-  const suggestions = (inventory.data ?? [])
-    .filter((i: any) =>
-      !term
-        ? true
-        : `${i.name ?? ""} ${i.sku ?? ""}`.toLowerCase().includes(term),
-    )
-    .slice(0, 8);
+  const suggestions =
+    term.length < 2
+      ? []
+      : (inventory.data ?? [])
+          .filter((i: any) => `${i.name ?? ""} ${i.sku ?? ""}`.toLowerCase().includes(term))
+          .slice(0, 8);
 
+  function exactMatch(n: string) {
+    return (inventory.data ?? []).find(
+      (i: any) => (i.name ?? "").trim().toLowerCase() === n.trim().toLowerCase(),
+    );
+  }
+
+  function reset() {
+    setName("");
+    setQty("1");
+    setPrice("0");
+    setLinked(null);
+    setOpen(false);
+  }
 
   async function save() {
     const n = name.trim();
@@ -2143,12 +2164,41 @@ function AddCustomPart({ jobId, onAdded }: { jobId: string; onAdded: () => void 
     } as any);
     setSaving(false);
     if (error) return toast.error(error.message);
-    setName("");
-    setQty("1");
-    setPrice("0");
-    setOpen(false);
     toast.success("Part added");
     onAdded();
+
+    const match = linked ?? exactMatch(n);
+    if (!match) {
+      setAsk({ kind: "create", name: n, price: p });
+    } else if (
+      (match.name ?? "").trim() !== n ||
+      Math.abs(Number(match.unit_price ?? 0) - p) > 0.005
+    ) {
+      setLinked(match);
+      setAsk({ kind: "update", name: n, price: p });
+    }
+    reset();
+  }
+
+  async function confirmAsk() {
+    if (!ask) return;
+    if (ask.kind === "create") {
+      const { error } = await supabase
+        .from("inventory_items")
+        .insert({ name: ask.name, category: "part", unit_price: ask.price } as any);
+      if (error) toast.error(error.message);
+      else toast.success(`${ask.name} added to inventory`);
+    } else if (linked) {
+      const { error } = await supabase
+        .from("inventory_items")
+        .update({ name: ask.name, unit_price: ask.price })
+        .eq("id", linked.id);
+      if (error) toast.error(error.message);
+      else toast.success(`Inventory updated — ${ask.name} $${ask.price.toFixed(2)}`);
+    }
+    setAsk(null);
+    setLinked(null);
+    qc.invalidateQueries({ queryKey: ["inventory-suggest"] });
   }
 
   if (!open) {
@@ -2167,17 +2217,17 @@ function AddCustomPart({ jobId, onAdded }: { jobId: string; onAdded: () => void 
         <div className="relative">
           <Input
             autoFocus
-            placeholder="Start typing — search inventory…"
+            placeholder="Type to search inventory…"
             value={name}
             onChange={(e) => {
               setName(e.target.value);
+              setLinked(null);
               setShowSuggest(true);
             }}
-            onFocus={() => setShowSuggest(true)}
             onBlur={() => setTimeout(() => setShowSuggest(false), 150)}
             className="h-9 text-sm w-full"
           />
-          {showSuggest && suggestions.length > 0 && (
+          {showSuggest && term.length >= 2 && (
             <ul className="absolute z-50 mt-1 w-full max-h-64 overflow-auto rounded-md border border-border bg-popover shadow-lg">
               {suggestions.map((i: any) => (
                 <li key={i.id}>
@@ -2188,14 +2238,13 @@ function AddCustomPart({ jobId, onAdded }: { jobId: string; onAdded: () => void 
                     onClick={() => {
                       setName(i.name ?? "");
                       setPrice(String(Number(i.unit_price ?? 0)));
+                      setLinked(i);
                       setShowSuggest(false);
                     }}
                   >
                     <span className="min-w-0 truncate">
                       {i.name}
-                      {i.sku ? (
-                        <span className="text-muted-foreground"> · {i.sku}</span>
-                      ) : null}
+                      {i.sku ? <span className="text-muted-foreground"> · {i.sku}</span> : null}
                     </span>
                     <span className="shrink-0 font-mono text-xs text-muted-foreground">
                       ${Number(i.unit_price ?? 0).toFixed(2)}
@@ -2203,10 +2252,16 @@ function AddCustomPart({ jobId, onAdded }: { jobId: string; onAdded: () => void 
                   </button>
                 </li>
               ))}
+              {!exactMatch(name) && (
+                <li className="border-t border-border">
+                  <div className="px-3 py-2 text-xs text-muted-foreground">
+                    No match — “{name.trim()}” will be offered as a new inventory item when you save.
+                  </div>
+                </li>
+              )}
             </ul>
           )}
         </div>
-
         <Input
           type="number"
           step="0.1"
@@ -2227,14 +2282,36 @@ function AddCustomPart({ jobId, onAdded }: { jobId: string; onAdded: () => void 
           <Button onClick={save} disabled={saving} size="sm" className="gold-surface">
             <Check className="h-3.5 w-3.5" />
           </Button>
-          <Button onClick={() => setOpen(false)} variant="ghost" size="sm">
+          <Button onClick={() => reset()} variant="ghost" size="sm">
             <X className="h-3.5 w-3.5" />
           </Button>
         </div>
       </div>
+
+      <AlertDialog open={Boolean(ask)} onOpenChange={(o) => !o && setAsk(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {ask?.kind === "create" ? "Add to inventory library?" : "Update inventory item?"}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {ask?.kind === "create"
+                ? `“${ask?.name}” isn’t in the inventory yet. Save it at $${(ask?.price ?? 0).toFixed(2)} so it shows up next time?`
+                : `Update “${linked?.name}” in the inventory to “${ask?.name}” at $${(ask?.price ?? 0).toFixed(2)}?`}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>No, keep as is</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmAsk}>
+              {ask?.kind === "create" ? "Add to inventory" : "Update item"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
+
 
 function ValveClearanceSection({
   jobId,
