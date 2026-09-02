@@ -1818,6 +1818,7 @@ function PartsSection({
   const [picker, setPicker] = useState<{ key: string; category: string; label: string } | null>(
     null,
   );
+  const [editingPart, setEditingPart] = useState<any | null>(null);
   const used = serviceData?.parts_used ?? {};
 
   async function clearField(key: string) {
@@ -1923,14 +1924,37 @@ function PartsSection({
           </div>
           <ul className="text-xs space-y-1">
             {parts.map((p) => (
-              <li key={p.id} className="flex justify-between text-muted-foreground">
-                <span>
-                  {p.name} × {Number(p.quantity)}
-                </span>
-                <span>${(Number(p.retail) * Number(p.quantity)).toFixed(2)}</span>
+              <li key={p.id} className="flex justify-between group">
+                <button
+                  type="button"
+                  onClick={() => canEdit && setEditingPart(p)}
+                  disabled={!canEdit}
+                  className="flex flex-1 items-center justify-between text-left disabled:cursor-default disabled:opacity-100"
+                >
+                  <span className="text-muted-foreground group-hover:text-foreground transition-colors">
+                    {p.name} × {Number(p.quantity)}
+                  </span>
+                  <span className="text-muted-foreground group-hover:text-foreground transition-colors">
+                    ${(Number(p.retail) * Number(p.quantity)).toFixed(2)}
+                  </span>
+                </button>
               </li>
             ))}
           </ul>
+        </div>
+      )}
+
+      {editingPart && (
+        <div className="mt-3">
+          <AddCustomPart
+            jobId={jobId}
+            part={editingPart}
+            onAdded={() => {
+              onChanged();
+              setEditingPart(null);
+            }}
+            onClose={() => setEditingPart(null)}
+          />
         </div>
       )}
 
@@ -2094,14 +2118,26 @@ function InventoryPicker({
   );
 }
 
-function AddCustomPart({ jobId, onAdded }: { jobId: string; onAdded: () => void }) {
+function AddCustomPart({
+  jobId,
+  onAdded,
+  part,
+  onClose,
+}: {
+  jobId: string;
+  onAdded: () => void;
+  part?: any;
+  onClose?: () => void;
+}) {
   const { user } = useCurrentUser();
   const qc = useQueryClient();
-  const [open, setOpen] = useState(false);
-  const [name, setName] = useState("");
-  const [qty, setQty] = useState("1");
-  const [price, setPrice] = useState("0");
+  const isEdit = Boolean(part?.id);
+  const [open, setOpen] = useState(isEdit);
+  const [name, setName] = useState(part?.name ?? "");
+  const [qty, setQty] = useState(String(part?.quantity ?? "1"));
+  const [price, setPrice] = useState(String(part?.retail ?? "0"));
   const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [showSuggest, setShowSuggest] = useState(false);
   // The inventory row the line was picked from (so we can learn from edits).
   const [linked, setLinked] = useState<any>(null);
@@ -2145,6 +2181,7 @@ function AddCustomPart({ jobId, onAdded }: { jobId: string; onAdded: () => void 
     setPrice("0");
     setLinked(null);
     setOpen(false);
+    onClose?.();
   }
 
   async function save() {
@@ -2154,17 +2191,28 @@ function AddCustomPart({ jobId, onAdded }: { jobId: string; onAdded: () => void 
     if (!n) return toast.error("Item name required");
     if (!q || q <= 0) return toast.error("Qty must be > 0");
     setSaving(true);
-    const { error } = await supabase.from("parts").insert({
-      job_id: jobId,
-      name: n,
-      quantity: q,
-      cost: p,
-      retail: p,
-      added_by: user?.id,
-    } as any);
+
+    let error: any = null;
+    if (isEdit) {
+      const { error: updateError } = await supabase
+        .from("parts")
+        .update({ name: n, quantity: q, cost: p, retail: p })
+        .eq("id", part.id);
+      error = updateError;
+    } else {
+      const { error: insertError } = await supabase.from("parts").insert({
+        job_id: jobId,
+        name: n,
+        quantity: q,
+        cost: p,
+        retail: p,
+        added_by: user?.id,
+      } as any);
+      error = insertError;
+    }
     setSaving(false);
     if (error) return toast.error(error.message);
-    toast.success("Part added");
+    toast.success(isEdit ? "Part updated" : "Part added");
     onAdded();
 
     const match = linked ?? exactMatch(n);
@@ -2177,6 +2225,17 @@ function AddCustomPart({ jobId, onAdded }: { jobId: string; onAdded: () => void 
       setLinked(match);
       setAsk({ kind: "update", name: n, price: p });
     }
+    reset();
+  }
+
+  async function remove() {
+    if (!isEdit || !confirm("Delete this part from the job?")) return;
+    setDeleting(true);
+    const { error } = await supabase.from("parts").delete().eq("id", part.id);
+    setDeleting(false);
+    if (error) return toast.error(error.message);
+    toast.success("Part deleted");
+    onAdded();
     reset();
   }
 
@@ -2306,11 +2365,23 @@ function AddCustomPart({ jobId, onAdded }: { jobId: string; onAdded: () => void 
           className="h-9 text-sm"
         />
         <div className="flex items-center gap-1">
-          <Button onClick={save} disabled={saving} size="sm" className="gold-surface">
-            <Check className="h-3.5 w-3.5" />
-          </Button>
+          {isEdit && (
+            <Button
+              onClick={remove}
+              disabled={deleting}
+              size="sm"
+              variant="ghost"
+              className="text-destructive hover:text-destructive"
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+            </Button>
+          )}
+          <div className="flex-1" />
           <Button onClick={() => reset()} variant="ghost" size="sm">
             <X className="h-3.5 w-3.5" />
+          </Button>
+          <Button onClick={save} disabled={saving} size="sm" className="gold-surface">
+            <Check className="h-3.5 w-3.5" />
           </Button>
         </div>
       </div>
