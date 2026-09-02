@@ -2365,11 +2365,23 @@ function AddCustomPart({
           className="h-9 text-sm"
         />
         <div className="flex items-center gap-1">
-          <Button onClick={save} disabled={saving} size="sm" className="gold-surface">
-            <Check className="h-3.5 w-3.5" />
-          </Button>
+          {isEdit && (
+            <Button
+              onClick={remove}
+              disabled={deleting}
+              size="sm"
+              variant="ghost"
+              className="text-destructive hover:text-destructive"
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+            </Button>
+          )}
+          <div className="flex-1" />
           <Button onClick={() => reset()} variant="ghost" size="sm">
             <X className="h-3.5 w-3.5" />
+          </Button>
+          <Button onClick={save} disabled={saving} size="sm" className="gold-surface">
+            <Check className="h-3.5 w-3.5" />
           </Button>
         </div>
       </div>
