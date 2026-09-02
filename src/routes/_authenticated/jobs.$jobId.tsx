@@ -2201,15 +2201,42 @@ function AddCustomPart({ jobId, onAdded }: { jobId: string; onAdded: () => void 
     qc.invalidateQueries({ queryKey: ["inventory-suggest"] });
   }
 
+  const askDialog = (
+    <AlertDialog open={Boolean(ask)} onOpenChange={(o) => !o && setAsk(null)}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>
+            {ask?.kind === "create" ? "Add to inventory library?" : "Update inventory item?"}
+          </AlertDialogTitle>
+          <AlertDialogDescription>
+            {ask?.kind === "create"
+              ? `“${ask?.name}” isn’t in the inventory yet. Save it at $${(ask?.price ?? 0).toFixed(2)} so it shows up next time?`
+              : `Update “${linked?.name}” in the inventory to “${ask?.name}” at $${(ask?.price ?? 0).toFixed(2)}?`}
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>No, keep as is</AlertDialogCancel>
+          <AlertDialogAction onClick={confirmAsk}>
+            {ask?.kind === "create" ? "Add to inventory" : "Update item"}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  );
+
   if (!open) {
     return (
-      <button
-        onClick={() => setOpen(true)}
-        className="mt-3 w-full rounded-lg border border-dashed border-primary/50 bg-primary/5 hover:bg-primary/10 px-3 py-2.5 text-sm font-semibold text-primary inline-flex items-center justify-center gap-2 transition-colors"
-      >
-        <Plus className="h-4 w-4" /> Add another part / fluid
-      </button>
+      <>
+        <button
+          onClick={() => setOpen(true)}
+          className="mt-3 w-full rounded-lg border border-dashed border-primary/50 bg-primary/5 hover:bg-primary/10 px-3 py-2.5 text-sm font-semibold text-primary inline-flex items-center justify-center gap-2 transition-colors"
+        >
+          <Plus className="h-4 w-4" /> Add another part / fluid
+        </button>
+        {askDialog}
+      </>
     );
+
   }
   return (
     <div className="mt-3 rounded-lg border border-primary/40 p-3 space-y-2 bg-primary/5">
