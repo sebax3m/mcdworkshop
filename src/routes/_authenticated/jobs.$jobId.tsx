@@ -2118,14 +2118,26 @@ function InventoryPicker({
   );
 }
 
-function AddCustomPart({ jobId, onAdded }: { jobId: string; onAdded: () => void }) {
+function AddCustomPart({
+  jobId,
+  onAdded,
+  part,
+  onClose,
+}: {
+  jobId: string;
+  onAdded: () => void;
+  part?: any;
+  onClose?: () => void;
+}) {
   const { user } = useCurrentUser();
   const qc = useQueryClient();
-  const [open, setOpen] = useState(false);
-  const [name, setName] = useState("");
-  const [qty, setQty] = useState("1");
-  const [price, setPrice] = useState("0");
+  const isEdit = Boolean(part?.id);
+  const [open, setOpen] = useState(isEdit);
+  const [name, setName] = useState(part?.name ?? "");
+  const [qty, setQty] = useState(String(part?.quantity ?? "1"));
+  const [price, setPrice] = useState(String(part?.retail ?? "0"));
   const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [showSuggest, setShowSuggest] = useState(false);
   // The inventory row the line was picked from (so we can learn from edits).
   const [linked, setLinked] = useState<any>(null);
