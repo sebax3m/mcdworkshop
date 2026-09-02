@@ -1818,6 +1818,7 @@ function PartsSection({
   const [picker, setPicker] = useState<{ key: string; category: string; label: string } | null>(
     null,
   );
+  const [editingPart, setEditingPart] = useState<any | null>(null);
   const used = serviceData?.parts_used ?? {};
 
   async function clearField(key: string) {
