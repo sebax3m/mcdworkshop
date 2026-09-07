@@ -129,6 +129,18 @@ function SmartInvoiceDraft() {
       ).data,
   });
 
+  const insuranceClaim = useQuery({
+    queryKey: ["draft-insurance-claim", jobId],
+    queryFn: async () =>
+      (
+        await (supabase as any)
+          .from("insurance_claims")
+          .select("id, insurer_name, insurer_claim_ref")
+          .eq("job_id", jobId)
+          .maybeSingle()
+      ).data,
+  });
+
   const trackedMinutes = useMemo(
     () =>
       (time.data ?? []).reduce((s: number, t: any) => {
