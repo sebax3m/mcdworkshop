@@ -140,9 +140,11 @@ function InvoicesList() {
 
       <div className="grid gap-2">
         {rows.map((inv: any) => {
-          const customer = inv.customers
-            ? `${inv.customers.first_name ?? ""} ${inv.customers.last_name ?? ""}`.trim()
-            : "—";
+          const customer = inv.is_insurance
+            ? inv.insurer_name || "Insurance claim"
+            : inv.customers
+              ? `${inv.customers.first_name ?? ""} ${inv.customers.last_name ?? ""}`.trim()
+              : "—";
           const bike = inv.motorcycles
             ? `${inv.motorcycles.make ?? ""} ${inv.motorcycles.model ?? ""}`.trim()
             : "";
