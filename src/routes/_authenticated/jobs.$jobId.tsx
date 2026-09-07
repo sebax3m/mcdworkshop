@@ -2216,20 +2216,27 @@ function AddCustomPart({
     onAdded();
 
     const match = linked ?? exactMatch(n);
+    let pendingAsk: typeof ask = null;
     if (!match) {
-      setAsk({ kind: "create", name: n, price: p });
+      pendingAsk = { kind: "create", name: n, price: p };
     } else if (
       (match.name ?? "").trim() !== n ||
       Math.abs(Number(match.unit_price ?? 0) - p) > 0.005
     ) {
-      setAsk({
+      pendingAsk = {
         kind: "update",
         name: n,
         price: p,
         inventoryId: match.id,
-      });
+      };
     }
-    reset();
+    if (pendingAsk) {
+      setAsk(pendingAsk);
+      // Keep the component mounted so the ask dialog can render.
+      reset(false);
+    } else {
+      reset();
+    }
   }
 
   async function remove() {
