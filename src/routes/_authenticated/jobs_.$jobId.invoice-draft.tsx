@@ -153,7 +153,7 @@ function SmartInvoiceDraft() {
   );
 
   const ready =
-    job.data && tasks.data && parts.data && findings.data && time.data && notes.data && !saved.isLoading;
+    job.data && tasks.data && parts.data && findings.data && time.data && notes.data && !saved.isLoading && !insuranceClaim.isLoading;
 
   const input: JobDraftInput | null = useMemo(() => {
     if (!job.data) return null;
