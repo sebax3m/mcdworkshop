@@ -26,6 +26,7 @@ import { McdTechProvider } from "@/components/garage/McdTechAssistant";
 import logoAsset from "@/assets/motorcycle-doctors-logo.png.asset.json";
 import { ActiveUserSwitcher } from "@/components/ActiveUserSwitcher";
 import { FloatingClockWidget } from "@/components/FloatingClockWidget";
+import { AutoClockOutGuard } from "@/components/AutoClockOutGuard";
 import { NotificationsBell } from "@/components/NotificationsBell";
 
 // macOS-dock-like magnification based on cursor proximity to each item center
