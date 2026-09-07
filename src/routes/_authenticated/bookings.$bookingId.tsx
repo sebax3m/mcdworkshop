@@ -18,7 +18,10 @@ import {
   RotateCcw,
   Mail,
 } from "lucide-react";
-import { sendBookingCalendarInvite } from "@/lib/google-calendar.functions";
+import {
+  sendBookingCalendarInvite,
+  cancelBookingCalendarEvent,
+} from "@/lib/google-calendar.functions";
 import { LoanBikeDialog } from "@/components/booking/LoanBikeDialog";
 import { TransportCard } from "@/components/booking/TransportCard";
 import { changeBookingMotorcycle, fetchCustomerBikes } from "@/lib/bike-assign";
