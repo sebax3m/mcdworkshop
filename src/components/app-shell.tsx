@@ -286,6 +286,7 @@ export function AppShell() {
       </main>
 
       {isTechnician && <FloatingClockWidget />}
+      {isTechnician && <AutoClockOutGuard />}
 
       {/* ===== MOBILE BOTTOM NAV ===== */}
       <nav className="fixed bottom-0 inset-x-0 z-40 sm:hidden border-t border-border bg-background/95 backdrop-blur-xl">
