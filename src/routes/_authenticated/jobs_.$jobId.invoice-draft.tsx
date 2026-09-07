@@ -614,7 +614,7 @@ function SmartInvoiceDraft() {
             <Button
               className="gold-surface font-bold"
               onClick={createInvoice}
-              disabled={busy === "create" || !isAdmin}
+              disabled={busy === "create" || !isAdmin || insuranceClaim.isLoading}
             >
               <FileText className="h-4 w-4 mr-1" />
               {existingInvoice.data ? "Open invoice" : "Create invoice"}
