@@ -31,6 +31,7 @@ import {
   PackageCheck,
   Archive,
   ChevronRight,
+  Loader2,
 } from "lucide-react";
 
 import { toast } from "sonner";
@@ -222,6 +223,39 @@ function ClaimDetail() {
     nav({ to: "/insurance" });
   }
 
+  const [printingQuote, setPrintingQuote] = useState(false);
+
+  // Builds the exact same quote PDF as "Download PDF" and sends it to print.
+  async function printQuote() {
+    if (!c) return;
+    setPrintingQuote(true);
+    try {
+      const { buildClaimPdf } = await import("@/lib/claim-pdf");
+      const items = Array.isArray(c.quote_items) ? c.quote_items : [];
+      const blob = await buildClaimPdf({
+        claim: c,
+        bikeText: c.motorcycles ? fullBike(c.motorcycles) : "—",
+        marks: [],
+        items,
+        options: { includePhotos: false, maxPhotos: 0 },
+      });
+      const url = URL.createObjectURL(blob);
+      const w = window.open(url, "_blank");
+      if (!w) {
+        toast.error("Popup blocked — allow popups to print the quote");
+        return;
+      }
+      w.addEventListener("load", () => {
+        w.focus();
+        w.print();
+      });
+    } catch (e: any) {
+      toast.error(e?.message ?? "Failed to build quote PDF");
+    } finally {
+      setPrintingQuote(false);
+    }
+  }
+
   if (claim.isLoading)
     return <div className="card-surface p-8 text-center text-muted-foreground">Loading…</div>;
   if (!c)
@@ -259,8 +293,19 @@ function ClaimDetail() {
             </span>
           </h1>
         </div>
-        <Button onClick={() => window.print()} variant="outline" size="sm" className="gap-2">
-          <Printer className="h-4 w-4" /> Print Quote
+        <Button
+          onClick={printQuote}
+          disabled={printingQuote}
+          variant="outline"
+          size="sm"
+          className="gap-2"
+        >
+          {printingQuote ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <Printer className="h-4 w-4" />
+          )}
+          Print Quote
         </Button>
         {isAdmin && (
           <Button
