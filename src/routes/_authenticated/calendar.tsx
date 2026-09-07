@@ -487,6 +487,10 @@ function CalendarPage() {
     setQDelivery(false);
     setQTransportAddress("");
     setQTransportNotes("");
+    setQGInvite(false);
+    setQGEmail("");
+    setQGIncludeEnd(false);
+
   }
 
   async function createQuickBooking() {
