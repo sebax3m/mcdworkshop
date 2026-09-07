@@ -1949,10 +1949,7 @@ function PartsSection({
           <AddCustomPart
             jobId={jobId}
             part={editingPart}
-            onAdded={() => {
-              onChanged();
-              setEditingPart(null);
-            }}
+            onAdded={onChanged}
             onClose={() => setEditingPart(null)}
           />
         </div>
@@ -2178,13 +2175,13 @@ function AddCustomPart({
     );
   }
 
-  function reset() {
+  function reset(close = true) {
     setName("");
     setQty("1");
     setPrice("0");
     setLinked(null);
     setOpen(false);
-    onClose?.();
+    if (close) onClose?.();
   }
 
   async function save() {
