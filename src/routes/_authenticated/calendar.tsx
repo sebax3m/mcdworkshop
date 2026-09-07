@@ -572,6 +572,23 @@ function CalendarPage() {
       if (bkErr) throw bkErr;
 
       toast.success("Booking created");
+
+      if (qGInvite) {
+        const inviteEmail = (qGEmail || (created as any)?.customers?.email || "").trim();
+        if (!inviteEmail) {
+          toast.error("No email address for the Google Calendar invitation");
+        } else {
+          try {
+            await syncBookingCalendarEvent({
+              data: { bookingId: created.id, email: inviteEmail, includeEnd: qGIncludeEnd },
+            });
+            toast.success(`Google Calendar invitation sent to ${inviteEmail}`);
+          } catch (e: any) {
+            toast.error(e?.message ?? "Booking saved, but the Google invitation failed");
+          }
+        }
+      }
+
       qc.invalidateQueries({ queryKey: ["calendar-bookings"] });
       qc.invalidateQueries({ queryKey: ["quick-customers"] });
       // Close modal immediately after saving
