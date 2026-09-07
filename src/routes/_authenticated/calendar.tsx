@@ -2581,6 +2581,52 @@ function CalendarPage() {
                     )}
                   </div>
 
+                  <div>
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        className="h-4 w-4 accent-primary"
+                        checked={qGInvite}
+                        onChange={(e) => {
+                          setQGInvite(e.target.checked);
+                          if (e.target.checked && !qGEmail) {
+                            const c = (quickCustomers.data ?? []).find(
+                              (x: any) => x.id === qCustomerId,
+                            );
+                            setQGEmail(c?.email ?? "");
+                          }
+                        }}
+                      />
+                      <span className="text-sm font-semibold">
+                        📅 Send Google Calendar invitation to customer
+                      </span>
+                    </label>
+                    {qGInvite && (
+                      <div className="mt-2 space-y-2 rounded-xl border border-primary/40 bg-primary/5 p-3">
+                        <input
+                          type="email"
+                          value={qGEmail}
+                          onChange={(e) => setQGEmail(e.target.value)}
+                          placeholder="customer@email.com"
+                          className="w-full rounded-lg border border-border bg-background/60 px-3 py-2 text-sm focus:border-primary/60 focus:outline-none"
+                        />
+                        <label className="flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            className="h-4 w-4 accent-primary"
+                            checked={qGIncludeEnd}
+                            onChange={(e) => setQGIncludeEnd(e.target.checked)}
+                          />
+                          <span className="text-sm">
+                            Include expected completion / pick-up time
+                          </span>
+                        </label>
+                      </div>
+                    )}
+                  </div>
+
+
+
 
                   <div>
                     <label className="flex items-center gap-2 cursor-pointer">
