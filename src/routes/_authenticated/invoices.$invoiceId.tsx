@@ -783,20 +783,23 @@ function InvoiceDetail() {
   }
 
   async function saveSnapshotLines(
-    items: { description: string; quantity: number; unit: number; discount_pct?: number }[],
+    items: { kind?: "part" | "labour"; description: string; quantity: number; unit: number; discount_pct?: number }[],
   ) {
-    const partsSum = items.reduce(
-      (s, l) =>
-        s + Number(l.unit || 0) * Number(l.quantity || 0) * (1 - Number(l.discount_pct ?? 0) / 100),
-      0,
-    );
-    const subtotal = partsSum; // labour stays 0 for standalone
+    const lineNet = (l: any) =>
+      Number(l.unit || 0) * Number(l.quantity || 0) * (1 - Number(l.discount_pct ?? 0) / 100);
+    const labourSum = items
+      .filter((l) => (l.kind ?? "part") === "labour")
+      .reduce((s, l) => s + lineNet(l), 0);
+    const partsSum = items
+      .filter((l) => (l.kind ?? "part") !== "labour")
+      .reduce((s, l) => s + lineNet(l), 0);
+    const subtotal = labourSum + partsSum;
     const gst = Math.round(((subtotal * GST_RATE) / (1 + GST_RATE)) * 100) / 100;
     const total = Math.round(subtotal * 100) / 100;
     const newSnap = { ...((inv.snapshot as any) ?? {}), line_items: items };
     const { error } = await supabase
       .from("invoices")
-      .update({ snapshot: newSnap, parts_total: partsSum, gst, total })
+      .update({ snapshot: newSnap, labour_total: labourSum, parts_total: partsSum, gst, total })
       .eq("id", invoiceId);
     if (error) {
       toast.error(error.message);
@@ -805,6 +808,7 @@ function InvoiceDetail() {
     qc.invalidateQueries({ queryKey: ["invoice", invoiceId] });
   }
   function currentSnapshotLines(): {
+    kind?: "part" | "labour";
     description: string;
     quantity: number;
     unit: number;
@@ -821,7 +825,7 @@ function InvoiceDetail() {
   }
   async function updateSnapshotLine(
     idx: number,
-    patch: Partial<{ description: string; quantity: number; unit: number; discount_pct: number }>,
+    patch: Partial<{ kind: "part" | "labour"; description: string; quantity: number; unit: number; discount_pct: number }>,
   ) {
     const items = currentSnapshotLines().map((it, i) => (i === idx ? { ...it, ...patch } : it));
     if (patch.unit != null) {
@@ -1613,6 +1617,7 @@ function InvoiceDetail() {
                 {!inv.job_id &&
                   (() => {
                     const items: {
+                      kind?: "part" | "labour";
                       item_name?: string;
                       description: string;
                       quantity: number;
