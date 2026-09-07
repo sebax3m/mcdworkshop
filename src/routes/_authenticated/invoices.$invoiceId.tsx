@@ -844,8 +844,12 @@ function InvoiceDetail() {
   const subtotalEx = subtotalInc / (1 + GST_RATE);
 
   function emailInvoice() {
-    const to = customer?.email ?? "";
-    const name = customer ? `${customer.first_name ?? ""}`.trim() : "there";
+    const to = isInsurance ? "" : (customer?.email ?? "");
+    const name = isInsurance
+      ? insurerName || "insurer"
+      : customer
+        ? `${customer.first_name ?? ""}`.trim()
+        : "there";
     const subject = `Invoice ${inv.invoice_number} from Motorcycle Doctors`;
     const body = [
       `Hi ${name || "there"},`,
@@ -853,6 +857,7 @@ function InvoiceDetail() {
       `Please find your invoice ${inv.invoice_number} below.`,
       ``,
       `Bike: ${bike ? fullBike(bike as any) : "—"}`,
+      isInsurance && insurerRef ? `Claim ref: ${insurerRef}` : null,
       `Issued: ${issuedAt.toLocaleDateString("en-GB")}`,
       `Due: ${dueAt.toLocaleDateString("en-GB")}`,
       ``,
@@ -865,7 +870,9 @@ function InvoiceDetail() {
       ``,
       `Thanks,`,
       `Motorcycle Doctors`,
-    ].join("\n");
+    ]
+      .filter(Boolean)
+      .join("\n");
     window.location.href = `mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
   }
 
