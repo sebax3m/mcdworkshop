@@ -187,22 +187,24 @@ export async function buildClaimPdf(d: ClaimPdfData): Promise<Blob> {
   pdf.line(margin, y, pageW - margin, y);
   y += 5;
 
-  // ---------- Customer + Vehicle ----------
+  // ---------- Bill to (insurer) + Vehicle ----------
   const colW = (pageW - margin * 2 - 4) / 2;
+  const ownerName =
+    `${c.customers?.first_name ?? ""} ${c.customers?.last_name ?? ""}`.trim() || "—";
   pdf.setFontSize(8);
   pdf.setTextColor(100);
-  pdf.text("CUSTOMER", margin, y);
+  pdf.text("BILL TO", margin, y);
   pdf.text("VEHICLE", margin + colW + 4, y);
   pdf.setTextColor(0);
   pdf.setFont("helvetica", "bold");
   pdf.setFontSize(10);
   y += 5;
-  pdf.text(`${c.customers?.first_name ?? ""} ${c.customers?.last_name ?? ""}`, margin, y);
+  pdf.text(c.insurer_name ?? "—", margin, y);
   pdf.text(bikeText, margin + colW + 4, y);
   pdf.setFont("helvetica", "normal");
   pdf.setFontSize(9);
   y += 4;
-  pdf.text(`${c.customers?.phone ?? "—"}  ·  ${c.customers?.email ?? "—"}`, margin, y);
+  pdf.text(`Claim ref: ${c.insurer_claim_ref ?? "—"}`, margin, y);
   pdf.text(
     `Rego ${c.motorcycles?.rego ?? "—"}  ·  VIN ${c.motorcycles?.vin ?? "—"}`,
     margin + colW + 4,
@@ -210,6 +212,7 @@ export async function buildClaimPdf(d: ClaimPdfData): Promise<Blob> {
   );
   y += 4;
   pdf.text(`Date: ${new Date(c.date_received ?? Date.now()).toLocaleDateString("en-GB")}`, margin, y);
+  pdf.text(`Owner: ${ownerName}`, margin + colW + 4, y);
   y += 7;
 
   // ---------- Damage notes ----------
