@@ -34,6 +34,16 @@ import {
   Loader2,
 } from "lucide-react";
 
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { fullBike } from "@/lib/format";
@@ -481,12 +491,102 @@ function QuoteBuilder({
   const nav = useNavigate();
   const { user } = useCurrentUser();
   const [creatingInvoice, setCreatingInvoice] = useState(false);
+  const [updateAsk, setUpdateAsk] = useState<{
+    existing: { id: string; invoice_number: string };
+    payload: Record<string, any>;
+  } | null>(null);
+
+  function buildInvoicePayload() {
+    const lineTotalInc = (it: QuoteItem) =>
+      (Number(it.qty) || 0) * (Number(it.unit_price) || 0) * 1.15;
+    const labourInc = items.filter((i) => i.kind === "labour").reduce((s, i) => s + lineTotalInc(i), 0);
+    const partsInc = items.filter((i) => i.kind !== "labour").reduce((s, i) => s + lineTotalInc(i), 0);
+    const totalInc = Math.round((labourInc + partsInc) * 100) / 100;
+    const gstAmount = Math.round(((totalInc * 0.15) / 1.15) * 100) / 100;
+    const snapshotLines = items.map((it) => ({
+      item_code: (it as any).item_code ?? null,
+      item_name: (it as any).item_name ?? null,
+      description:
+        [(it as any).item_name, it.description].filter(Boolean).join(" — ") ||
+        (it.kind === "labour" ? "Labour" : "Part"),
+      quantity: Number(it.qty) || 0,
+      unit: Math.round((Number(it.unit_price) || 0) * 1.15 * 100) / 100,
+      discount_pct: 0,
+    }));
+    return {
+      labourInc,
+      partsInc,
+      totalInc,
+      gstAmount,
+      snapshotLines,
+      lineCount: items.length,
+    };
+  }
+
+  async function findExistingClaimInvoice() {
+    const { data } = await supabase
+      .from("invoices")
+      .select("id, invoice_number, total, snapshot")
+      .filter("snapshot->>insurance_claim_id", "eq", c.id)
+      .order("created_at", { ascending: false })
+      .limit(1);
+    if (data?.length) return data[0];
+    if (c.insurer_claim_ref || c.insurer_name) {
+      let q = supabase
+        .from("invoices")
+        .select("id, invoice_number, total, snapshot")
+        .eq("is_insurance", true)
+        .order("created_at", { ascending: false })
+        .limit(1);
+      if (c.insurer_claim_ref) q = q.eq("insurer_claim_ref", c.insurer_claim_ref);
+      if (c.insurer_name) q = q.eq("insurer_name", c.insurer_name);
+      if (c.motorcycle_id) q = q.eq("motorcycle_id", c.motorcycle_id);
+      const { data: fallback } = await q;
+      if (fallback?.length) return fallback[0];
+    }
+    return null;
+  }
 
   async function createInvoiceFromQuote() {
     if (!items.length) return toast.error("Add quote items first");
     setCreatingInvoice(true);
     try {
       if (dirty) await save();
+      const calc = buildInvoicePayload();
+      const snapshotData = {
+        insurance_claim_id: c.id,
+        line_items: calc.snapshotLines,
+        bill_to_name: c.insurer_name || "Insurance claim",
+        bill_to_detail: c.insurer_claim_ref ? `Claim ref: ${c.insurer_claim_ref}` : "",
+      } as any;
+      const basePayload = {
+        job_id: c.job_id ?? null,
+        customer_id: null,
+        motorcycle_id: c.motorcycle_id ?? null,
+        is_insurance: true,
+        insurer_name: c.insurer_name ?? null,
+        insurer_claim_ref: c.insurer_claim_ref ?? null,
+        labour_total: Math.round(calc.labourInc * 100) / 100,
+        parts_total: Math.round(calc.partsInc * 100) / 100,
+        gst: calc.gstAmount,
+        total: calc.totalInc,
+        notes: `Insurance claim ${c.claim_number}${c.insurer_claim_ref ? ` · Ref ${c.insurer_claim_ref}` : ""}`,
+        snapshot: snapshotData,
+      };
+
+      const existing = await findExistingClaimInvoice();
+      if (existing) {
+        const unchanged =
+          Math.round(Number(existing.total ?? 0) * 100) === Math.round(calc.totalInc * 100);
+        if (unchanged) {
+          toast.info(`Invoice ${existing.invoice_number} already exists for this claim`);
+          nav({ to: "/invoices/$invoiceId", params: { invoiceId: existing.id } });
+          return;
+        }
+        setUpdateAsk({ existing: { id: existing.id, invoice_number: existing.invoice_number }, payload: basePayload });
+        return;
+      }
+
       const year = new Date().getFullYear();
       const { data: last } = await supabase
         .from("invoices")
@@ -498,45 +598,12 @@ function QuoteBuilder({
       const lastSeq = last?.invoice_number ? Number(last.invoice_number.split("-").pop()) : 0;
       const invoice_number = `MCD-${year}-${String(Math.max(lastSeq + 1, 1000)).padStart(5, "0")}`;
 
-      const lineTotalInc = (it: QuoteItem) =>
-        (Number(it.qty) || 0) * (Number(it.unit_price) || 0) * 1.15;
-      const labourInc = items.filter((i) => i.kind === "labour").reduce((s, i) => s + lineTotalInc(i), 0);
-      const partsInc = items.filter((i) => i.kind !== "labour").reduce((s, i) => s + lineTotalInc(i), 0);
-      const totalInc = Math.round((labourInc + partsInc) * 100) / 100;
-      const gstAmount = Math.round(((totalInc * 0.15) / 1.15) * 100) / 100;
-
-      const snapshotLines = items.map((it) => ({
-        item_code: (it as any).item_code ?? null,
-        item_name: (it as any).item_name ?? null,
-        description:
-          [(it as any).item_name, it.description].filter(Boolean).join(" — ") ||
-          (it.kind === "labour" ? "Labour" : "Part"),
-        quantity: Number(it.qty) || 0,
-        unit: Math.round((Number(it.unit_price) || 0) * 1.15 * 100) / 100,
-        discount_pct: 0,
-      }));
-
       const { data, error } = await supabase
         .from("invoices")
         .insert({
-          job_id: c.job_id ?? null,
+          ...basePayload,
           invoice_number,
-          customer_id: null,
-          motorcycle_id: c.motorcycle_id ?? null,
-          is_insurance: true,
-          insurer_name: c.insurer_name ?? null,
-          insurer_claim_ref: c.insurer_claim_ref ?? null,
-          labour_total: Math.round(labourInc * 100) / 100,
-          parts_total: Math.round(partsInc * 100) / 100,
-          gst: gstAmount,
-          total: totalInc,
           status: "draft",
-          notes: `Insurance claim ${c.claim_number}${c.insurer_claim_ref ? ` · Ref ${c.insurer_claim_ref}` : ""}`,
-          snapshot: {
-            line_items: snapshotLines,
-            bill_to_name: c.insurer_name || "Insurance claim",
-            bill_to_detail: c.insurer_claim_ref ? `Claim ref: ${c.insurer_claim_ref}` : "",
-          } as any,
           created_by: user?.id,
         })
         .select("id, invoice_number")
@@ -546,6 +613,26 @@ function QuoteBuilder({
       nav({ to: "/invoices/$invoiceId", params: { invoiceId: data.id } });
     } catch (e: any) {
       toast.error(e?.message ?? "Failed to create invoice");
+    } finally {
+      setCreatingInvoice(false);
+    }
+  }
+
+  async function updateExistingInvoice() {
+    if (!updateAsk) return;
+    const { existing, payload } = updateAsk;
+    setCreatingInvoice(true);
+    try {
+      const { error } = await supabase
+        .from("invoices")
+        .update(payload as any)
+        .eq("id", existing.id);
+      if (error) throw new Error(error.message);
+      toast.success(`Invoice ${existing.invoice_number} updated with the new quote`);
+      setUpdateAsk(null);
+      nav({ to: "/invoices/$invoiceId", params: { invoiceId: existing.id } });
+    } catch (e: any) {
+      toast.error(e?.message ?? "Failed to update invoice");
     } finally {
       setCreatingInvoice(false);
     }
@@ -965,6 +1052,30 @@ function QuoteBuilder({
             data={{ claim: c, bikeText, marks: [], items }}
             fileBaseName={`Claim-${c.claim_number}`}
           />
+
+          <AlertDialog open={!!updateAsk} onOpenChange={(o) => !o && setUpdateAsk(null)}>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Invoice already exists</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Invoice {updateAsk?.existing.invoice_number} already exists for this claim, but the
+                  quote has changed since it was created. Do you want to update the existing invoice
+                  with the new quote?
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={(e) => {
+                    e.preventDefault();
+                    updateExistingInvoice();
+                  }}
+                >
+                  Update Invoice
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
       </div>
 
