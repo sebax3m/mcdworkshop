@@ -1172,29 +1172,38 @@ function InvoiceDetail() {
               <div className="text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-muted-foreground pb-1 mb-1.5 border-b border-border">
                 Bill to
               </div>
-              {isInsurance ? (
-                <>
-                  <div className="font-bold text-base leading-tight truncate">
-                    {insurerName || "Insurance claim"}
-                  </div>
-                  {insurerRef && (
-                    <div className="text-muted-foreground truncate mt-0.5">
-                      Claim ref: {insurerRef}
-                    </div>
-                  )}
-                </>
-              ) : (
-                <>
-                  <div className="font-bold text-base leading-tight truncate">
-                    {customer ? `${customer.first_name ?? ""} ${customer.last_name ?? ""}`.trim() : "—"}
-                  </div>
-                  <div className="text-muted-foreground truncate mt-0.5">
-                    {customer?.phone || "—"}
-                  </div>
-                  <div className="text-muted-foreground truncate">{customer?.email || ""}</div>
-                </>
-              )}
+              {(() => {
+                const snap = (inv.snapshot as any) ?? {};
+                const defaultName = isInsurance
+                  ? insurerName || "Insurance claim"
+                  : customer
+                    ? `${customer.first_name ?? ""} ${customer.last_name ?? ""}`.trim() || "—"
+                    : "—";
+                const defaultDetail = isInsurance
+                  ? [insurerRef ? `Claim ref: ${insurerRef}` : null].filter(Boolean).join("\n")
+                  : [customer?.phone || null, customer?.email || null].filter(Boolean).join("\n");
+                const name = (snap.bill_to_name as string | undefined) ?? defaultName;
+                const detail = (snap.bill_to_detail as string | undefined) ?? defaultDetail;
+                return (
+                  <>
+                    <EditableText
+                      value={name}
+                      onCommit={(v) => saveSnapshotMeta({ bill_to_name: v || defaultName })}
+                      className="font-bold text-base leading-tight block"
+                      placeholder="Bill to name"
+                    />
+                    <EditableText
+                      value={detail}
+                      multiline
+                      onCommit={(v) => saveSnapshotMeta({ bill_to_detail: v })}
+                      className="text-muted-foreground mt-0.5 block whitespace-pre-line"
+                      placeholder="Add details (phone, email, claim ref…)"
+                    />
+                  </>
+                );
+              })()}
             </div>
+
             <div className={`min-w-0${bike && fullBike(bike as any).trim() ? "" : " print-hide-empty"}`}>
               <div className="text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-muted-foreground pb-1 mb-1.5 border-b border-border">
                 Motorcycle
