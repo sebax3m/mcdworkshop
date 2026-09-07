@@ -227,6 +227,10 @@ function CalendarPage() {
   const [qDelivery, setQDelivery] = useState(false);
   const [qTransportAddress, setQTransportAddress] = useState<string>("");
   const [qTransportNotes, setQTransportNotes] = useState<string>("");
+  const [qGInvite, setQGInvite] = useState(false);
+  const [qGEmail, setQGEmail] = useState<string>("");
+  const [qGIncludeEnd, setQGIncludeEnd] = useState(false);
+
   const [creatingQuick, setCreatingQuick] = useState(false);
   const [lookingUpRego, setLookingUpRego] = useState(false);
   const [qEndTime, setQEndTime] = useState<string>("");
