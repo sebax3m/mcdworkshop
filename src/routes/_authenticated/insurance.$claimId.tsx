@@ -25,6 +25,7 @@ import {
   ClipboardList,
   FileEdit,
   FileCheck2,
+  FileWarning,
   ThumbsUp,
   Package,
   Hammer,
@@ -620,6 +621,72 @@ function QuoteBuilder({
     }
   }
 
+  async function createWriteOffInvoice() {
+    setCreatingInvoice(true);
+    try {
+      const labourRateInc = Math.round((Number(rate) || 110) * 1.15 * 100) / 100;
+      const totalInc = labourRateInc;
+      const gstAmount = Math.round(((totalInc * 0.15) / 1.15) * 100) / 100;
+      const snapshotData = {
+        insurance_claim_id: c.id,
+        job_id: c.job_id ?? null,
+        line_items: [
+          {
+            kind: "labour",
+            item_code: null,
+            item_name: null,
+            description: "Assessment for repair",
+            quantity: 1,
+            unit: labourRateInc,
+            discount_pct: 0,
+          },
+        ],
+        bill_to_name: c.insurer_name || "Insurance claim",
+        bill_to_detail: c.insurer_claim_ref ? `Claim ref: ${c.insurer_claim_ref}` : "",
+      } as any;
+
+      const year = new Date().getFullYear();
+      const { data: last } = await supabase
+        .from("invoices")
+        .select("invoice_number")
+        .like("invoice_number", `MCD-${year}-%`)
+        .order("invoice_number", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      const lastSeq = last?.invoice_number ? Number(last.invoice_number.split("-").pop()) : 0;
+      const invoice_number = `MCD-${year}-${String(Math.max(lastSeq + 1, 1000)).padStart(5, "0")}`;
+
+      const { data, error } = await supabase
+        .from("invoices")
+        .insert({
+          job_id: null,
+          customer_id: null,
+          motorcycle_id: c.motorcycle_id ?? null,
+          is_insurance: true,
+          insurer_name: c.insurer_name ?? null,
+          insurer_claim_ref: c.insurer_claim_ref ?? null,
+          labour_total: totalInc,
+          parts_total: 0,
+          gst: gstAmount,
+          total: totalInc,
+          notes: `Write off — Insurance claim ${c.claim_number}${c.insurer_claim_ref ? ` · Ref ${c.insurer_claim_ref}` : ""}`,
+          snapshot: snapshotData,
+          invoice_number,
+          status: "draft",
+          created_by: user?.id,
+        })
+        .select("id, invoice_number")
+        .maybeSingle();
+      if (error || !data) throw new Error(error?.message ?? "Failed to create invoice");
+      toast.success(`Write-off invoice ${data.invoice_number} created`);
+      nav({ to: "/invoices/$invoiceId", params: { invoiceId: data.id } });
+    } catch (e: any) {
+      toast.error(e?.message ?? "Failed to create write-off invoice");
+    } finally {
+      setCreatingInvoice(false);
+    }
+  }
+
   async function updateExistingInvoice() {
     if (!updateAsk) return;
     const { existing, payload } = updateAsk;
@@ -1046,6 +1113,21 @@ function QuoteBuilder({
               <FileCheck2 className="h-3.5 w-3.5" />
             )}
             Create Invoice
+          </Button>
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            className="gap-2"
+            disabled={creatingInvoice}
+            onClick={createWriteOffInvoice}
+          >
+            {creatingInvoice ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            ) : (
+              <FileWarning className="h-3.5 w-3.5" />
+            )}
+            Write Off
           </Button>
 
           <ClaimPdfExportDialog
