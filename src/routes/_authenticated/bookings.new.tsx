@@ -20,6 +20,7 @@ import { uploadPhoto } from "@/lib/photos";
 import { useBookingTypes } from "@/hooks/useBookingTypes";
 import { TimeSlotFields } from "@/components/booking/TimeSlotFields";
 import { AddressAutocomplete, AddressMap } from "@/components/booking/AddressAutocomplete";
+import { syncBookingCalendarEvent } from "@/lib/google-calendar.functions";
 
 import {
   addMinutesToTime,
