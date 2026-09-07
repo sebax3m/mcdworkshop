@@ -10,7 +10,7 @@ import {
   disconnectGoogleCalendar,
 } from "@/lib/google-calendar.functions";
 
-export const Route = createFileRoute("/_authenticated/settings/google-calendar")({
+export const Route = createFileRoute("/_authenticated/settings_/google-calendar")({
   component: GoogleCalendarSettings,
   head: () => ({
     meta: [

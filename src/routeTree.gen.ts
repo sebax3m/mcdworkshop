@@ -38,6 +38,7 @@ import { Route as AuthenticatedBookingsIndexRouteImport } from './routes/_authen
 import { Route as OauthGoogleCalendarReturnRouteImport } from './routes/oauth/google-calendar/return'
 import { Route as AuthenticatedSettingsThemesRouteImport } from './routes/_authenticated/settings_.themes'
 import { Route as AuthenticatedSettingsMcdTechRouteImport } from './routes/_authenticated/settings_.mcd-tech'
+import { Route as AuthenticatedSettingsGoogleCalendarRouteImport } from './routes/_authenticated/settings_.google-calendar'
 import { Route as AuthenticatedSettingsCapacityRouteImport } from './routes/_authenticated/settings_.capacity'
 import { Route as AuthenticatedSettingsBookingTypesRouteImport } from './routes/_authenticated/settings_.booking-types'
 import { Route as AuthenticatedMotorcyclesBikeIdRouteImport } from './routes/_authenticated/motorcycles.$bikeId'
@@ -214,6 +215,12 @@ const AuthenticatedSettingsMcdTechRoute =
   AuthenticatedSettingsMcdTechRouteImport.update({
     id: '/settings_/mcd-tech',
     path: '/settings/mcd-tech',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedSettingsGoogleCalendarRoute =
+  AuthenticatedSettingsGoogleCalendarRouteImport.update({
+    id: '/settings_/google-calendar',
+    path: '/settings/google-calendar',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedSettingsCapacityRoute =
@@ -393,6 +400,7 @@ export interface FileRoutesByFullPath {
   '/motorcycles/$bikeId': typeof AuthenticatedMotorcyclesBikeIdRoute
   '/settings/booking-types': typeof AuthenticatedSettingsBookingTypesRoute
   '/settings/capacity': typeof AuthenticatedSettingsCapacityRoute
+  '/settings/google-calendar': typeof AuthenticatedSettingsGoogleCalendarRoute
   '/settings/mcd-tech': typeof AuthenticatedSettingsMcdTechRoute
   '/settings/themes': typeof AuthenticatedSettingsThemesRoute
   '/oauth/google-calendar/return': typeof OauthGoogleCalendarReturnRoute
@@ -443,6 +451,7 @@ export interface FileRoutesByTo {
   '/motorcycles/$bikeId': typeof AuthenticatedMotorcyclesBikeIdRoute
   '/settings/booking-types': typeof AuthenticatedSettingsBookingTypesRoute
   '/settings/capacity': typeof AuthenticatedSettingsCapacityRoute
+  '/settings/google-calendar': typeof AuthenticatedSettingsGoogleCalendarRoute
   '/settings/mcd-tech': typeof AuthenticatedSettingsMcdTechRoute
   '/settings/themes': typeof AuthenticatedSettingsThemesRoute
   '/oauth/google-calendar/return': typeof OauthGoogleCalendarReturnRoute
@@ -498,6 +507,7 @@ export interface FileRoutesById {
   '/_authenticated/motorcycles/$bikeId': typeof AuthenticatedMotorcyclesBikeIdRoute
   '/_authenticated/settings_/booking-types': typeof AuthenticatedSettingsBookingTypesRoute
   '/_authenticated/settings_/capacity': typeof AuthenticatedSettingsCapacityRoute
+  '/_authenticated/settings_/google-calendar': typeof AuthenticatedSettingsGoogleCalendarRoute
   '/_authenticated/settings_/mcd-tech': typeof AuthenticatedSettingsMcdTechRoute
   '/_authenticated/settings_/themes': typeof AuthenticatedSettingsThemesRoute
   '/oauth/google-calendar/return': typeof OauthGoogleCalendarReturnRoute
@@ -553,6 +563,7 @@ export interface FileRouteTypes {
     | '/motorcycles/$bikeId'
     | '/settings/booking-types'
     | '/settings/capacity'
+    | '/settings/google-calendar'
     | '/settings/mcd-tech'
     | '/settings/themes'
     | '/oauth/google-calendar/return'
@@ -603,6 +614,7 @@ export interface FileRouteTypes {
     | '/motorcycles/$bikeId'
     | '/settings/booking-types'
     | '/settings/capacity'
+    | '/settings/google-calendar'
     | '/settings/mcd-tech'
     | '/settings/themes'
     | '/oauth/google-calendar/return'
@@ -657,6 +669,7 @@ export interface FileRouteTypes {
     | '/_authenticated/motorcycles/$bikeId'
     | '/_authenticated/settings_/booking-types'
     | '/_authenticated/settings_/capacity'
+    | '/_authenticated/settings_/google-calendar'
     | '/_authenticated/settings_/mcd-tech'
     | '/_authenticated/settings_/themes'
     | '/oauth/google-calendar/return'
@@ -882,6 +895,13 @@ declare module '@tanstack/react-router' {
       path: '/settings/mcd-tech'
       fullPath: '/settings/mcd-tech'
       preLoaderRoute: typeof AuthenticatedSettingsMcdTechRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/settings_/google-calendar': {
+      id: '/_authenticated/settings_/google-calendar'
+      path: '/settings/google-calendar'
+      fullPath: '/settings/google-calendar'
+      preLoaderRoute: typeof AuthenticatedSettingsGoogleCalendarRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/settings_/capacity': {
@@ -1132,6 +1152,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedMotorcyclesBikeIdRoute: typeof AuthenticatedMotorcyclesBikeIdRoute
   AuthenticatedSettingsBookingTypesRoute: typeof AuthenticatedSettingsBookingTypesRoute
   AuthenticatedSettingsCapacityRoute: typeof AuthenticatedSettingsCapacityRoute
+  AuthenticatedSettingsGoogleCalendarRoute: typeof AuthenticatedSettingsGoogleCalendarRoute
   AuthenticatedSettingsMcdTechRoute: typeof AuthenticatedSettingsMcdTechRoute
   AuthenticatedSettingsThemesRoute: typeof AuthenticatedSettingsThemesRoute
   AuthenticatedBookingsIndexRoute: typeof AuthenticatedBookingsIndexRoute
@@ -1180,6 +1201,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedSettingsBookingTypesRoute:
     AuthenticatedSettingsBookingTypesRoute,
   AuthenticatedSettingsCapacityRoute: AuthenticatedSettingsCapacityRoute,
+  AuthenticatedSettingsGoogleCalendarRoute:
+    AuthenticatedSettingsGoogleCalendarRoute,
   AuthenticatedSettingsMcdTechRoute: AuthenticatedSettingsMcdTechRoute,
   AuthenticatedSettingsThemesRoute: AuthenticatedSettingsThemesRoute,
   AuthenticatedBookingsIndexRoute: AuthenticatedBookingsIndexRoute,

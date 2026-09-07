@@ -11,6 +11,7 @@ import {
   KeyRound,
   Gauge,
   Wrench,
+  CalendarCheck,
 } from "lucide-react";
 import { useCurrentUser } from "@/hooks/use-current-user";
 
