@@ -953,6 +953,56 @@ function NewBooking() {
               )}
 
             </div>
+
+            <div className="rounded-xl border border-border p-3 space-y-3">
+              <div className="text-xs uppercase tracking-[0.25em] text-muted-foreground">
+                Google Calendar invitation
+              </div>
+              <label className="flex items-center gap-3 text-sm cursor-pointer">
+                <input
+                  type="checkbox"
+                  className="h-5 w-5 accent-primary"
+                  checked={gInvite}
+                  onChange={(e) => {
+                    setGInvite(e.target.checked);
+                    if (e.target.checked && !gEmail) setGEmail(customer?.email ?? "");
+                  }}
+                />
+                <span className="font-semibold">📅 Send Google Calendar invitation to customer</span>
+              </label>
+              {gInvite && (
+                <div className="space-y-2 pt-1">
+                  {customer?.email ? (
+                    <p className="text-xs text-muted-foreground">
+                      Invitation will be sent to{" "}
+                      <span className="font-semibold text-foreground">
+                        {gEmail || customer.email}
+                      </span>
+                    </p>
+                  ) : (
+                    <p className="text-xs text-muted-foreground">
+                      This customer has no email saved — enter one for the invitation.
+                    </p>
+                  )}
+                  <Input
+                    type="email"
+                    value={gEmail}
+                    onChange={(e) => setGEmail(e.target.value)}
+                    placeholder="customer@email.com"
+                  />
+                  <label className="flex items-center gap-3 text-sm cursor-pointer">
+                    <input
+                      type="checkbox"
+                      className="h-5 w-5 accent-primary"
+                      checked={gIncludeEnd}
+                      onChange={(e) => setGIncludeEnd(e.target.checked)}
+                    />
+                    <span>Include expected completion / pick-up time</span>
+                  </label>
+                </div>
+              )}
+            </div>
+
             <label className="flex items-center gap-3 rounded-xl border border-border p-3 cursor-pointer hover:border-primary/50">
               <input
                 type="checkbox"
