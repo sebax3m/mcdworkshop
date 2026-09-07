@@ -274,10 +274,10 @@ export const cancelBookingCalendarEvent = createServerFn({ method: "POST" })
 
 
 /**
- * Silently keeps an already-sent invitation in sync after a booking is
- * rescheduled. Does nothing when the booking has no Google event.
+ * Reports whether a booking already has a Google invitation that should be
+ * refreshed after a reschedule.
  */
-export const resyncBookingCalendarEvent = createServerFn({ method: "POST" })
+export const bookingNeedsCalendarResync = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: { bookingId: string }) =>
     z.object({ bookingId: z.string() }).parse(input),
@@ -290,7 +290,5 @@ export const resyncBookingCalendarEvent = createServerFn({ method: "POST" })
       .maybeSingle();
     if (!(b as any)?.google_event_id) return { ok: true, synced: false };
     const connectionAPIKey = await getConnectionKeyForUser(context.userId, CONNECTOR_ID);
-    if (!connectionAPIKey) return { ok: true, synced: false };
-    await syncBookingCalendarEvent({ data: { bookingId: data.bookingId } });
-    return { ok: true, synced: true };
+    return { ok: true, synced: !!connectionAPIKey };
   });
