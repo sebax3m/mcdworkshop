@@ -1052,6 +1052,30 @@ function QuoteBuilder({
             data={{ claim: c, bikeText, marks: [], items }}
             fileBaseName={`Claim-${c.claim_number}`}
           />
+
+          <AlertDialog open={!!updateAsk} onOpenChange={(o) => !o && setUpdateAsk(null)}>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Invoice already exists</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Invoice {updateAsk?.existing.invoice_number} already exists for this claim, but the
+                  quote has changed since it was created. Do you want to update the existing invoice
+                  with the new quote?
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={(e) => {
+                    e.preventDefault();
+                    updateExistingInvoice();
+                  }}
+                >
+                  Update Invoice
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
       </div>
 
