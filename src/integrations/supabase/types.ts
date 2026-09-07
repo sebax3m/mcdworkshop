@@ -2210,8 +2210,11 @@ export type Database = {
           due_date: string | null
           gst: number
           id: string
+          insurer_claim_ref: string | null
+          insurer_name: string | null
           invoice_date: string
           invoice_number: string
+          is_insurance: boolean
           job_id: string | null
           labour_total: number
           motorcycle_id: string | null
@@ -2235,8 +2238,11 @@ export type Database = {
           due_date?: string | null
           gst?: number
           id?: string
+          insurer_claim_ref?: string | null
+          insurer_name?: string | null
           invoice_date?: string
           invoice_number: string
+          is_insurance?: boolean
           job_id?: string | null
           labour_total?: number
           motorcycle_id?: string | null
@@ -2260,8 +2266,11 @@ export type Database = {
           due_date?: string | null
           gst?: number
           id?: string
+          insurer_claim_ref?: string | null
+          insurer_name?: string | null
           invoice_date?: string
           invoice_number?: string
+          is_insurance?: boolean
           job_id?: string | null
           labour_total?: number
           motorcycle_id?: string | null
