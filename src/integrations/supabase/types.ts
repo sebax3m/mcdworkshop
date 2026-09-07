@@ -499,6 +499,10 @@ export type Database = {
           delivery_required: boolean
           drop_off_time: string | null
           estimated_hours: number | null
+          google_event_id: string | null
+          google_event_owner: string | null
+          google_include_end: boolean
+          google_invite_email: string | null
           google_uid: string | null
           id: string
           instructions: string | null
@@ -545,6 +549,10 @@ export type Database = {
           delivery_required?: boolean
           drop_off_time?: string | null
           estimated_hours?: number | null
+          google_event_id?: string | null
+          google_event_owner?: string | null
+          google_include_end?: boolean
+          google_invite_email?: string | null
           google_uid?: string | null
           id?: string
           instructions?: string | null
@@ -591,6 +599,10 @@ export type Database = {
           delivery_required?: boolean
           drop_off_time?: string | null
           estimated_hours?: number | null
+          google_event_id?: string | null
+          google_event_owner?: string | null
+          google_include_end?: boolean
+          google_invite_email?: string | null
           google_uid?: string | null
           id?: string
           instructions?: string | null
