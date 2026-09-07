@@ -172,6 +172,25 @@ function GoogleCalendarSettings() {
           </button>
         )}
 
+        {!connected && authUrl && (
+          <div className="rounded-lg border border-border/70 bg-muted/30 p-3 text-xs space-y-1">
+            <p className="text-muted-foreground">
+              If the Google sign-in window didn’t open (or showed a “refused to connect” message),
+              open it manually:
+            </p>
+            <a
+              href={authUrl}
+              target="_blank"
+              rel="opener"
+              className="font-semibold underline underline-offset-2 text-primary"
+            >
+              Open Google sign-in in a new tab
+            </a>
+          </div>
+        )}
+
+
+
         <p className="text-xs text-muted-foreground border-t border-border/50 pt-3">
           Once connected, open any booking and press "Send Google invite" to email the customer a
           calendar invitation for their book-in date.
