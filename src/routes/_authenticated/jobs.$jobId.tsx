@@ -1949,10 +1949,7 @@ function PartsSection({
           <AddCustomPart
             jobId={jobId}
             part={editingPart}
-            onAdded={() => {
-              onChanged();
-              setEditingPart(null);
-            }}
+            onAdded={onChanged}
             onClose={() => setEditingPart(null)}
           />
         </div>
@@ -2178,13 +2175,13 @@ function AddCustomPart({
     );
   }
 
-  function reset() {
+  function reset(close = true) {
     setName("");
     setQty("1");
     setPrice("0");
     setLinked(null);
     setOpen(false);
-    onClose?.();
+    if (close) onClose?.();
   }
 
   async function save() {
@@ -2219,20 +2216,27 @@ function AddCustomPart({
     onAdded();
 
     const match = linked ?? exactMatch(n);
+    let pendingAsk: typeof ask = null;
     if (!match) {
-      setAsk({ kind: "create", name: n, price: p });
+      pendingAsk = { kind: "create", name: n, price: p };
     } else if (
       (match.name ?? "").trim() !== n ||
       Math.abs(Number(match.unit_price ?? 0) - p) > 0.005
     ) {
-      setAsk({
+      pendingAsk = {
         kind: "update",
         name: n,
         price: p,
         inventoryId: match.id,
-      });
+      };
     }
-    reset();
+    if (pendingAsk) {
+      setAsk(pendingAsk);
+      // Keep the component mounted so the ask dialog can render.
+      reset(false);
+    } else {
+      reset();
+    }
   }
 
   async function remove() {
@@ -2265,6 +2269,12 @@ function AddCustomPart({
     setAsk(null);
     setLinked(null);
     qc.invalidateQueries({ queryKey: ["inventory-suggest"] });
+    onClose?.();
+  }
+
+  function dismissAsk() {
+    setAsk(null);
+    onClose?.();
   }
 
   const askDialog = (() => {
@@ -2277,7 +2287,7 @@ function AddCustomPart({
       target &&
       (target.name ?? "").trim().toLowerCase() !== (ask?.name ?? "").trim().toLowerCase();
     return (
-      <AlertDialog open={Boolean(ask)} onOpenChange={(o) => !o && setAsk(null)}>
+      <AlertDialog open={Boolean(ask)} onOpenChange={(o) => !o && dismissAsk()}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>
@@ -2296,7 +2306,7 @@ function AddCustomPart({
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>No, keep as is</AlertDialogCancel>
+            <AlertDialogCancel onClick={dismissAsk}>No, keep as is</AlertDialogCancel>
             <AlertDialogAction onClick={confirmAsk}>
               {ask?.kind === "create"
                 ? "Add to inventory"
