@@ -1028,8 +1028,16 @@ function InvoiceDetail() {
             onClick={emailInvoice}
             variant="outline"
             className="gap-2"
-            disabled={!customer?.email}
-            title={customer?.email ? `Email to ${customer.email}` : "No email on customer"}
+            disabled={isInsurance ? !insurerName : !customer?.email}
+            title={
+              isInsurance
+                ? insurerName
+                  ? `Email to ${insurerName}`
+                  : "No insurer email available"
+                : customer?.email
+                  ? `Email to ${customer.email}`
+                  : "No email on customer"
+            }
           >
             <Mail className="h-4 w-4" /> Email
           </Button>
