@@ -1159,13 +1159,28 @@ function InvoiceDetail() {
               <div className="text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-muted-foreground pb-1 mb-1.5 border-b border-border">
                 Bill to
               </div>
-              <div className="font-bold text-base leading-tight truncate">
-                {customer ? `${customer.first_name ?? ""} ${customer.last_name ?? ""}`.trim() : "—"}
-              </div>
-              <div className="text-muted-foreground truncate mt-0.5">
-                {customer?.phone || "—"}
-              </div>
-              <div className="text-muted-foreground truncate">{customer?.email || ""}</div>
+              {isInsurance ? (
+                <>
+                  <div className="font-bold text-base leading-tight truncate">
+                    {insurerName || "Insurance claim"}
+                  </div>
+                  {insurerRef && (
+                    <div className="text-muted-foreground truncate mt-0.5">
+                      Claim ref: {insurerRef}
+                    </div>
+                  )}
+                </>
+              ) : (
+                <>
+                  <div className="font-bold text-base leading-tight truncate">
+                    {customer ? `${customer.first_name ?? ""} ${customer.last_name ?? ""}`.trim() : "—"}
+                  </div>
+                  <div className="text-muted-foreground truncate mt-0.5">
+                    {customer?.phone || "—"}
+                  </div>
+                  <div className="text-muted-foreground truncate">{customer?.email || ""}</div>
+                </>
+              )}
             </div>
             <div className={`min-w-0${bike && fullBike(bike as any).trim() ? "" : " print-hide-empty"}`}>
               <div className="text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-muted-foreground pb-1 mb-1.5 border-b border-border">
