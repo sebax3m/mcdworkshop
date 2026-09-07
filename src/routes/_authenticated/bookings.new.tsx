@@ -347,6 +347,24 @@ function NewBooking() {
           .update({ mileage: parseInt(mileage) })
           .eq("id", bike.id);
 
+      if (gInvite) {
+        const inviteEmail = (gEmail || customer.email || "").trim();
+        if (!inviteEmail) {
+          toast.error("No email address for the Google Calendar invitation");
+        } else {
+          try {
+            await syncBookingCalendarEvent({
+              data: { bookingId: data.id, email: inviteEmail, includeEnd: gIncludeEnd },
+            });
+            toast.success(`Google Calendar invitation sent to ${inviteEmail}`);
+          } catch (e: any) {
+            toast.error(e?.message ?? "Booking saved, but the Google invitation failed");
+          }
+        }
+      }
+
+
+
       if (openJobCard) {
         const { data: tmpl } = await supabase
           .from("service_templates")
