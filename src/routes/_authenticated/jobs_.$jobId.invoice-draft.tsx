@@ -400,8 +400,16 @@ function SmartInvoiceDraft() {
         <div>
           <h1 className="font-display text-xl font-bold tracking-tight">Smart Invoice</h1>
           <p className="text-xs text-muted-foreground">
-            Job #{j.job_number} · {displayCustomerName(j.customers)} ·{" "}
-            {[bike.year, bike.make, bike.model].filter(Boolean).join(" ")}
+            Job #{j.job_number}
+            {insuranceClaim.data
+              ? ` · Insurance: ${insuranceClaim.data.insurer_name || "—"}${
+                  insuranceClaim.data.insurer_claim_ref
+                    ? ` (${insuranceClaim.data.insurer_claim_ref})`
+                    : ""
+                }`
+              : ` · ${displayCustomerName(j.customers)}`}
+            {" "}
+            · {[bike.year, bike.make, bike.model].filter(Boolean).join(" ")}
             {bike.rego ? ` · ${bike.rego}` : ""}
           </p>
         </div>
