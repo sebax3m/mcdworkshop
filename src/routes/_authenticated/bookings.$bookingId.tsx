@@ -41,6 +41,24 @@ function BookingDetail() {
   const [reversing, setReversing] = useState(false);
   const [photoUrls, setPhotoUrls] = useState<string[]>([]);
   const [loanOpen, setLoanOpen] = useState(false);
+  const [sendingInvite, setSendingInvite] = useState(false);
+
+  async function sendGoogleInvite() {
+    if (!b) return;
+    if (!b.customers?.email) {
+      toast.error("This customer has no email address on file.");
+      return;
+    }
+    setSendingInvite(true);
+    try {
+      const res = await sendBookingCalendarInvite({ data: { bookingId } });
+      toast.success(`Calendar invitation emailed to ${res.email}`);
+    } catch (err: any) {
+      toast.error(err?.message ?? "Could not send the Google Calendar invitation");
+    } finally {
+      setSendingInvite(false);
+    }
+  }
 
   const { data: b, isLoading } = useQuery({
     queryKey: ["booking", bookingId],
