@@ -70,6 +70,22 @@ import {
   formatConflictMessage,
   validateTimeRange,
 } from "@/lib/booking-conflicts";
+import {
+  bookingNeedsCalendarResync,
+  syncBookingCalendarEvent,
+} from "@/lib/google-calendar.functions";
+
+/** Refresh an already-sent Google invitation after a booking is rescheduled. */
+async function refreshGoogleInvite(bookingId: string) {
+  try {
+    const check = await bookingNeedsCalendarResync({ data: { bookingId } });
+    if (!check.synced) return;
+    await syncBookingCalendarEvent({ data: { bookingId } });
+  } catch {
+    /* invitation refresh is best-effort */
+  }
+}
+
 import { displayBike, displayCustomerName, displayServiceType } from "@/lib/display";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar as CalendarPicker } from "@/components/ui/calendar";
@@ -675,6 +691,7 @@ function CalendarPage() {
     };
     const { error } = await supabase.from("bookings").update(patch).eq("id", bookingId);
     if (error) return toast.error(error.message);
+    void refreshGoogleInvite(bookingId);
     toast.success("Booking moved to " + format(newDate, "EEE d MMM") + ` · ${startTime}`);
     qc.invalidateQueries({ queryKey: ["calendar-bookings"] });
   }
@@ -796,6 +813,7 @@ function CalendarPage() {
     const failed = results.find((r) => r.error);
     if (failed?.error) return toast.error(failed.error.message);
 
+    updates.forEach((u) => void refreshGoogleInvite(u.id));
     toast.success(changingDay ? `Moved to ${format(day, "EEE d MMM")}` : "Order updated");
     qc.invalidateQueries({ queryKey: ["calendar-bookings"] });
     qc.invalidateQueries({ queryKey: ["day-bookings"] });
