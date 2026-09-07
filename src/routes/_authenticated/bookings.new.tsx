@@ -78,6 +78,9 @@ function NewBooking() {
   const [transportAddress, setTransportAddress] = useState<string>("");
   const [transportNotes, setTransportNotes] = useState<string>("");
   const [techId, setTechId] = useState<string | null>(null);
+  const [gInvite, setGInvite] = useState<boolean>(false);
+  const [gEmail, setGEmail] = useState<string>("");
+  const [gIncludeEnd, setGIncludeEnd] = useState<boolean>(false);
   const [arrivalPhotos, setArrivalPhotos] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
