@@ -724,6 +724,7 @@ function CalendarPage() {
       .update({ scheduled_date: dateStr })
       .eq("id", bookingId);
     if (error) return toast.error(error.message);
+    void refreshGoogleInvite(bookingId);
     toast.success("Book-in moved to " + format(newDate, "EEE d MMM"));
     qc.invalidateQueries({ queryKey: ["calendar-bookings"] });
     qc.invalidateQueries({ queryKey: ["day-bookings"] });
