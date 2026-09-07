@@ -2269,6 +2269,12 @@ function AddCustomPart({
     setAsk(null);
     setLinked(null);
     qc.invalidateQueries({ queryKey: ["inventory-suggest"] });
+    onClose?.();
+  }
+
+  function dismissAsk() {
+    setAsk(null);
+    onClose?.();
   }
 
   const askDialog = (() => {
@@ -2281,7 +2287,7 @@ function AddCustomPart({
       target &&
       (target.name ?? "").trim().toLowerCase() !== (ask?.name ?? "").trim().toLowerCase();
     return (
-      <AlertDialog open={Boolean(ask)} onOpenChange={(o) => !o && setAsk(null)}>
+      <AlertDialog open={Boolean(ask)} onOpenChange={(o) => !o && dismissAsk()}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>
@@ -2300,7 +2306,7 @@ function AddCustomPart({
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>No, keep as is</AlertDialogCancel>
+            <AlertDialogCancel onClick={dismissAsk}>No, keep as is</AlertDialogCancel>
             <AlertDialogAction onClick={confirmAsk}>
               {ask?.kind === "create"
                 ? "Add to inventory"
