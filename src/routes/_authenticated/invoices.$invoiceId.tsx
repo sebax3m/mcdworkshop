@@ -1035,12 +1035,10 @@ function InvoiceDetail() {
             onClick={emailInvoice}
             variant="outline"
             className="gap-2"
-            disabled={isInsurance ? !insurerName : !customer?.email}
+            disabled={isInsurance || !customer?.email}
             title={
               isInsurance
-                ? insurerName
-                  ? `Email to ${insurerName}`
-                  : "No insurer email available"
+                ? "Email is not available for insurance invoices"
                 : customer?.email
                   ? `Email to ${customer.email}`
                   : "No email on customer"
