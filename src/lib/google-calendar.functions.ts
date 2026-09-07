@@ -21,6 +21,7 @@ const CLIENT_KEY_ENV = "GOOGLE_CALENDAR_APP_USER_CONNECTOR_CLIENT_API_KEY";
 const SCOPES = [
   "https://www.googleapis.com/auth/userinfo.email",
   "https://www.googleapis.com/auth/userinfo.profile",
+  "https://www.googleapis.com/auth/calendar",
   "https://www.googleapis.com/auth/calendar.events",
 ];
 
@@ -215,6 +216,11 @@ export const syncBookingCalendarEvent = createServerFn({ method: "POST" })
     if (!res.ok) {
       const body = await res.text();
       console.error(`Google Calendar event sync failed [${res.status}]: ${body}`);
+      if (res.status === 403 && body.includes("insufficient authentication scopes")) {
+        throw new Error(
+          "Your Google connection doesn't have permission to create calendar events. Go to Settings → Google Calendar, press Disconnect, then Connect again and allow calendar access.",
+        );
+      }
       throw new Error(`Google Calendar request failed [${res.status}]: ${body}`);
     }
 
