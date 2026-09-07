@@ -35,6 +35,7 @@ import { Route as AuthenticatedInsuranceIndexRouteImport } from './routes/_authe
 import { Route as AuthenticatedGarageLibraryIndexRouteImport } from './routes/_authenticated/garage-library.index'
 import { Route as AuthenticatedCustomersIndexRouteImport } from './routes/_authenticated/customers.index'
 import { Route as AuthenticatedBookingsIndexRouteImport } from './routes/_authenticated/bookings.index'
+import { Route as OauthGoogleCalendarReturnRouteImport } from './routes/oauth/google-calendar/return'
 import { Route as AuthenticatedSettingsThemesRouteImport } from './routes/_authenticated/settings_.themes'
 import { Route as AuthenticatedSettingsMcdTechRouteImport } from './routes/_authenticated/settings_.mcd-tech'
 import { Route as AuthenticatedSettingsCapacityRouteImport } from './routes/_authenticated/settings_.capacity'
@@ -196,6 +197,12 @@ const AuthenticatedBookingsIndexRoute =
     id: '/bookings/',
     path: '/bookings/',
     getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const OauthGoogleCalendarReturnRoute =
+  OauthGoogleCalendarReturnRouteImport.update({
+    id: '/oauth/google-calendar/return',
+    path: '/oauth/google-calendar/return',
+    getParentRoute: () => rootRouteImport,
   } as any)
 const AuthenticatedSettingsThemesRoute =
   AuthenticatedSettingsThemesRouteImport.update({
@@ -388,6 +395,7 @@ export interface FileRoutesByFullPath {
   '/settings/capacity': typeof AuthenticatedSettingsCapacityRoute
   '/settings/mcd-tech': typeof AuthenticatedSettingsMcdTechRoute
   '/settings/themes': typeof AuthenticatedSettingsThemesRoute
+  '/oauth/google-calendar/return': typeof OauthGoogleCalendarReturnRoute
   '/bookings/': typeof AuthenticatedBookingsIndexRoute
   '/customers/': typeof AuthenticatedCustomersIndexRoute
   '/garage-library/': typeof AuthenticatedGarageLibraryIndexRoute
@@ -437,6 +445,7 @@ export interface FileRoutesByTo {
   '/settings/capacity': typeof AuthenticatedSettingsCapacityRoute
   '/settings/mcd-tech': typeof AuthenticatedSettingsMcdTechRoute
   '/settings/themes': typeof AuthenticatedSettingsThemesRoute
+  '/oauth/google-calendar/return': typeof OauthGoogleCalendarReturnRoute
   '/bookings': typeof AuthenticatedBookingsIndexRoute
   '/customers': typeof AuthenticatedCustomersIndexRoute
   '/garage-library': typeof AuthenticatedGarageLibraryIndexRoute
@@ -491,6 +500,7 @@ export interface FileRoutesById {
   '/_authenticated/settings_/capacity': typeof AuthenticatedSettingsCapacityRoute
   '/_authenticated/settings_/mcd-tech': typeof AuthenticatedSettingsMcdTechRoute
   '/_authenticated/settings_/themes': typeof AuthenticatedSettingsThemesRoute
+  '/oauth/google-calendar/return': typeof OauthGoogleCalendarReturnRoute
   '/_authenticated/bookings/': typeof AuthenticatedBookingsIndexRoute
   '/_authenticated/customers/': typeof AuthenticatedCustomersIndexRoute
   '/_authenticated/garage-library/': typeof AuthenticatedGarageLibraryIndexRoute
@@ -545,6 +555,7 @@ export interface FileRouteTypes {
     | '/settings/capacity'
     | '/settings/mcd-tech'
     | '/settings/themes'
+    | '/oauth/google-calendar/return'
     | '/bookings/'
     | '/customers/'
     | '/garage-library/'
@@ -594,6 +605,7 @@ export interface FileRouteTypes {
     | '/settings/capacity'
     | '/settings/mcd-tech'
     | '/settings/themes'
+    | '/oauth/google-calendar/return'
     | '/bookings'
     | '/customers'
     | '/garage-library'
@@ -647,6 +659,7 @@ export interface FileRouteTypes {
     | '/_authenticated/settings_/capacity'
     | '/_authenticated/settings_/mcd-tech'
     | '/_authenticated/settings_/themes'
+    | '/oauth/google-calendar/return'
     | '/_authenticated/bookings/'
     | '/_authenticated/customers/'
     | '/_authenticated/garage-library/'
@@ -663,6 +676,7 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
+  OauthGoogleCalendarReturnRoute: typeof OauthGoogleCalendarReturnRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -848,6 +862,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/bookings/'
       preLoaderRoute: typeof AuthenticatedBookingsIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/oauth/google-calendar/return': {
+      id: '/oauth/google-calendar/return'
+      path: '/oauth/google-calendar/return'
+      fullPath: '/oauth/google-calendar/return'
+      preLoaderRoute: typeof OauthGoogleCalendarReturnRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/_authenticated/settings_/themes': {
       id: '/_authenticated/settings_/themes'
@@ -1178,6 +1199,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
   ResetPasswordRoute: ResetPasswordRoute,
+  OauthGoogleCalendarReturnRoute: OauthGoogleCalendarReturnRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

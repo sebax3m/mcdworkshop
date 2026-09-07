@@ -45,6 +45,13 @@ const sections = [
     title: "Workshop Capacity",
     desc: "Set how many motorcycles can be booked in each weekday.",
   },
+  {
+    to: "/settings/google-calendar",
+    icon: CalendarCheck,
+    title: "Google Calendar",
+    desc: "Connect your Google account to email booking invitations to customers.",
+    staff: true,
+  },
 
   {
     to: "/settings/mcd-tech",
