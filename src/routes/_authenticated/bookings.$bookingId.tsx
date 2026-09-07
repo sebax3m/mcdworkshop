@@ -42,23 +42,43 @@ function BookingDetail() {
   const [photoUrls, setPhotoUrls] = useState<string[]>([]);
   const [loanOpen, setLoanOpen] = useState(false);
   const [sendingInvite, setSendingInvite] = useState(false);
+  const [cancellingInvite, setCancellingInvite] = useState(false);
 
   async function sendGoogleInvite() {
     if (!b) return;
-    if (!b.customers?.email) {
+    if (!b.customers?.email && !b.google_invite_email) {
       toast.error("This customer has no email address on file.");
       return;
     }
     setSendingInvite(true);
     try {
       const res = await sendBookingCalendarInvite({ data: { bookingId } });
-      toast.success(`Calendar invitation emailed to ${res.email}`);
+      toast.success(
+        res.updated
+          ? `Calendar invitation updated for ${res.email}`
+          : `Calendar invitation emailed to ${res.email}`,
+      );
+      qc.invalidateQueries({ queryKey: ["booking", bookingId] });
     } catch (err: any) {
       toast.error(err?.message ?? "Could not send the Google Calendar invitation");
     } finally {
       setSendingInvite(false);
     }
   }
+
+  async function cancelGoogleInvite() {
+    setCancellingInvite(true);
+    try {
+      await cancelBookingCalendarEvent({ data: { bookingId } });
+      toast.success("Google Calendar invitation cancelled");
+      qc.invalidateQueries({ queryKey: ["booking", bookingId] });
+    } catch (err: any) {
+      toast.error(err?.message ?? "Could not cancel the invitation");
+    } finally {
+      setCancellingInvite(false);
+    }
+  }
+
 
   const { data: b, isLoading } = useQuery({
     queryKey: ["booking", bookingId],
