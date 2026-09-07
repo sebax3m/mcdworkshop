@@ -328,13 +328,19 @@ function SmartInvoiceDraft() {
       discount_pct: l.discount_pct,
     }));
 
+    const claim = insuranceClaim.data;
+    const isInsurance = !!claim;
+
     const { data, error } = await supabase
       .from("invoices")
       .insert({
         job_id: jobId,
         invoice_number,
-        customer_id: j.customer_id,
+        customer_id: isInsurance ? null : j.customer_id,
         motorcycle_id: j.motorcycle_id,
+        is_insurance: isInsurance,
+        insurer_name: claim?.insurer_name ?? null,
+        insurer_claim_ref: claim?.insurer_claim_ref ?? null,
         labour_total: Math.round(labour * 100) / 100,
         parts_total: Math.round(rest * 100) / 100,
         gst,
