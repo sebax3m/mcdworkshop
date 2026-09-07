@@ -30,7 +30,7 @@ function InvoicesList() {
       const { data, error } = await supabase
         .from("invoices")
         .select(
-          "id, invoice_number, status, total, paid_amount, created_at, customers(first_name, last_name), motorcycles(make, model, rego), jobs(job_number, title)",
+          "id, invoice_number, status, total, paid_amount, created_at, is_insurance, insurer_name, customers(first_name, last_name), motorcycles(make, model, rego), jobs(job_number, title)",
         )
         .order("created_at", { ascending: false });
       if (error) throw error;
@@ -50,8 +50,8 @@ function InvoicesList() {
       if (!term) return true;
       const hay = [
         inv.invoice_number,
-        inv.customers?.first_name,
-        inv.customers?.last_name,
+        inv.is_insurance ? inv.insurer_name : inv.customers?.first_name,
+        inv.is_insurance ? null : inv.customers?.last_name,
         inv.motorcycles?.make,
         inv.motorcycles?.model,
         inv.motorcycles?.rego,
@@ -140,9 +140,11 @@ function InvoicesList() {
 
       <div className="grid gap-2">
         {rows.map((inv: any) => {
-          const customer = inv.customers
-            ? `${inv.customers.first_name ?? ""} ${inv.customers.last_name ?? ""}`.trim()
-            : "—";
+          const customer = inv.is_insurance
+            ? inv.insurer_name || "Insurance claim"
+            : inv.customers
+              ? `${inv.customers.first_name ?? ""} ${inv.customers.last_name ?? ""}`.trim()
+              : "—";
           const bike = inv.motorcycles
             ? `${inv.motorcycles.make ?? ""} ${inv.motorcycles.model ?? ""}`.trim()
             : "";

@@ -833,6 +833,9 @@ function InvoiceDetail() {
     await saveSnapshotLines(currentSnapshotLines().filter((_, i) => i !== idx));
   }
   const customer = inv.customers;
+  const isInsurance = !!inv.is_insurance;
+  const insurerName = inv.insurer_name;
+  const insurerRef = inv.insurer_claim_ref;
   const bike = inv.motorcycles;
   const issuedAt = new Date(inv.created_at);
   const dueAt = new Date(issuedAt);
@@ -841,8 +844,12 @@ function InvoiceDetail() {
   const subtotalEx = subtotalInc / (1 + GST_RATE);
 
   function emailInvoice() {
-    const to = customer?.email ?? "";
-    const name = customer ? `${customer.first_name ?? ""}`.trim() : "there";
+    const to = isInsurance ? "" : (customer?.email ?? "");
+    const name = isInsurance
+      ? insurerName || "insurer"
+      : customer
+        ? `${customer.first_name ?? ""}`.trim()
+        : "there";
     const subject = `Invoice ${inv.invoice_number} from Motorcycle Doctors`;
     const body = [
       `Hi ${name || "there"},`,
@@ -850,6 +857,7 @@ function InvoiceDetail() {
       `Please find your invoice ${inv.invoice_number} below.`,
       ``,
       `Bike: ${bike ? fullBike(bike as any) : "—"}`,
+      isInsurance && insurerRef ? `Claim ref: ${insurerRef}` : null,
       `Issued: ${issuedAt.toLocaleDateString("en-GB")}`,
       `Due: ${dueAt.toLocaleDateString("en-GB")}`,
       ``,
@@ -862,7 +870,9 @@ function InvoiceDetail() {
       ``,
       `Thanks,`,
       `Motorcycle Doctors`,
-    ].join("\n");
+    ]
+      .filter(Boolean)
+      .join("\n");
     window.location.href = `mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
   }
 
@@ -1025,8 +1035,14 @@ function InvoiceDetail() {
             onClick={emailInvoice}
             variant="outline"
             className="gap-2"
-            disabled={!customer?.email}
-            title={customer?.email ? `Email to ${customer.email}` : "No email on customer"}
+            disabled={isInsurance || !customer?.email}
+            title={
+              isInsurance
+                ? "Email is not available for insurance invoices"
+                : customer?.email
+                  ? `Email to ${customer.email}`
+                  : "No email on customer"
+            }
           >
             <Mail className="h-4 w-4" /> Email
           </Button>
@@ -1156,13 +1172,28 @@ function InvoiceDetail() {
               <div className="text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-muted-foreground pb-1 mb-1.5 border-b border-border">
                 Bill to
               </div>
-              <div className="font-bold text-base leading-tight truncate">
-                {customer ? `${customer.first_name ?? ""} ${customer.last_name ?? ""}`.trim() : "—"}
-              </div>
-              <div className="text-muted-foreground truncate mt-0.5">
-                {customer?.phone || "—"}
-              </div>
-              <div className="text-muted-foreground truncate">{customer?.email || ""}</div>
+              {isInsurance ? (
+                <>
+                  <div className="font-bold text-base leading-tight truncate">
+                    {insurerName || "Insurance claim"}
+                  </div>
+                  {insurerRef && (
+                    <div className="text-muted-foreground truncate mt-0.5">
+                      Claim ref: {insurerRef}
+                    </div>
+                  )}
+                </>
+              ) : (
+                <>
+                  <div className="font-bold text-base leading-tight truncate">
+                    {customer ? `${customer.first_name ?? ""} ${customer.last_name ?? ""}`.trim() : "—"}
+                  </div>
+                  <div className="text-muted-foreground truncate mt-0.5">
+                    {customer?.phone || "—"}
+                  </div>
+                  <div className="text-muted-foreground truncate">{customer?.email || ""}</div>
+                </>
+              )}
             </div>
             <div className={`min-w-0${bike && fullBike(bike as any).trim() ? "" : " print-hide-empty"}`}>
               <div className="text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-muted-foreground pb-1 mb-1.5 border-b border-border">

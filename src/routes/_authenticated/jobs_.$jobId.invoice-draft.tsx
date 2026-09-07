@@ -129,6 +129,18 @@ function SmartInvoiceDraft() {
       ).data,
   });
 
+  const insuranceClaim = useQuery({
+    queryKey: ["draft-insurance-claim", jobId],
+    queryFn: async () =>
+      (
+        await (supabase as any)
+          .from("insurance_claims")
+          .select("id, insurer_name, insurer_claim_ref")
+          .eq("job_id", jobId)
+          .maybeSingle()
+      ).data,
+  });
+
   const trackedMinutes = useMemo(
     () =>
       (time.data ?? []).reduce((s: number, t: any) => {
@@ -141,7 +153,7 @@ function SmartInvoiceDraft() {
   );
 
   const ready =
-    job.data && tasks.data && parts.data && findings.data && time.data && notes.data && !saved.isLoading;
+    job.data && tasks.data && parts.data && findings.data && time.data && notes.data && !saved.isLoading && !insuranceClaim.isLoading;
 
   const input: JobDraftInput | null = useMemo(() => {
     if (!job.data) return null;
@@ -316,13 +328,19 @@ function SmartInvoiceDraft() {
       discount_pct: l.discount_pct,
     }));
 
+    const claim = insuranceClaim.data;
+    const isInsurance = !!claim;
+
     const { data, error } = await supabase
       .from("invoices")
       .insert({
         job_id: jobId,
         invoice_number,
-        customer_id: j.customer_id,
+        customer_id: isInsurance ? null : j.customer_id,
         motorcycle_id: j.motorcycle_id,
+        is_insurance: isInsurance,
+        insurer_name: claim?.insurer_name ?? null,
+        insurer_claim_ref: claim?.insurer_claim_ref ?? null,
         labour_total: Math.round(labour * 100) / 100,
         parts_total: Math.round(rest * 100) / 100,
         gst,
@@ -382,8 +400,16 @@ function SmartInvoiceDraft() {
         <div>
           <h1 className="font-display text-xl font-bold tracking-tight">Smart Invoice</h1>
           <p className="text-xs text-muted-foreground">
-            Job #{j.job_number} · {displayCustomerName(j.customers)} ·{" "}
-            {[bike.year, bike.make, bike.model].filter(Boolean).join(" ")}
+            Job #{j.job_number}
+            {insuranceClaim.data
+              ? ` · Insurance: ${insuranceClaim.data.insurer_name || "—"}${
+                  insuranceClaim.data.insurer_claim_ref
+                    ? ` (${insuranceClaim.data.insurer_claim_ref})`
+                    : ""
+                }`
+              : ` · ${displayCustomerName(j.customers)}`}
+            {" "}
+            · {[bike.year, bike.make, bike.model].filter(Boolean).join(" ")}
             {bike.rego ? ` · ${bike.rego}` : ""}
           </p>
         </div>
@@ -588,7 +614,7 @@ function SmartInvoiceDraft() {
             <Button
               className="gold-surface font-bold"
               onClick={createInvoice}
-              disabled={busy === "create" || !isAdmin}
+              disabled={busy === "create" || !isAdmin || insuranceClaim.isLoading}
             >
               <FileText className="h-4 w-4 mr-1" />
               {existingInvoice.data ? "Open invoice" : "Create invoice"}
