@@ -1,5 +1,7 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { completeGoogleCalendarConnection } from "@/lib/google-calendar.functions";
 
 export const Route = createFileRoute("/oauth/google-calendar/return")({
   component: OAuthReturn,
@@ -10,6 +12,14 @@ function OAuthReturn() {
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
+    const hasOpener = (() => {
+      try {
+        return !!window.opener && window.opener !== window;
+      } catch {
+        return false;
+      }
+    })();
+
     const notifyOpenerAndClose = (
       type: "appUserConnectorOAuthComplete" | "appUserConnectorOAuthFailed",
       code?: string,
@@ -20,14 +30,34 @@ function OAuthReturn() {
       );
       window.close();
     };
-    if (params.get("success") !== "true") {
+
+    const success = params.get("success") === "true";
+    const code = params.get("code");
+    const noOfflineAccess = params.get("offline_access_allowed") === "false";
+
+    if (!success) {
       setMessage(params.get("error") ?? "Google connection did not complete.");
-      notifyOpenerAndClose("appUserConnectorOAuthFailed");
+      if (hasOpener) notifyOpenerAndClose("appUserConnectorOAuthFailed");
       return;
     }
-    const code = params.get("code");
+
+    // Full-page / new-tab flow: no opener to hand the code to, so finish here.
+    if (!hasOpener) {
+      (async () => {
+        try {
+          if (code) await completeGoogleCalendarConnection({ data: { code } });
+          setMessage("Google Calendar connected. Taking you back…");
+        } catch (err: any) {
+          setMessage(err?.message ?? "Could not finish the Google connection.");
+          return;
+        }
+        window.location.replace("/settings/google-calendar");
+      })();
+      return;
+    }
+
     if (!code) {
-      if (params.get("offline_access_allowed") === "false") {
+      if (noOfflineAccess) {
         notifyOpenerAndClose("appUserConnectorOAuthComplete");
         return;
       }
