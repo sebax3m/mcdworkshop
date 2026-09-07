@@ -50,8 +50,8 @@ function InvoicesList() {
       if (!term) return true;
       const hay = [
         inv.invoice_number,
-        inv.customers?.first_name,
-        inv.customers?.last_name,
+        inv.is_insurance ? inv.insurer_name : inv.customers?.first_name,
+        inv.is_insurance ? null : inv.customers?.last_name,
         inv.motorcycles?.make,
         inv.motorcycles?.model,
         inv.motorcycles?.rego,
