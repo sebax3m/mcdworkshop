@@ -833,6 +833,9 @@ function InvoiceDetail() {
     await saveSnapshotLines(currentSnapshotLines().filter((_, i) => i !== idx));
   }
   const customer = inv.customers;
+  const isInsurance = !!inv.is_insurance;
+  const insurerName = inv.insurer_name;
+  const insurerRef = inv.insurer_claim_ref;
   const bike = inv.motorcycles;
   const issuedAt = new Date(inv.created_at);
   const dueAt = new Date(issuedAt);
