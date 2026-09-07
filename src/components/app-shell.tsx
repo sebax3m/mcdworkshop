@@ -26,6 +26,7 @@ import { McdTechProvider } from "@/components/garage/McdTechAssistant";
 import logoAsset from "@/assets/motorcycle-doctors-logo.png.asset.json";
 import { ActiveUserSwitcher } from "@/components/ActiveUserSwitcher";
 import { FloatingClockWidget } from "@/components/FloatingClockWidget";
+import { AutoClockOutGuard } from "@/components/AutoClockOutGuard";
 import { NotificationsBell } from "@/components/NotificationsBell";
 
 // macOS-dock-like magnification based on cursor proximity to each item center
@@ -286,6 +287,7 @@ export function AppShell() {
       </main>
 
       {isTechnician && <FloatingClockWidget />}
+      {isTechnician && <AutoClockOutGuard />}
 
       {/* ===== MOBILE BOTTOM NAV ===== */}
       <nav className="fixed bottom-0 inset-x-0 z-40 sm:hidden border-t border-border bg-background/95 backdrop-blur-xl">
