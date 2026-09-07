@@ -244,17 +244,33 @@ function BookingDetail() {
           <div className="text-xs uppercase tracking-[0.25em] text-muted-foreground">Booking</div>
           <h1 className="font-display text-2xl font-bold truncate">{b.service_type}</h1>
         </div>
-        <Button
-          variant="outline"
-          size="sm"
-          className="ml-auto shrink-0"
-          onClick={sendGoogleInvite}
-          disabled={sendingInvite}
-          title="Email the customer a Google Calendar invitation for this booking"
-        >
-          <Mail className="h-4 w-4 mr-1.5" />
-          {sendingInvite ? "Sending…" : "Send Google invite"}
-        </Button>
+        <div className="ml-auto shrink-0 flex gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={sendGoogleInvite}
+            disabled={sendingInvite}
+            title="Email the customer a Google Calendar invitation for this booking"
+          >
+            <Mail className="h-4 w-4 mr-1.5" />
+            {sendingInvite
+              ? "Sending…"
+              : b.google_event_id
+                ? "Update Google invite"
+                : "Send Google invite"}
+          </Button>
+          {b.google_event_id && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={cancelGoogleInvite}
+              disabled={cancellingInvite}
+            >
+              {cancellingInvite ? "Cancelling…" : "Cancel invite"}
+            </Button>
+          )}
+        </div>
+
       </header>
 
       <div className="card-surface p-4 grid sm:grid-cols-2 gap-4">
