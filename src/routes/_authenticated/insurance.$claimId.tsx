@@ -478,6 +478,81 @@ function QuoteBuilder({
   const gst = subtotal * 0.15;
   const total = subtotal + gst;
 
+  const nav = useNavigate();
+  const { user } = useCurrentUser();
+  const [creatingInvoice, setCreatingInvoice] = useState(false);
+
+  async function createInvoiceFromQuote() {
+    if (!items.length) return toast.error("Add quote items first");
+    setCreatingInvoice(true);
+    try {
+      if (dirty) await save();
+      const year = new Date().getFullYear();
+      const { data: last } = await supabase
+        .from("invoices")
+        .select("invoice_number")
+        .like("invoice_number", `MCD-${year}-%`)
+        .order("invoice_number", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      const lastSeq = last?.invoice_number ? Number(last.invoice_number.split("-").pop()) : 0;
+      const invoice_number = `MCD-${year}-${String(Math.max(lastSeq + 1, 1000)).padStart(5, "0")}`;
+
+      const lineTotalInc = (it: QuoteItem) =>
+        (Number(it.qty) || 0) * (Number(it.unit_price) || 0) * 1.15;
+      const labourInc = items.filter((i) => i.kind === "labour").reduce((s, i) => s + lineTotalInc(i), 0);
+      const partsInc = items.filter((i) => i.kind !== "labour").reduce((s, i) => s + lineTotalInc(i), 0);
+      const totalInc = Math.round((labourInc + partsInc) * 100) / 100;
+      const gstAmount = Math.round(((totalInc * 0.15) / 1.15) * 100) / 100;
+
+      const snapshotLines = items.map((it) => ({
+        item_code: (it as any).item_code ?? null,
+        item_name: (it as any).item_name ?? null,
+        description:
+          [(it as any).item_name, it.description].filter(Boolean).join(" — ") ||
+          (it.kind === "labour" ? "Labour" : "Part"),
+        quantity: Number(it.qty) || 0,
+        unit: Math.round((Number(it.unit_price) || 0) * 1.15 * 100) / 100,
+        discount_pct: 0,
+      }));
+
+      const { data, error } = await supabase
+        .from("invoices")
+        .insert({
+          job_id: c.job_id ?? null,
+          invoice_number,
+          customer_id: null,
+          motorcycle_id: c.motorcycle_id ?? null,
+          is_insurance: true,
+          insurer_name: c.insurer_name ?? null,
+          insurer_claim_ref: c.insurer_claim_ref ?? null,
+          labour_total: Math.round(labourInc * 100) / 100,
+          parts_total: Math.round(partsInc * 100) / 100,
+          gst: gstAmount,
+          total: totalInc,
+          status: "draft",
+          notes: `Insurance claim ${c.claim_number}${c.insurer_claim_ref ? ` · Ref ${c.insurer_claim_ref}` : ""}`,
+          snapshot: {
+            line_items: snapshotLines,
+            bill_to_name: c.insurer_name || "Insurance claim",
+            bill_to_detail: c.insurer_claim_ref ? `Claim ref: ${c.insurer_claim_ref}` : "",
+          } as any,
+          created_by: user?.id,
+        })
+        .select("id, invoice_number")
+        .maybeSingle();
+      if (error || !data) throw new Error(error?.message ?? "Failed to create invoice");
+      toast.success(`Invoice ${data.invoice_number} created`);
+      nav({ to: "/invoices/$invoiceId", params: { invoiceId: data.id } });
+    } catch (e: any) {
+      toast.error(e?.message ?? "Failed to create invoice");
+    } finally {
+      setCreatingInvoice(false);
+    }
+  }
+
+
+
   function patch(id: string, p: Partial<QuoteItem>) {
     setItems((arr) => arr.map((it) => (it.id === id ? { ...it, ...p } : it)));
     setDirty(true);
