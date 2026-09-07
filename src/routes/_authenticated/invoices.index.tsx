@@ -30,7 +30,7 @@ function InvoicesList() {
       const { data, error } = await supabase
         .from("invoices")
         .select(
-          "id, invoice_number, status, total, paid_amount, created_at, customers(first_name, last_name), motorcycles(make, model, rego), jobs(job_number, title)",
+          "id, invoice_number, status, total, paid_amount, created_at, is_insurance, insurer_name, customers(first_name, last_name), motorcycles(make, model, rego), jobs(job_number, title)",
         )
         .order("created_at", { ascending: false });
       if (error) throw error;
