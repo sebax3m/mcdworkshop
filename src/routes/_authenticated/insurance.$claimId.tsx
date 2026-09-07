@@ -944,6 +944,21 @@ function QuoteBuilder({
           >
             <Printer className="h-3.5 w-3.5" /> Download PDF
           </Button>
+          <Button
+            type="button"
+            size="sm"
+            className="gap-2"
+            disabled={creatingInvoice}
+            onClick={createInvoiceFromQuote}
+          >
+            {creatingInvoice ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            ) : (
+              <FileCheck2 className="h-3.5 w-3.5" />
+            )}
+            Create Invoice
+          </Button>
+
           <ClaimPdfExportDialog
             open={pdfOpen}
             onOpenChange={setPdfOpen}
