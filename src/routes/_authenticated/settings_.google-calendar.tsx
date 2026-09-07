@@ -25,18 +25,40 @@ export const Route = createFileRoute("/_authenticated/settings_/google-calendar"
 
 const CONNECTOR_ID = "google_calendar";
 
-function waitForOAuthCompletion(popup: Window) {
-  return new Promise<string | null>((resolve, reject) => {
-    let poll: number | undefined;
-    const cleanup = () => {
-      window.removeEventListener("message", onMessage);
-      if (poll !== undefined) window.clearInterval(poll);
-    };
+/**
+ * Google blocks its sign-in page inside iframes (ERR_BLOCKED_BY_RESPONSE), so the
+ * authorization URL must always be loaded in a real top-level window/tab — never
+ * in the embedded preview frame. We open a genuine popup, and if the browser
+ * blocks it we surface a normal link the user can click to open a new tab.
+ */
+function openTopLevel(url: string): Window | null {
+  const win = window.open(url, "_blank", "popup=yes,width=600,height=720,noopener=no");
+  if (win) {
+    try {
+      win.focus();
+    } catch {
+      /* ignore */
+    }
+    return win;
+  }
+  // Fallback: a user-gesture anchor click escapes sandboxed iframes in most browsers.
+  const a = document.createElement("a");
+  a.href = url;
+  a.target = "_blank";
+  a.rel = "opener";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  return null;
+}
+
+function waitForOAuthCompletion(): { promise: Promise<string | null>; cancel: () => void } {
+  let cleanup = () => {};
+  const promise = new Promise<string | null>((resolve, reject) => {
     const onMessage = (event: MessageEvent) => {
       const type = event.data?.type;
       if (
         event.origin !== window.location.origin ||
-        event.source !== popup ||
         event.data?.connectorId !== CONNECTOR_ID ||
         (type !== "appUserConnectorOAuthComplete" && type !== "appUserConnectorOAuthFailed")
       )
@@ -44,23 +66,20 @@ function waitForOAuthCompletion(popup: Window) {
       cleanup();
       if (type === "appUserConnectorOAuthComplete") {
         resolve(typeof event.data?.code === "string" ? event.data.code : null);
-        return;
+      } else {
+        reject(new Error("Google connection failed."));
       }
-      popup.close();
-      reject(new Error("Google connection failed."));
     };
+    cleanup = () => window.removeEventListener("message", onMessage);
     window.addEventListener("message", onMessage);
-    poll = window.setInterval(() => {
-      if (!popup.closed) return;
-      cleanup();
-      reject(new Error("Google sign-in window closed before completion."));
-    }, 500);
   });
+  return { promise, cancel: () => cleanup() };
 }
 
 function GoogleCalendarSettings() {
   const qc = useQueryClient();
   const [connecting, setConnecting] = useState(false);
+  const [authUrl, setAuthUrl] = useState<string | null>(null);
   const [disconnecting, setDisconnecting] = useState(false);
 
   const status = useQuery({
@@ -69,27 +88,25 @@ function GoogleCalendarSettings() {
   });
 
   async function onConnect() {
-    const popup = window.open("", "lovable-oauth", "width=600,height=720");
-    if (!popup) {
-      toast.error("Popup blocked. Allow popups and try again.");
-      return;
-    }
     setConnecting(true);
+    const waiter = waitForOAuthCompletion();
     try {
       const { authorizationUrl } = await startGoogleCalendarConnect();
-      const completion = waitForOAuthCompletion(popup);
-      popup.location.href = authorizationUrl;
-      const code = await completion;
+      setAuthUrl(authorizationUrl);
+      openTopLevel(authorizationUrl);
+      const code = await waiter.promise;
       if (code) await completeGoogleCalendarConnection({ data: { code } });
+      setAuthUrl(null);
       toast.success("Google Calendar connected");
       qc.invalidateQueries({ queryKey: ["google-calendar-status"] });
     } catch (err: any) {
-      if (!popup.closed) popup.close();
+      waiter.cancel();
       toast.error(err?.message ?? "Could not connect Google Calendar");
     } finally {
       setConnecting(false);
     }
   }
+
 
   async function onDisconnect() {
     if (!confirm("Disconnect Google Calendar? Booking invitations will stop working.")) return;
@@ -154,6 +171,25 @@ function GoogleCalendarSettings() {
             {connecting ? "Connecting…" : "Connect Google Calendar"}
           </button>
         )}
+
+        {!connected && authUrl && (
+          <div className="rounded-lg border border-border/70 bg-muted/30 p-3 text-xs space-y-1">
+            <p className="text-muted-foreground">
+              If the Google sign-in window didn’t open (or showed a “refused to connect” message),
+              open it manually:
+            </p>
+            <a
+              href={authUrl}
+              target="_blank"
+              rel="opener"
+              className="font-semibold underline underline-offset-2 text-primary"
+            >
+              Open Google sign-in in a new tab
+            </a>
+          </div>
+        )}
+
+
 
         <p className="text-xs text-muted-foreground border-t border-border/50 pt-3">
           Once connected, open any booking and press "Send Google invite" to email the customer a
