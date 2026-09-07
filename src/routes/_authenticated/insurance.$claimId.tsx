@@ -504,6 +504,7 @@ function QuoteBuilder({
     const totalInc = Math.round((labourInc + partsInc) * 100) / 100;
     const gstAmount = Math.round(((totalInc * 0.15) / 1.15) * 100) / 100;
     const snapshotLines = items.map((it) => ({
+      kind: it.kind,
       item_code: (it as any).item_code ?? null,
       item_name: (it as any).item_name ?? null,
       description:
@@ -555,12 +556,13 @@ function QuoteBuilder({
       const calc = buildInvoicePayload();
       const snapshotData = {
         insurance_claim_id: c.id,
+        job_id: c.job_id ?? null,
         line_items: calc.snapshotLines,
         bill_to_name: c.insurer_name || "Insurance claim",
         bill_to_detail: c.insurer_claim_ref ? `Claim ref: ${c.insurer_claim_ref}` : "",
       } as any;
       const basePayload = {
-        job_id: c.job_id ?? null,
+        job_id: null,
         customer_id: null,
         motorcycle_id: c.motorcycle_id ?? null,
         is_insurance: true,
