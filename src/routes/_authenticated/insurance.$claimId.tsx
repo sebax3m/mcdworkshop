@@ -292,8 +292,19 @@ function ClaimDetail() {
             </span>
           </h1>
         </div>
-        <Button onClick={() => window.print()} variant="outline" size="sm" className="gap-2">
-          <Printer className="h-4 w-4" /> Print Quote
+        <Button
+          onClick={printQuote}
+          disabled={printingQuote}
+          variant="outline"
+          size="sm"
+          className="gap-2"
+        >
+          {printingQuote ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <Printer className="h-4 w-4" />
+          )}
+          Print Quote
         </Button>
         {isAdmin && (
           <Button
