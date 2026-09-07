@@ -11,6 +11,7 @@ import {
   KeyRound,
   Gauge,
   Wrench,
+  CalendarCheck,
 } from "lucide-react";
 import { useCurrentUser } from "@/hooks/use-current-user";
 
@@ -44,6 +45,13 @@ const sections = [
     icon: Gauge,
     title: "Workshop Capacity",
     desc: "Set how many motorcycles can be booked in each weekday.",
+  },
+  {
+    to: "/settings/google-calendar",
+    icon: CalendarCheck,
+    title: "Google Calendar",
+    desc: "Connect your Google account to email booking invitations to customers.",
+    staff: true,
   },
 
   {

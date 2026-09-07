@@ -16,7 +16,9 @@ import {
   KeyRound,
   CheckCircle,
   RotateCcw,
+  Mail,
 } from "lucide-react";
+import { sendBookingCalendarInvite } from "@/lib/google-calendar.functions";
 import { LoanBikeDialog } from "@/components/booking/LoanBikeDialog";
 import { TransportCard } from "@/components/booking/TransportCard";
 import { changeBookingMotorcycle, fetchCustomerBikes } from "@/lib/bike-assign";
@@ -39,6 +41,24 @@ function BookingDetail() {
   const [reversing, setReversing] = useState(false);
   const [photoUrls, setPhotoUrls] = useState<string[]>([]);
   const [loanOpen, setLoanOpen] = useState(false);
+  const [sendingInvite, setSendingInvite] = useState(false);
+
+  async function sendGoogleInvite() {
+    if (!b) return;
+    if (!b.customers?.email) {
+      toast.error("This customer has no email address on file.");
+      return;
+    }
+    setSendingInvite(true);
+    try {
+      const res = await sendBookingCalendarInvite({ data: { bookingId } });
+      toast.success(`Calendar invitation emailed to ${res.email}`);
+    } catch (err: any) {
+      toast.error(err?.message ?? "Could not send the Google Calendar invitation");
+    } finally {
+      setSendingInvite(false);
+    }
+  }
 
   const { data: b, isLoading } = useQuery({
     queryKey: ["booking", bookingId],
@@ -201,6 +221,17 @@ function BookingDetail() {
           <div className="text-xs uppercase tracking-[0.25em] text-muted-foreground">Booking</div>
           <h1 className="font-display text-2xl font-bold truncate">{b.service_type}</h1>
         </div>
+        <Button
+          variant="outline"
+          size="sm"
+          className="ml-auto shrink-0"
+          onClick={sendGoogleInvite}
+          disabled={sendingInvite}
+          title="Email the customer a Google Calendar invitation for this booking"
+        >
+          <Mail className="h-4 w-4 mr-1.5" />
+          {sendingInvite ? "Sending…" : "Send Google invite"}
+        </Button>
       </header>
 
       <div className="card-surface p-4 grid sm:grid-cols-2 gap-4">
