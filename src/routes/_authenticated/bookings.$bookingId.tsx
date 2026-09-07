@@ -18,7 +18,10 @@ import {
   RotateCcw,
   Mail,
 } from "lucide-react";
-import { sendBookingCalendarInvite } from "@/lib/google-calendar.functions";
+import {
+  sendBookingCalendarInvite,
+  cancelBookingCalendarEvent,
+} from "@/lib/google-calendar.functions";
 import { LoanBikeDialog } from "@/components/booking/LoanBikeDialog";
 import { TransportCard } from "@/components/booking/TransportCard";
 import { changeBookingMotorcycle, fetchCustomerBikes } from "@/lib/bike-assign";
@@ -42,23 +45,43 @@ function BookingDetail() {
   const [photoUrls, setPhotoUrls] = useState<string[]>([]);
   const [loanOpen, setLoanOpen] = useState(false);
   const [sendingInvite, setSendingInvite] = useState(false);
+  const [cancellingInvite, setCancellingInvite] = useState(false);
 
   async function sendGoogleInvite() {
     if (!b) return;
-    if (!b.customers?.email) {
+    if (!b.customers?.email && !b.google_invite_email) {
       toast.error("This customer has no email address on file.");
       return;
     }
     setSendingInvite(true);
     try {
       const res = await sendBookingCalendarInvite({ data: { bookingId } });
-      toast.success(`Calendar invitation emailed to ${res.email}`);
+      toast.success(
+        res.updated
+          ? `Calendar invitation updated for ${res.email}`
+          : `Calendar invitation emailed to ${res.email}`,
+      );
+      qc.invalidateQueries({ queryKey: ["booking", bookingId] });
     } catch (err: any) {
       toast.error(err?.message ?? "Could not send the Google Calendar invitation");
     } finally {
       setSendingInvite(false);
     }
   }
+
+  async function cancelGoogleInvite() {
+    setCancellingInvite(true);
+    try {
+      await cancelBookingCalendarEvent({ data: { bookingId } });
+      toast.success("Google Calendar invitation cancelled");
+      qc.invalidateQueries({ queryKey: ["booking", bookingId] });
+    } catch (err: any) {
+      toast.error(err?.message ?? "Could not cancel the invitation");
+    } finally {
+      setCancellingInvite(false);
+    }
+  }
+
 
   const { data: b, isLoading } = useQuery({
     queryKey: ["booking", bookingId],
@@ -221,17 +244,33 @@ function BookingDetail() {
           <div className="text-xs uppercase tracking-[0.25em] text-muted-foreground">Booking</div>
           <h1 className="font-display text-2xl font-bold truncate">{b.service_type}</h1>
         </div>
-        <Button
-          variant="outline"
-          size="sm"
-          className="ml-auto shrink-0"
-          onClick={sendGoogleInvite}
-          disabled={sendingInvite}
-          title="Email the customer a Google Calendar invitation for this booking"
-        >
-          <Mail className="h-4 w-4 mr-1.5" />
-          {sendingInvite ? "Sending…" : "Send Google invite"}
-        </Button>
+        <div className="ml-auto shrink-0 flex gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={sendGoogleInvite}
+            disabled={sendingInvite}
+            title="Email the customer a Google Calendar invitation for this booking"
+          >
+            <Mail className="h-4 w-4 mr-1.5" />
+            {sendingInvite
+              ? "Sending…"
+              : b.google_event_id
+                ? "Update Google invite"
+                : "Send Google invite"}
+          </Button>
+          {b.google_event_id && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={cancelGoogleInvite}
+              disabled={cancellingInvite}
+            >
+              {cancellingInvite ? "Cancelling…" : "Cancel invite"}
+            </Button>
+          )}
+        </div>
+
       </header>
 
       <div className="card-surface p-4 grid sm:grid-cols-2 gap-4">

@@ -20,6 +20,7 @@ import { uploadPhoto } from "@/lib/photos";
 import { useBookingTypes } from "@/hooks/useBookingTypes";
 import { TimeSlotFields } from "@/components/booking/TimeSlotFields";
 import { AddressAutocomplete, AddressMap } from "@/components/booking/AddressAutocomplete";
+import { syncBookingCalendarEvent } from "@/lib/google-calendar.functions";
 
 import {
   addMinutesToTime,
@@ -78,6 +79,9 @@ function NewBooking() {
   const [transportAddress, setTransportAddress] = useState<string>("");
   const [transportNotes, setTransportNotes] = useState<string>("");
   const [techId, setTechId] = useState<string | null>(null);
+  const [gInvite, setGInvite] = useState<boolean>(false);
+  const [gEmail, setGEmail] = useState<string>("");
+  const [gIncludeEnd, setGIncludeEnd] = useState<boolean>(false);
   const [arrivalPhotos, setArrivalPhotos] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -343,6 +347,24 @@ function NewBooking() {
           .from("motorcycles")
           .update({ mileage: parseInt(mileage) })
           .eq("id", bike.id);
+
+      if (gInvite) {
+        const inviteEmail = (gEmail || customer.email || "").trim();
+        if (!inviteEmail) {
+          toast.error("No email address for the Google Calendar invitation");
+        } else {
+          try {
+            await syncBookingCalendarEvent({
+              data: { bookingId: data.id, email: inviteEmail, includeEnd: gIncludeEnd },
+            });
+            toast.success(`Google Calendar invitation sent to ${inviteEmail}`);
+          } catch (e: any) {
+            toast.error(e?.message ?? "Booking saved, but the Google invitation failed");
+          }
+        }
+      }
+
+
 
       if (openJobCard) {
         const { data: tmpl } = await supabase
@@ -931,6 +953,56 @@ function NewBooking() {
               )}
 
             </div>
+
+            <div className="rounded-xl border border-border p-3 space-y-3">
+              <div className="text-xs uppercase tracking-[0.25em] text-muted-foreground">
+                Google Calendar invitation
+              </div>
+              <label className="flex items-center gap-3 text-sm cursor-pointer">
+                <input
+                  type="checkbox"
+                  className="h-5 w-5 accent-primary"
+                  checked={gInvite}
+                  onChange={(e) => {
+                    setGInvite(e.target.checked);
+                    if (e.target.checked && !gEmail) setGEmail(customer?.email ?? "");
+                  }}
+                />
+                <span className="font-semibold">📅 Send Google Calendar invitation to customer</span>
+              </label>
+              {gInvite && (
+                <div className="space-y-2 pt-1">
+                  {customer?.email ? (
+                    <p className="text-xs text-muted-foreground">
+                      Invitation will be sent to{" "}
+                      <span className="font-semibold text-foreground">
+                        {gEmail || customer.email}
+                      </span>
+                    </p>
+                  ) : (
+                    <p className="text-xs text-muted-foreground">
+                      This customer has no email saved — enter one for the invitation.
+                    </p>
+                  )}
+                  <Input
+                    type="email"
+                    value={gEmail}
+                    onChange={(e) => setGEmail(e.target.value)}
+                    placeholder="customer@email.com"
+                  />
+                  <label className="flex items-center gap-3 text-sm cursor-pointer">
+                    <input
+                      type="checkbox"
+                      className="h-5 w-5 accent-primary"
+                      checked={gIncludeEnd}
+                      onChange={(e) => setGIncludeEnd(e.target.checked)}
+                    />
+                    <span>Include expected completion / pick-up time</span>
+                  </label>
+                </div>
+              )}
+            </div>
+
             <label className="flex items-center gap-3 rounded-xl border border-border p-3 cursor-pointer hover:border-primary/50">
               <input
                 type="checkbox"

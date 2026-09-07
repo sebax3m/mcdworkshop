@@ -105,10 +105,28 @@ export const disconnectGoogleCalendar = createServerFn({ method: "POST" })
 
 const TZ = "Pacific/Auckland";
 
-export const sendBookingCalendarInvite = createServerFn({ method: "POST" })
+function addHours(dateStr: string, time: string, hours: number) {
+  const [h, m] = time.split(":").map(Number);
+  const total = h * 60 + m + Math.round(hours * 60);
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${dateStr}T${pad(Math.min(23, Math.floor(total / 60)))}:${pad(total % 60)}:00`;
+}
+
+/**
+ * Creates the customer's Google Calendar invitation for a booking, or updates
+ * the existing event when one was already created (no duplicates).
+ */
+export const syncBookingCalendarEvent = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: { bookingId: string }) =>
-    z.object({ bookingId: z.string() }).parse(input),
+  .inputValidator(
+    (input: { bookingId: string; email?: string | null; includeEnd?: boolean }) =>
+      z
+        .object({
+          bookingId: z.string(),
+          email: z.string().email().nullish(),
+          includeEnd: z.boolean().optional(),
+        })
+        .parse(input),
   )
   .handler(async ({ data, context }) => {
     const connectionAPIKey = await getConnectionKeyForUser(context.userId, CONNECTOR_ID);
@@ -121,46 +139,55 @@ export const sendBookingCalendarInvite = createServerFn({ method: "POST" })
     const { data: b, error } = await context.supabase
       .from("bookings")
       .select(
-        "id, scheduled_date, drop_off_time, scheduled_end_time, estimated_hours, service_type, service_type_other, notes, customers(first_name,last_name,email), motorcycles(year,make,model,rego)",
+        "id, scheduled_date, drop_off_time, scheduled_end_time, estimated_hours, service_type, service_type_other, instructions, google_event_id, google_invite_email, google_include_end, customers(first_name,last_name,email,phone), motorcycles(year,make,model,rego)",
       )
       .eq("id", data.bookingId)
       .single();
     if (error || !b) throw new Error("Booking not found");
 
-    const customer = (b as any).customers;
-    const email: string | null = customer?.email ?? null;
+    const row = b as any;
+    const customer = row.customers;
+    const email: string | null = data.email ?? row.google_invite_email ?? customer?.email ?? null;
     if (!email) throw new Error("This customer has no email address on file.");
 
-    const startTime = (b.drop_off_time || "09:00").slice(0, 5);
-    const startIso = `${b.scheduled_date}T${startTime}:00`;
-    let endIso: string;
-    if (b.scheduled_end_time) {
-      endIso = `${b.scheduled_date}T${String(b.scheduled_end_time).slice(0, 5)}:00`;
-    } else {
-      const hours = Number(b.estimated_hours) || 1;
-      const end = new Date(`${startIso}+12:00`);
-      end.setHours(end.getHours() + hours);
-      const pad = (n: number) => String(n).padStart(2, "0");
-      endIso = `${b.scheduled_date}T${pad(end.getHours())}:${pad(end.getMinutes())}:00`;
-    }
+    const includeEnd = data.includeEnd ?? row.google_include_end ?? false;
 
-    const bike = (b as any).motorcycles;
+    const startTime = (row.drop_off_time || "09:00").slice(0, 5);
+    const startIso = `${row.scheduled_date}T${startTime}:00`;
+    const endIso =
+      includeEnd && row.scheduled_end_time
+        ? `${row.scheduled_date}T${String(row.scheduled_end_time).slice(0, 5)}:00`
+        : addHours(row.scheduled_date, startTime, Number(row.estimated_hours) || 1);
+
+    const bike = row.motorcycles;
     const bikeLabel = bike
       ? `${bike.year ?? ""} ${bike.make ?? ""} ${bike.model ?? ""}`.trim() +
         (bike.rego ? ` (${bike.rego})` : "")
       : null;
+    const bikeShort = bike ? `${bike.make ?? ""} ${bike.model ?? ""}`.trim() : "Motorcycle";
     const serviceLabel =
-      b.service_type === "Other" && b.service_type_other ? b.service_type_other : b.service_type;
+      row.service_type === "Other" && row.service_type_other
+        ? row.service_type_other
+        : row.service_type;
     const customerName =
       [customer?.first_name, customer?.last_name].filter(Boolean).join(" ") || "Customer";
 
+    const pickupLine =
+      includeEnd && row.scheduled_end_time
+        ? `Expected completion / pick-up: ${String(row.scheduled_end_time).slice(0, 5)}`
+        : null;
+
     const event = {
-      summary: `Motorcycle Doctors — ${serviceLabel} · ${customerName}`,
+      summary: `Motorcycle Doctors – ${bikeShort} – ${customerName}`,
       description: [
-        bikeLabel ? `Bike: ${bikeLabel}` : null,
-        b.notes ? `Notes: ${b.notes}` : null,
+        `This is your Motorcycle Doctors booking. Please drop your bike off at ${startTime} on this date.`,
         "",
-        "Booked with Motorcycle Doctors.",
+        `Customer: ${customerName}`,
+        customer?.phone ? `Phone: ${customer.phone}` : null,
+        bikeLabel ? `Motorcycle: ${bikeLabel}` : null,
+        `Booking reason: ${serviceLabel}`,
+        row.instructions ? `Notes: ${row.instructions}` : null,
+        pickupLine,
       ]
         .filter((l) => l !== null)
         .join("\n"),
@@ -170,13 +197,16 @@ export const sendBookingCalendarInvite = createServerFn({ method: "POST" })
       reminders: { useDefault: true },
     };
 
+    const existingId: string | null = row.google_event_id ?? null;
     const res = await callAsAppUser({
       gatewayBaseUrl: GATEWAY_BASE_URL,
       connectionAPIKey,
       connectorId: CONNECTOR_ID,
-      path: "/calendar/v3/calendars/primary/events?sendUpdates=all",
+      path: existingId
+        ? `/calendar/v3/calendars/primary/events/${encodeURIComponent(existingId)}?sendUpdates=all`
+        : "/calendar/v3/calendars/primary/events?sendUpdates=all",
       init: {
-        method: "POST",
+        method: existingId ? "PATCH" : "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(event),
       },
@@ -184,9 +214,81 @@ export const sendBookingCalendarInvite = createServerFn({ method: "POST" })
 
     if (!res.ok) {
       const body = await res.text();
-      console.error(`Google Calendar event create failed [${res.status}]: ${body}`);
+      console.error(`Google Calendar event sync failed [${res.status}]: ${body}`);
       throw new Error(`Google Calendar request failed [${res.status}]: ${body}`);
     }
 
-    return { ok: true, email };
+    const created = (await res.json()) as { id?: string };
+    await context.supabase
+      .from("bookings")
+      .update({
+        google_event_id: created.id ?? existingId,
+        google_event_owner: context.userId,
+        google_invite_email: email,
+        google_include_end: includeEnd,
+      } as any)
+      .eq("id", row.id);
+
+    return { ok: true, email, updated: !!existingId };
+  });
+
+/** Backwards-compatible alias used by the booking page button. */
+export const sendBookingCalendarInvite = syncBookingCalendarEvent;
+
+export const cancelBookingCalendarEvent = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { bookingId: string }) =>
+    z.object({ bookingId: z.string() }).parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const { data: b } = await context.supabase
+      .from("bookings")
+      .select("id, google_event_id")
+      .eq("id", data.bookingId)
+      .single();
+    const eventId = (b as any)?.google_event_id;
+    if (!eventId) return { ok: true, cancelled: false };
+
+    const connectionAPIKey = await getConnectionKeyForUser(context.userId, CONNECTOR_ID);
+    if (connectionAPIKey) {
+      const res = await callAsAppUser({
+        gatewayBaseUrl: GATEWAY_BASE_URL,
+        connectionAPIKey,
+        connectorId: CONNECTOR_ID,
+        path: `/calendar/v3/calendars/primary/events/${encodeURIComponent(eventId)}?sendUpdates=all`,
+        init: { method: "DELETE" },
+      });
+      if (!res.ok && res.status !== 404 && res.status !== 410) {
+        const body = await res.text();
+        console.error(`Google Calendar event delete failed [${res.status}]: ${body}`);
+        throw new Error(`Google Calendar request failed [${res.status}]: ${body}`);
+      }
+    }
+
+    await context.supabase
+      .from("bookings")
+      .update({ google_event_id: null } as any)
+      .eq("id", data.bookingId);
+    return { ok: true, cancelled: true };
+  });
+
+
+/**
+ * Reports whether a booking already has a Google invitation that should be
+ * refreshed after a reschedule.
+ */
+export const bookingNeedsCalendarResync = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { bookingId: string }) =>
+    z.object({ bookingId: z.string() }).parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const { data: b } = await context.supabase
+      .from("bookings")
+      .select("google_event_id")
+      .eq("id", data.bookingId)
+      .maybeSingle();
+    if (!(b as any)?.google_event_id) return { ok: true, synced: false };
+    const connectionAPIKey = await getConnectionKeyForUser(context.userId, CONNECTOR_ID);
+    return { ok: true, synced: !!connectionAPIKey };
   });
