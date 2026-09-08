@@ -1,0 +1,2 @@
+CREATE POLICY "Staff add inventory" ON public.inventory_items FOR INSERT TO authenticated WITH CHECK (private.is_staff(auth.uid()));
+CREATE POLICY "Staff update inventory" ON public.inventory_items FOR UPDATE TO authenticated USING (private.is_staff(auth.uid())) WITH CHECK (private.is_staff(auth.uid()));
