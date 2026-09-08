@@ -27,6 +27,9 @@ const SCOPES = [
 const RECONNECT_MESSAGE =
   "Your Google Calendar connection needs updated event permissions. Go to Settings → Google Calendar and connect it again, then allow calendar event access.";
 
+const CALENDAR_API_DISABLED_MESSAGE =
+  "Google Calendar is connected, but the Google Calendar API is not enabled for the configured Google OAuth project. Ask the workspace administrator to enable the Google Calendar API in Google Cloud, then try sending the invitation again. Do not reconnect your account.";
+
 export const startGoogleCalendarConnect = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: { forceFresh?: boolean } | undefined) =>
@@ -241,10 +244,27 @@ export const syncBookingCalendarEvent = createServerFn({ method: "POST" })
     if (!res.ok) {
       const body = await res.text();
       console.error(`Google Calendar event sync failed [${res.status}]: ${body}`);
+
+      const apiDisabled =
+        res.status === 403 &&
+        /SERVICE_DISABLED|accessNotConfigured|API has not been used in project|API is disabled/i.test(
+          body,
+        );
+      if (apiDisabled) {
+        // This is a Google Cloud project configuration error, not a problem
+        // with the user's token. Keep the valid connection so retrying works
+        // as soon as the Calendar API is enabled.
+        return {
+          ok: false as const,
+          requiresReconnect: false as const,
+          message: CALENDAR_API_DISABLED_MESSAGE,
+        };
+      }
+
       const scopeProblem =
         res.status === 401 ||
         (res.status === 403 &&
-          /insufficient authentication scopes|ACCESS_TOKEN_SCOPE_INSUFFICIENT|insufficientPermissions|PERMISSION_DENIED/i.test(
+          /insufficient authentication scopes|ACCESS_TOKEN_SCOPE_INSUFFICIENT|insufficientPermissions/i.test(
             body,
           ));
       if (scopeProblem) {
