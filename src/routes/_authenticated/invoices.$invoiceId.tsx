@@ -820,12 +820,14 @@ function InvoiceDetail() {
   async function deletePart(id: string) {
     const target = (parts.data ?? []).find((p: any) => p.id === id) as any;
     const isConsumables = (target?.name ?? "").toLowerCase().includes("consumable");
+    const isDyno = (target?.name ?? "").toLowerCase().startsWith("dyno");
     const { error } = await supabase.from("parts").delete().eq("id", id);
     if (error) {
       toast.error(error.message);
       return;
     }
     if (isConsumables) await saveSnapshotMeta({ consumables_removed: true });
+    if (isDyno) await saveSnapshotMeta({ dyno_removed: true });
     await refreshPartsTotals();
   }
 
