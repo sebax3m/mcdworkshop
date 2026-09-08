@@ -3,6 +3,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { categoryUnit, guessInventoryCategory } from "@/lib/inventory-categories";
+import { detectServiceKind, tunePriceForMake } from "@/lib/service-kinds";
 import {
   ArrowLeft,
   Printer,
@@ -345,6 +346,51 @@ function InvoiceDetail() {
       qc.invalidateQueries({ queryKey: ["invoice", invoiceId] });
     })();
   }, [invoice.data?.job_id, (invoice.data?.snapshot as any)?.consumables_removed, parts.data, invoiceId, qc]);
+
+  /* Tuning jobs always carry a "Dyno / Custom tune" line, priced by make:
+     $1,200 Harley-Davidson, $900 for Japanese and everything else. */
+  useEffect(() => {
+    const jobId = invoice.data?.job_id;
+    if (!jobId || !parts.data) return;
+    if ((invoice.data?.snapshot as any)?.dyno_removed) return;
+    const title = (invoice.data as any)?.jobs?.title as string | undefined;
+    if (detectServiceKind(title) !== "dyno") return;
+    const hasDyno = (parts.data as any[]).some((p) =>
+      (p.name ?? "").toLowerCase().startsWith("dyno"),
+    );
+    if (hasDyno) return;
+    const price = tunePriceForMake((invoice.data as any)?.motorcycles?.make);
+    (async () => {
+      const { error } = await supabase.from("parts").insert({
+        job_id: jobId,
+        name: "Dyno",
+        supplier: "Custom tune",
+        quantity: 1,
+        retail: price,
+        cost: price,
+        on_invoice: true,
+      });
+      if (error) return;
+      const fresh = await supabase.from("parts").select("*").eq("job_id", jobId);
+      const partsSum = (fresh.data ?? []).reduce(
+        (s: number, p: any) =>
+          s +
+          Number(p.retail ?? 0) * Number(p.quantity ?? 1) * (1 - Number(p.discount_pct ?? 0) / 100),
+        0,
+      );
+      const subtotal = Number(invoice.data!.labour_total) + partsSum;
+      const gst = Math.round(((subtotal * GST_RATE) / (1 + GST_RATE)) * 100) / 100;
+      const total = Math.round(subtotal * 100) / 100;
+      await supabase
+        .from("invoices")
+        .update({ parts_total: partsSum, gst, total })
+        .eq("id", invoiceId);
+      qc.invalidateQueries({ queryKey: ["invoice-parts", invoiceId, jobId] });
+      qc.invalidateQueries({ queryKey: ["invoice", invoiceId] });
+    })();
+  }, [invoice.data, parts.data, invoiceId, qc]);
+
+
 
   /* Keep the invoice totals in sync with the job card: parts/fluids added or
      changed on the job after the invoice was created are picked up here. */
@@ -774,12 +820,14 @@ function InvoiceDetail() {
   async function deletePart(id: string) {
     const target = (parts.data ?? []).find((p: any) => p.id === id) as any;
     const isConsumables = (target?.name ?? "").toLowerCase().includes("consumable");
+    const isDyno = (target?.name ?? "").toLowerCase().startsWith("dyno");
     const { error } = await supabase.from("parts").delete().eq("id", id);
     if (error) {
       toast.error(error.message);
       return;
     }
     if (isConsumables) await saveSnapshotMeta({ consumables_removed: true });
+    if (isDyno) await saveSnapshotMeta({ dyno_removed: true });
     await refreshPartsTotals();
   }
 
