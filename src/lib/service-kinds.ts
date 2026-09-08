@@ -17,6 +17,17 @@ export function detectServiceKind(title?: string | null): ServiceKind {
   return "other";
 }
 
+/** Base dyno / custom tune price (GST inclusive) by motorcycle make. */
+export const TUNE_PRICE_JAPANESE = 900;
+export const TUNE_PRICE_HARLEY = 1200;
+
+export function tunePriceForMake(make?: string | null): number {
+  const m = (make ?? "").toLowerCase();
+  if (m.includes("harley") || m.includes("davidson") || m === "hd") return TUNE_PRICE_HARLEY;
+  return TUNE_PRICE_JAPANESE;
+}
+
+
 /** Which parts/fluid fields apply to each service kind, cumulative basic → full */
 export const SERVICE_PARTS: Record<
   ServiceKind,
