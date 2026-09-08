@@ -353,8 +353,24 @@ function InvoiceDetail() {
     const jobId = invoice.data?.job_id;
     if (!jobId || !parts.data) return;
     if ((invoice.data?.snapshot as any)?.dyno_removed) return;
-    const title = (invoice.data as any)?.jobs?.title as string | undefined;
-    if (detectServiceKind(title) !== "dyno") return;
+    const job = (invoice.data as any)?.jobs ?? {};
+    const title = job.title as string | undefined;
+    // Tuning can come from the job title, its description, or the Work Performed
+    // sections added on the job card (e.g. a "Tuning" template).
+    let performed = "";
+    try {
+      performed = JSON.stringify(job.service_data ?? {});
+    } catch {
+      performed = "";
+    }
+    const haystack = `${title ?? ""} ${job.description ?? ""} ${performed}`.toLowerCase();
+    const isTuning =
+      detectServiceKind(title) === "dyno" ||
+      haystack.includes("tuning") ||
+      haystack.includes("custom tune") ||
+      haystack.includes("dyno");
+    if (!isTuning) return;
+
     const hasDyno = (parts.data as any[]).some((p) =>
       (p.name ?? "").toLowerCase().startsWith("dyno"),
     );
