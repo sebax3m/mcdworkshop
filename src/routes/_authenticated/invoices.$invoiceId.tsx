@@ -3,7 +3,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { categoryUnit, guessInventoryCategory } from "@/lib/inventory-categories";
-import { detectServiceKind, tunePriceForMake } from "@/lib/service-kinds";
+import { detectServiceKind, tunePriceForMake, tunePartNumberForMake } from "@/lib/service-kinds";
 import {
   ArrowLeft,
   Printer,
@@ -414,11 +414,15 @@ function InvoiceDetail() {
     // Guard against the effect firing twice before the insert lands.
     if (dynoGuard.current === jobId) return;
     dynoGuard.current = jobId;
-    const price = tunePriceForMake((invoice.data as any)?.motorcycles?.make);
+    const make = (invoice.data as any)?.motorcycles?.make;
+    const price = tunePriceForMake(make);
+    // Part number: Harley-Davidson bikes use DYNOHD, Japanese/everything else DYNO.
+    const partNo = tunePartNumberForMake(make);
     (async () => {
       const { error } = await supabase.from("parts").insert({
         job_id: jobId,
         name: "Dyno",
+        part_number: partNo,
         supplier: "Custom tune",
         quantity: 1,
         retail: price,
