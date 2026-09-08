@@ -368,6 +368,9 @@ function InvoiceDetail() {
     })();
   }, [invoice.data?.job_id, (invoice.data?.snapshot as any)?.consumables_removed, parts.data, invoiceId, qc]);
 
+  // Prevents a double insert of the tuning line while the first insert is in flight.
+  const dynoGuard = useRef<string | null>(null);
+
   /* Tuning jobs always carry a "Dyno / Custom tune" line, priced by make:
      $1,200 Harley-Davidson, $900 for Japanese and everything else. */
   useEffect(() => {
@@ -395,10 +398,22 @@ function InvoiceDetail() {
     if ((invoice.data?.snapshot as any)?.dyno_removed_sig === tuningSig(haystack)) return;
 
 
-    const hasDyno = (parts.data as any[]).some((p) =>
+    const dynoLines = (parts.data as any[]).filter((p) =>
       (p.name ?? "").toLowerCase().startsWith("dyno"),
     );
-    if (hasDyno) return;
+    // Clean up any duplicate tuning lines created by earlier versions.
+    if (dynoLines.length > 1) {
+      const extras = dynoLines.slice(1).map((p) => p.id);
+      (async () => {
+        await supabase.from("parts").delete().in("id", extras);
+        qc.invalidateQueries({ queryKey: ["invoice-parts", invoiceId, jobId] });
+      })();
+      return;
+    }
+    if (dynoLines.length === 1) return;
+    // Guard against the effect firing twice before the insert lands.
+    if (dynoGuard.current === jobId) return;
+    dynoGuard.current = jobId;
     const price = tunePriceForMake((invoice.data as any)?.motorcycles?.make);
     (async () => {
       const { error } = await supabase.from("parts").insert({
