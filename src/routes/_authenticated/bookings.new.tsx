@@ -354,10 +354,14 @@ function NewBooking() {
           toast.error("No email address for the Google Calendar invitation");
         } else {
           try {
-            await syncBookingCalendarEvent({
+            const result = await syncBookingCalendarEvent({
               data: { bookingId: data.id, email: inviteEmail, includeEnd: gIncludeEnd },
             });
-            toast.success(`Google Calendar invitation sent to ${inviteEmail}`);
+            if (result.ok) {
+              toast.success(`Google Calendar invitation sent to ${inviteEmail}`);
+            } else {
+              toast.error(result.message);
+            }
           } catch (e: any) {
             toast.error(e?.message ?? "Booking saved, but the Google invitation failed");
           }

@@ -56,6 +56,10 @@ function BookingDetail() {
     setSendingInvite(true);
     try {
       const res = await sendBookingCalendarInvite({ data: { bookingId } });
+      if (!res.ok) {
+        toast.error(res.message);
+        return;
+      }
       toast.success(
         res.updated
           ? `Calendar invitation updated for ${res.email}`
