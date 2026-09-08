@@ -2026,6 +2026,19 @@ function CalendarPage() {
                       )}
                       <button
                         onClick={() => {
+                          setInviteEmail(b.google_invite_email ?? b.customers?.email ?? "");
+                          setInviteIncludeEnd(!!b.google_include_end);
+                          setInviteBooking(b);
+                          setSelectedBooking(null);
+                        }}
+                        className="flex-1 min-w-0 inline-flex items-center justify-center gap-1.5 rounded-lg border border-border px-2 py-2 text-xs font-semibold hover:border-primary/50 hover:bg-primary/5 transition-colors whitespace-nowrap"
+                        title="Send the customer a Google Calendar invitation"
+                      >
+                        📅 {b.google_event_id ? "Update invite" : "Google invite"}
+                      </button>
+                      <button
+
+                        onClick={() => {
                           setDeleteBooking(b);
                           setSelectedBooking(null);
                         }}
