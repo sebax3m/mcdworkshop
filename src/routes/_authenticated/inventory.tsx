@@ -325,16 +325,27 @@ function EditDialog({
           {isNew ? "Add inventory item" : "Edit item"}
         </h3>
         <Field label="Name">
-          <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+          <Input
+            value={form.name}
+            onChange={(e) => {
+              const name = e.target.value;
+              if (!autoCat) return setForm({ ...form, name });
+              const category = guessInventoryCategory(name);
+              setForm({ ...form, name, category, unit: categoryUnit(category) });
+            }}
+          />
         </Field>
         <div className="grid grid-cols-2 gap-3">
           <Field label="Category">
             <select
               value={form.category}
-              onChange={(e) => setForm({ ...form, category: e.target.value })}
+              onChange={(e) => {
+                setAutoCat(false);
+                setForm({ ...form, category: e.target.value, unit: categoryUnit(e.target.value) });
+              }}
               className="w-full h-10 rounded-md bg-background border border-border px-3 text-sm"
             >
-              {CATEGORIES.filter((c) => c.key !== "all").map((c) => (
+              {INVENTORY_CATEGORIES.map((c) => (
                 <option key={c.key} value={c.key}>
                   {c.label}
                 </option>
