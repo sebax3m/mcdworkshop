@@ -397,7 +397,7 @@ function EditDialog({
           <Input value={form.sku} onChange={(e) => setForm({ ...form, sku: e.target.value })} />
         </Field>
         <div className="flex gap-2 pt-2">
-          {!isNew && (
+          {!isNew && canDelete && (
             <Button
               variant="outline"
               onClick={remove}
