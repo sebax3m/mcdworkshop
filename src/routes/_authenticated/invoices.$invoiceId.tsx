@@ -369,6 +369,10 @@ function InvoiceDetail() {
       haystack.includes("custom tune") ||
       haystack.includes("dyno");
     if (!isTuning) return;
+    // A manually deleted Dyno line stays deleted only while the job card content
+    // is unchanged; updating the job card re-adds the tuning line.
+    if ((invoice.data?.snapshot as any)?.dyno_removed_sig === tuningSig(haystack)) return;
+
 
     const hasDyno = (parts.data as any[]).some((p) =>
       (p.name ?? "").toLowerCase().startsWith("dyno"),
