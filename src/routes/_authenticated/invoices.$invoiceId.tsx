@@ -2,6 +2,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { categoryUnit, guessInventoryCategory } from "@/lib/inventory-categories";
 import {
   ArrowLeft,
   Printer,
@@ -2027,7 +2028,8 @@ function NewInventoryItemForm({
         sku: sku.trim() || null,
         brand: brand.trim() || null,
         unit_price: Number(price) || 0,
-        category: "General",
+        category: guessInventoryCategory(n),
+        unit: categoryUnit(guessInventoryCategory(n)),
       })
       .select("*")
       .maybeSingle();
