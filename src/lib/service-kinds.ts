@@ -21,10 +21,18 @@ export function detectServiceKind(title?: string | null): ServiceKind {
 export const TUNE_PRICE_JAPANESE = 900;
 export const TUNE_PRICE_HARLEY = 1200;
 
-export function tunePriceForMake(make?: string | null): number {
+export function isHarleyMake(make?: string | null): boolean {
   const m = (make ?? "").toLowerCase();
-  if (m.includes("harley") || m.includes("davidson") || m === "hd") return TUNE_PRICE_HARLEY;
-  return TUNE_PRICE_JAPANESE;
+  return m.includes("harley") || m.includes("davidson") || m === "hd";
+}
+
+export function tunePriceForMake(make?: string | null): number {
+  return isHarleyMake(make) ? TUNE_PRICE_HARLEY : TUNE_PRICE_JAPANESE;
+}
+
+/** Part number for the tuning line: Harley-Davidson → DYNOHD, otherwise DYNO. */
+export function tunePartNumberForMake(make?: string | null): string {
+  return isHarleyMake(make) ? "DYNOHD" : "DYNO";
 }
 
 
