@@ -48,6 +48,13 @@ const GST_RATE = 0.15;
 // Amounts on the invoice are GST-inclusive. The GST line shows the embedded portion.
 const LABOUR_RATE = 130;
 
+/** Small stable fingerprint of the job's tuning-related text. */
+function tuningSig(text: string) {
+  let h = 0;
+  for (let i = 0; i < text.length; i++) h = (Math.imul(31, h) + text.charCodeAt(i)) | 0;
+  return String(h);
+}
+
 function EditableNumber({
   value,
   onCommit,
