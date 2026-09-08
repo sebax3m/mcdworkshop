@@ -27,6 +27,7 @@ type ViewMode = "grid" | "list" | "compact";
 
 function Inventory() {
   const { isAdmin } = useCurrentUser();
+  const canEdit = true; // staff (admins + technicians) can maintain the library
   const qc = useQueryClient();
   const [cat, setCat] = useState("all");
   const [search, setSearch] = useState("");
@@ -64,7 +65,7 @@ function Inventory() {
           <div className="text-xs uppercase tracking-[0.25em] text-muted-foreground">Workshop</div>
           <h1 className="font-display text-2xl font-bold">Inventory</h1>
         </div>
-        {isAdmin && (
+        {canEdit && (
           <Button onClick={() => setEditing({})} className="gold-surface gap-2">
             <Plus className="h-4 w-4" /> Add item
           </Button>
@@ -135,8 +136,8 @@ function Inventory() {
             return (
               <button
                 key={i.id}
-                onClick={() => isAdmin && setEditing(i)}
-                disabled={!isAdmin}
+                onClick={() => canEdit && setEditing(i)}
+                disabled={!canEdit}
                 className="card-surface p-3 text-left hover:border-primary/40 transition-colors disabled:cursor-default flex flex-col items-center text-center gap-2"
               >
                 <span className="grid h-14 w-14 place-items-center rounded-xl bg-muted text-primary">
@@ -173,8 +174,8 @@ function Inventory() {
             return (
               <button
                 key={i.id}
-                onClick={() => isAdmin && setEditing(i)}
-                disabled={!isAdmin}
+                onClick={() => canEdit && setEditing(i)}
+                disabled={!canEdit}
                 className="card-surface p-4 text-left hover:border-primary/40 transition-colors disabled:cursor-default"
               >
                 <div className="flex items-start gap-3">
@@ -218,8 +219,8 @@ function Inventory() {
             return (
               <button
                 key={i.id}
-                onClick={() => isAdmin && setEditing(i)}
-                disabled={!isAdmin}
+                onClick={() => canEdit && setEditing(i)}
+                disabled={!canEdit}
                 className="w-full px-4 py-2.5 text-left hover:bg-muted/40 transition-colors disabled:cursor-default flex items-center gap-3"
               >
                 <Package className="h-4 w-4 text-primary shrink-0" />
@@ -246,7 +247,7 @@ function Inventory() {
       )}
 
       {editing && (
-        <EditDialog
+        <EditDialog canDelete={isAdmin}
           item={editing}
           onClose={() => setEditing(null)}
           onSaved={() => {
