@@ -52,7 +52,10 @@ export function AutoClockOutGuard() {
 
     const clockInAt = new Date(ev.occurred_at);
     const cutoff = cutoffFor(clockInAt);
+    // Shifts that start at/after 5:30 PM are intentional late work — never auto-close them.
+    if (cutoff.getTime() <= clockInAt.getTime()) return;
     if (Date.now() <= cutoff.getTime()) return; // still before 5:30 PM of that day
+
 
     processingRef.current = true;
     (async () => {
