@@ -87,11 +87,11 @@ function GoogleCalendarSettings() {
     queryFn: () => getGoogleCalendarStatus(),
   });
 
-  async function onConnect() {
+  async function onConnect(forceFresh = false) {
     setConnecting(true);
     const waiter = waitForOAuthCompletion();
     try {
-      const { authorizationUrl } = await startGoogleCalendarConnect();
+      const { authorizationUrl } = await startGoogleCalendarConnect({ data: { forceFresh } });
       setAuthUrl(authorizationUrl);
       openTopLevel(authorizationUrl);
       const code = await waiter.promise;
@@ -155,7 +155,7 @@ function GoogleCalendarSettings() {
         {connected ? (
           <div className="flex flex-wrap gap-2">
             <button
-              onClick={onConnect}
+              onClick={() => onConnect(true)}
               disabled={connecting}
               className="inline-flex items-center gap-2 rounded-lg red-surface px-4 py-2 text-sm font-semibold disabled:opacity-60"
             >
@@ -173,7 +173,7 @@ function GoogleCalendarSettings() {
           </div>
         ) : (
           <button
-            onClick={onConnect}
+              onClick={() => onConnect(false)}
             disabled={connecting}
             className="inline-flex items-center gap-2 rounded-lg red-surface px-4 py-2 text-sm font-semibold disabled:opacity-60"
           >
