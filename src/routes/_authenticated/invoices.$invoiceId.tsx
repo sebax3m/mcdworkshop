@@ -31,7 +31,7 @@ import { readCustomerNotes } from "@/components/job/CustomerNotesSection";
 import { readWorkPerformed } from "@/components/job/WorkPerformedSection";
 import { learnInventoryPrice } from "@/lib/inventory-price-sync";
 import { partDisplay, derivePartNumber } from "@/lib/part-naming";
-import { PaymentsCard } from "@/components/invoice/PaymentsCard";
+import { PaymentsCard, methodLabel } from "@/components/invoice/PaymentsCard";
 
 import {
   AlertDialog,
@@ -272,6 +272,19 @@ function InvoiceDetail() {
       if (error) throw error;
       return data;
     },
+  });
+
+  // Recorded payments — shown at the bottom of the printed invoice.
+  const invPayments = useQuery({
+    queryKey: ["invoice-payments", invoiceId],
+    queryFn: async () =>
+      (
+        await supabase
+          .from("invoice_payments")
+          .select("id, amount, method, paid_on, reference")
+          .eq("invoice_id", invoiceId)
+          .order("paid_on")
+      ).data ?? [],
   });
 
   const parts = useQuery({
@@ -1963,6 +1976,47 @@ function InvoiceDetail() {
                 </span>
               </div>
             </div>
+
+            {(() => {
+              const pays = invPayments.data ?? [];
+              const paid = pays.reduce((a: number, p: any) => a + Number(p.amount || 0), 0);
+              if (paid <= 0) return null;
+              const balance = Math.max(0, Number(inv.total ?? 0) - paid);
+              return (
+                <div className="mt-1.5 pt-1.5 border-t border-border space-y-0.5">
+                  {pays.map((p: any) => (
+                    <div
+                      key={p.id}
+                      className="flex flex-col sm:flex-row justify-between gap-1 sm:gap-6"
+                    >
+                      <div className="flex-1" />
+                      <div className="w-full sm:w-[17rem] flex items-baseline justify-between gap-4">
+                        <span className="text-muted-foreground">
+                          Paid — {methodLabel(String(p.method))}
+                          {p.paid_on
+                            ? ` ${new Date(p.paid_on).toLocaleDateString("en-GB")}`
+                            : ""}
+                        </span>
+                        <span className="tabular-nums">-${Number(p.amount).toFixed(2)}</span>
+                      </div>
+                    </div>
+                  ))}
+                  <div className="flex flex-col sm:flex-row justify-between gap-1 sm:gap-6">
+                    <div className="flex-1" />
+                    <div className="w-full sm:w-[17rem] flex items-baseline justify-between gap-4 font-display font-black">
+                      <span className={balance <= 0 ? "text-emerald-600" : ""}>
+                        {balance <= 0 ? "PAID IN FULL" : "BALANCE DUE"}
+                      </span>
+                      <span
+                        className={`tabular-nums text-base ${balance <= 0 ? "text-emerald-600" : "text-primary"}`}
+                      >
+                        ${balance.toFixed(2)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
           </div>
           </div>
 
