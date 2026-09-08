@@ -153,14 +153,24 @@ function GoogleCalendarSettings() {
         </div>
 
         {connected ? (
-          <button
-            onClick={onDisconnect}
-            disabled={disconnecting}
-            className="inline-flex items-center gap-2 rounded-lg border border-border px-4 py-2 text-sm font-semibold hover:border-foreground/30 disabled:opacity-60"
-          >
-            <Unlink className="h-4 w-4" />
-            {disconnecting ? "Disconnecting…" : "Disconnect"}
-          </button>
+          <div className="flex flex-wrap gap-2">
+            <button
+              onClick={onConnect}
+              disabled={connecting}
+              className="inline-flex items-center gap-2 rounded-lg red-surface px-4 py-2 text-sm font-semibold disabled:opacity-60"
+            >
+              <Link2 className="h-4 w-4" />
+              {connecting ? "Reconnecting…" : "Reconnect / refresh permissions"}
+            </button>
+            <button
+              onClick={onDisconnect}
+              disabled={disconnecting}
+              className="inline-flex items-center gap-2 rounded-lg border border-border px-4 py-2 text-sm font-semibold hover:border-foreground/30 disabled:opacity-60"
+            >
+              <Unlink className="h-4 w-4" />
+              {disconnecting ? "Disconnecting…" : "Disconnect"}
+            </button>
+          </div>
         ) : (
           <button
             onClick={onConnect}
