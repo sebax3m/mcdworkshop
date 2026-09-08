@@ -80,7 +80,8 @@ async function refreshGoogleInvite(bookingId: string) {
   try {
     const check = await bookingNeedsCalendarResync({ data: { bookingId } });
     if (!check.synced) return;
-    await syncBookingCalendarEvent({ data: { bookingId } });
+    const result = await syncBookingCalendarEvent({ data: { bookingId } });
+    if (!result.ok) toast.error(result.message);
   } catch {
     /* invitation refresh is best-effort */
   }
@@ -215,9 +216,13 @@ function CalendarPage() {
     }
     setSendingInvite(true);
     try {
-      await syncBookingCalendarEvent({
+      const result = await syncBookingCalendarEvent({
         data: { bookingId: inviteBooking.id, email, includeEnd: inviteIncludeEnd },
       });
+      if (!result.ok) {
+        toast.error(result.message);
+        return;
+      }
       toast.success(
         inviteBooking.google_event_id
           ? `Google Calendar invitation updated for ${email}`
@@ -609,10 +614,14 @@ function CalendarPage() {
           toast.error("No email address for the Google Calendar invitation");
         } else {
           try {
-            await syncBookingCalendarEvent({
+            const result = await syncBookingCalendarEvent({
               data: { bookingId: created.id, email: inviteEmail, includeEnd: qGIncludeEnd },
             });
-            toast.success(`Google Calendar invitation sent to ${inviteEmail}`);
+            if (result.ok) {
+              toast.success(`Google Calendar invitation sent to ${inviteEmail}`);
+            } else {
+              toast.error(result.message);
+            }
           } catch (e: any) {
             toast.error(e?.message ?? "Booking saved, but the Google invitation failed");
           }

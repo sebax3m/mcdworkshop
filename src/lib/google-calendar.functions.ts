@@ -21,9 +21,11 @@ const CLIENT_KEY_ENV = "GOOGLE_CALENDAR_APP_USER_CONNECTOR_CLIENT_API_KEY";
 const SCOPES = [
   "https://www.googleapis.com/auth/userinfo.email",
   "https://www.googleapis.com/auth/userinfo.profile",
-  "https://www.googleapis.com/auth/calendar",
   "https://www.googleapis.com/auth/calendar.events",
 ];
+
+const RECONNECT_MESSAGE =
+  "Your Google Calendar connection needs updated event permissions. Go to Settings → Google Calendar and connect it again, then allow calendar event access.";
 
 export const startGoogleCalendarConnect = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -246,9 +248,24 @@ export const syncBookingCalendarEvent = createServerFn({ method: "POST" })
             body,
           ));
       if (scopeProblem) {
-        throw new Error(
-          "Your Google connection doesn't have permission to create calendar events. Go to Settings → Google Calendar, press Disconnect, then Connect again and allow calendar access.",
-        );
+        // Do not leave a stale key looking connected. Removing it makes the
+        // Settings screen offer a clean first-time authorization that requests
+        // calendar.events and replaces the old Google refresh/access token.
+        try {
+          await disconnectAppUser({
+            gatewayBaseUrl: GATEWAY_BASE_URL,
+            connectionAPIKey,
+            connectorId: CONNECTOR_ID,
+          });
+        } catch (disconnectError) {
+          console.warn("Could not revoke the stale Google Calendar connection", disconnectError);
+        }
+        await deleteConnectionKeyForUser(context.userId, CONNECTOR_ID);
+        return {
+          ok: false as const,
+          requiresReconnect: true as const,
+          message: RECONNECT_MESSAGE,
+        };
       }
       throw new Error(`Google Calendar request failed [${res.status}]: ${body}`);
     }
@@ -264,7 +281,12 @@ export const syncBookingCalendarEvent = createServerFn({ method: "POST" })
       } as any)
       .eq("id", row.id);
 
-    return { ok: true, email, updated: !!existingId };
+    return {
+      ok: true as const,
+      email,
+      updated: !!existingId,
+      requiresReconnect: false as const,
+    };
   });
 
 /** Backwards-compatible alias used by the booking page button. */
