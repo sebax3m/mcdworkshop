@@ -27,7 +27,10 @@ const SCOPES = [
 
 export const startGoogleCalendarConnect = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
+  .inputValidator((input: { forceFresh?: boolean } | undefined) =>
+    z.object({ forceFresh: z.boolean().optional() }).optional().parse(input),
+  )
+  .handler(async ({ data, context }) => {
     const clientKey = process.env[CLIENT_KEY_ENV];
     if (!clientKey) throw new Error(`${CLIENT_KEY_ENV} is not set`);
     const request = getRequest();
@@ -40,7 +43,20 @@ export const startGoogleCalendarConnect = createServerFn({ method: "POST" })
       sandboxHost ? `https://${sandboxHost}` : url.origin,
     ).toString();
 
-    const connectionAPIKey = await getConnectionKeyForUser(context.userId, CONNECTOR_ID);
+    let connectionAPIKey = await getConnectionKeyForUser(context.userId, CONNECTOR_ID);
+
+    // A token granted before calendar.events was added cannot gain that scope by
+    // merely reusing its connector key. Revoke it and start a first-time consent
+    // so Google issues a replacement refresh/access token with the requested scope.
+    if (data?.forceFresh && connectionAPIKey) {
+      await disconnectAppUser({
+        gatewayBaseUrl: GATEWAY_BASE_URL,
+        connectionAPIKey,
+        connectorId: CONNECTOR_ID,
+      });
+      await deleteConnectionKeyForUser(context.userId, CONNECTOR_ID);
+      connectionAPIKey = null;
+    }
 
     const { authorizationUrl } = await authorizeAppUserOAuth({
       gatewayBaseUrl: GATEWAY_BASE_URL,
@@ -51,12 +67,11 @@ export const startGoogleCalendarConnect = createServerFn({ method: "POST" })
       connectionAPIKey: connectionAPIKey ?? undefined,
       credentialsConfiguration: {
         scopes: SCOPES,
-        // Force a brand-new consent so an older token (granted before the
-        // calendar write scope existed) is replaced with a refresh token that
-        // includes calendar.events.
+        // These are passed while the authorization URL is generated, not only
+        // configured on the Google OAuth client.
         access_type: "offline",
         prompt: "consent",
-        include_granted_scopes: true,
+        include_granted_scopes: false,
       },
     });
     return { authorizationUrl };
