@@ -48,6 +48,13 @@ const GST_RATE = 0.15;
 // Amounts on the invoice are GST-inclusive. The GST line shows the embedded portion.
 const LABOUR_RATE = 130;
 
+/** Small stable fingerprint of the job's tuning-related text. */
+function tuningSig(text: string) {
+  let h = 0;
+  for (let i = 0; i < text.length; i++) h = (Math.imul(31, h) + text.charCodeAt(i)) | 0;
+  return String(h);
+}
+
 function EditableNumber({
   value,
   onCommit,
@@ -352,7 +359,6 @@ function InvoiceDetail() {
   useEffect(() => {
     const jobId = invoice.data?.job_id;
     if (!jobId || !parts.data) return;
-    if ((invoice.data?.snapshot as any)?.dyno_removed) return;
     const job = (invoice.data as any)?.jobs ?? {};
     const title = job.title as string | undefined;
     // Tuning can come from the job title, its description, or the Work Performed
@@ -370,6 +376,10 @@ function InvoiceDetail() {
       haystack.includes("custom tune") ||
       haystack.includes("dyno");
     if (!isTuning) return;
+    // A manually deleted Dyno line stays deleted only while the job card content
+    // is unchanged; updating the job card re-adds the tuning line.
+    if ((invoice.data?.snapshot as any)?.dyno_removed_sig === tuningSig(haystack)) return;
+
 
     const hasDyno = (parts.data as any[]).some((p) =>
       (p.name ?? "").toLowerCase().startsWith("dyno"),
@@ -843,7 +853,17 @@ function InvoiceDetail() {
       return;
     }
     if (isConsumables) await saveSnapshotMeta({ consumables_removed: true });
-    if (isDyno) await saveSnapshotMeta({ dyno_removed: true });
+    if (isDyno) {
+      const job = (invoice.data as any)?.jobs ?? {};
+      let performed = "";
+      try {
+        performed = JSON.stringify(job.service_data ?? {});
+      } catch {
+        performed = "";
+      }
+      const haystack = `${job.title ?? ""} ${job.description ?? ""} ${performed}`.toLowerCase();
+      await saveSnapshotMeta({ dyno_removed_sig: tuningSig(haystack) });
+    }
     await refreshPartsTotals();
   }
 
