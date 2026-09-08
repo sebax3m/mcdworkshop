@@ -9,6 +9,7 @@ import {
   categoryUnit,
   guessInventoryCategory,
 } from "@/lib/inventory-categories";
+import { derivePartNumber } from "@/lib/part-naming";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
@@ -1937,6 +1938,9 @@ function PartsSection({
                   className="flex flex-1 items-center justify-between text-left disabled:cursor-default disabled:opacity-100"
                 >
                   <span className="text-muted-foreground group-hover:text-foreground transition-colors">
+                    <span className="font-mono text-foreground/80">
+                      {p.part_number || derivePartNumber(p)}
+                    </span>{" "}
                     {p.name} × {Number(p.quantity)}
                   </span>
                   <span className="text-muted-foreground group-hover:text-foreground transition-colors">
@@ -2136,6 +2140,7 @@ function AddCustomPart({
   const isEdit = Boolean(part?.id);
   const [open, setOpen] = useState(isEdit);
   const [name, setName] = useState(part?.name ?? "");
+  const [partNo, setPartNo] = useState(part?.part_number ?? "");
   const [qty, setQty] = useState(String(part?.quantity ?? "1"));
   const [price, setPrice] = useState(String(part?.retail ?? "0"));
   const [saving, setSaving] = useState(false);
@@ -2148,6 +2153,7 @@ function AddCustomPart({
     kind: "create" | "update";
     name: string;
     price: number;
+    sku?: string;
     inventoryId?: string;
     category?: string;
   }>(null);
@@ -2183,6 +2189,7 @@ function AddCustomPart({
 
   function reset(close = true) {
     setName("");
+    setPartNo("");
     setQty("1");
     setPrice("0");
     setLinked(null);
@@ -2198,17 +2205,27 @@ function AddCustomPart({
     if (!q || q <= 0) return toast.error("Qty must be > 0");
     setSaving(true);
 
+    // ITEM = part number, DESCRIPTION = what it is. Generate a tidy code when
+    // the technician doesn't have one so every line follows the same format.
+    const code = derivePartNumber({
+      name: n,
+      part_number: partNo.trim() || null,
+      sku: linked?.sku ?? null,
+      category: linked?.category ?? null,
+    });
+
     let error: any = null;
     if (isEdit) {
       const { error: updateError } = await supabase
         .from("parts")
-        .update({ name: n, quantity: q, cost: p, retail: p })
+        .update({ name: n, part_number: code, quantity: q, cost: p, retail: p })
         .eq("id", part.id);
       error = updateError;
     } else {
       const { error: insertError } = await supabase.from("parts").insert({
         job_id: jobId,
         name: n,
+        part_number: code,
         quantity: q,
         cost: p,
         retail: p,
@@ -2224,7 +2241,13 @@ function AddCustomPart({
     const match = linked ?? exactMatch(n);
     let pendingAsk: typeof ask = null;
     if (!match) {
-      pendingAsk = { kind: "create", name: n, price: p, category: guessInventoryCategory(n) };
+      pendingAsk = {
+        kind: "create",
+        name: n,
+        price: p,
+        sku: code,
+        category: guessInventoryCategory(n),
+      };
     } else if (
       (match.name ?? "").trim() !== n ||
       Math.abs(Number(match.unit_price ?? 0) - p) > 0.005
@@ -2263,6 +2286,9 @@ function AddCustomPart({
         .from("inventory_items")
         .insert({
           name: ask.name,
+          sku:
+            ask.sku ??
+            derivePartNumber({ name: ask.name, category: ask.category ?? null }),
           category: ask.category ?? guessInventoryCategory(ask.name),
           unit: categoryUnit(ask.category ?? guessInventoryCategory(ask.name)),
           unit_price: ask.price,
@@ -2365,7 +2391,7 @@ function AddCustomPart({
   }
   return (
     <div className="mt-3 rounded-lg border border-primary/40 p-3 space-y-2 bg-primary/5">
-      <div className="grid grid-cols-1 sm:grid-cols-[2fr_70px_90px_auto] gap-2">
+      <div className="grid grid-cols-1 sm:grid-cols-[2fr_1fr_70px_90px_auto] gap-2">
         <div className="relative">
           <Input
             autoFocus
@@ -2389,6 +2415,7 @@ function AddCustomPart({
                     onMouseDown={(e) => e.preventDefault()}
                     onClick={() => {
                       setName(i.name ?? "");
+                      setPartNo(derivePartNumber(i));
                       setPrice(String(Number(i.unit_price ?? 0)));
                       setLinked(i);
                       setShowSuggest(false);
@@ -2414,6 +2441,12 @@ function AddCustomPart({
             </ul>
           )}
         </div>
+        <Input
+          placeholder="Part no. (auto)"
+          value={partNo}
+          onChange={(e) => setPartNo(e.target.value)}
+          className="h-9 text-sm font-mono uppercase"
+        />
         <Input
           type="number"
           step="0.1"

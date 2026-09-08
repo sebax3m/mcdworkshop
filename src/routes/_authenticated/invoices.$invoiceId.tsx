@@ -30,6 +30,7 @@ import { InvoicePrintPreview } from "@/components/InvoicePrintPreview";
 import { readCustomerNotes } from "@/components/job/CustomerNotesSection";
 import { readWorkPerformed } from "@/components/job/WorkPerformedSection";
 import { learnInventoryPrice } from "@/lib/inventory-price-sync";
+import { partDisplay, derivePartNumber } from "@/lib/part-naming";
 import { PaymentsCard } from "@/components/invoice/PaymentsCard";
 
 import {
@@ -795,6 +796,7 @@ function InvoiceDetail() {
       retail?: number;
       name?: string;
       supplier?: string;
+      part_number?: string;
       discount_pct?: number;
     },
   ) {
@@ -1551,14 +1553,18 @@ function InvoiceDetail() {
                       const disc = Number(p.discount_pct ?? 0);
                       const gross = unit * qty;
                       const net = gross * (1 - disc / 100);
+                      const isConsumable = `${p.name ?? ""} ${p.supplier ?? ""}`
+                        .toLowerCase()
+                        .includes("consumable");
+                      const display = partDisplay(p);
                       return (
                         <tr key={p.id} {...rowDragProps(p.id, onReorder)}>
                           <td className="py-1 pr-1.5 align-top">
                             <div className="flex items-start gap-2">
                               <DragHandle rowKey={p.id} />
                               <EditableText
-                                value={p.name ?? ""}
-                                onCommit={(v) => updatePart(p.id, { name: v })}
+                                value={display.item}
+                                onCommit={(v) => updatePart(p.id, { part_number: v })}
                                 className="font-medium leading-snug flex-1"
                               />
                               <button
@@ -1575,11 +1581,11 @@ function InvoiceDetail() {
                           </td>
                           <td className="py-1 pr-1.5 align-top">
                             <EditableText
-                              value={p.supplier ?? ""}
-                              onCommit={(v) => updatePart(p.id, { supplier: v })}
-                              multiline={(p.name ?? "").toLowerCase().includes("consumable")}
+                              value={display.description}
+                              onCommit={(v) => updatePart(p.id, { name: v })}
+                              multiline={isConsumable}
                               placeholder={
-                                (p.name ?? "").toLowerCase().includes("consumable")
+                                isConsumable
                                   ? "Washers, lubricants, cleaners, degreaser, rags…"
                                   : "—"
                               }
@@ -2009,11 +2015,13 @@ function InvoiceDetail() {
               await library.refetch();
               const price = Number(it.unit_price ?? 0);
               const name = [it.sku, it.name].filter(Boolean).join(" — ");
+              const partNo = derivePartNumber(it);
               if (libraryTarget?.kind === "snapshot") {
                 await updateSnapshotLine(libraryTarget.idx, { description: name, unit: price });
               } else if (libraryTarget?.kind === "part") {
                 await updatePart(libraryTarget.id, {
-                  name,
+                  name: it.name ?? name,
+                  part_number: partNo,
                   retail: price,
                   supplier: it.brand ?? "",
                 });
@@ -2047,6 +2055,7 @@ function InvoiceDetail() {
                         onClick={async () => {
                           const price = Number(it.unit_price ?? 0);
                           const name = [it.sku, it.name].filter(Boolean).join(" — ");
+                          const partNo = derivePartNumber(it);
                           if (libraryTarget?.kind === "snapshot") {
                             await updateSnapshotLine(libraryTarget.idx, {
                               description: name,
@@ -2054,7 +2063,8 @@ function InvoiceDetail() {
                             });
                           } else if (libraryTarget?.kind === "part") {
                             await updatePart(libraryTarget.id, {
-                              name,
+                              name: it.name ?? name,
+                              part_number: partNo,
                               retail: price,
                               supplier: it.brand ?? "",
                             });
@@ -2109,7 +2119,9 @@ function NewInventoryItemForm({
       .from("inventory_items")
       .insert({
         name: n,
-        sku: sku.trim() || null,
+        sku:
+          sku.trim().toUpperCase() ||
+          derivePartNumber({ name: n, brand: brand.trim() || null }),
         brand: brand.trim() || null,
         unit_price: Number(price) || 0,
         category: guessInventoryCategory(n),

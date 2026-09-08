@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { Package, Plus, Search, AlertTriangle, LayoutGrid, List, Rows3 } from "lucide-react";
+import { derivePartNumber } from "@/lib/part-naming";
 import {
   INVENTORY_CATEGORIES,
   categoryUnit,
@@ -146,6 +147,9 @@ function Inventory() {
                 <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">
                   {i.category}
                 </div>
+                <div className="font-mono text-[0.625rem] text-primary truncate w-full">
+                  {i.sku || "—"}
+                </div>
                 <div className="font-semibold text-sm truncate w-full">{i.name}</div>
                 <div className="text-xs text-muted-foreground truncate w-full">
                   {[i.brand, i.type].filter(Boolean).join(" · ") || "—"}
@@ -193,6 +197,9 @@ function Inventory() {
                         </span>
                       )}
                     </div>
+                    <div className="font-mono text-[0.625rem] text-primary truncate">
+                      {i.sku || "—"}
+                    </div>
                     <div className="font-semibold truncate">{i.name}</div>
                     <div className="text-xs text-muted-foreground truncate">
                       {[i.brand, i.type].filter(Boolean).join(" · ") || "—"}
@@ -224,6 +231,9 @@ function Inventory() {
                 className="w-full px-4 py-2.5 text-left hover:bg-muted/40 transition-colors disabled:cursor-default flex items-center gap-3"
               >
                 <Package className="h-4 w-4 text-primary shrink-0" />
+                <span className="font-mono text-[0.6875rem] text-primary w-28 truncate hidden sm:inline">
+                  {i.sku || "—"}
+                </span>
                 <span className="font-semibold text-sm truncate flex-1">{i.name}</span>
                 <span className="text-[0.625rem] uppercase tracking-wider text-muted-foreground hidden sm:inline w-24 truncate">
                   {i.category}
@@ -291,6 +301,10 @@ function EditDialog({
     setSaving(true);
     const payload = {
       ...form,
+      // ITEM column on invoices = the part number, so every item keeps one.
+      sku:
+        String(form.sku ?? "").trim().toUpperCase() ||
+        derivePartNumber({ name: form.name, brand: form.brand, category: form.category }),
       unit_price: Number(form.unit_price),
       stock_qty: Number(form.stock_qty),
       min_stock: Number(form.min_stock),
@@ -393,7 +407,7 @@ function EditDialog({
             />
           </Field>
         </div>
-        <Field label="SKU">
+        <Field label="Part number (item code)">
           <Input value={form.sku} onChange={(e) => setForm({ ...form, sku: e.target.value })} />
         </Field>
         <div className="flex gap-2 pt-2">
