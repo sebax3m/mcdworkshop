@@ -853,7 +853,17 @@ function InvoiceDetail() {
       return;
     }
     if (isConsumables) await saveSnapshotMeta({ consumables_removed: true });
-    if (isDyno) await saveSnapshotMeta({ dyno_removed: true });
+    if (isDyno) {
+      const job = (invoice.data as any)?.jobs ?? {};
+      let performed = "";
+      try {
+        performed = JSON.stringify(job.service_data ?? {});
+      } catch {
+        performed = "";
+      }
+      const haystack = `${job.title ?? ""} ${job.description ?? ""} ${performed}`.toLowerCase();
+      await saveSnapshotMeta({ dyno_removed_sig: tuningSig(haystack) });
+    }
     await refreshPartsTotals();
   }
 
