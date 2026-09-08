@@ -264,15 +264,18 @@ function EditDialog({
   item,
   onClose,
   onSaved,
+  canDelete = true,
 }: {
   item: any;
   onClose: () => void;
   onSaved: () => void;
+  canDelete?: boolean;
 }) {
   const isNew = !item?.id;
+  const [autoCat, setAutoCat] = useState(isNew);
   const [form, setForm] = useState<any>({
     name: item?.name ?? "",
-    category: item?.category ?? "oil",
+    category: item?.category ?? "part",
     brand: item?.brand ?? "",
     type: item?.type ?? "",
     unit: item?.unit ?? "unit",
