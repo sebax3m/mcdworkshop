@@ -2794,6 +2794,53 @@ function CalendarPage() {
         )}
       </AnimatePresence>
 
+      <AlertDialog open={!!inviteBooking} onOpenChange={(o) => !o && setInviteBooking(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {inviteBooking?.google_event_id
+                ? "Update Google Calendar invitation"
+                : "Send Google Calendar invitation"}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              The customer receives an email invitation with the booking date, time and bike
+              details.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="space-y-2">
+            <input
+              type="email"
+              value={inviteEmail}
+              onChange={(e) => setInviteEmail(e.target.value)}
+              placeholder="customer@email.com"
+              className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:border-primary/60 focus:outline-none"
+            />
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                className="h-4 w-4 accent-primary"
+                checked={inviteIncludeEnd}
+                onChange={(e) => setInviteIncludeEnd(e.target.checked)}
+              />
+              <span className="text-sm">Include expected completion / pick-up time</span>
+            </label>
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={sendingInvite}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => {
+                e.preventDefault();
+                void sendInviteNow();
+              }}
+              disabled={sendingInvite}
+            >
+              {sendingInvite ? "Sending…" : "Send invitation"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+
       <AlertDialog open={!!deleteBooking} onOpenChange={(o) => !o && setDeleteBooking(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
