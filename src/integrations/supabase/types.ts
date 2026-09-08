@@ -3370,6 +3370,7 @@ export type Database = {
           job_id: string
           name: string
           on_invoice: boolean
+          part_number: string | null
           quantity: number
           retail: number | null
           sort_order: number
@@ -3384,6 +3385,7 @@ export type Database = {
           job_id: string
           name: string
           on_invoice?: boolean
+          part_number?: string | null
           quantity?: number
           retail?: number | null
           sort_order?: number
@@ -3398,6 +3400,7 @@ export type Database = {
           job_id?: string
           name?: string
           on_invoice?: boolean
+          part_number?: string | null
           quantity?: number
           retail?: number | null
           sort_order?: number
