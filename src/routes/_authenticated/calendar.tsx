@@ -201,6 +201,36 @@ function CalendarPage() {
   const patchSelected = (patch: any) =>
     setSelectedBooking((prev: any) => (prev ? { ...prev, ...patch } : prev));
   const [deleteBooking, setDeleteBooking] = useState<any | null>(null);
+  const [inviteBooking, setInviteBooking] = useState<any | null>(null);
+  const [inviteEmail, setInviteEmail] = useState<string>("");
+  const [inviteIncludeEnd, setInviteIncludeEnd] = useState(false);
+  const [sendingInvite, setSendingInvite] = useState(false);
+
+  async function sendInviteNow() {
+    if (!inviteBooking) return;
+    const email = inviteEmail.trim();
+    if (!email) {
+      toast.error("Enter an email address for the invitation");
+      return;
+    }
+    setSendingInvite(true);
+    try {
+      await syncBookingCalendarEvent({
+        data: { bookingId: inviteBooking.id, email, includeEnd: inviteIncludeEnd },
+      });
+      toast.success(
+        inviteBooking.google_event_id
+          ? `Google Calendar invitation updated for ${email}`
+          : `Google Calendar invitation sent to ${email}`,
+      );
+      setInviteBooking(null);
+    } catch (e: any) {
+      toast.error(e?.message ?? "Could not send the Google Calendar invitation");
+    } finally {
+      setSendingInvite(false);
+    }
+  }
+
   const [now, setNow] = useState<Date>(() => new Date());
   const [quickSlot, setQuickSlot] = useState<{ date: Date; time: string } | null>(null);
   const [qSearch, setQSearch] = useState("");
@@ -1996,6 +2026,19 @@ function CalendarPage() {
                       )}
                       <button
                         onClick={() => {
+                          setInviteEmail(b.google_invite_email ?? b.customers?.email ?? "");
+                          setInviteIncludeEnd(!!b.google_include_end);
+                          setInviteBooking(b);
+                          setSelectedBooking(null);
+                        }}
+                        className="flex-1 min-w-0 inline-flex items-center justify-center gap-1.5 rounded-lg border border-border px-2 py-2 text-xs font-semibold hover:border-primary/50 hover:bg-primary/5 transition-colors whitespace-nowrap"
+                        title="Send the customer a Google Calendar invitation"
+                      >
+                        📅 {b.google_event_id ? "Update invite" : "Google invite"}
+                      </button>
+                      <button
+
+                        onClick={() => {
                           setDeleteBooking(b);
                           setSelectedBooking(null);
                         }}
@@ -2750,6 +2793,53 @@ function CalendarPage() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      <AlertDialog open={!!inviteBooking} onOpenChange={(o) => !o && setInviteBooking(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {inviteBooking?.google_event_id
+                ? "Update Google Calendar invitation"
+                : "Send Google Calendar invitation"}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              The customer receives an email invitation with the booking date, time and bike
+              details.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="space-y-2">
+            <input
+              type="email"
+              value={inviteEmail}
+              onChange={(e) => setInviteEmail(e.target.value)}
+              placeholder="customer@email.com"
+              className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:border-primary/60 focus:outline-none"
+            />
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                className="h-4 w-4 accent-primary"
+                checked={inviteIncludeEnd}
+                onChange={(e) => setInviteIncludeEnd(e.target.checked)}
+              />
+              <span className="text-sm">Include expected completion / pick-up time</span>
+            </label>
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={sendingInvite}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => {
+                e.preventDefault();
+                void sendInviteNow();
+              }}
+              disabled={sendingInvite}
+            >
+              {sendingInvite ? "Sending…" : "Send invitation"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
 
       <AlertDialog open={!!deleteBooking} onOpenChange={(o) => !o && setDeleteBooking(null)}>
         <AlertDialogContent>
