@@ -49,7 +49,15 @@ export const startGoogleCalendarConnect = createServerFn({ method: "POST" })
       clientAPIKey: clientKey,
       returnUrl,
       connectionAPIKey: connectionAPIKey ?? undefined,
-      credentialsConfiguration: { scopes: SCOPES },
+      credentialsConfiguration: {
+        scopes: SCOPES,
+        // Force a brand-new consent so an older token (granted before the
+        // calendar write scope existed) is replaced with a refresh token that
+        // includes calendar.events.
+        access_type: "offline",
+        prompt: "consent",
+        include_granted_scopes: true,
+      },
     });
     return { authorizationUrl };
   });
