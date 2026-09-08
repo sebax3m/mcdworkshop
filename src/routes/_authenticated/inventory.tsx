@@ -8,6 +8,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { Package, Plus, Search, AlertTriangle, LayoutGrid, List, Rows3 } from "lucide-react";
+import {
+  INVENTORY_CATEGORIES,
+  categoryUnit,
+  guessInventoryCategory,
+} from "@/lib/inventory-categories";
 
 export const Route = createFileRoute("/_authenticated/inventory")({
   component: Inventory,
@@ -15,22 +20,14 @@ export const Route = createFileRoute("/_authenticated/inventory")({
 
 const CATEGORIES = [
   { key: "all", label: "All" },
-  { key: "oil", label: "Oil" },
-  { key: "oil_filter", label: "Oil filters" },
-  { key: "air_filter", label: "Air filters" },
-  { key: "spark_plug", label: "Spark plugs" },
-  { key: "brake_pad", label: "Brake pads" },
-  { key: "brake_fluid", label: "Brake fluid" },
-  { key: "coolant", label: "Coolant" },
-  { key: "chain", label: "Chains" },
-  { key: "sprocket", label: "Sprockets" },
-  { key: "other", label: "Other" },
+  ...INVENTORY_CATEGORIES.map((c) => ({ key: c.key, label: c.label })),
 ];
 
 type ViewMode = "grid" | "list" | "compact";
 
 function Inventory() {
   const { isAdmin } = useCurrentUser();
+  const canEdit = true; // staff (admins + technicians) can maintain the library
   const qc = useQueryClient();
   const [cat, setCat] = useState("all");
   const [search, setSearch] = useState("");
@@ -68,7 +65,7 @@ function Inventory() {
           <div className="text-xs uppercase tracking-[0.25em] text-muted-foreground">Workshop</div>
           <h1 className="font-display text-2xl font-bold">Inventory</h1>
         </div>
-        {isAdmin && (
+        {canEdit && (
           <Button onClick={() => setEditing({})} className="gold-surface gap-2">
             <Plus className="h-4 w-4" /> Add item
           </Button>
@@ -139,8 +136,8 @@ function Inventory() {
             return (
               <button
                 key={i.id}
-                onClick={() => isAdmin && setEditing(i)}
-                disabled={!isAdmin}
+                onClick={() => canEdit && setEditing(i)}
+                disabled={!canEdit}
                 className="card-surface p-3 text-left hover:border-primary/40 transition-colors disabled:cursor-default flex flex-col items-center text-center gap-2"
               >
                 <span className="grid h-14 w-14 place-items-center rounded-xl bg-muted text-primary">
@@ -177,8 +174,8 @@ function Inventory() {
             return (
               <button
                 key={i.id}
-                onClick={() => isAdmin && setEditing(i)}
-                disabled={!isAdmin}
+                onClick={() => canEdit && setEditing(i)}
+                disabled={!canEdit}
                 className="card-surface p-4 text-left hover:border-primary/40 transition-colors disabled:cursor-default"
               >
                 <div className="flex items-start gap-3">
@@ -222,8 +219,8 @@ function Inventory() {
             return (
               <button
                 key={i.id}
-                onClick={() => isAdmin && setEditing(i)}
-                disabled={!isAdmin}
+                onClick={() => canEdit && setEditing(i)}
+                disabled={!canEdit}
                 className="w-full px-4 py-2.5 text-left hover:bg-muted/40 transition-colors disabled:cursor-default flex items-center gap-3"
               >
                 <Package className="h-4 w-4 text-primary shrink-0" />
@@ -250,7 +247,7 @@ function Inventory() {
       )}
 
       {editing && (
-        <EditDialog
+        <EditDialog canDelete={isAdmin}
           item={editing}
           onClose={() => setEditing(null)}
           onSaved={() => {
@@ -267,15 +264,18 @@ function EditDialog({
   item,
   onClose,
   onSaved,
+  canDelete = true,
 }: {
   item: any;
   onClose: () => void;
   onSaved: () => void;
+  canDelete?: boolean;
 }) {
   const isNew = !item?.id;
+  const [autoCat, setAutoCat] = useState(isNew);
   const [form, setForm] = useState<any>({
     name: item?.name ?? "",
-    category: item?.category ?? "oil",
+    category: item?.category ?? "part",
     brand: item?.brand ?? "",
     type: item?.type ?? "",
     unit: item?.unit ?? "unit",
@@ -325,16 +325,27 @@ function EditDialog({
           {isNew ? "Add inventory item" : "Edit item"}
         </h3>
         <Field label="Name">
-          <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+          <Input
+            value={form.name}
+            onChange={(e) => {
+              const name = e.target.value;
+              if (!autoCat) return setForm({ ...form, name });
+              const category = guessInventoryCategory(name);
+              setForm({ ...form, name, category, unit: categoryUnit(category) });
+            }}
+          />
         </Field>
         <div className="grid grid-cols-2 gap-3">
           <Field label="Category">
             <select
               value={form.category}
-              onChange={(e) => setForm({ ...form, category: e.target.value })}
+              onChange={(e) => {
+                setAutoCat(false);
+                setForm({ ...form, category: e.target.value, unit: categoryUnit(e.target.value) });
+              }}
               className="w-full h-10 rounded-md bg-background border border-border px-3 text-sm"
             >
-              {CATEGORIES.filter((c) => c.key !== "all").map((c) => (
+              {INVENTORY_CATEGORIES.map((c) => (
                 <option key={c.key} value={c.key}>
                   {c.label}
                 </option>
@@ -386,7 +397,7 @@ function EditDialog({
           <Input value={form.sku} onChange={(e) => setForm({ ...form, sku: e.target.value })} />
         </Field>
         <div className="flex gap-2 pt-2">
-          {!isNew && (
+          {!isNew && canDelete && (
             <Button
               variant="outline"
               onClick={remove}

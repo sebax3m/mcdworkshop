@@ -4,6 +4,11 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { PrintPreview } from "@/components/PrintPreview";
 import { supabase } from "@/integrations/supabase/client";
+import {
+  INVENTORY_CATEGORIES,
+  categoryUnit,
+  guessInventoryCategory,
+} from "@/lib/inventory-categories";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
@@ -2144,6 +2149,7 @@ function AddCustomPart({
     name: string;
     price: number;
     inventoryId?: string;
+    category?: string;
   }>(null);
 
   // Inventory list — only fetched once the form is open; suggestions appear while typing.
@@ -2218,7 +2224,7 @@ function AddCustomPart({
     const match = linked ?? exactMatch(n);
     let pendingAsk: typeof ask = null;
     if (!match) {
-      pendingAsk = { kind: "create", name: n, price: p };
+      pendingAsk = { kind: "create", name: n, price: p, category: guessInventoryCategory(n) };
     } else if (
       (match.name ?? "").trim() !== n ||
       Math.abs(Number(match.unit_price ?? 0) - p) > 0.005
@@ -2255,7 +2261,12 @@ function AddCustomPart({
     if (ask.kind === "create") {
       const { error } = await supabase
         .from("inventory_items")
-        .insert({ name: ask.name, category: "part", unit_price: ask.price } as any);
+        .insert({
+          name: ask.name,
+          category: ask.category ?? guessInventoryCategory(ask.name),
+          unit: categoryUnit(ask.category ?? guessInventoryCategory(ask.name)),
+          unit_price: ask.price,
+        } as any);
       if (error) toast.error(error.message);
       else toast.success(`${ask.name} added to inventory`);
     } else if (ask.inventoryId) {
@@ -2305,6 +2316,24 @@ function AddCustomPart({
                   : `Save the new price for “${target?.name}” in the inventory at $${(ask?.price ?? 0).toFixed(2)}?`}
             </AlertDialogDescription>
           </AlertDialogHeader>
+          {ask?.kind === "create" && (
+            <label className="block space-y-1">
+              <span className="text-[0.625rem] uppercase tracking-wider text-muted-foreground font-semibold">
+                Category
+              </span>
+              <select
+                value={ask.category ?? "part"}
+                onChange={(e) => setAsk({ ...ask, category: e.target.value })}
+                className="w-full h-10 rounded-md bg-background border border-border px-3 text-sm"
+              >
+                {INVENTORY_CATEGORIES.map((c) => (
+                  <option key={c.key} value={c.key}>
+                    {c.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
           <AlertDialogFooter>
             <AlertDialogCancel onClick={dismissAsk}>No, keep as is</AlertDialogCancel>
             <AlertDialogAction onClick={confirmAsk}>
