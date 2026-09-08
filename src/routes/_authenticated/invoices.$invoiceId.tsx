@@ -3,7 +3,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { categoryUnit, guessInventoryCategory } from "@/lib/inventory-categories";
-import { detectServiceKind, tunePriceForMake } from "@/lib/service-kinds";
+import { detectServiceKind, tunePriceForMake, tunePartNumberForMake } from "@/lib/service-kinds";
 import {
   ArrowLeft,
   Printer,
