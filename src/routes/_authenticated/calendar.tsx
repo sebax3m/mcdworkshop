@@ -201,6 +201,36 @@ function CalendarPage() {
   const patchSelected = (patch: any) =>
     setSelectedBooking((prev: any) => (prev ? { ...prev, ...patch } : prev));
   const [deleteBooking, setDeleteBooking] = useState<any | null>(null);
+  const [inviteBooking, setInviteBooking] = useState<any | null>(null);
+  const [inviteEmail, setInviteEmail] = useState<string>("");
+  const [inviteIncludeEnd, setInviteIncludeEnd] = useState(false);
+  const [sendingInvite, setSendingInvite] = useState(false);
+
+  async function sendInviteNow() {
+    if (!inviteBooking) return;
+    const email = inviteEmail.trim();
+    if (!email) {
+      toast.error("Enter an email address for the invitation");
+      return;
+    }
+    setSendingInvite(true);
+    try {
+      await syncBookingCalendarEvent({
+        data: { bookingId: inviteBooking.id, email, includeEnd: inviteIncludeEnd },
+      });
+      toast.success(
+        inviteBooking.google_event_id
+          ? `Google Calendar invitation updated for ${email}`
+          : `Google Calendar invitation sent to ${email}`,
+      );
+      setInviteBooking(null);
+    } catch (e: any) {
+      toast.error(e?.message ?? "Could not send the Google Calendar invitation");
+    } finally {
+      setSendingInvite(false);
+    }
+  }
+
   const [now, setNow] = useState<Date>(() => new Date());
   const [quickSlot, setQuickSlot] = useState<{ date: Date; time: string } | null>(null);
   const [qSearch, setQSearch] = useState("");
