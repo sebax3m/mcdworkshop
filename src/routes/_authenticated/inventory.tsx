@@ -8,6 +8,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { Package, Plus, Search, AlertTriangle, LayoutGrid, List, Rows3 } from "lucide-react";
+import {
+  INVENTORY_CATEGORIES,
+  categoryUnit,
+  guessInventoryCategory,
+} from "@/lib/inventory-categories";
 
 export const Route = createFileRoute("/_authenticated/inventory")({
   component: Inventory,
@@ -15,16 +20,7 @@ export const Route = createFileRoute("/_authenticated/inventory")({
 
 const CATEGORIES = [
   { key: "all", label: "All" },
-  { key: "oil", label: "Oil" },
-  { key: "oil_filter", label: "Oil filters" },
-  { key: "air_filter", label: "Air filters" },
-  { key: "spark_plug", label: "Spark plugs" },
-  { key: "brake_pad", label: "Brake pads" },
-  { key: "brake_fluid", label: "Brake fluid" },
-  { key: "coolant", label: "Coolant" },
-  { key: "chain", label: "Chains" },
-  { key: "sprocket", label: "Sprockets" },
-  { key: "other", label: "Other" },
+  ...INVENTORY_CATEGORIES.map((c) => ({ key: c.key, label: c.label })),
 ];
 
 type ViewMode = "grid" | "list" | "compact";
