@@ -248,7 +248,7 @@ function ClaimDetail() {
         bikeText: c.motorcycles ? fullBike(c.motorcycles) : "—",
         marks: [],
         items,
-        options: { includePhotos: false, maxPhotos: 0 },
+
       });
       const url = URL.createObjectURL(blob);
       const w = window.open(url, "_blank");
