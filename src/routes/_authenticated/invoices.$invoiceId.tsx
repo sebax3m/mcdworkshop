@@ -352,7 +352,6 @@ function InvoiceDetail() {
   useEffect(() => {
     const jobId = invoice.data?.job_id;
     if (!jobId || !parts.data) return;
-    if ((invoice.data?.snapshot as any)?.dyno_removed) return;
     const job = (invoice.data as any)?.jobs ?? {};
     const title = job.title as string | undefined;
     // Tuning can come from the job title, its description, or the Work Performed
