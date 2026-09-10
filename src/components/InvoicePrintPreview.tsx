@@ -212,7 +212,18 @@ ${
 
 
     frame.srcdoc = doc;
-    const t = setTimeout(() => setPages(Math.max(1, Math.ceil(measure() / usablePx))), 300);
+    const t = setTimeout(() => {
+      const content = measure();
+      const count = Math.max(1, Math.ceil(content / usablePx));
+      // Rule: an invoice never prints on more than 2 pages — shrink the print
+      // scale automatically until the whole document fits within two sheets.
+      if (count > 2 && printScale > 55) {
+        const needed = Math.floor((printScale * ((2 * usablePx) / content)) * 0.99);
+        setPrintScale(Math.max(55, Math.min(printScale - 2, needed)));
+        return;
+      }
+      setPages(count);
+    }, 300);
     return () => clearTimeout(t);
   }, [open, title, getHtml, paper, orientation, margin, printScale, density, showGuides, usablePx]);
 
