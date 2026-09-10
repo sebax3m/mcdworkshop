@@ -54,11 +54,28 @@ export default function CustomerNotesSection({
       .from("jobs")
       .update({ service_data: { ...(serviceData ?? {}), customer_notes: value } as any })
       .eq("id", jobId);
-    setSaving(false);
     if (error) {
+      setSaving(false);
       toast.error(error.message);
       return;
     }
+
+    /* Keep the invoice in step: any invoice for this job that still shows the
+       previous job-card notes (or has none at all) is updated with the new
+       text. Notes typed directly on the invoice are never overwritten. */
+    const { data: invs } = await supabase
+      .from("invoices")
+      .select("id, notes")
+      .eq("job_id", jobId);
+    const stale = (invs ?? []).filter((i) => {
+      const current = (i.notes ?? "").trim();
+      return !current || current === initial.trim();
+    });
+    for (const i of stale) {
+      await supabase.from("invoices").update({ notes: value }).eq("id", i.id);
+    }
+
+    setSaving(false);
     setSaved(true);
     onChanged();
   }
