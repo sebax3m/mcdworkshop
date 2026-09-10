@@ -56,6 +56,18 @@ function tuningSig(text: string) {
   return String(h);
 }
 
+/* A tuning line stays recognisable even after staff reword it: we match the
+   part number (DYNO / DYNOHD), the name, or the "custom tune" description. */
+function isDynoLine(p: { name?: string | null; part_number?: string | null; supplier?: string | null }) {
+  const pn = (p.part_number ?? "").toLowerCase();
+  if (pn.startsWith("dyno")) return true;
+  const name = (p.name ?? "").toLowerCase();
+  if (name.startsWith("dyno")) return true;
+  const text = `${name} ${(p.supplier ?? "").toLowerCase()}`;
+  return text.includes("custom tune") || text.includes("dyno");
+}
+
+
 function EditableNumber({
   value,
   onCommit,
