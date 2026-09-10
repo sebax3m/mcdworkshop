@@ -28,11 +28,20 @@ export function AutoClockOutGuard() {
   const qc = useQueryClient();
   const [warning, setWarning] = useState<string | null>(null);
   const processingRef = useRef(false);
+  // Ticks so the check below re-runs even when the last event hasn't changed
+  // (react-query keeps the same object reference when the data is identical).
+  const [tick, setTick] = useState(0);
+
+  useEffect(() => {
+    const t = setInterval(() => setTick((n) => n + 1), 30000);
+    return () => clearInterval(t);
+  }, []);
 
   const lastEvent = useQuery({
     queryKey: ["auto-clockout-last-event", user?.id],
     enabled: !!user,
     refetchInterval: 60000,
+    refetchOnWindowFocus: true,
     queryFn: async () => {
       const { data } = await supabase
         .from("clock_events")
@@ -46,6 +55,7 @@ export function AutoClockOutGuard() {
   });
 
   useEffect(() => {
+    void tick;
     const ev = lastEvent.data;
     if (!user || !ev || processingRef.current) return;
     if (ev.event_type !== "clock_in" && ev.event_type !== "break_end" && ev.event_type !== "break_start") return;
@@ -65,7 +75,9 @@ export function AutoClockOutGuard() {
         occurred_at: cutoff.toISOString(),
         note: "auto_closed",
       } as never);
-      if (!error) {
+      if (error) {
+        console.error("Auto clock-out failed", error);
+      } else {
         const dateStr = clockInAt.toLocaleDateString("en-GB");
         setWarning(
           `Your clock-in from ${dateStr} was left active. You were automatically clocked out at 5:30 PM. Please let the office know if your hours need adjusting.`,
@@ -73,10 +85,11 @@ export function AutoClockOutGuard() {
         await qc.invalidateQueries({ queryKey: ["clock-events-floating"] });
         await qc.invalidateQueries({ queryKey: ["auto-clockout-last-event"] });
         await qc.invalidateQueries({ queryKey: ["clock-events"] });
+        await qc.invalidateQueries({ queryKey: ["time-entries"] });
       }
       processingRef.current = false;
     })();
-  }, [lastEvent.data, user, qc]);
+  }, [lastEvent.data, user, qc, tick]);
 
   return (
     <AlertDialog open={!!warning} onOpenChange={(o) => !o && setWarning(null)}>
