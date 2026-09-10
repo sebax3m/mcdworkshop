@@ -398,9 +398,8 @@ function InvoiceDetail() {
     if ((invoice.data?.snapshot as any)?.dyno_removed_sig === tuningSig(haystack)) return;
 
 
-    const dynoLines = (parts.data as any[]).filter((p) =>
-      (p.name ?? "").toLowerCase().startsWith("dyno"),
-    );
+    const dynoLines = (parts.data as any[]).filter(isDynoLine);
+
     // Clean up any duplicate tuning lines created by earlier versions.
     if (dynoLines.length > 1) {
       const extras = dynoLines.slice(1).map((p) => p.id);
@@ -880,7 +879,7 @@ function InvoiceDetail() {
   async function deletePart(id: string) {
     const target = (parts.data ?? []).find((p: any) => p.id === id) as any;
     const isConsumables = (target?.name ?? "").toLowerCase().includes("consumable");
-    const isDyno = (target?.name ?? "").toLowerCase().startsWith("dyno");
+    const isDyno = isDynoLine(target ?? {});
     const { error } = await supabase.from("parts").delete().eq("id", id);
     if (error) {
       toast.error(error.message);
