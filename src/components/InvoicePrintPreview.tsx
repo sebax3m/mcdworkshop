@@ -28,7 +28,7 @@ export function InvoicePrintPreview({
   const [orientation, setOrientation] = useState<"portrait" | "landscape">("portrait");
   /** Real print scale — affects the printed output, not just the on-screen preview. */
   const [printScale, setPrintScale] = useState(100);
-  const [margin, setMargin] = useState<"none" | "narrow" | "normal">("none");
+  const [margin, setMargin] = useState<"none" | "narrow" | "normal">("narrow");
   /** Vertical density: 100 = normal spacing, lower = tighter gaps (no font rescaling). */
   const [density, setDensity] = useState(100);
   const [showGuides, setShowGuides] = useState(true);
@@ -39,7 +39,7 @@ export function InvoicePrintPreview({
     Letter: { w: "216mm", h: "279mm", css: "Letter" },
     Legal: { w: "216mm", h: "356mm", css: "Legal" },
   };
-  const MARGIN = { none: "0mm", narrow: "6mm", normal: "12mm" } as const;
+  const MARGIN = { none: "0mm", narrow: "10mm", normal: "15mm" } as const;
   const landscape = orientation === "landscape";
   const pageW = landscape ? PAPER[paper].h : PAPER[paper].w;
   const pageH = landscape ? PAPER[paper].w : PAPER[paper].h;
