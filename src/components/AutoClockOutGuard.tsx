@@ -28,11 +28,20 @@ export function AutoClockOutGuard() {
   const qc = useQueryClient();
   const [warning, setWarning] = useState<string | null>(null);
   const processingRef = useRef(false);
+  // Ticks so the check below re-runs even when the last event hasn't changed
+  // (react-query keeps the same object reference when the data is identical).
+  const [tick, setTick] = useState(0);
+
+  useEffect(() => {
+    const t = setInterval(() => setTick((n) => n + 1), 30000);
+    return () => clearInterval(t);
+  }, []);
 
   const lastEvent = useQuery({
     queryKey: ["auto-clockout-last-event", user?.id],
     enabled: !!user,
     refetchInterval: 60000,
+    refetchOnWindowFocus: true,
     queryFn: async () => {
       const { data } = await supabase
         .from("clock_events")
@@ -46,6 +55,7 @@ export function AutoClockOutGuard() {
   });
 
   useEffect(() => {
+    void tick;
     const ev = lastEvent.data;
     if (!user || !ev || processingRef.current) return;
     if (ev.event_type !== "clock_in" && ev.event_type !== "break_end" && ev.event_type !== "break_start") return;
