@@ -2109,7 +2109,7 @@ function InvoiceDetail() {
                   name: it.name ?? name,
                   part_number: partNo,
                   retail: price,
-                  supplier: it.brand ?? "",
+                  supplier: "",
                 });
               }
               setLibraryTarget(null);
@@ -2152,7 +2152,7 @@ function InvoiceDetail() {
                               name: it.name ?? name,
                               part_number: partNo,
                               retail: price,
-                              supplier: it.brand ?? "",
+                              supplier: "",
                             });
                           }
                           setLibraryTarget(null);

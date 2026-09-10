@@ -2037,9 +2037,9 @@ function InventoryPicker({
         .eq("id", jobId),
       supabase.from("parts").insert({
         job_id: jobId,
-        name: `${item.name}${item.brand ? ` (${item.brand})` : ""}`,
+        name: item.name,
         quantity: n,
-        supplier: item.brand,
+        supplier: "",
         cost: Number(item.unit_price),
         retail: Number(item.unit_price),
         added_by: user?.id,
