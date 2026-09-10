@@ -75,7 +75,9 @@ export function AutoClockOutGuard() {
         occurred_at: cutoff.toISOString(),
         note: "auto_closed",
       } as never);
-      if (!error) {
+      if (error) {
+        console.error("Auto clock-out failed", error);
+      } else {
         const dateStr = clockInAt.toLocaleDateString("en-GB");
         setWarning(
           `Your clock-in from ${dateStr} was left active. You were automatically clocked out at 5:30 PM. Please let the office know if your hours need adjusting.`,
@@ -83,10 +85,11 @@ export function AutoClockOutGuard() {
         await qc.invalidateQueries({ queryKey: ["clock-events-floating"] });
         await qc.invalidateQueries({ queryKey: ["auto-clockout-last-event"] });
         await qc.invalidateQueries({ queryKey: ["clock-events"] });
+        await qc.invalidateQueries({ queryKey: ["time-entries"] });
       }
       processingRef.current = false;
     })();
-  }, [lastEvent.data, user, qc]);
+  }, [lastEvent.data, user, qc, tick]);
 
   return (
     <AlertDialog open={!!warning} onOpenChange={(o) => !o && setWarning(null)}>
