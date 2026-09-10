@@ -28,7 +28,7 @@ export function InvoicePrintPreview({
   const [orientation, setOrientation] = useState<"portrait" | "landscape">("portrait");
   /** Real print scale — affects the printed output, not just the on-screen preview. */
   const [printScale, setPrintScale] = useState(100);
-  const [margin, setMargin] = useState<"none" | "narrow" | "normal">("none");
+  const [margin, setMargin] = useState<"none" | "narrow" | "normal">("narrow");
   /** Vertical density: 100 = normal spacing, lower = tighter gaps (no font rescaling). */
   const [density, setDensity] = useState(100);
   const [showGuides, setShowGuides] = useState(true);
@@ -39,7 +39,7 @@ export function InvoicePrintPreview({
     Letter: { w: "216mm", h: "279mm", css: "Letter" },
     Legal: { w: "216mm", h: "356mm", css: "Legal" },
   };
-  const MARGIN = { none: "0mm", narrow: "6mm", normal: "12mm" } as const;
+  const MARGIN = { none: "0mm", narrow: "10mm", normal: "15mm" } as const;
   const landscape = orientation === "landscape";
   const pageW = landscape ? PAPER[paper].h : PAPER[paper].w;
   const pageH = landscape ? PAPER[paper].w : PAPER[paper].h;
@@ -212,7 +212,18 @@ ${
 
 
     frame.srcdoc = doc;
-    const t = setTimeout(() => setPages(Math.max(1, Math.ceil(measure() / usablePx))), 300);
+    const t = setTimeout(() => {
+      const content = measure();
+      const count = Math.max(1, Math.ceil(content / usablePx));
+      // Rule: an invoice never prints on more than 2 pages — shrink the print
+      // scale automatically until the whole document fits within two sheets.
+      if (count > 2 && printScale > 55) {
+        const needed = Math.floor((printScale * ((2 * usablePx) / content)) * 0.99);
+        setPrintScale(Math.max(55, Math.min(printScale - 2, needed)));
+        return;
+      }
+      setPages(count);
+    }, 300);
     return () => clearTimeout(t);
   }, [open, title, getHtml, paper, orientation, margin, printScale, density, showGuides, usablePx]);
 

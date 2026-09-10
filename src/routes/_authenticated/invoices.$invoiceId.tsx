@@ -1114,8 +1114,8 @@ function InvoiceDetail() {
 
 
         @media print {
-          /* Margins live inside the sheet so screen and print match exactly. */
-          @page { size: A4 portrait; margin: 0; }
+          /* Safe paper margins so nothing sits on the very edge of the sheet. */
+          @page { size: A4 portrait; margin: 10mm; }
           html, body {
             background: #ffffff !important;
             -webkit-print-color-adjust: exact !important;
@@ -1131,9 +1131,9 @@ function InvoiceDetail() {
             box-shadow: none !important;
             border: none !important;
             border-radius: 0 !important;
-            width: 210mm !important;
-            min-height: 297mm !important;
-            padding-block: 6mm !important;
+            width: 100% !important;
+            min-height: calc(297mm - 20mm) !important;
+            padding-block: 0 !important;
           }
           .invoice-sheet::after { display: none !important; }
           /* Keep blocks intact but allow the invoice to run onto more pages */
