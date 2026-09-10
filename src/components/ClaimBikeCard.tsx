@@ -119,6 +119,10 @@ export function ClaimBikeCard({
   }
 
   async function createAndAssign() {
+    if (!customerId) {
+      toast.error("Create or link a customer before adding the motorcycle");
+      return;
+    }
     if (!form.make.trim() && !form.model.trim() && !form.rego.trim()) {
       toast.error("Add at least make, model or rego");
       return;
@@ -128,7 +132,7 @@ export function ClaimBikeCard({
       const { data, error } = await supabase
         .from("motorcycles")
         .insert({
-          customer_id: customerId ?? null,
+          customer_id: customerId,
           year: form.year.trim() ? Number(form.year) : null,
           make: form.make.trim() || null,
           model: form.model.trim() || null,

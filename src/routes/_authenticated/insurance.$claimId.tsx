@@ -53,6 +53,7 @@ import { CLAIM_PIPELINE, CLAIM_STATUS_META, type ClaimStatus, nextStatus } from 
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { ClaimDamageSection } from "@/components/ClaimDamageSection";
 import { ClaimBikeCard } from "@/components/ClaimBikeCard";
+import { ClaimCustomerCard } from "@/components/ClaimCustomerCard";
 import { ClaimPdfExportDialog } from "@/components/insurance/ClaimPdfExportDialog";
 
 export const Route = createFileRoute("/_authenticated/insurance/$claimId")({
@@ -335,29 +336,7 @@ function ClaimDetail() {
 
       {/* Customer / bike / insurer */}
       <section className="grid sm:grid-cols-2 gap-4">
-        <div className="card-surface p-4">
-          <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground font-bold mb-1">
-            Customer
-          </div>
-          <div className="font-bold">{displayCustomerName(c.customers, "")}</div>
-          <div className="text-xs text-muted-foreground mt-0.5">{c.customers?.email ?? "—"}</div>
-          {phone && (
-            <div className="mt-2 flex gap-2">
-              <a
-                href={`tel:${phone}`}
-                className="inline-flex items-center gap-1 rounded-md border border-border px-2.5 py-1 text-xs font-semibold hover:border-primary/40"
-              >
-                <Phone className="h-3 w-3" /> {phone}
-              </a>
-              <a
-                href={`sms:${phone}`}
-                className="inline-flex items-center gap-1 rounded-md border border-border px-2.5 py-1 text-xs font-semibold hover:border-primary/40"
-              >
-                <MessageSquare className="h-3 w-3" /> Text
-              </a>
-            </div>
-          )}
-        </div>
+        <ClaimCustomerCard customer={(c.customers as any) ?? null} claimId={claimId} />
         <ClaimBikeCard
           bike={(c.motorcycles as any) ?? null}
           bikeText={bikeText}
