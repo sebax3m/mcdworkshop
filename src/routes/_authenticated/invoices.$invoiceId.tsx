@@ -56,6 +56,18 @@ function tuningSig(text: string) {
   return String(h);
 }
 
+/* A tuning line stays recognisable even after staff reword it: we match the
+   part number (DYNO / DYNOHD), the name, or the "custom tune" description. */
+function isDynoLine(p: { name?: string | null; part_number?: string | null; supplier?: string | null }) {
+  const pn = (p.part_number ?? "").toLowerCase();
+  if (pn.startsWith("dyno")) return true;
+  const name = (p.name ?? "").toLowerCase();
+  if (name.startsWith("dyno")) return true;
+  const text = `${name} ${(p.supplier ?? "").toLowerCase()}`;
+  return text.includes("custom tune") || text.includes("dyno");
+}
+
+
 function EditableNumber({
   value,
   onCommit,
@@ -398,9 +410,8 @@ function InvoiceDetail() {
     if ((invoice.data?.snapshot as any)?.dyno_removed_sig === tuningSig(haystack)) return;
 
 
-    const dynoLines = (parts.data as any[]).filter((p) =>
-      (p.name ?? "").toLowerCase().startsWith("dyno"),
-    );
+    const dynoLines = (parts.data as any[]).filter(isDynoLine);
+
     // Clean up any duplicate tuning lines created by earlier versions.
     if (dynoLines.length > 1) {
       const extras = dynoLines.slice(1).map((p) => p.id);
@@ -880,7 +891,7 @@ function InvoiceDetail() {
   async function deletePart(id: string) {
     const target = (parts.data ?? []).find((p: any) => p.id === id) as any;
     const isConsumables = (target?.name ?? "").toLowerCase().includes("consumable");
-    const isDyno = (target?.name ?? "").toLowerCase().startsWith("dyno");
+    const isDyno = isDynoLine(target ?? {});
     const { error } = await supabase.from("parts").delete().eq("id", id);
     if (error) {
       toast.error(error.message);
@@ -1588,7 +1599,7 @@ function InvoiceDetail() {
                       const isConsumable = `${p.name ?? ""} ${p.supplier ?? ""}`
                         .toLowerCase()
                         .includes("consumable");
-                      const display = partDisplay(p);
+                      const display = partDisplay(p, { invent: false });
                       return (
                         <tr key={p.id} {...rowDragProps(p.id, onReorder)}>
                           <td className="py-1 pr-1.5 align-top">
@@ -1597,6 +1608,7 @@ function InvoiceDetail() {
                               <EditableText
                                 value={display.item}
                                 onCommit={(v) => updatePart(p.id, { part_number: v })}
+                                placeholder="—"
                                 className="font-medium leading-snug flex-1"
                               />
                               <button
@@ -1614,7 +1626,7 @@ function InvoiceDetail() {
                           <td className="py-1 pr-1.5 align-top">
                             <EditableText
                               value={display.description}
-                              onCommit={(v) => updatePart(p.id, { name: v })}
+                              onCommit={(v) => updatePart(p.id, { supplier: v })}
                               multiline={isConsumable}
                               placeholder={
                                 isConsumable
@@ -1624,6 +1636,7 @@ function InvoiceDetail() {
                               className="text-muted-foreground block leading-snug whitespace-pre-wrap"
                             />
                           </td>
+
                           <td className="py-1.5 pl-3 pr-6 text-right align-top tabular-nums">
                             <EditableNumber
                               value={qty}

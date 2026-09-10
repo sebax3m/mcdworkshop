@@ -63,14 +63,19 @@ function hash4(s: string) {
   return String(h).padStart(4, "0");
 }
 
-/** The code shown in the ITEM column. Always returns something. */
-export function derivePartNumber(input: {
-  name?: string | null;
-  sku?: string | null;
-  part_number?: string | null;
-  brand?: string | null;
-  category?: string | null;
-}): string {
+/** The code shown in the ITEM column. Always returns something unless
+ *  `invent` is false, in which case an unknown code stays blank rather than
+ *  printing a made-up placeholder on a customer invoice. */
+export function derivePartNumber(
+  input: {
+    name?: string | null;
+    sku?: string | null;
+    part_number?: string | null;
+    brand?: string | null;
+    category?: string | null;
+  },
+  opts?: { invent?: boolean },
+): string {
   const explicit = (input.part_number ?? input.sku ?? "").trim();
   if (explicit) return explicit.toUpperCase();
 
@@ -80,6 +85,7 @@ export function derivePartNumber(input: {
   const brandTag = brand ? brand.replace(/[^A-Za-z0-9]/g, "").slice(0, 3).toUpperCase() : "";
   if (code) return brandTag && !code.startsWith(brandTag) ? `${brandTag} ${code}` : code;
 
+  if (opts?.invent === false) return "";
   const cat = (input.category ?? "").trim() || guessInventoryCategory(name);
   return `${PREFIX[cat] ?? "PRT"}-${hash4(name.toLowerCase() || cat)}`;
 }
@@ -93,6 +99,10 @@ export function derivePartDescription(input: {
 }): string {
   const existing = (input.description ?? "").trim();
   if (existing) return existing;
+  // On job parts the free-text description is stored in `supplier`
+  // (e.g. "Custom tune", "Washers, lubricants, cleaners…").
+  const supplier = (input.supplier ?? "").trim();
+  if (supplier) return supplier;
   const name = (input.name ?? "").trim();
   const code = extractPartCode(name);
   const stripped = code
@@ -102,23 +112,25 @@ export function derivePartDescription(input: {
         .trim()
     : name;
   if (stripped) return stripped;
-  const supplier = (input.supplier ?? "").trim();
-  if (supplier) return supplier;
   return categoryLabel(input.category ?? guessInventoryCategory(name));
 }
 
 /** Item + description pair for any part-like record. */
-export function partDisplay(input: {
-  name?: string | null;
-  sku?: string | null;
-  part_number?: string | null;
-  brand?: string | null;
-  supplier?: string | null;
-  description?: string | null;
-  category?: string | null;
-}) {
+export function partDisplay(
+  input: {
+    name?: string | null;
+    sku?: string | null;
+    part_number?: string | null;
+    brand?: string | null;
+    supplier?: string | null;
+    description?: string | null;
+    category?: string | null;
+  },
+  opts?: { invent?: boolean },
+) {
   return {
-    item: derivePartNumber(input),
+    item: derivePartNumber(input, opts),
     description: derivePartDescription(input),
   };
 }
+
