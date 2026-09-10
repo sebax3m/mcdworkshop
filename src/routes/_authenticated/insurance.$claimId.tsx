@@ -10,8 +10,6 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   ArrowLeft,
   ShieldCheck,
-  Phone,
-  MessageSquare,
   Wrench,
   Printer,
   Send,
@@ -278,8 +276,6 @@ function ClaimDetail() {
   const meta = CLAIM_STATUS_META[c.status as ClaimStatus];
   const next = nextStatus(c.status as ClaimStatus);
   const bikeText = c.motorcycles ? fullBike(c.motorcycles) : "—";
-  const phone = c.customers?.phone;
-
   return (
     <div className="space-y-5 max-w-5xl mx-auto pb-12">
       <header className="flex items-center gap-3 flex-wrap">
