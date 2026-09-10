@@ -1588,7 +1588,7 @@ function InvoiceDetail() {
                       const isConsumable = `${p.name ?? ""} ${p.supplier ?? ""}`
                         .toLowerCase()
                         .includes("consumable");
-                      const display = partDisplay(p);
+                      const display = partDisplay(p, { invent: false });
                       return (
                         <tr key={p.id} {...rowDragProps(p.id, onReorder)}>
                           <td className="py-1 pr-1.5 align-top">
@@ -1597,6 +1597,7 @@ function InvoiceDetail() {
                               <EditableText
                                 value={display.item}
                                 onCommit={(v) => updatePart(p.id, { part_number: v })}
+                                placeholder="—"
                                 className="font-medium leading-snug flex-1"
                               />
                               <button
@@ -1614,7 +1615,7 @@ function InvoiceDetail() {
                           <td className="py-1 pr-1.5 align-top">
                             <EditableText
                               value={display.description}
-                              onCommit={(v) => updatePart(p.id, { name: v })}
+                              onCommit={(v) => updatePart(p.id, { supplier: v })}
                               multiline={isConsumable}
                               placeholder={
                                 isConsumable
@@ -1624,6 +1625,7 @@ function InvoiceDetail() {
                               className="text-muted-foreground block leading-snug whitespace-pre-wrap"
                             />
                           </td>
+
                           <td className="py-1.5 pl-3 pr-6 text-right align-top tabular-nums">
                             <EditableNumber
                               value={qty}
