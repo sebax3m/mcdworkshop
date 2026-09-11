@@ -2065,6 +2065,50 @@ function InvoiceDetail() {
               </div>
             </div>
 
+            {/* Screen-only control for a discount on the final price. */}
+            <div className="no-print mt-2 flex flex-col sm:flex-row justify-between gap-1 sm:gap-6">
+              <div className="flex-1" />
+              <div className="w-full sm:w-[17rem] flex items-center justify-between gap-3 text-[0.7rem]">
+                {money.discount > 0 || money.discountPct > 0 ? (
+                  <>
+                    <span className="text-muted-foreground">Discount on total</span>
+                    <div className="flex items-center gap-2">
+                      <EditableNumber
+                        value={money.discountPct}
+                        suffix="%"
+                        onCommit={(n) =>
+                          applyInvoiceDiscount({ pct: clampPct(n), amount: 0 })
+                        }
+                        className="text-emerald-600 font-semibold"
+                      />
+                      <EditableNumber
+                        value={money.discount}
+                        prefix="$"
+                        onCommit={(n) =>
+                          applyInvoiceDiscount({ pct: 0, amount: Math.max(0, n) })
+                        }
+                        className="text-emerald-600 font-semibold"
+                      />
+                      <button
+                        onClick={() => applyInvoiceDiscount({ pct: 0, amount: 0 })}
+                        className="text-muted-foreground hover:text-destructive"
+                        title="Remove discount"
+                      >
+                        <X className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                  </>
+                ) : (
+                  <button
+                    onClick={() => applyInvoiceDiscount({ pct: 10, amount: 0 })}
+                    className="ml-auto text-primary hover:underline inline-flex items-center gap-1"
+                  >
+                    <Plus className="h-3 w-3" /> Discount on final price
+                  </button>
+                )}
+              </div>
+            </div>
+
             {(() => {
               const pays = invPayments.data ?? [];
               const paid = pays.reduce((a: number, p: any) => a + Number(p.amount || 0), 0);
