@@ -387,9 +387,13 @@ function InvoiceDetail() {
           Number(p.retail ?? 0) * Number(p.quantity ?? 1) * (1 - Number(p.discount_pct ?? 0) / 100),
         0,
       );
-      const subtotal = Number(invoice.data!.labour_total) + partsSum;
-      const gst = Math.round(((subtotal * GST_RATE) / (1 + GST_RATE)) * 100) / 100;
-      const total = Math.round(subtotal * 100) / 100;
+      const m = invoiceMoney(
+        invoice.data!.snapshot as any,
+        Number(invoice.data!.labour_total),
+        partsSum,
+      );
+      const gst = m.gst;
+      const total = m.total;
       await supabase
         .from("invoices")
         .update({ parts_total: partsSum, gst, total })
@@ -467,9 +471,13 @@ function InvoiceDetail() {
           Number(p.retail ?? 0) * Number(p.quantity ?? 1) * (1 - Number(p.discount_pct ?? 0) / 100),
         0,
       );
-      const subtotal = Number(invoice.data!.labour_total) + partsSum;
-      const gst = Math.round(((subtotal * GST_RATE) / (1 + GST_RATE)) * 100) / 100;
-      const total = Math.round(subtotal * 100) / 100;
+      const m = invoiceMoney(
+        invoice.data!.snapshot as any,
+        Number(invoice.data!.labour_total),
+        partsSum,
+      );
+      const gst = m.gst;
+      const total = m.total;
       await supabase
         .from("invoices")
         .update({ parts_total: partsSum, gst, total })
@@ -499,9 +507,13 @@ function InvoiceDetail() {
       ) / 100;
     if (Math.abs(partsSum - Number(invoice.data?.parts_total ?? 0)) < 0.005) return;
     (async () => {
-      const subtotal = Number(invoice.data!.labour_total ?? 0) + partsSum;
-      const gst = Math.round(((subtotal * GST_RATE) / (1 + GST_RATE)) * 100) / 100;
-      const total = Math.round(subtotal * 100) / 100;
+      const m = invoiceMoney(
+        invoice.data!.snapshot as any,
+        Number(invoice.data!.labour_total ?? 0),
+        partsSum,
+      );
+      const gst = m.gst;
+      const total = m.total;
       const { error } = await supabase
         .from("invoices")
         .update({ parts_total: partsSum, gst, total })
@@ -662,9 +674,9 @@ function InvoiceDetail() {
   async function recomputeInvoiceTotals(nextLabour?: number) {
     const labour = Number(nextLabour ?? inv.labour_total);
     const partsSum = (parts.data ?? []).reduce((s: number, p: any) => s + lineNet(p), 0);
-    const subtotal = labour + partsSum; // inc GST
-    const gst = Math.round(((subtotal * GST_RATE) / (1 + GST_RATE)) * 100) / 100;
-    const total = Math.round(subtotal * 100) / 100;
+    const m = invoiceMoney(inv.snapshot as any, labour, partsSum); // inc GST
+    const gst = m.gst;
+    const total = m.total;
     const { error } = await supabase
       .from("invoices")
       .update({ labour_total: labour, parts_total: partsSum, gst, total })
@@ -879,9 +891,9 @@ function InvoiceDetail() {
     await qc.invalidateQueries({ queryKey: ["invoice-parts", invoiceId, inv.job_id] });
     const fresh = await supabase.from("parts").select("*").eq("job_id", inv.job_id!);
     const partsSum = (fresh.data ?? []).reduce((s: number, p: any) => s + lineNet(p), 0);
-    const subtotal = Number(inv.labour_total) + partsSum;
-    const gst = Math.round(((subtotal * GST_RATE) / (1 + GST_RATE)) * 100) / 100;
-    const total = Math.round(subtotal * 100) / 100;
+    const m = invoiceMoney(inv.snapshot as any, Number(inv.labour_total), partsSum);
+    const gst = m.gst;
+    const total = m.total;
     await supabase
       .from("invoices")
       .update({ parts_total: partsSum, gst, total })
@@ -942,10 +954,10 @@ function InvoiceDetail() {
     const partsSum = items
       .filter((l) => (l.kind ?? "part") !== "labour")
       .reduce((s, l) => s + lineNet(l), 0);
-    const subtotal = labourSum + partsSum;
-    const gst = Math.round(((subtotal * GST_RATE) / (1 + GST_RATE)) * 100) / 100;
-    const total = Math.round(subtotal * 100) / 100;
     const newSnap = { ...((inv.snapshot as any) ?? {}), line_items: items };
+    const m = invoiceMoney(newSnap, labourSum, partsSum);
+    const gst = m.gst;
+    const total = m.total;
     const { error } = await supabase
       .from("invoices")
       .update({ snapshot: newSnap, labour_total: labourSum, parts_total: partsSum, gst, total })
@@ -993,8 +1005,12 @@ function InvoiceDetail() {
   const issuedAt = new Date(inv.created_at);
   const dueAt = new Date(issuedAt);
   dueAt.setDate(dueAt.getDate() + 5);
-  const subtotalInc = Number(inv.labour_total) + Number(inv.parts_total);
-  const subtotalEx = subtotalInc / (1 + GST_RATE);
+  const money = invoiceMoney(
+    inv.snapshot as any,
+    Number(inv.labour_total),
+    Number(inv.parts_total),
+  );
+  const subtotalEx = Number(inv.total) / (1 + GST_RATE);
 
   function emailInvoice() {
     const to = isInsurance ? "" : (customer?.email ?? "");
