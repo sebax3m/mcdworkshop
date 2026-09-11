@@ -1077,9 +1077,13 @@ function InvoiceDetail() {
   const snapshotItems: any[] = Array.isArray((inv.snapshot as any)?.line_items)
     ? (inv.snapshot as any).line_items
     : [];
-  const hasDiscount = inv.job_id
-    ? (parts.data ?? []).some((p: any) => Number(p.discount_pct ?? 0) > 0)
-    : snapshotItems.some((it) => Number(it?.discount_pct ?? 0) > 0);
+  const labourDisc = clampPct((inv.snapshot as any)?.labour_discount_pct ?? 0);
+  const labourNetAmount = money2(Number(inv.labour_total ?? 0) * (1 - labourDisc / 100));
+  const hasDiscount =
+    labourDisc > 0 ||
+    (inv.job_id
+      ? (parts.data ?? []).some((p: any) => Number(p.discount_pct ?? 0) > 0)
+      : snapshotItems.some((it) => Number(it?.discount_pct ?? 0) > 0));
 
   async function deleteInvoice() {
     const { error } = await supabase.from("invoices").delete().eq("id", invoiceId);
@@ -1658,20 +1662,22 @@ function InvoiceDetail() {
                           <td className="py-1.5 pl-3 pr-6 text-right font-semibold align-top tabular-nums relative">
                             <div className="flex items-start justify-end">
                               <div className="text-right">
-                                {labourDisc > 0 && (
-                                  <div className="text-[0.625rem] text-muted-foreground line-through tabular-nums">
-                                    ${Number(inv.labour_total).toFixed(2)}
-                                  </div>
-                                )}
                                 <EditableNumber
                                   value={Number(inv.labour_total)}
                                   onCommit={(n) => updateLabour({ amount: n })}
                                   prefix="$"
-                                  className={labourDisc > 0 ? "hidden" : ""}
+                                  className={
+                                    labourDisc > 0
+                                      ? "text-[0.625rem] text-muted-foreground line-through"
+                                      : ""
+                                  }
                                 />
                                 {labourDisc > 0 && (
-                                  <div className="text-emerald-500 font-semibold tabular-nums">
+                                  <div className="tabular-nums">
                                     ${labourNetAmount.toFixed(2)}
+                                    <div className="text-[0.625rem] text-emerald-500 font-semibold">
+                                      −${(Number(inv.labour_total) - labourNetAmount).toFixed(2)} ({labourDisc}% off)
+                                    </div>
                                   </div>
                                 )}
                               </div>
