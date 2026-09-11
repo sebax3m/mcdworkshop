@@ -1998,7 +1998,14 @@ function InvoiceDetail() {
               </div>
               <div className="w-full sm:w-[17rem] flex items-baseline justify-between gap-4">
                 <span className="text-muted-foreground">Labour (incl GST)</span>
-                <span className="tabular-nums">${Number(inv.labour_total).toFixed(2)}</span>
+                <span className="tabular-nums">
+                  {money.labourDiscPct > 0 && (
+                    <span className="mr-1 text-[0.625rem] text-muted-foreground line-through">
+                      ${Number(inv.labour_total).toFixed(2)}
+                    </span>
+                  )}
+                  ${money.labourNet.toFixed(2)}
+                </span>
               </div>
             </div>
 
