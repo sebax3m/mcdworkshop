@@ -49,6 +49,25 @@ const GST_RATE = 0.15;
 // Amounts on the invoice are GST-inclusive. The GST line shows the embedded portion.
 const LABOUR_RATE = 130;
 
+const money2 = (n: number) => Math.round(n * 100) / 100;
+const clampPct = (n: number) => Math.max(0, Math.min(100, Number(n) || 0));
+
+/* Single source of truth for invoice money.
+   - snapshot.labour_discount_pct  → discount applied to the labour line
+   - snapshot.invoice_discount_pct / invoice_discount_amount → discount off the final price */
+function invoiceMoney(snapshot: any, labourGross: number, partsSum: number) {
+  const labourDiscPct = clampPct(snapshot?.labour_discount_pct ?? 0);
+  const labourNet = money2(Number(labourGross || 0) * (1 - labourDiscPct / 100));
+  const parts = money2(Number(partsSum || 0));
+  const subtotal = money2(labourNet + parts);
+  const pct = clampPct(snapshot?.invoice_discount_pct ?? 0);
+  const amt = Math.max(0, Number(snapshot?.invoice_discount_amount ?? 0) || 0);
+  const discount = money2(pct > 0 ? (subtotal * pct) / 100 : Math.min(amt, subtotal));
+  const total = money2(subtotal - discount);
+  const gst = money2((total * GST_RATE) / (1 + GST_RATE));
+  return { labourDiscPct, labourNet, parts, subtotal, discountPct: pct, discount, total, gst };
+}
+
 /** Small stable fingerprint of the job's tuning-related text. */
 function tuningSig(text: string) {
   let h = 0;
@@ -368,9 +387,13 @@ function InvoiceDetail() {
           Number(p.retail ?? 0) * Number(p.quantity ?? 1) * (1 - Number(p.discount_pct ?? 0) / 100),
         0,
       );
-      const subtotal = Number(invoice.data!.labour_total) + partsSum;
-      const gst = Math.round(((subtotal * GST_RATE) / (1 + GST_RATE)) * 100) / 100;
-      const total = Math.round(subtotal * 100) / 100;
+      const m = invoiceMoney(
+        invoice.data!.snapshot as any,
+        Number(invoice.data!.labour_total),
+        partsSum,
+      );
+      const gst = m.gst;
+      const total = m.total;
       await supabase
         .from("invoices")
         .update({ parts_total: partsSum, gst, total })
@@ -448,9 +471,13 @@ function InvoiceDetail() {
           Number(p.retail ?? 0) * Number(p.quantity ?? 1) * (1 - Number(p.discount_pct ?? 0) / 100),
         0,
       );
-      const subtotal = Number(invoice.data!.labour_total) + partsSum;
-      const gst = Math.round(((subtotal * GST_RATE) / (1 + GST_RATE)) * 100) / 100;
-      const total = Math.round(subtotal * 100) / 100;
+      const m = invoiceMoney(
+        invoice.data!.snapshot as any,
+        Number(invoice.data!.labour_total),
+        partsSum,
+      );
+      const gst = m.gst;
+      const total = m.total;
       await supabase
         .from("invoices")
         .update({ parts_total: partsSum, gst, total })
@@ -480,9 +507,13 @@ function InvoiceDetail() {
       ) / 100;
     if (Math.abs(partsSum - Number(invoice.data?.parts_total ?? 0)) < 0.005) return;
     (async () => {
-      const subtotal = Number(invoice.data!.labour_total ?? 0) + partsSum;
-      const gst = Math.round(((subtotal * GST_RATE) / (1 + GST_RATE)) * 100) / 100;
-      const total = Math.round(subtotal * 100) / 100;
+      const m = invoiceMoney(
+        invoice.data!.snapshot as any,
+        Number(invoice.data!.labour_total ?? 0),
+        partsSum,
+      );
+      const gst = m.gst;
+      const total = m.total;
       const { error } = await supabase
         .from("invoices")
         .update({ parts_total: partsSum, gst, total })
@@ -643,9 +674,9 @@ function InvoiceDetail() {
   async function recomputeInvoiceTotals(nextLabour?: number) {
     const labour = Number(nextLabour ?? inv.labour_total);
     const partsSum = (parts.data ?? []).reduce((s: number, p: any) => s + lineNet(p), 0);
-    const subtotal = labour + partsSum; // inc GST
-    const gst = Math.round(((subtotal * GST_RATE) / (1 + GST_RATE)) * 100) / 100;
-    const total = Math.round(subtotal * 100) / 100;
+    const m = invoiceMoney(inv.snapshot as any, labour, partsSum); // inc GST
+    const gst = m.gst;
+    const total = m.total;
     const { error } = await supabase
       .from("invoices")
       .update({ labour_total: labour, parts_total: partsSum, gst, total })
@@ -655,6 +686,32 @@ function InvoiceDetail() {
       return;
     }
     qc.invalidateQueries({ queryKey: ["invoice", invoiceId] });
+  }
+
+  /** Saves a discount setting on the snapshot and re-prices the invoice. */
+  async function saveDiscountMeta(patch: Record<string, unknown>) {
+    const newSnap = { ...((inv.snapshot as any) ?? {}), ...patch };
+    const partsSum = inv.job_id
+      ? (parts.data ?? []).reduce((s: number, p: any) => s + lineNet(p), 0)
+      : Number(inv.parts_total ?? 0);
+    const m = invoiceMoney(newSnap, Number(inv.labour_total ?? 0), partsSum);
+    const { error } = await supabase
+      .from("invoices")
+      .update({ snapshot: newSnap, parts_total: partsSum, gst: m.gst, total: m.total })
+      .eq("id", invoiceId);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    qc.invalidateQueries({ queryKey: ["invoice", invoiceId] });
+  }
+
+  async function applyInvoiceDiscount({ pct, amount }: { pct: number; amount: number }) {
+    await saveDiscountMeta({ invoice_discount_pct: pct, invoice_discount_amount: amount });
+  }
+
+  async function applyLabourDiscount(pct: number) {
+    await saveDiscountMeta({ labour_discount_pct: clampPct(pct) });
   }
 
   // ---- Labour / flat-rate line ------------------------------------------
@@ -860,9 +917,9 @@ function InvoiceDetail() {
     await qc.invalidateQueries({ queryKey: ["invoice-parts", invoiceId, inv.job_id] });
     const fresh = await supabase.from("parts").select("*").eq("job_id", inv.job_id!);
     const partsSum = (fresh.data ?? []).reduce((s: number, p: any) => s + lineNet(p), 0);
-    const subtotal = Number(inv.labour_total) + partsSum;
-    const gst = Math.round(((subtotal * GST_RATE) / (1 + GST_RATE)) * 100) / 100;
-    const total = Math.round(subtotal * 100) / 100;
+    const m = invoiceMoney(inv.snapshot as any, Number(inv.labour_total), partsSum);
+    const gst = m.gst;
+    const total = m.total;
     await supabase
       .from("invoices")
       .update({ parts_total: partsSum, gst, total })
@@ -923,10 +980,10 @@ function InvoiceDetail() {
     const partsSum = items
       .filter((l) => (l.kind ?? "part") !== "labour")
       .reduce((s, l) => s + lineNet(l), 0);
-    const subtotal = labourSum + partsSum;
-    const gst = Math.round(((subtotal * GST_RATE) / (1 + GST_RATE)) * 100) / 100;
-    const total = Math.round(subtotal * 100) / 100;
     const newSnap = { ...((inv.snapshot as any) ?? {}), line_items: items };
+    const m = invoiceMoney(newSnap, labourSum, partsSum);
+    const gst = m.gst;
+    const total = m.total;
     const { error } = await supabase
       .from("invoices")
       .update({ snapshot: newSnap, labour_total: labourSum, parts_total: partsSum, gst, total })
@@ -974,8 +1031,12 @@ function InvoiceDetail() {
   const issuedAt = new Date(inv.created_at);
   const dueAt = new Date(issuedAt);
   dueAt.setDate(dueAt.getDate() + 5);
-  const subtotalInc = Number(inv.labour_total) + Number(inv.parts_total);
-  const subtotalEx = subtotalInc / (1 + GST_RATE);
+  const money = invoiceMoney(
+    inv.snapshot as any,
+    Number(inv.labour_total),
+    Number(inv.parts_total),
+  );
+  const subtotalEx = Number(inv.total) / (1 + GST_RATE);
 
   function emailInvoice() {
     const to = isInsurance ? "" : (customer?.email ?? "");
@@ -1016,9 +1077,13 @@ function InvoiceDetail() {
   const snapshotItems: any[] = Array.isArray((inv.snapshot as any)?.line_items)
     ? (inv.snapshot as any).line_items
     : [];
-  const hasDiscount = inv.job_id
-    ? (parts.data ?? []).some((p: any) => Number(p.discount_pct ?? 0) > 0)
-    : snapshotItems.some((it) => Number(it?.discount_pct ?? 0) > 0);
+  const labourDisc = clampPct((inv.snapshot as any)?.labour_discount_pct ?? 0);
+  const labourNetAmount = money2(Number(inv.labour_total ?? 0) * (1 - labourDisc / 100));
+  const hasDiscount =
+    labourDisc > 0 ||
+    (inv.job_id
+      ? (parts.data ?? []).some((p: any) => Number(p.discount_pct ?? 0) > 0)
+      : snapshotItems.some((it) => Number(it?.discount_pct ?? 0) > 0));
 
   async function deleteInvoice() {
     const { error } = await supabase.from("invoices").delete().eq("id", invoiceId);
@@ -1563,19 +1628,59 @@ function InvoiceDetail() {
                               onCommit={(n) => updateLabour({ unit: n })}
                               prefix="$"
                             />
+                            {!hasDiscount && (
+                              <button
+                                onClick={() => applyLabourDiscount(10)}
+                                className="no-print block ml-auto mt-0.5 text-[0.625rem] text-muted-foreground hover:text-primary opacity-0 group-hover:opacity-100"
+                                title="Add a discount on labour"
+                              >
+                                + Disc
+                              </button>
+                            )}
                           </td>
                           {hasDiscount && (
-                            <td className="py-1.5 pl-3 pr-6 text-right align-top text-muted-foreground">
-                              —
+                            <td className="py-1.5 pl-3 pr-6 text-right align-top tabular-nums">
+                              <div className="inline-flex items-center gap-1">
+                                <EditableNumber
+                                  value={labourDisc}
+                                  suffix="%"
+                                  onCommit={(n) => applyLabourDiscount(n)}
+                                  className={labourDisc > 0 ? "text-emerald-500 font-semibold" : ""}
+                                />
+                                {labourDisc > 0 && (
+                                  <button
+                                    onClick={() => applyLabourDiscount(0)}
+                                    className="no-print text-muted-foreground hover:text-destructive"
+                                    title="Remove discount"
+                                  >
+                                    <X className="h-3.5 w-3.5" />
+                                  </button>
+                                )}
+                              </div>
                             </td>
                           )}
                           <td className="py-1.5 pl-3 pr-6 text-right font-semibold align-top tabular-nums relative">
                             <div className="flex items-start justify-end">
-                              <EditableNumber
-                                value={Number(inv.labour_total)}
-                                onCommit={(n) => updateLabour({ amount: n })}
-                                prefix="$"
-                              />
+                              <div className="text-right">
+                                <EditableNumber
+                                  value={Number(inv.labour_total)}
+                                  onCommit={(n) => updateLabour({ amount: n })}
+                                  prefix="$"
+                                  className={
+                                    labourDisc > 0
+                                      ? "text-[0.625rem] text-muted-foreground line-through"
+                                      : ""
+                                  }
+                                />
+                                {labourDisc > 0 && (
+                                  <div className="tabular-nums">
+                                    ${labourNetAmount.toFixed(2)}
+                                    <div className="text-[0.625rem] text-emerald-500 font-semibold">
+                                      −${(Number(inv.labour_total) - labourNetAmount).toFixed(2)} ({labourDisc}% off)
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
                               <button
                                 onClick={removeLabourLine}
                                 className="no-print absolute right-0 top-3 opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive"
@@ -1963,7 +2068,14 @@ function InvoiceDetail() {
               </div>
               <div className="w-full sm:w-[17rem] flex items-baseline justify-between gap-4">
                 <span className="text-muted-foreground">Labour (incl GST)</span>
-                <span className="tabular-nums">${Number(inv.labour_total).toFixed(2)}</span>
+                <span className="tabular-nums">
+                  {money.labourDiscPct > 0 && (
+                    <span className="mr-1 text-[0.625rem] text-muted-foreground line-through">
+                      ${Number(inv.labour_total).toFixed(2)}
+                    </span>
+                  )}
+                  ${money.labourNet.toFixed(2)}
+                </span>
               </div>
             </div>
 
@@ -1976,6 +2088,20 @@ function InvoiceDetail() {
                 <span className="tabular-nums">${Number(inv.parts_total).toFixed(2)}</span>
               </div>
             </div>
+
+            {money.discount > 0 && (
+              <div className="flex flex-col sm:flex-row justify-between gap-1 sm:gap-6">
+                <div data-print-section="payment" className="flex-1" />
+                <div className="w-full sm:w-[17rem] flex items-baseline justify-between gap-4">
+                  <span className="text-emerald-600 font-semibold">
+                    Discount{money.discountPct > 0 ? ` (${money.discountPct}%)` : ""}
+                  </span>
+                  <span className="tabular-nums text-emerald-600 font-semibold">
+                    −${money.discount.toFixed(2)}
+                  </span>
+                </div>
+              </div>
+            )}
 
             <div className="flex flex-col sm:flex-row justify-between gap-1 sm:gap-6">
               <div data-print-section="payment" className="flex-1">
@@ -2006,6 +2132,50 @@ function InvoiceDetail() {
                 <span className="text-primary tabular-nums text-2xl">
                   ${Number(inv.total).toFixed(2)}
                 </span>
+              </div>
+            </div>
+
+            {/* Screen-only control for a discount on the final price. */}
+            <div className="no-print mt-2 flex flex-col sm:flex-row justify-between gap-1 sm:gap-6">
+              <div className="flex-1" />
+              <div className="w-full sm:w-[17rem] flex items-center justify-between gap-3 text-[0.7rem]">
+                {money.discount > 0 || money.discountPct > 0 ? (
+                  <>
+                    <span className="text-muted-foreground">Discount on total</span>
+                    <div className="flex items-center gap-2">
+                      <EditableNumber
+                        value={money.discountPct}
+                        suffix="%"
+                        onCommit={(n) =>
+                          applyInvoiceDiscount({ pct: clampPct(n), amount: 0 })
+                        }
+                        className="text-emerald-600 font-semibold"
+                      />
+                      <EditableNumber
+                        value={money.discount}
+                        prefix="$"
+                        onCommit={(n) =>
+                          applyInvoiceDiscount({ pct: 0, amount: Math.max(0, n) })
+                        }
+                        className="text-emerald-600 font-semibold"
+                      />
+                      <button
+                        onClick={() => applyInvoiceDiscount({ pct: 0, amount: 0 })}
+                        className="text-muted-foreground hover:text-destructive"
+                        title="Remove discount"
+                      >
+                        <X className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                  </>
+                ) : (
+                  <button
+                    onClick={() => applyInvoiceDiscount({ pct: 10, amount: 0 })}
+                    className="ml-auto text-primary hover:underline inline-flex items-center gap-1"
+                  >
+                    <Plus className="h-3 w-3" /> Discount on final price
+                  </button>
+                )}
               </div>
             </div>
 
