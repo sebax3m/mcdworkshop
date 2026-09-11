@@ -688,6 +688,32 @@ function InvoiceDetail() {
     qc.invalidateQueries({ queryKey: ["invoice", invoiceId] });
   }
 
+  /** Saves a discount setting on the snapshot and re-prices the invoice. */
+  async function saveDiscountMeta(patch: Record<string, unknown>) {
+    const newSnap = { ...((inv.snapshot as any) ?? {}), ...patch };
+    const partsSum = inv.job_id
+      ? (parts.data ?? []).reduce((s: number, p: any) => s + lineNet(p), 0)
+      : Number(inv.parts_total ?? 0);
+    const m = invoiceMoney(newSnap, Number(inv.labour_total ?? 0), partsSum);
+    const { error } = await supabase
+      .from("invoices")
+      .update({ snapshot: newSnap, parts_total: partsSum, gst: m.gst, total: m.total })
+      .eq("id", invoiceId);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    qc.invalidateQueries({ queryKey: ["invoice", invoiceId] });
+  }
+
+  async function applyInvoiceDiscount({ pct, amount }: { pct: number; amount: number }) {
+    await saveDiscountMeta({ invoice_discount_pct: pct, invoice_discount_amount: amount });
+  }
+
+  async function applyLabourDiscount(pct: number) {
+    await saveDiscountMeta({ labour_discount_pct: clampPct(pct) });
+  }
+
   // ---- Labour / flat-rate line ------------------------------------------
   const labourTitle = ((inv.snapshot as any)?.labour_title ?? "Labour") as string;
   const rateKey = labourTitle.trim().toLowerCase() || "labour";
