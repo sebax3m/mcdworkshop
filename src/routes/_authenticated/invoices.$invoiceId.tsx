@@ -49,6 +49,25 @@ const GST_RATE = 0.15;
 // Amounts on the invoice are GST-inclusive. The GST line shows the embedded portion.
 const LABOUR_RATE = 130;
 
+const money2 = (n: number) => Math.round(n * 100) / 100;
+const clampPct = (n: number) => Math.max(0, Math.min(100, Number(n) || 0));
+
+/* Single source of truth for invoice money.
+   - snapshot.labour_discount_pct  → discount applied to the labour line
+   - snapshot.invoice_discount_pct / invoice_discount_amount → discount off the final price */
+function invoiceMoney(snapshot: any, labourGross: number, partsSum: number) {
+  const labourDiscPct = clampPct(snapshot?.labour_discount_pct ?? 0);
+  const labourNet = money2(Number(labourGross || 0) * (1 - labourDiscPct / 100));
+  const parts = money2(Number(partsSum || 0));
+  const subtotal = money2(labourNet + parts);
+  const pct = clampPct(snapshot?.invoice_discount_pct ?? 0);
+  const amt = Math.max(0, Number(snapshot?.invoice_discount_amount ?? 0) || 0);
+  const discount = money2(pct > 0 ? (subtotal * pct) / 100 : Math.min(amt, subtotal));
+  const total = money2(subtotal - discount);
+  const gst = money2((total * GST_RATE) / (1 + GST_RATE));
+  return { labourDiscPct, labourNet, parts, subtotal, discountPct: pct, discount, total, gst };
+}
+
 /** Small stable fingerprint of the job's tuning-related text. */
 function tuningSig(text: string) {
   let h = 0;
