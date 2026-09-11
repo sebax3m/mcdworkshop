@@ -1624,19 +1624,57 @@ function InvoiceDetail() {
                               onCommit={(n) => updateLabour({ unit: n })}
                               prefix="$"
                             />
+                            {!hasDiscount && (
+                              <button
+                                onClick={() => applyLabourDiscount(10)}
+                                className="no-print block ml-auto mt-0.5 text-[0.625rem] text-muted-foreground hover:text-primary opacity-0 group-hover:opacity-100"
+                                title="Add a discount on labour"
+                              >
+                                + Disc
+                              </button>
+                            )}
                           </td>
                           {hasDiscount && (
-                            <td className="py-1.5 pl-3 pr-6 text-right align-top text-muted-foreground">
-                              —
+                            <td className="py-1.5 pl-3 pr-6 text-right align-top tabular-nums">
+                              <div className="inline-flex items-center gap-1">
+                                <EditableNumber
+                                  value={labourDisc}
+                                  suffix="%"
+                                  onCommit={(n) => applyLabourDiscount(n)}
+                                  className={labourDisc > 0 ? "text-emerald-500 font-semibold" : ""}
+                                />
+                                {labourDisc > 0 && (
+                                  <button
+                                    onClick={() => applyLabourDiscount(0)}
+                                    className="no-print text-muted-foreground hover:text-destructive"
+                                    title="Remove discount"
+                                  >
+                                    <X className="h-3.5 w-3.5" />
+                                  </button>
+                                )}
+                              </div>
                             </td>
                           )}
                           <td className="py-1.5 pl-3 pr-6 text-right font-semibold align-top tabular-nums relative">
                             <div className="flex items-start justify-end">
-                              <EditableNumber
-                                value={Number(inv.labour_total)}
-                                onCommit={(n) => updateLabour({ amount: n })}
-                                prefix="$"
-                              />
+                              <div className="text-right">
+                                {labourDisc > 0 && (
+                                  <div className="text-[0.625rem] text-muted-foreground line-through tabular-nums">
+                                    ${Number(inv.labour_total).toFixed(2)}
+                                  </div>
+                                )}
+                                <EditableNumber
+                                  value={Number(inv.labour_total)}
+                                  onCommit={(n) => updateLabour({ amount: n })}
+                                  prefix="$"
+                                  className={labourDisc > 0 ? "hidden" : ""}
+                                />
+                                {labourDisc > 0 && (
+                                  <div className="text-emerald-500 font-semibold tabular-nums">
+                                    ${labourNetAmount.toFixed(2)}
+                                  </div>
+                                )}
+                              </div>
                               <button
                                 onClick={removeLabourLine}
                                 className="no-print absolute right-0 top-3 opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive"
