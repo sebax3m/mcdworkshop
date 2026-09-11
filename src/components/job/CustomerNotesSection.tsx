@@ -60,19 +60,32 @@ export default function CustomerNotesSection({
       return;
     }
 
-    /* Keep the invoice in step: any invoice for this job that still shows the
-       previous job-card notes (or has none at all) is updated with the new
-       text. Notes typed directly on the invoice are never overwritten. */
-    const { data: invs } = await supabase
+    /* Keep the invoice in step. An invoice may hold the job-card notes on their
+       own, or the notes followed by a generated customer report. We swap just the
+       job-card portion and leave anything the user typed on the invoice alone. */
+    const prev = initial.trim();
+    const { data: invs, error: readErr } = await supabase
       .from("invoices")
       .select("id, notes")
       .eq("job_id", jobId);
-    const stale = (invs ?? []).filter((i) => {
+    if (readErr) toast.error(`Notes saved, but the invoice could not be checked: ${readErr.message}`);
+    for (const i of invs ?? []) {
       const current = (i.notes ?? "").trim();
-      return !current || current === initial.trim();
-    });
-    for (const i of stale) {
-      await supabase.from("invoices").update({ notes: value }).eq("id", i.id);
+      let next: string | null = null;
+      if (!current) {
+        next = value;
+      } else if (prev && current === prev) {
+        next = value;
+      } else if (prev && current.includes(prev)) {
+        // Notes plus a customer report (or other appended text): swap the notes part.
+        next = current.replace(prev, value.trim()).replace(/\n{3,}/g, "\n\n").trim();
+      }
+      if (next === null || next === current) continue;
+      const { error: upErr } = await supabase
+        .from("invoices")
+        .update({ notes: next || null })
+        .eq("id", i.id);
+      if (upErr) toast.error(`Notes saved, but the invoice was not updated: ${upErr.message}`);
     }
 
     setSaving(false);
