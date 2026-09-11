@@ -2012,6 +2012,20 @@ function InvoiceDetail() {
               </div>
             </div>
 
+            {money.discount > 0 && (
+              <div className="flex flex-col sm:flex-row justify-between gap-1 sm:gap-6">
+                <div data-print-section="payment" className="flex-1" />
+                <div className="w-full sm:w-[17rem] flex items-baseline justify-between gap-4">
+                  <span className="text-emerald-600 font-semibold">
+                    Discount{money.discountPct > 0 ? ` (${money.discountPct}%)` : ""}
+                  </span>
+                  <span className="tabular-nums text-emerald-600 font-semibold">
+                    −${money.discount.toFixed(2)}
+                  </span>
+                </div>
+              </div>
+            )}
+
             <div className="flex flex-col sm:flex-row justify-between gap-1 sm:gap-6">
               <div data-print-section="payment" className="flex-1">
                 <span className="text-muted-foreground">Bank:</span> ASB Bank
