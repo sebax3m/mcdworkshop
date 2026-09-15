@@ -62,7 +62,7 @@ async function updateInventory(o: {
     (data.length === 1 ? data[0] : undefined);
   if (!match) return;
 
-  const patch: Record<string, string> = {};
+  const patch: { sku?: string; name?: string; part_number?: string; supplier?: string } = {};
   if (o.nextCode && norm(match.sku) !== o.nextCode.toLowerCase()) patch.sku = o.nextCode;
   if (o.nextDesc && norm(match.name) !== o.nextDesc.toLowerCase()) patch.name = o.nextDesc;
   if (!Object.keys(patch).length) return;
@@ -89,7 +89,7 @@ async function updateSiblingParts(o: {
   const key = o.prevCode || o.prevName;
   if (!key || key.length < 3) return;
 
-  const patch: Record<string, string> = {};
+  const patch: { sku?: string; name?: string; part_number?: string; supplier?: string } = {};
   if (o.nextCode) patch.part_number = o.nextCode;
   if (o.nextDesc) patch.supplier = o.nextDesc;
   if (!Object.keys(patch).length) return;
