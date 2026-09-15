@@ -73,7 +73,12 @@ export function NotificationsBell() {
     () => notifs.filter((n) => !(n.requires_action && !n.resolved_at)),
     [notifs],
   );
-  const unread = useMemo(() => rest.filter((n) => !readSet.has(n.id)), [rest, readSet]);
+  // Resolved action notifications (e.g. approved/declined approvals) must not
+  // keep counting as unread — the decision already cleared them.
+  const unread = useMemo(
+    () => rest.filter((n) => !readSet.has(n.id) && !n.resolved_at),
+    [rest, readSet],
+  );
   const unreadCount = unread.length;
   const badgeCount = unreadCount + actionRequired.length;
 
@@ -82,6 +87,9 @@ export function NotificationsBell() {
     const ch = supabase
       .channel("notifications-bell")
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "notifications" }, () => {
+        qc.invalidateQueries({ queryKey: ["notifications"] });
+      })
+      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "notifications" }, () => {
         qc.invalidateQueries({ queryKey: ["notifications"] });
       })
       .subscribe();
