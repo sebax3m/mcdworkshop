@@ -1035,8 +1035,12 @@ function InvoiceDetail() {
     patch: Partial<{ kind: "part" | "labour"; description: string; quantity: number; unit: number; discount_pct: number }>,
   ) {
     const items = currentSnapshotLines().map((it, i) => (i === idx ? { ...it, ...patch } : it));
-    if (patch.unit != null) {
-      await learnInventoryPrice(items[idx]?.description, patch.unit);
+    if (patch.unit != null && (items[idx]?.kind ?? "part") !== "labour") {
+      const line = items[idx] as any;
+      await learnInventoryPrice(
+        [line?.part_number, line?.item, line?.description],
+        patch.unit,
+      );
     }
     await saveSnapshotLines(items);
   }
