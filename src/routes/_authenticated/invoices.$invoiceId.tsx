@@ -920,9 +920,15 @@ function InvoiceDetail() {
       return;
     }
     if (patch.retail != null) {
-      const existing = (parts.data ?? []).find((p: any) => p.id === id);
-      const partName = patch.name ?? existing?.name ?? null;
-      await learnInventoryPrice(partName, patch.retail);
+      const existing = (parts.data ?? []).find((p: any) => p.id === id) as any;
+      await learnInventoryPrice(
+        [
+          patch.part_number ?? existing?.part_number,
+          patch.name ?? existing?.name,
+          patch.supplier ?? existing?.supplier,
+        ],
+        patch.retail,
+      );
     }
     await refreshPartsTotals();
   }
