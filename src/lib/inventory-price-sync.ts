@@ -5,28 +5,52 @@ import { toast } from "sonner";
 /**
  * Learn from invoice edits: when a part/line price is changed on an invoice,
  * push that price back into the inventory library so future jobs quote the
- * up-to-date price. Matches inventory items by name (case-insensitive) or SKU.
+ * up-to-date price.
+ *
+ * Matching is done on any of the identifiers we know for the line: the part
+ * number / code (ITEM column), the plain name, and the description text.
+ * Inventory rows are matched on their `sku` or `name`.
  */
 export async function learnInventoryPrice(
-  rawName: string | null | undefined,
+  keysInput: string | null | undefined | (string | null | undefined)[],
   unitPrice: number | null | undefined,
   opts: { silent?: boolean } = {},
 ) {
-  const name = (rawName ?? "").trim();
+  const keys = (Array.isArray(keysInput) ? keysInput : [keysInput])
+    .map((k) => (k ?? "").trim())
+    .filter((k) => k.length >= 2);
   const price = Number(unitPrice);
-  if (!name || !Number.isFinite(price) || price <= 0) return;
+  if (!keys.length || !Number.isFinite(price) || price <= 0) return;
+
+  const uniqueKeys = Array.from(new Set(keys.map((k) => k.toLowerCase()))).map(
+    (lower) => keys.find((k) => k.toLowerCase() === lower)!,
+  );
+
+  const filters = uniqueKeys
+    .flatMap((k) => {
+      const safe = escapeFilter(k);
+      return safe ? [`name.ilike.${safe}`, `sku.ilike.${safe}`] : [];
+    })
+    .join(",");
+  if (!filters) return;
 
   const { data, error } = await supabase
     .from("inventory_items")
     .select("id, name, sku, unit_price")
-    .or(`name.ilike.${escapeFilter(name)},sku.ilike.${escapeFilter(name)}`)
-    .limit(5);
+    .or(filters)
+    .limit(20);
 
   if (error || !data?.length) return;
 
+  const lowered = uniqueKeys.map((k) => k.toLowerCase());
+  const norm = (v: any) => (v ?? "").toString().trim().toLowerCase();
+
+  // Prefer an exact code (sku) match, then an exact name match, then a
+  // single unambiguous partial match.
   const match =
-    data.find((i: any) => (i.name ?? "").trim().toLowerCase() === name.toLowerCase()) ??
-    data.find((i: any) => (i.sku ?? "").trim().toLowerCase() === name.toLowerCase());
+    data.find((i: any) => lowered.includes(norm(i.sku))) ??
+    data.find((i: any) => lowered.includes(norm(i.name))) ??
+    (data.length === 1 ? data[0] : undefined);
   if (!match) return;
 
   const current = Number(match.unit_price ?? 0);
@@ -36,7 +60,10 @@ export async function learnInventoryPrice(
     .from("inventory_items")
     .update({ unit_price: price })
     .eq("id", match.id);
-  if (upErr) return;
+  if (upErr) {
+    if (!opts.silent) toast.error(`Couldn't update inventory price: ${upErr.message}`);
+    return;
+  }
 
   if (!opts.silent) {
     toast.success(
@@ -46,6 +73,6 @@ export async function learnInventoryPrice(
 }
 
 function escapeFilter(v: string) {
-  // commas and parens break PostgREST `or` filters
-  return v.replace(/[(),]/g, " ").trim();
+  // commas, parens and wildcards break PostgREST `or` filters
+  return v.replace(/[(),*]/g, " ").replace(/\s{2,}/g, " ").trim();
 }

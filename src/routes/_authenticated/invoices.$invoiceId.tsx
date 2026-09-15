@@ -920,9 +920,15 @@ function InvoiceDetail() {
       return;
     }
     if (patch.retail != null) {
-      const existing = (parts.data ?? []).find((p: any) => p.id === id);
-      const partName = patch.name ?? existing?.name ?? null;
-      await learnInventoryPrice(partName, patch.retail);
+      const existing = (parts.data ?? []).find((p: any) => p.id === id) as any;
+      await learnInventoryPrice(
+        [
+          patch.part_number ?? existing?.part_number,
+          patch.name ?? existing?.name,
+          patch.supplier ?? existing?.supplier,
+        ],
+        patch.retail,
+      );
     }
     await refreshPartsTotals();
   }
@@ -1029,8 +1035,12 @@ function InvoiceDetail() {
     patch: Partial<{ kind: "part" | "labour"; description: string; quantity: number; unit: number; discount_pct: number }>,
   ) {
     const items = currentSnapshotLines().map((it, i) => (i === idx ? { ...it, ...patch } : it));
-    if (patch.unit != null) {
-      await learnInventoryPrice(items[idx]?.description, patch.unit);
+    if (patch.unit != null && (items[idx]?.kind ?? "part") !== "labour") {
+      const line = items[idx] as any;
+      await learnInventoryPrice(
+        [line?.part_number, line?.item, line?.description],
+        patch.unit,
+      );
     }
     await saveSnapshotLines(items);
   }
