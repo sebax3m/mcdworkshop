@@ -614,7 +614,17 @@ function InvoiceDetail() {
           const dueAt = new Date(issuedAt);
           dueAt.setDate(dueAt.getDate() + 5);
 
-          const body = [
+          const money = invoiceMoney(
+            inv.snapshot as any,
+            Number(inv.labour_total),
+            Number(inv.parts_total),
+          );
+          const labourDiscPct = money.labourDiscPct;
+          const labourGross = Number(inv.labour_total).toFixed(2);
+          const labourDiscAmount = money2(
+            Number(inv.labour_total) - money.labourNet,
+          ).toFixed(2);
+          const bodyLines: (string | null)[] = [
             `Hi ${name || "there"},`,
             ``,
             `Please find your invoice ${inv.invoice_number} below.`,
@@ -623,16 +633,20 @@ function InvoiceDetail() {
             `Issued: ${issuedAt.toLocaleDateString("en-GB")}`,
             `Due: ${dueAt.toLocaleDateString("en-GB")}`,
             ``,
-            `Labour:  $${Number(inv.labour_total).toFixed(2)}`,
-            `Parts:   $${Number(inv.parts_total).toFixed(2)}`,
-            `GST:     $${Number(inv.gst).toFixed(2)}`,
-            `TOTAL:   $${Number(inv.total).toFixed(2)}`,
+            labourDiscPct > 0 ? `Labour (gross): $${labourGross}` : null,
+            labourDiscPct > 0 ? `Labour discount: -$${labourDiscAmount}` : null,
+            `Labour:        $${money.labourNet.toFixed(2)}`,
+            `Parts:         $${money.parts.toFixed(2)}`,
+            money.discount > 0 ? `Discount:      -$${money.discount.toFixed(2)}` : null,
+            `Includes GST:  $${money.gst.toFixed(2)}`,
+            `TOTAL:         $${money.total.toFixed(2)}`,
             ``,
             `View online: ${window.location.href}`,
             ``,
             `Thanks,`,
             `Motorcycle Doctors`,
-          ].join("\n");
+          ];
+          const body = bodyLines.filter(Boolean).join("\n");
           window.location.href = `mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
         }
       }
@@ -1046,6 +1060,11 @@ function InvoiceDetail() {
         ? `${customer.first_name ?? ""}`.trim()
         : "there";
     const subject = `Invoice ${inv.invoice_number} from Motorcycle Doctors`;
+    const labourDiscPct = money.labourDiscPct;
+    const labourGross = Number(inv.labour_total).toFixed(2);
+    const labourDiscAmount = money2(
+      Number(inv.labour_total) - money.labourNet,
+    ).toFixed(2);
     const body = [
       `Hi ${name || "there"},`,
       ``,
@@ -1056,10 +1075,13 @@ function InvoiceDetail() {
       `Issued: ${issuedAt.toLocaleDateString("en-GB")}`,
       `Due: ${dueAt.toLocaleDateString("en-GB")}`,
       ``,
-      `Labour:  $${Number(inv.labour_total).toFixed(2)}`,
-      `Parts:   $${Number(inv.parts_total).toFixed(2)}`,
-      `GST:     $${Number(inv.gst).toFixed(2)}`,
-      `TOTAL:   $${Number(inv.total).toFixed(2)}`,
+      labourDiscPct > 0 ? `Labour (gross): $${labourGross}` : null,
+      labourDiscPct > 0 ? `Labour discount: -$${labourDiscAmount}` : null,
+      `Labour:        $${money.labourNet.toFixed(2)}`,
+      `Parts:         $${money.parts.toFixed(2)}`,
+      money.discount > 0 ? `Discount:      -$${money.discount.toFixed(2)}` : null,
+      `Includes GST:  $${money.gst.toFixed(2)}`,
+      `TOTAL:         $${money.total.toFixed(2)}`,
       ``,
       `View online: ${window.location.href}`,
       ``,
