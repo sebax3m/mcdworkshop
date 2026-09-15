@@ -30,6 +30,7 @@ import { InvoicePrintPreview } from "@/components/InvoicePrintPreview";
 import { readCustomerNotes } from "@/components/job/CustomerNotesSection";
 import { readWorkPerformed } from "@/components/job/WorkPerformedSection";
 import { learnInventoryPrice } from "@/lib/inventory-price-sync";
+import { learnPartNaming } from "@/lib/part-naming-sync";
 import { partDisplay, derivePartNumber } from "@/lib/part-naming";
 import { PaymentsCard, methodLabel } from "@/components/invoice/PaymentsCard";
 
@@ -914,13 +915,25 @@ function InvoiceDetail() {
       discount_pct?: number;
     },
   ) {
+    const before = (parts.data ?? []).find((p: any) => p.id === id) as any;
     const { error } = await supabase.from("parts").update(patch).eq("id", id);
     if (error) {
       toast.error(error.message);
       return;
     }
+    if (patch.part_number != null || patch.supplier != null) {
+      await learnPartNaming({
+        previous: {
+          part_number: before?.part_number,
+          name: before?.name,
+          supplier: before?.supplier,
+        },
+        next: { part_number: patch.part_number, supplier: patch.supplier },
+        skipPartId: id,
+      });
+    }
     if (patch.retail != null) {
-      const existing = (parts.data ?? []).find((p: any) => p.id === id) as any;
+      const existing = before;
       await learnInventoryPrice(
         [
           patch.part_number ?? existing?.part_number,
