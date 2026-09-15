@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { logJobEvent } from "@/lib/job-events";
@@ -52,6 +53,7 @@ export function ApprovalDecisionDialog({
   userId: string;
   onDone: () => void;
 }) {
+  const qc = useQueryClient();
   const [decisions, setDecisions] = useState<Record<string, Decision>>({});
   const [contact, setContact] = useState<string>("phone");
   const [note, setNote] = useState("");
@@ -106,11 +108,24 @@ export function ApprovalDecisionDialog({
         .eq("id", request.id);
       if (reqErr) throw new Error(reqErr.message);
 
-      await supabase
+      const { data: resolvedNotifs } = await supabase
         .from("notifications")
         .update({ resolved_at: new Date().toISOString(), resolved_by: userId })
         .eq("approval_request_id", request.id)
-        .is("resolved_at", null);
+        .is("resolved_at", null)
+        .select("id");
+
+      // Mark resolved approval notifications as read so they don't pile up in the bell.
+      if (resolvedNotifs && resolvedNotifs.length > 0) {
+        await supabase
+          .from("notification_reads")
+          .upsert(
+            resolvedNotifs.map((n) => ({ notification_id: n.id, user_id: userId })),
+            { onConflict: "notification_id,user_id", ignoreDuplicates: true },
+          );
+      }
+      qc.invalidateQueries({ queryKey: ["notifications"] });
+      qc.invalidateQueries({ queryKey: ["notification-reads"] });
 
       // Job returns to its operational state — never auto-completed.
       const nextStatus = jobStartedAt ? "in_progress" : "assigned";
