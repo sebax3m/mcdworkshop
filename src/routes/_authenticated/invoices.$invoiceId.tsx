@@ -30,6 +30,7 @@ import { InvoicePrintPreview } from "@/components/InvoicePrintPreview";
 import { readCustomerNotes } from "@/components/job/CustomerNotesSection";
 import { readWorkPerformed } from "@/components/job/WorkPerformedSection";
 import { learnInventoryPrice } from "@/lib/inventory-price-sync";
+import { learnPartNaming } from "@/lib/part-naming-sync";
 import { partDisplay, derivePartNumber } from "@/lib/part-naming";
 import { PaymentsCard, methodLabel } from "@/components/invoice/PaymentsCard";
 
