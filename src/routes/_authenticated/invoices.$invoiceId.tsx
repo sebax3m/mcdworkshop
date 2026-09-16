@@ -2421,7 +2421,7 @@ function NewInventoryItemForm({
       .insert({
         name: n,
         sku:
-          sku.trim().toUpperCase() ||
+          sku.trim() ||
           derivePartNumber({ name: n, brand: brand.trim() || null }),
         brand: brand.trim() || null,
         unit_price: Number(price) || 0,
