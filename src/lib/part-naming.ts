@@ -88,6 +88,7 @@ const CATEGORY_ITEM: Record<string, string> = {
   belt: "Belt",
   clutch: "Clutch",
   engine_part: "Engine Part",
+  handlebars: "Handlebars",
   bodywork: "Bodywork",
   fastener: "Hardware",
   consumable: "Consumables",

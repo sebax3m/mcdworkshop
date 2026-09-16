@@ -8,7 +8,9 @@ import { toast } from "sonner";
  * When someone corrects how a part is written on an invoice we treat that as
  * the new house format and push it back across the program:
  *   - the inventory library row (sku = item code, name = description)
- *   - every other job part line that still uses the old code / description
+ *   - the edited invoice line only; historical invoice lines are never mass-edited
+ *     because plain ITEM labels such as "Handlebars" are shared categories, not
+ *     unique product identifiers
  */
 export async function learnPartNaming(args: {
   /** Identifiers the line had BEFORE the edit. */
@@ -27,10 +29,13 @@ export async function learnPartNaming(args: {
   const prevName = clean(args.previous.name);
   const prevDesc = clean(args.previous.supplier);
 
-  const keys = uniq([prevCode, prevName, prevDesc].filter((k): k is string => !!k && k.length >= 2));
+  // ITEM is a shared category (for example, many unrelated products are
+  // "Engine Oil"). Match inventory by the former product description/name so
+  // editing one invoice cannot rename an unrelated product or whole category.
+  const productKeys = uniq([prevDesc, prevName].filter((k): k is string => !!k && k.length >= 2));
+  const keys = productKeys.length ? productKeys : [prevCode].filter((k) => looksProductSpecific(k));
 
   await updateInventory({ keys, nextCode, nextDesc, silent: args.silent });
-  await updateSiblingParts({ prevCode, prevName, prevDesc, nextCode, nextDesc, skipPartId: args.skipPartId });
 }
 
 async function updateInventory(o: {
@@ -77,32 +82,10 @@ async function updateInventory(o: {
   }
 }
 
-async function updateSiblingParts(o: {
-  prevCode: string;
-  prevName: string;
-  prevDesc: string;
-  nextCode: string;
-  nextDesc: string;
-  skipPartId?: string;
-}) {
-  // Only re-write other lines when we can identify them by a real code.
-  const key = o.prevCode || o.prevName;
-  if (!key || key.length < 3) return;
-
-  const patch: { part_number?: string; supplier?: string } = {};
-  if (o.nextCode) patch.part_number = o.nextCode;
-  if (o.nextDesc) patch.supplier = o.nextDesc;
-  if (!Object.keys(patch).length) return;
-
-  let q = supabase.from("parts").update(patch);
-  q = o.prevCode ? q.ilike("part_number", o.prevCode) : q.ilike("name", o.prevName);
-  if (o.skipPartId) q = q.neq("id", o.skipPartId);
-  await q;
-}
-
 const clean = (v?: string | null) => (v ?? "").trim();
 const norm = (v: any) => (v ?? "").toString().trim().toLowerCase();
 const uniq = (a: string[]) => Array.from(new Set(a.map((s) => s.toLowerCase()))).map((l) => a.find((s) => s.toLowerCase() === l)!);
+const looksProductSpecific = (value: string) => /\d/.test(value) || value.trim().split(/\s+/).length > 3;
 
 function escapeFilter(v: string) {
   return v.replace(/[(),*]/g, " ").replace(/\s{2,}/g, " ").trim();
