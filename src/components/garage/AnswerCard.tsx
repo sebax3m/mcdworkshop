@@ -2,6 +2,7 @@
 import { useState } from "react";
 import {
   AlertTriangle,
+  BookmarkPlus,
   BookOpen,
   Bot,
   ChevronDown,
@@ -23,6 +24,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { VerificationBadge } from "@/components/garage/SpecMeta";
 import { SaveExtractionDialog } from "@/components/garage/SaveExtractionDialog";
+import { SaveAnswerDialog } from "@/components/garage/SaveAnswerDialog";
 
 const SOURCE_META: Record<string, { label: string; icon: any; tone: string }> = {
   structured: { label: "Verified Garage Library", icon: Database, tone: "text-emerald-400 border-emerald-500/40" },
@@ -45,6 +47,7 @@ export function AnswerCard({
   const [feedbackSent, setFeedbackSent] = useState(false);
   const [reasonOpen, setReasonOpen] = useState(false);
   const [extract, setExtract] = useState<ReturnType<typeof extractCandidate> | null>(null);
+  const [saveAnswer, setSaveAnswer] = useState(false);
   const meta = SOURCE_META[answer.source] ?? SOURCE_META["none"]!;
   const Icon = meta.icon;
 
@@ -184,6 +187,15 @@ export function AnswerCard({
         </div>
       )}
 
+      {/* SAVE CORRECT ANSWER TO THIS BIKE */}
+      {modelId && answer.source !== "none" && (
+        <div className="pt-1">
+          <Button size="sm" variant="outline" className="gap-1 h-8" onClick={() => setSaveAnswer(true)}>
+            <BookmarkPlus className="h-3.5 w-3.5" /> Correct — save to this bike
+          </Button>
+        </div>
+      )}
+
       {/* FEEDBACK */}
       {answer.queryId && (
         <div className="flex items-center gap-2 pt-1">
@@ -191,7 +203,15 @@ export function AnswerCard({
             <span className="text-xs text-muted-foreground">Thanks — feedback recorded.</span>
           ) : (
             <>
-              <Button size="sm" variant="ghost" className="gap-1 h-8" onClick={() => feedback(true)}>
+              <Button
+                size="sm"
+                variant="ghost"
+                className="gap-1 h-8"
+                onClick={() => {
+                  void feedback(true);
+                  if (modelId) setSaveAnswer(true);
+                }}
+              >
                 <ThumbsUp className="h-3.5 w-3.5" /> Helpful
               </Button>
               <Button
@@ -214,6 +234,15 @@ export function AnswerCard({
             </Button>
           ))}
         </div>
+      )}
+
+      {saveAnswer && modelId && (
+        <SaveAnswerDialog
+          answer={answer}
+          modelId={modelId}
+          onClose={() => setSaveAnswer(false)}
+          onSaved={() => onSaved?.()}
+        />
       )}
 
       {extract && modelId && (
