@@ -301,9 +301,9 @@ function EditDialog({
     setSaving(true);
     const payload = {
       ...form,
-      // ITEM column on invoices = the part number, so every item keeps one.
+      // ITEM column on invoices = the kind of part in plain words.
       sku:
-        String(form.sku ?? "").trim().toUpperCase() ||
+        String(form.sku ?? "").trim() ||
         derivePartNumber({ name: form.name, brand: form.brand, category: form.category }),
       unit_price: Number(form.unit_price),
       stock_qty: Number(form.stock_qty),

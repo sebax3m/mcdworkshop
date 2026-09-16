@@ -3907,6 +3907,16 @@ export type Database = {
         Args: { p_motorcycle_id: string }
         Returns: Json
       }
+      part_desc_of: {
+        Args: { p_code: string; p_item: string; p_name: string; p_supp: string }
+        Returns: string
+      }
+      part_item_guess: { Args: { txt: string }; Returns: string }
+      part_item_label: { Args: { txt: string }; Returns: string }
+      part_item_of: {
+        Args: { p_code: string; p_name: string; p_supp: string }
+        Returns: string
+      }
     }
     Enums: {
       app_role: "admin" | "technician"
