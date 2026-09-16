@@ -1,5 +1,7 @@
 import { useState } from "react";
-import { Check, Pencil, Plus, Trash2, Wrench, X } from "lucide-react";
+import { Check, Loader2, Pencil, Plus, Sparkles, Trash2, Wrench, X } from "lucide-react";
+import { useServerFn } from "@tanstack/react-start";
+import { cleanTechnicianNote } from "@/lib/mcd-tech-assist.functions";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -92,6 +94,34 @@ export default function WorkPerformedSection({
     };
   }
   const [busy, setBusy] = useState(false);
+  // AI grammar helper: turns the technician's rough notes into clean workshop
+  // wording so the text reads properly on the invoice. Facts are never added.
+  const cleanNote = useServerFn(cleanTechnicianNote);
+  const [fixing, setFixing] = useState<"draft" | "edit" | null>(null);
+
+  async function fixGrammar(which: "draft" | "edit") {
+    const text = which === "draft" ? draft.detail : editDraft.detail;
+    if (text.trim().length < 3) {
+      toast.error("Write a few words first, then let AI tidy them up.");
+      return;
+    }
+    setFixing(which);
+    try {
+      const res = await cleanNote({ data: { text: text.trim() } });
+      const suggestion = (res as { suggestion?: string })?.suggestion?.trim();
+      if (!suggestion) {
+        toast.error("AI could not improve that text — try again.");
+        return;
+      }
+      if (which === "draft") setDraft((d) => ({ ...d, detail: suggestion }));
+      else setEditDraft((d) => ({ ...d, detail: suggestion }));
+      toast.success("Text tidied up for the invoice.");
+    } catch (e: any) {
+      toast.error(e?.message ?? "AI grammar check failed.");
+    } finally {
+      setFixing(null);
+    }
+  }
   const [draft, setDraft] = useState<WorkPerformedEntry>({
     id: "",
     title: "",
@@ -234,7 +264,24 @@ export default function WorkPerformedSection({
                 </div>
               </div>
               <div>
-                <Label className="text-xs">Process / details</Label>
+                <div className="flex items-center justify-between gap-2">
+                  <Label className="text-xs">Process / details</Label>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 gap-1.5 text-xs text-primary"
+                    disabled={fixing !== null}
+                    onClick={() => fixGrammar("edit")}
+                  >
+                    {fixing === "edit" ? (
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    ) : (
+                      <Sparkles className="h-3.5 w-3.5" />
+                    )}
+                    Fix grammar
+                  </Button>
+                </div>
                 <Textarea
                   rows={6}
                   className="min-h-[160px] resize-y"
@@ -396,7 +443,24 @@ export default function WorkPerformedSection({
             </div>
           </div>
           <div>
-            <Label className="text-xs">Details</Label>
+            <div className="flex items-center justify-between gap-2">
+              <Label className="text-xs">Details</Label>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="h-7 gap-1.5 text-xs text-primary"
+                disabled={fixing !== null}
+                onClick={() => fixGrammar("draft")}
+              >
+                {fixing === "draft" ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <Sparkles className="h-3.5 w-3.5" />
+                )}
+                Fix grammar
+              </Button>
+            </div>
             <Textarea
               rows={4}
               className="min-h-[100px] resize-y"
