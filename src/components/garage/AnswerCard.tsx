@@ -184,6 +184,15 @@ export function AnswerCard({
         </div>
       )}
 
+      {/* SAVE CORRECT ANSWER TO THIS BIKE */}
+      {modelId && answer.source !== "none" && (
+        <div className="pt-1">
+          <Button size="sm" variant="outline" className="gap-1 h-8" onClick={() => setSaveAnswer(true)}>
+            <BookmarkPlus className="h-3.5 w-3.5" /> Correct — save to this bike
+          </Button>
+        </div>
+      )}
+
       {/* FEEDBACK */}
       {answer.queryId && (
         <div className="flex items-center gap-2 pt-1">
@@ -191,7 +200,15 @@ export function AnswerCard({
             <span className="text-xs text-muted-foreground">Thanks — feedback recorded.</span>
           ) : (
             <>
-              <Button size="sm" variant="ghost" className="gap-1 h-8" onClick={() => feedback(true)}>
+              <Button
+                size="sm"
+                variant="ghost"
+                className="gap-1 h-8"
+                onClick={() => {
+                  void feedback(true);
+                  if (modelId) setSaveAnswer(true);
+                }}
+              >
                 <ThumbsUp className="h-3.5 w-3.5" /> Helpful
               </Button>
               <Button
