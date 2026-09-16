@@ -2,6 +2,7 @@
 import { useState } from "react";
 import {
   AlertTriangle,
+  BookmarkPlus,
   BookOpen,
   Bot,
   ChevronDown,
@@ -23,6 +24,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { VerificationBadge } from "@/components/garage/SpecMeta";
 import { SaveExtractionDialog } from "@/components/garage/SaveExtractionDialog";
+import { SaveAnswerDialog } from "@/components/garage/SaveAnswerDialog";
 
 const SOURCE_META: Record<string, { label: string; icon: any; tone: string }> = {
   structured: { label: "Verified Garage Library", icon: Database, tone: "text-emerald-400 border-emerald-500/40" },
@@ -45,6 +47,7 @@ export function AnswerCard({
   const [feedbackSent, setFeedbackSent] = useState(false);
   const [reasonOpen, setReasonOpen] = useState(false);
   const [extract, setExtract] = useState<ReturnType<typeof extractCandidate> | null>(null);
+  const [saveAnswer, setSaveAnswer] = useState(false);
   const meta = SOURCE_META[answer.source] ?? SOURCE_META["none"]!;
   const Icon = meta.icon;
 
@@ -231,6 +234,15 @@ export function AnswerCard({
             </Button>
           ))}
         </div>
+      )}
+
+      {saveAnswer && modelId && (
+        <SaveAnswerDialog
+          answer={answer}
+          modelId={modelId}
+          onClose={() => setSaveAnswer(false)}
+          onSaved={() => onSaved?.()}
+        />
       )}
 
       {extract && modelId && (
