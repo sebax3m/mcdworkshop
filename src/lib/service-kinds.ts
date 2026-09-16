@@ -49,14 +49,12 @@ export const SERVICE_PARTS: Record<
     { key: "engine_oil", label: "Engine oil", category: "oil", unitHint: "L" },
     { key: "oil_filter", label: "Oil filter", category: "oil_filter", unitHint: "unit" },
     { key: "spark_plug", label: "Spark plugs", category: "spark_plug", unitHint: "unit" },
-    { key: "brake_fluid", label: "Brake fluid", category: "brake_fluid", unitHint: "bottle" },
   ],
   annual: [
     { key: "engine_oil", label: "Engine oil", category: "oil", unitHint: "L" },
     { key: "oil_filter", label: "Oil filter", category: "oil_filter", unitHint: "unit" },
     { key: "air_filter", label: "Air filter", category: "air_filter", unitHint: "unit" },
     { key: "spark_plug", label: "Spark plugs", category: "spark_plug", unitHint: "unit" },
-    { key: "brake_fluid", label: "Brake fluid", category: "brake_fluid", unitHint: "bottle" },
     { key: "coolant", label: "Coolant", category: "coolant", unitHint: "L" },
   ],
   full: [
@@ -64,7 +62,6 @@ export const SERVICE_PARTS: Record<
     { key: "oil_filter", label: "Oil filter", category: "oil_filter", unitHint: "unit" },
     { key: "spark_plug", label: "Spark plugs", category: "spark_plug", unitHint: "unit" },
     { key: "air_filter", label: "Air filter", category: "air_filter", unitHint: "unit" },
-    { key: "brake_fluid", label: "Brake fluid", category: "brake_fluid", unitHint: "bottle" },
     { key: "coolant", label: "Coolant", category: "coolant", unitHint: "L" },
   ],
   dyno: [],
