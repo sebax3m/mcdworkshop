@@ -96,7 +96,7 @@ const CATEGORY_ITEM: Record<string, string> = {
 };
 
 const BRANDS =
-  /(motul|castrol|spectro|shell|elf|ngk|denso|hiflo|hifло|hf\d|hfa\d|vesrah|michelin|pirelli|dunlop|bridgestone|shinko|metzeler|continental|did|rk |ek |yuasa|k&n|brembo|ebc|sbs|tourmax|kiwix|protaper|renthal)/i;
+  /(motul|castrol|spectro|shell|elf|ngk|denso|hiflo|hf\d|hfa\d|vesrah|michelin|pirelli|dunlop|bridgestone|shinko|metzeler|continental|did|rk |ek |yuasa|k&n|brembo|ebc|sbs|tourmax|kiwix|protaper|renthal)/i;
 
 const clean = (v?: string | null) => (v ?? "").toString().trim();
 const low = (v?: string | null) => clean(v).toLowerCase();
