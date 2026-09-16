@@ -8,7 +8,9 @@ import { toast } from "sonner";
  * When someone corrects how a part is written on an invoice we treat that as
  * the new house format and push it back across the program:
  *   - the inventory library row (sku = item code, name = description)
- *   - every other job part line that still uses the old code / description
+ *   - the edited invoice line only; historical invoice lines are never mass-edited
+ *     because plain ITEM labels such as "Handlebars" are shared categories, not
+ *     unique product identifiers
  */
 export async function learnPartNaming(args: {
   /** Identifiers the line had BEFORE the edit. */
@@ -30,7 +32,6 @@ export async function learnPartNaming(args: {
   const keys = uniq([prevCode, prevName, prevDesc].filter((k): k is string => !!k && k.length >= 2));
 
   await updateInventory({ keys, nextCode, nextDesc, silent: args.silent });
-  await updateSiblingParts({ prevCode, prevName, prevDesc, nextCode, nextDesc, skipPartId: args.skipPartId });
 }
 
 async function updateInventory(o: {
@@ -75,29 +76,6 @@ async function updateInventory(o: {
   if (!o.silent) {
     toast.success(`Inventory updated — ${patch.sku ?? match.sku ?? ""} ${patch.name ?? match.name ?? ""}`.trim());
   }
-}
-
-async function updateSiblingParts(o: {
-  prevCode: string;
-  prevName: string;
-  prevDesc: string;
-  nextCode: string;
-  nextDesc: string;
-  skipPartId?: string;
-}) {
-  // Only re-write other lines when we can identify them by a real code.
-  const key = o.prevCode || o.prevName;
-  if (!key || key.length < 3) return;
-
-  const patch: { part_number?: string; supplier?: string } = {};
-  if (o.nextCode) patch.part_number = o.nextCode;
-  if (o.nextDesc) patch.supplier = o.nextDesc;
-  if (!Object.keys(patch).length) return;
-
-  let q = supabase.from("parts").update(patch);
-  q = o.prevCode ? q.ilike("part_number", o.prevCode) : q.ilike("name", o.prevName);
-  if (o.skipPartId) q = q.neq("id", o.skipPartId);
-  await q;
 }
 
 const clean = (v?: string | null) => (v ?? "").trim();
