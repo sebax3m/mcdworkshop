@@ -211,9 +211,10 @@ function CalendarPage() {
   useEffect(() => {
     if (!highlightId) return;
     const t = setTimeout(() => {
-      document
-        .getElementById(`booking-${highlightId}`)
-        ?.scrollIntoView({ block: "center", behavior: "smooth" });
+      const el = document.getElementById(`booking-${highlightId}`);
+      // The wrapper uses display:contents (no box), so scroll its first child instead.
+      const target = (el?.firstElementChild as HTMLElement | null) ?? el;
+      target?.scrollIntoView({ block: "center", behavior: "smooth" });
     }, 300);
     return () => clearTimeout(t);
   }, [highlightId, viewMode, weekStart, monthStart]);
