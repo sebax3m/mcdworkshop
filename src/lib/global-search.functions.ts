@@ -77,46 +77,42 @@ export const globalSearch = createServerFn({ method: "GET" })
           : Promise.resolve({ data: [] }),
       ]);
 
+    const jobSelect =
+      "id, status, customers(first_name,last_name), motorcycles(make,model,rego)";
     const [jobsByText, jobsByCustomer, jobsByBike] = await Promise.all([
       supabase
         .from("jobs")
-        .select(
-          "id, status, customers(first_name,last_name), motorcycles(make,model,rego)",
-        )
+        .select(jobSelect)
         .ilike("id", pattern)
         .limit(8),
       customerIds.length
         ? supabase
             .from("jobs")
-            .select(
-              "id, status, customers(first_name,last_name), motorcycles(make,model,rego)",
-            )
+            .select(jobSelect)
             .in("customer_id", customerIds)
             .limit(8)
         : Promise.resolve({ data: [] }),
       bikeIds.length
         ? supabase
             .from("jobs")
-            .select(
-              "id, status, customers(first_name,last_name), motorcycles(make,model,rego)",
-            )
+            .select(jobSelect)
             .in("motorcycle_id", bikeIds)
             .limit(8)
         : Promise.resolve({ data: [] }),
     ]);
 
+    const invoiceSelect =
+      "id, invoice_number, total, customers(first_name,last_name)";
     const [invoicesByText, invoicesByCustomer] = await Promise.all([
       supabase
         .from("invoices")
-        .select("id, invoice_number, total_gst, customers(first_name,last_name)")
+        .select(invoiceSelect)
         .ilike("invoice_number", pattern)
         .limit(8),
       customerIds.length
         ? supabase
             .from("invoices")
-            .select(
-              "id, invoice_number, total_gst, customers(first_name,last_name)",
-            )
+            .select(invoiceSelect)
             .in("customer_id", customerIds)
             .limit(8)
         : Promise.resolve({ data: [] }),
