@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -22,6 +22,7 @@ import { toast } from "sonner";
 import { fullBike } from "@/lib/format";
 import { fetchAllRows } from "@/lib/fetch-all";
 import logoAsset from "@/assets/motorcycle-doctors-logo.png.asset.json";
+import { refreshContacts } from "@/lib/contacts-cache";
 
 export const Route = createFileRoute("/_authenticated/invoices/new")({
   component: NewInvoice,
@@ -44,6 +45,7 @@ function emptyLine(): Line {
 
 function NewInvoice() {
   const nav = useNavigate();
+  const qc = useQueryClient();
   const today = new Date().toISOString().slice(0, 10);
 
   const [customerId, setCustomerId] = useState<string | null>(null);
@@ -212,6 +214,7 @@ function NewInvoice() {
     }
     toast.success("Customer created");
     await customers.refetch();
+    await refreshContacts(qc);
     setCustomerId(data.id);
     setShowNewCustomer(false);
     setNcFirst("");
@@ -249,6 +252,7 @@ function NewInvoice() {
     }
     toast.success("Bike added");
     await bikes.refetch();
+    await refreshContacts(qc);
     setBikeId(data.id);
     setShowNewBike(false);
     setNbMake("");

@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { displayCustomerName } from "@/lib/display";
+import { refreshContacts } from "@/lib/contacts-cache";
 
 type Customer = {
   id: string;
@@ -104,8 +105,7 @@ export function ClaimCustomerCard({
         .eq("id", claimId);
       if (linkError) throw linkError;
       setForm({ first_name: "", last_name: "", phone: "", email: "" });
-      await qc.invalidateQueries({ queryKey: ["ins-customers"] });
-      await qc.invalidateQueries({ queryKey: ["customers"] });
+      await refreshContacts(qc);
       await refreshClaim();
       setMode("idle");
       toast.success("Customer created and linked");

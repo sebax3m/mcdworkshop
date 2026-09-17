@@ -39,6 +39,7 @@ import {
   normalizeRego,
   normalizeVin,
 } from "@/lib/data-quality";
+import { refreshContacts } from "@/lib/contacts-cache";
 
 type BikeFilter = "all" | "valid" | "no_owner" | "suspicious" | "duplicates" | "archived";
 
@@ -173,9 +174,7 @@ function Bikes() {
   }
 
   function refresh() {
-    qc.invalidateQueries({ queryKey: ["bikes-list"] });
-    qc.invalidateQueries({ queryKey: ["customers-bikes"] });
-    qc.invalidateQueries({ queryKey: ["customers-list"] });
+    void refreshContacts(qc);
   }
 
   async function archiveSelected(archived: boolean) {
@@ -274,7 +273,7 @@ function Bikes() {
         .select("id, first_name, last_name")
         .single();
       if (error) throw error;
-      await qc.invalidateQueries({ queryKey: ["customers-options"] });
+      await refreshContacts(qc);
       setF((p) => ({ ...p, customer_id: data.id }));
       setNewCust({ first_name: "", last_name: "", phone: "", email: "" });
       setNewCustOpen(false);

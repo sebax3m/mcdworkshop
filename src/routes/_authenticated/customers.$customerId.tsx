@@ -19,6 +19,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { refreshContacts } from "@/lib/contacts-cache";
 
 export const Route = createFileRoute("/_authenticated/customers/$customerId")({
   component: CustomerProfile,
@@ -256,7 +257,7 @@ function BikesSection({ customerId }: { customerId: string }) {
     setNb({ make: "", model: "", year: "", rego: "" });
     setAdding(false);
     qc.invalidateQueries({ queryKey: ["customer-bikes", customerId] });
-    qc.invalidateQueries({ queryKey: ["customers-bikes"] });
+    void refreshContacts(qc);
   }
 
   return (

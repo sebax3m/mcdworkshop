@@ -28,6 +28,7 @@ import {
   formatConflictMessage,
   validateTimeRange,
 } from "@/lib/booking-conflicts";
+import { refreshContacts } from "@/lib/contacts-cache";
 
 const searchSchema = z.object({
   date: z.string().optional(),
@@ -213,7 +214,7 @@ function NewBooking() {
         .select("id")
         .single();
       if (error) throw error;
-      await qc.invalidateQueries({ queryKey: ["bk-customers"] });
+      await refreshContacts(qc);
       setCustomerId(data.id);
       setShowNewCustomer(false);
       setNcFirst("");
@@ -247,8 +248,7 @@ function NewBooking() {
         .select("id")
         .single();
       if (error) throw error;
-      await qc.invalidateQueries({ queryKey: ["bk-bikes", customerId] });
-      await qc.invalidateQueries({ queryKey: ["bk-all-bikes"] });
+      await refreshContacts(qc);
       setBikeId(data.id);
       setNbMake("");
       setNbModel("");

@@ -149,6 +149,7 @@ import { changeBookingServiceType, changeBookingServiceOther } from "@/lib/servi
 import { changeBookingMotorcycle } from "@/lib/bike-assign";
 
 import { initialsOf } from "@/hooks/use-technician-names";
+import { refreshContacts } from "@/lib/contacts-cache";
 
 const FALLBACK_SERVICE_TYPES = [
   "Basic Service",
@@ -629,7 +630,7 @@ function CalendarPage() {
       }
 
       qc.invalidateQueries({ queryKey: ["calendar-bookings"] });
-      qc.invalidateQueries({ queryKey: ["quick-customers"] });
+      await refreshContacts(qc);
       // Close modal immediately after saving
       closeQuickBooking();
     } catch (err: any) {
@@ -1826,7 +1827,7 @@ function CalendarPage() {
                                 customers: { ...(b.customers ?? {}), phone: v || null },
                               });
                               qc.invalidateQueries({ queryKey: ["calendar-bookings"] });
-                              qc.invalidateQueries({ queryKey: ["quick-customers"] });
+                              void refreshContacts(qc);
                               toast.success("Phone updated");
                             }}
                             className="flex-1 rounded-md border border-border bg-background px-2 py-1 text-sm focus:border-primary/60 outline-none disabled:opacity-50"
@@ -1908,7 +1909,7 @@ function CalendarPage() {
                                 motorcycles: { ...(b.motorcycles ?? {}), rego: v || null },
                               });
                               qc.invalidateQueries({ queryKey: ["calendar-bookings"] });
-                              qc.invalidateQueries({ queryKey: ["edit-bikes", b.customer_id] });
+                              void refreshContacts(qc);
                               toast.success("Rego updated");
                             }}
                             className="flex-1 rounded-md border border-border bg-background px-2 py-1 text-sm uppercase focus:border-primary/60 outline-none disabled:opacity-50"

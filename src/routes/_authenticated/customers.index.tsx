@@ -36,6 +36,7 @@ import {
   isCustomerValid,
   normalizePhone,
 } from "@/lib/data-quality";
+import { refreshContacts } from "@/lib/contacts-cache";
 
 export const Route = createFileRoute("/_authenticated/customers/")({
   component: Customers,
@@ -59,7 +60,7 @@ function Customers() {
   const [open, setOpen] = useState(false);
   const [selectMode, setSelectMode] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
-  const [sortAlpha, setSortAlpha] = useState(false);
+  const [sortAlpha, setSortAlpha] = useState(true);
   const [onlyWithBikes, setOnlyWithBikes] = useState(false);
   const [filter, setFilter] = useState<Filter>("all");
   const [mergePair, setMergePair] = useState<{ keep: any; merge: any } | null>(null);
@@ -136,10 +137,7 @@ function Customers() {
   }
 
   function refresh() {
-    qc.invalidateQueries({ queryKey: ["customers-list"] });
-    qc.invalidateQueries({ queryKey: ["customers-bikes"] });
-    qc.invalidateQueries({ queryKey: ["customers-options"] });
-    qc.invalidateQueries({ queryKey: ["bikes-list"] });
+    void refreshContacts(qc);
   }
 
   async function archiveSelected(archived: boolean) {

@@ -14,6 +14,7 @@ import { fetchAllRows } from "@/lib/fetch-all";
 import { displayCustomerName } from "@/lib/display";
 import { NZ_INSURERS } from "@/lib/nz-insurers";
 import { BikeMakeModelYear } from "@/components/BikeMakeModelYear";
+import { refreshContacts } from "@/lib/contacts-cache";
 
 export const Route = createFileRoute("/_authenticated/insurance/new")({
   component: NewClaim,
@@ -94,7 +95,7 @@ function NewClaim() {
         .select("id")
         .single();
       if (error) throw error;
-      await qc.invalidateQueries({ queryKey: ["ins-customers"] });
+      await refreshContacts(qc);
       setCustomerId(data.id);
       setBikeId(null);
       setNewCust({ first_name: "", last_name: "", phone: "", email: "" });
@@ -127,7 +128,7 @@ function NewClaim() {
         .select("id")
         .single();
       if (error) throw error;
-      await qc.invalidateQueries({ queryKey: ["ins-bikes", customerId] });
+      await refreshContacts(qc);
       setBikeId(data.id);
       setNewBike({ make: "", model: "", year: "", rego: "", color: "" });
       setNewBikeOpen(false);

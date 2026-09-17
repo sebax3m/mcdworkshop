@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { refreshContacts } from "@/lib/contacts-cache";
 
 type Bike = {
   id: string;
@@ -78,7 +79,7 @@ export function ClaimBikeCard({
       toast.success("Bike details updated");
       setEditing(false);
       qc.invalidateQueries({ queryKey: ["insurance-claim", claimId] });
-      qc.invalidateQueries({ queryKey: ["motorcycles"] });
+      void refreshContacts(qc);
     } catch (e: any) {
       toast.error(e?.message ?? "Failed to save bike details");
     } finally {
