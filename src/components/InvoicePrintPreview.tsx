@@ -90,7 +90,7 @@ ${styles}
   html, body { margin:0; padding:0; background:#f4f4f5; }
   body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   .preview-viewport { padding: 16px 0; }
-  .page-wrap { position: relative; width: ${pageW}; margin: 0 auto; background:#ffffff; }
+  .page-wrap { position: relative; width: calc(${pageW} - 2 * ${MARGIN[margin]}); margin: 0 auto; background:#ffffff; }
   .invoice-page {
     width: 100%;
     margin: 0;
@@ -361,7 +361,7 @@ ${
             </div>
             <input
               type="range"
-              min={50}
+              min={10}
               max={130}
               step={1}
               value={printScale}
@@ -385,7 +385,7 @@ ${
             </div>
             <div className="flex gap-1">
               <button
-                onClick={() => setPrintScale((s) => Math.max(50, s - 1))}
+                 onClick={() => setPrintScale((s) => Math.max(10, s - 1))}
                 className="flex-1 rounded-md border border-border px-1 py-1 text-[0.65rem] text-muted-foreground hover:text-foreground"
               >
                 −1%
