@@ -286,7 +286,7 @@ export default function WorkPerformedSection({
                     ) : (
                       <Sparkles className="h-3.5 w-3.5" />
                     )}
-                    Fix grammar
+                    Fix Wording
                   </Button>
                 </div>
                 <Textarea
@@ -465,7 +465,7 @@ export default function WorkPerformedSection({
                 ) : (
                   <Sparkles className="h-3.5 w-3.5" />
                 )}
-                Fix grammar
+                Fix Wording
               </Button>
             </div>
             <Textarea
