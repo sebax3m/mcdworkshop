@@ -629,7 +629,7 @@ function CalendarPage() {
       }
 
       qc.invalidateQueries({ queryKey: ["calendar-bookings"] });
-      qc.invalidateQueries({ queryKey: ["quick-customers"] });
+      await refreshContacts(qc);
       // Close modal immediately after saving
       closeQuickBooking();
     } catch (err: any) {
