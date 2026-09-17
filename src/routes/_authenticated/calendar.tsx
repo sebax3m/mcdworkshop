@@ -150,6 +150,7 @@ import { changeBookingMotorcycle } from "@/lib/bike-assign";
 
 import { initialsOf } from "@/hooks/use-technician-names";
 import { refreshContacts } from "@/lib/contacts-cache";
+import { GlobalSearchButton } from "@/components/GlobalSearch";
 
 const FALLBACK_SERVICE_TYPES = [
   "Basic Service",
@@ -965,6 +966,7 @@ function CalendarPage() {
           >
             Today
           </button>
+          <GlobalSearchButton />
           <button
             onClick={goNext}
             className="grid h-10 w-10 place-items-center rounded-xl border border-border hover:border-primary/50 hover:bg-primary/5 transition-colors"
