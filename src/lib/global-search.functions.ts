@@ -219,9 +219,7 @@ export const globalSearch = createServerFn({ method: "GET" })
         subtitle:
           [
             name,
-            typeof inv.total_gst === "number"
-              ? `$${inv.total_gst.toFixed(2)}`
-              : "",
+            typeof inv.total === "number" ? `$${inv.total.toFixed(2)}` : "",
           ]
             .filter(Boolean)
             .join(" · ") || "",
