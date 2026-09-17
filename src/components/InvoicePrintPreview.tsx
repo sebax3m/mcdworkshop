@@ -184,6 +184,15 @@ ${
       visibility: visible !important;
     }
     body * { visibility: visible !important; }
+    /* Never let sub-pixel rounding push a blank third sheet out of the
+       snapped page box. */
+    html, body { height: auto !important; overflow: hidden !important; }
+    .preview-viewport, .page-wrap { overflow: hidden !important; margin-bottom:0 !important; padding-bottom:0 !important; }
+    .invoice-page .invoice-sheet {
+      max-height: var(--sheetmin) !important;
+      overflow: hidden !important;
+      margin-bottom: 0 !important;
+    }
   }
 
 
