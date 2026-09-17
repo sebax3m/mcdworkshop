@@ -90,7 +90,8 @@ export function GlobalSearchDialog({
       try {
         const data = await search({ data: { query: q } });
         if (!cancelled) setResults(data);
-      } catch {
+      } catch (e: any) {
+        console.error("Global search failed:", e?.message ?? e);
         if (!cancelled) setResults([]);
       } finally {
         if (!cancelled) setLoading(false);
