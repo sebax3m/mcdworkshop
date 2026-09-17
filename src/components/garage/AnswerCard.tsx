@@ -195,9 +195,14 @@ export function AnswerCard({
           </div>
           <div className="flex flex-wrap items-center gap-2">
             {modelId ? (
-              <Button size="sm" className="gap-1 h-8" onClick={() => { setSaveAnswer(true); if (!feedbackSent) void feedback(true); }}>
-                <BookmarkPlus className="h-3.5 w-3.5" /> Yes — add to Garage Library
-              </Button>
+              <>
+                <Button size="sm" className="gap-1 h-8" disabled={saving} onClick={() => void saveNow()}>
+                  <BookmarkPlus className="h-3.5 w-3.5" /> {saving ? "Saving…" : "Yes — add to Garage Library"}
+                </Button>
+                <Button size="sm" variant="ghost" className="h-8 text-xs" onClick={() => setSaveAnswer(true)}>
+                  Edit before saving
+                </Button>
+              </>
             ) : (
               <span className="text-xs text-muted-foreground">
                 Select the motorcycle model to be able to save this answer.
