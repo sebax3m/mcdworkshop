@@ -137,6 +137,10 @@ const TIME_SLOTS: string[] = (() => {
 })();
 
 export const Route = createFileRoute("/_authenticated/calendar")({
+  validateSearch: (s: Record<string, unknown>) => ({
+    highlight: typeof s.highlight === "string" ? s.highlight : undefined,
+    date: typeof s.date === "string" ? s.date : undefined,
+  }),
   component: CalendarPage,
 });
 
@@ -178,6 +182,8 @@ function chunk<T>(arr: T[], size: number): T[][] {
 function CalendarPage() {
   const qc = useQueryClient();
   const nav = useNavigate();
+  const searchParams = Route.useSearch();
+  const highlightId = searchParams.highlight ?? null;
   const { capacityFor } = useWorkshopCapacity();
   const { isAdmin } = useCurrentUser();
   const [viewMode, setViewMode] = useState<ViewMode>("week");
