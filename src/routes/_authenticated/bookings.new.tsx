@@ -23,12 +23,12 @@ import { AddressAutocomplete, AddressMap } from "@/components/booking/AddressAut
 import { syncBookingCalendarEvent } from "@/lib/google-calendar.functions";
 
 import {
-import { refreshContacts } from "@/lib/contacts-cache";
   addMinutesToTime,
   findBookingConflicts,
   formatConflictMessage,
   validateTimeRange,
 } from "@/lib/booking-conflicts";
+import { refreshContacts } from "@/lib/contacts-cache";
 
 const searchSchema = z.object({
   date: z.string().optional(),

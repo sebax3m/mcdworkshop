@@ -10,7 +10,6 @@ import { ArrowLeft, Trash2, Save, Bike, Plus, ChevronRight } from "lucide-react"
 import { toast } from "sonner";
 import { displayCustomerName } from "@/lib/display";
 import {
-import { refreshContacts } from "@/lib/contacts-cache";
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -20,6 +19,7 @@ import { refreshContacts } from "@/lib/contacts-cache";
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { refreshContacts } from "@/lib/contacts-cache";
 
 export const Route = createFileRoute("/_authenticated/customers/$customerId")({
   component: CustomerProfile,

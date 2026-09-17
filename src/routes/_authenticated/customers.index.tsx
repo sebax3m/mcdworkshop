@@ -29,7 +29,6 @@ import { initials } from "@/lib/format";
 import { displayCustomerName } from "@/lib/display";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import {
-import { refreshContacts } from "@/lib/contacts-cache";
   duplicateGroups,
   duplicateIds,
   hasPhone,
@@ -37,6 +36,7 @@ import { refreshContacts } from "@/lib/contacts-cache";
   isCustomerValid,
   normalizePhone,
 } from "@/lib/data-quality";
+import { refreshContacts } from "@/lib/contacts-cache";
 
 export const Route = createFileRoute("/_authenticated/customers/")({
   component: Customers,

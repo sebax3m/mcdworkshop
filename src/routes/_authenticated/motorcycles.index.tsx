@@ -31,7 +31,6 @@ import { BikeMakeModelYear } from "@/components/BikeMakeModelYear";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { BikeCleanupDialog } from "@/components/BikeCleanupDialog";
 import {
-import { refreshContacts } from "@/lib/contacts-cache";
   duplicateGroups,
   duplicateIds,
   hasPhone,
@@ -40,6 +39,7 @@ import { refreshContacts } from "@/lib/contacts-cache";
   normalizeRego,
   normalizeVin,
 } from "@/lib/data-quality";
+import { refreshContacts } from "@/lib/contacts-cache";
 
 type BikeFilter = "all" | "valid" | "no_owner" | "suspicious" | "duplicates" | "archived";
 
