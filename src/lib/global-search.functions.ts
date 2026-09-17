@@ -91,14 +91,14 @@ export const globalSearch = createServerFn({ method: "GET" })
             .select(jobSelect)
             .in("customer_id", customerIds)
             .limit(8)
-        : Promise.resolve({ data: [] }),
+        : Promise.resolve({ data: [], error: null } as any),
       bikeIds.length
         ? supabase
             .from("jobs")
             .select(jobSelect)
             .in("motorcycle_id", bikeIds)
             .limit(8)
-        : Promise.resolve({ data: [] }),
+        : Promise.resolve({ data: [], error: null } as any),
     ]);
 
     const invoiceSelect =
