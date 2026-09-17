@@ -31,6 +31,7 @@ import {
   Trash2,
   ShieldCheck,
   Sparkles,
+  Search,
 } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
