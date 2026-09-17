@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { supabase } from "@/integrations/supabase/client";
+import { categoryUnit, guessInventoryCategory } from "@/lib/inventory-categories";
 import { toast } from "sonner";
 
 /**
