@@ -24,7 +24,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { VerificationBadge } from "@/components/garage/SpecMeta";
 import { SaveExtractionDialog } from "@/components/garage/SaveExtractionDialog";
-import { SaveAnswerDialog } from "@/components/garage/SaveAnswerDialog";
+import { SaveAnswerDialog, autoSaveAnswer } from "@/components/garage/SaveAnswerDialog";
+import { useCurrentUser } from "@/hooks/use-current-user";
 
 const SOURCE_META: Record<string, { label: string; icon: any; tone: string }> = {
   structured: { label: "Verified Garage Library", icon: Database, tone: "text-emerald-400 border-emerald-500/40" },
@@ -48,8 +49,25 @@ export function AnswerCard({
   const [reasonOpen, setReasonOpen] = useState(false);
   const [extract, setExtract] = useState<ReturnType<typeof extractCandidate> | null>(null);
   const [saveAnswer, setSaveAnswer] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const { isAdmin, user } = useCurrentUser();
   const meta = SOURCE_META[answer.source] ?? SOURCE_META["none"]!;
   const Icon = meta.icon;
+
+  async function saveNow() {
+    if (!modelId) return;
+    setSaving(true);
+    try {
+      const res = await autoSaveAnswer({ answer, modelId, isAdmin, userId: user?.id });
+      toast.success(res === "saved" ? "Saved to the Garage Library" : "Sent for admin verification");
+      if (!feedbackSent) void feedback(true);
+      onSaved?.();
+    } catch (e: any) {
+      toast.error(e?.message ?? "Could not save");
+    } finally {
+      setSaving(false);
+    }
+  }
 
   async function feedback(helpful: boolean, reason?: string) {
     if (!answer.queryId) return;
