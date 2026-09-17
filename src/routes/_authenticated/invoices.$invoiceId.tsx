@@ -928,10 +928,15 @@ function InvoiceDetail() {
           name: before?.name,
           supplier: before?.supplier,
         },
-        next: { part_number: patch.part_number, supplier: patch.supplier },
+        // Learn from the finished line (both halves), not just the edited cell.
+        next: {
+          part_number: patch.part_number ?? before?.part_number,
+          supplier: patch.supplier ?? before?.supplier,
+        },
         skipPartId: id,
       });
     }
+
     if (patch.retail != null) {
       const existing = before;
       await learnInventoryPrice(
