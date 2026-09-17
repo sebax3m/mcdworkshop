@@ -60,7 +60,7 @@ function Customers() {
   const [open, setOpen] = useState(false);
   const [selectMode, setSelectMode] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
-  const [sortAlpha, setSortAlpha] = useState(false);
+  const [sortAlpha, setSortAlpha] = useState(true);
   const [onlyWithBikes, setOnlyWithBikes] = useState(false);
   const [filter, setFilter] = useState<Filter>("all");
   const [mergePair, setMergePair] = useState<{ keep: any; merge: any } | null>(null);
