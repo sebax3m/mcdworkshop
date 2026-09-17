@@ -222,7 +222,7 @@ ${
       // scale only when its natural 100% layout would require a third sheet.
       if (count > 2) {
         const needed = Math.floor(((2 * usablePx) / naturalHeight) * 100 * 0.985);
-        setPrintScale(Math.max(10, Math.min(printScale - 1, needed)));
+        setPrintScale(Math.max(1, Math.min(printScale - 1, needed)));
         return;
       }
       setPages(count);
@@ -522,7 +522,7 @@ ${
           <button
             onClick={() => {
               setPrintScale(100);
-              setMargin("none");
+               setMargin("narrow");
               setOrientation("portrait");
               setPaper("A4");
               setZoom(100);
