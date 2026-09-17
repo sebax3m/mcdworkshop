@@ -257,7 +257,7 @@ function BikesSection({ customerId }: { customerId: string }) {
     setNb({ make: "", model: "", year: "", rego: "" });
     setAdding(false);
     qc.invalidateQueries({ queryKey: ["customer-bikes", customerId] });
-    qc.invalidateQueries({ queryKey: ["customers-bikes"] });
+    void refreshContacts(qc);
   }
 
   return (

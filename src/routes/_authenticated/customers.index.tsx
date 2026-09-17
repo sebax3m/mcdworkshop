@@ -137,10 +137,7 @@ function Customers() {
   }
 
   function refresh() {
-    qc.invalidateQueries({ queryKey: ["customers-list"] });
-    qc.invalidateQueries({ queryKey: ["customers-bikes"] });
-    qc.invalidateQueries({ queryKey: ["customers-options"] });
-    qc.invalidateQueries({ queryKey: ["bikes-list"] });
+    void refreshContacts(qc);
   }
 
   async function archiveSelected(archived: boolean) {

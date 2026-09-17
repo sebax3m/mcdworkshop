@@ -95,7 +95,7 @@ function NewClaim() {
         .select("id")
         .single();
       if (error) throw error;
-      await qc.invalidateQueries({ queryKey: ["ins-customers"] });
+      await refreshContacts(qc);
       setCustomerId(data.id);
       setBikeId(null);
       setNewCust({ first_name: "", last_name: "", phone: "", email: "" });
@@ -128,7 +128,7 @@ function NewClaim() {
         .select("id")
         .single();
       if (error) throw error;
-      await qc.invalidateQueries({ queryKey: ["ins-bikes", customerId] });
+      await refreshContacts(qc);
       setBikeId(data.id);
       setNewBike({ make: "", model: "", year: "", rego: "", color: "" });
       setNewBikeOpen(false);
