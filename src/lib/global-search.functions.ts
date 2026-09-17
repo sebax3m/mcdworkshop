@@ -83,7 +83,7 @@ export const globalSearch = createServerFn({ method: "GET" })
       supabase
         .from("jobs")
         .select(jobSelect)
-        .ilike("id", pattern)
+        .ilike("status", pattern)
         .limit(8),
       customerIds.length
         ? supabase
