@@ -57,11 +57,21 @@ export const globalSearch = createServerFn({ method: "GET" })
     const queries: PromiseLike<{ data: any[] | null; error: any }>[] = [];
     if (customerIds.length)
       queries.push(
-        supabase.from("bookings").select(bookingSelect).in("customer_id", customerIds).limit(20),
+        supabase
+          .from("bookings")
+          .select(bookingSelect)
+          .in("customer_id", customerIds)
+          .order("scheduled_date", { ascending: false })
+          .limit(20),
       );
     if (bikeIds.length)
       queries.push(
-        supabase.from("bookings").select(bookingSelect).in("motorcycle_id", bikeIds).limit(20),
+        supabase
+          .from("bookings")
+          .select(bookingSelect)
+          .in("motorcycle_id", bikeIds)
+          .order("scheduled_date", { ascending: false })
+          .limit(20),
       );
     if (!queries.length) return [];
 
