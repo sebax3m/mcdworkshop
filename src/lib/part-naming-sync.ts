@@ -32,8 +32,12 @@ export async function learnPartNaming(args: {
   // ITEM is a shared category (for example, many unrelated products are
   // "Engine Oil"). Match inventory by the former product description/name so
   // editing one invoice cannot rename an unrelated product or whole category.
-  const productKeys = uniq([prevDesc, prevName].filter((k): k is string => !!k && k.length >= 2));
+  const isPlaceholder = (v: string) => /^new item$/i.test(v);
+  const productKeys = uniq(
+    [prevDesc, prevName].filter((k): k is string => !!k && k.length >= 2 && !isPlaceholder(k)),
+  );
   const keys = productKeys.length ? productKeys : [prevCode].filter((k) => looksProductSpecific(k));
+
 
   await updateInventory({
     keys,
