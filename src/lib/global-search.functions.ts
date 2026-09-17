@@ -12,6 +12,15 @@ type SearchResult = {
   route: string;
 };
 
+function dedupeById<T extends { id: string }>(items: T[]) {
+  const seen = new Set<string>();
+  return items.filter((i) => {
+    if (seen.has(i.id)) return false;
+    seen.add(i.id);
+    return true;
+  });
+}
+
 export const globalSearch = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: { query: string }) => inputSchema.parse(data))
@@ -43,53 +52,94 @@ export const globalSearch = createServerFn({ method: "GET" })
     const customerIds = (customers ?? []).map((c) => c.id);
     const bikeIds = (bikes ?? []).map((b) => b.id);
 
-    const bookingFilter = [
-      `id.ilike.${pattern}`,
-      `scheduled_date.ilike.${pattern}`,
-      customerIds.length ? `customer_id.in.(${customerIds.join(",")})` : null,
-      bikeIds.length ? `motorcycle_id.in.(${bikeIds.join(",")})` : null,
-    ]
-      .filter(Boolean)
-      .join(",");
-
-    const jobFilter = [
-      `id.ilike.${pattern}`,
-      customerIds.length ? `customer_id.in.(${customerIds.join(",")})` : null,
-      bikeIds.length ? `motorcycle_id.in.(${bikeIds.join(",")})` : null,
-    ]
-      .filter(Boolean)
-      .join(",");
-
-    const invoiceFilter = [
-      `invoice_number.ilike.${pattern}`,
-      customerIds.length ? `customer_id.in.(${customerIds.join(",")})` : null,
-    ]
-      .filter(Boolean)
-      .join(",");
-
-    console.log("[globalSearch] q=", q, "customers=", customerIds.length, "bikes=", bikeIds.length, "filters=", { bookingFilter, jobFilter, invoiceFilter });
-    const [{ data: bookings }, { data: jobs }, { data: invoices }] =
+    const [bookingsByText, bookingsByCustomer, bookingsByBike] =
       await Promise.all([
         supabase
           .from("bookings")
           .select(
             "id, scheduled_date, status, customers(first_name,last_name), motorcycles(make,model,rego)",
           )
-          .or(bookingFilter)
+          .or(`id.ilike.${pattern},scheduled_date.ilike.${pattern}`)
           .limit(8),
-        supabase
-          .from("jobs")
-          .select(
-            "id, status, customers(first_name,last_name), motorcycles(make,model,rego)",
-          )
-          .or(jobFilter)
-          .limit(8),
-        supabase
-          .from("invoices")
-          .select("id, invoice_number, total_gst, customers(first_name,last_name)")
-          .or(invoiceFilter)
-          .limit(8),
+        customerIds.length
+          ? supabase
+              .from("bookings")
+              .select(
+                "id, scheduled_date, status, customers(first_name,last_name), motorcycles(make,model,rego)",
+              )
+              .in("customer_id", customerIds)
+              .limit(8)
+          : Promise.resolve({ data: [] }),
+        bikeIds.length
+          ? supabase
+              .from("bookings")
+              .select(
+                "id, scheduled_date, status, customers(first_name,last_name), motorcycles(make,model,rego)",
+              )
+              .in("motorcycle_id", bikeIds)
+              .limit(8)
+          : Promise.resolve({ data: [] }),
       ]);
+
+    const [jobsByText, jobsByCustomer, jobsByBike] = await Promise.all([
+      supabase
+        .from("jobs")
+        .select(
+          "id, status, customers(first_name,last_name), motorcycles(make,model,rego)",
+        )
+        .ilike("id", pattern)
+        .limit(8),
+      customerIds.length
+        ? supabase
+            .from("jobs")
+            .select(
+              "id, status, customers(first_name,last_name), motorcycles(make,model,rego)",
+            )
+            .in("customer_id", customerIds)
+            .limit(8)
+        : Promise.resolve({ data: [] }),
+      bikeIds.length
+        ? supabase
+            .from("jobs")
+            .select(
+              "id, status, customers(first_name,last_name), motorcycles(make,model,rego)",
+            )
+            .in("motorcycle_id", bikeIds)
+            .limit(8)
+        : Promise.resolve({ data: [] }),
+    ]);
+
+    const [invoicesByText, invoicesByCustomer] = await Promise.all([
+      supabase
+        .from("invoices")
+        .select("id, invoice_number, total_gst, customers(first_name,last_name)")
+        .ilike("invoice_number", pattern)
+        .limit(8),
+      customerIds.length
+        ? supabase
+            .from("invoices")
+            .select(
+              "id, invoice_number, total_gst, customers(first_name,last_name)",
+            )
+            .in("customer_id", customerIds)
+            .limit(8)
+        : Promise.resolve({ data: [] }),
+    ]);
+
+    const bookings = dedupeById([
+      ...(bookingsByText.data ?? []),
+      ...(bookingsByCustomer.data ?? []),
+      ...(bookingsByBike.data ?? []),
+    ]);
+    const jobs = dedupeById([
+      ...(jobsByText.data ?? []),
+      ...(jobsByCustomer.data ?? []),
+      ...(jobsByBike.data ?? []),
+    ]);
+    const invoices = dedupeById([
+      ...(invoicesByText.data ?? []),
+      ...(invoicesByCustomer.data ?? []),
+    ]);
 
     if (customers) {
       for (const c of customers) {
@@ -117,81 +167,74 @@ export const globalSearch = createServerFn({ method: "GET" })
       }
     }
 
-    if (bookings) {
-      for (const b of bookings as any[]) {
-        const cust = b.customers as {
-          first_name?: string;
-          last_name?: string;
-        } | null;
-        const bike = b.motorcycles as {
-          make?: string;
-          model?: string;
-          rego?: string;
-        } | null;
-        const name = cust
-          ? `${cust.first_name ?? ""} ${cust.last_name ?? ""}`.trim()
-          : "";
-        results.push({
-          type: "booking",
-          id: b.id,
-          title: `Book-in ${b.scheduled_date ?? ""}`,
-          subtitle:
-            [name, bike?.rego, b.status].filter(Boolean).join(" · ") || "",
-          route: `/bookings/${b.id}`,
-        });
-      }
+    for (const b of bookings as any[]) {
+      const cust = b.customers as {
+        first_name?: string;
+        last_name?: string;
+      } | null;
+      const bike = b.motorcycles as {
+        make?: string;
+        model?: string;
+        rego?: string;
+      } | null;
+      const name = cust
+        ? `${cust.first_name ?? ""} ${cust.last_name ?? ""}`.trim()
+        : "";
+      results.push({
+        type: "booking",
+        id: b.id,
+        title: `Book-in ${b.scheduled_date ?? ""}`,
+        subtitle:
+          [name, bike?.rego, b.status].filter(Boolean).join(" · ") || "",
+        route: `/bookings/${b.id}`,
+      });
     }
 
-    if (jobs) {
-      for (const j of jobs as any[]) {
-        const cust = j.customers as {
-          first_name?: string;
-          last_name?: string;
-        } | null;
-        const bike = j.motorcycles as {
-          make?: string;
-          model?: string;
-          rego?: string;
-        } | null;
-        const name = cust
-          ? `${cust.first_name ?? ""} ${cust.last_name ?? ""}`.trim()
-          : "";
-        results.push({
-          type: "job",
-          id: j.id,
-          title: `Job #${j.id.slice(0, 8)}`,
-          subtitle:
-            [name, bike?.rego, j.status].filter(Boolean).join(" · ") || "",
-          route: `/jobs/${j.id}`,
-        });
-      }
+    for (const j of jobs as any[]) {
+      const cust = j.customers as {
+        first_name?: string;
+        last_name?: string;
+      } | null;
+      const bike = j.motorcycles as {
+        make?: string;
+        model?: string;
+        rego?: string;
+      } | null;
+      const name = cust
+        ? `${cust.first_name ?? ""} ${cust.last_name ?? ""}`.trim()
+        : "";
+      results.push({
+        type: "job",
+        id: j.id,
+        title: `Job #${j.id.slice(0, 8)}`,
+        subtitle: [name, bike?.rego, j.status].filter(Boolean).join(" · ") || "",
+        route: `/jobs/${j.id}`,
+      });
     }
 
-    if (invoices) {
-      for (const inv of invoices as any[]) {
-        const cust = inv.customers as {
-          first_name?: string;
-          last_name?: string;
-        } | null;
-        const name = cust
-          ? `${cust.first_name ?? ""} ${cust.last_name ?? ""}`.trim()
-          : "";
-        results.push({
-          type: "invoice",
-          id: inv.id,
-          title: inv.invoice_number || `Invoice ${inv.id.slice(0, 8)}`,
-          subtitle:
-            [
-              name,
-              typeof inv.total_gst === "number"
-                ? `$${inv.total_gst.toFixed(2)}`
-                : "",
-            ]
-              .filter(Boolean)
-              .join(" · ") || "",
-          route: `/invoices/${inv.id}`,
-        });
-      }
+    for (const inv of invoices as any[]) {
+      const cust = inv.customers as {
+        first_name?: string;
+        last_name?: string;
+      } | null;
+      const name = cust
+        ? `${cust.first_name ?? ""} ${cust.last_name ?? ""}`.trim()
+        : "";
+      results.push({
+        type: "invoice",
+        id: inv.id,
+        title: inv.invoice_number || `Invoice ${inv.id.slice(0, 8)}`,
+        subtitle:
+          [
+            name,
+            typeof inv.total_gst === "number"
+              ? `$${inv.total_gst.toFixed(2)}`
+              : "",
+          ]
+            .filter(Boolean)
+            .join(" · ") || "",
+        route: `/invoices/${inv.id}`,
+      });
     }
 
     return results.slice(0, 25);
