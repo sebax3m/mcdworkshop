@@ -67,6 +67,7 @@ export const globalSearch = createServerFn({ method: "GET" })
       .filter(Boolean)
       .join(",");
 
+    console.log("[globalSearch] q=", q, "customers=", customerIds.length, "bikes=", bikeIds.length, "filters=", { bookingFilter, jobFilter, invoiceFilter });
     const [{ data: bookings }, { data: jobs }, { data: invoices }] =
       await Promise.all([
         supabase
