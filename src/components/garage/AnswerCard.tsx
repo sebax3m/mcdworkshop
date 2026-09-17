@@ -24,7 +24,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { VerificationBadge } from "@/components/garage/SpecMeta";
 import { SaveExtractionDialog } from "@/components/garage/SaveExtractionDialog";
-import { SaveAnswerDialog } from "@/components/garage/SaveAnswerDialog";
+import { SaveAnswerDialog, autoSaveAnswer } from "@/components/garage/SaveAnswerDialog";
+import { useCurrentUser } from "@/hooks/use-current-user";
 
 const SOURCE_META: Record<string, { label: string; icon: any; tone: string }> = {
   structured: { label: "Verified Garage Library", icon: Database, tone: "text-emerald-400 border-emerald-500/40" },
@@ -48,8 +49,25 @@ export function AnswerCard({
   const [reasonOpen, setReasonOpen] = useState(false);
   const [extract, setExtract] = useState<ReturnType<typeof extractCandidate> | null>(null);
   const [saveAnswer, setSaveAnswer] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const { isAdmin, user } = useCurrentUser();
   const meta = SOURCE_META[answer.source] ?? SOURCE_META["none"]!;
   const Icon = meta.icon;
+
+  async function saveNow() {
+    if (!modelId) return;
+    setSaving(true);
+    try {
+      const res = await autoSaveAnswer({ answer, modelId, isAdmin, userId: user?.id });
+      toast.success(res === "saved" ? "Saved to the Garage Library" : "Sent for admin verification");
+      if (!feedbackSent) void feedback(true);
+      onSaved?.();
+    } catch (e: any) {
+      toast.error(e?.message ?? "Could not save");
+    } finally {
+      setSaving(false);
+    }
+  }
 
   async function feedback(helpful: boolean, reason?: string) {
     if (!answer.queryId) return;
@@ -195,9 +213,14 @@ export function AnswerCard({
           </div>
           <div className="flex flex-wrap items-center gap-2">
             {modelId ? (
-              <Button size="sm" className="gap-1 h-8" onClick={() => { setSaveAnswer(true); if (!feedbackSent) void feedback(true); }}>
-                <BookmarkPlus className="h-3.5 w-3.5" /> Yes — add to Garage Library
-              </Button>
+              <>
+                <Button size="sm" className="gap-1 h-8" disabled={saving} onClick={() => void saveNow()}>
+                  <BookmarkPlus className="h-3.5 w-3.5" /> {saving ? "Saving…" : "Yes — add to Garage Library"}
+                </Button>
+                <Button size="sm" variant="ghost" className="h-8 text-xs" onClick={() => setSaveAnswer(true)}>
+                  Edit before saving
+                </Button>
+              </>
             ) : (
               <span className="text-xs text-muted-foreground">
                 Select the motorcycle model to be able to save this answer.
