@@ -137,6 +137,7 @@ export const askExternalAi = createServerFn({ method: "POST" })
         ? `The whole conversation is about this motorcycle: ${data.bike}. Assume every question refers to it unless the technician clearly names another motorcycle. Never ask which motorcycle it is.`
         : "",
       "Follow the conversation thread: resolve pronouns and short follow-up questions from earlier turns.",
+      "OIL FILTERS: this workshop fits Hiflofiltro (HiFlo) oil filters only. When the question is about an oil filter (or an oil change that includes one), answer with the HiFlo part number (HF###) for that exact make/model — that part number is the whole answer, no OEM equivalents or other brands unless the technician explicitly asks for them.",
       "ALWAYS give the actual figures you know from factory service data for this exact make/model/year — engine and cold/hot state, intake and exhaust values, units, tolerances, and the procedure or sequence where relevant.",
       "If the exact year is not certain, give the figures for the generation that covers it and state in one short line which generation/engine platform the figures belong to.",
       "If a value genuinely differs between variants, list each variant with its value instead of refusing.",
