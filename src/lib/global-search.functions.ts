@@ -115,7 +115,7 @@ export const globalSearch = createServerFn({ method: "GET" })
             .select(invoiceSelect)
             .in("customer_id", customerIds)
             .limit(8)
-        : Promise.resolve({ data: [] }),
+        : Promise.resolve({ data: [], error: null } as any),
     ]);
 
     const bookingsRaw = [
