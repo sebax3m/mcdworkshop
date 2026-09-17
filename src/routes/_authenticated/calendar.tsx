@@ -151,6 +151,7 @@ import { changeBookingMotorcycle } from "@/lib/bike-assign";
 
 import { initialsOf } from "@/hooks/use-technician-names";
 import { refreshContacts } from "@/lib/contacts-cache";
+import { GlobalSearchButton } from "@/components/GlobalSearch";
 
 const FALLBACK_SERVICE_TYPES = [
   "Basic Service",
