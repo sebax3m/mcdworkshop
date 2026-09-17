@@ -174,7 +174,7 @@ ${
     .print-slice {
       position:relative !important;
       width:calc(${pageW} - 2 * ${MARGIN[margin]}) !important;
-      height:${usablePx}px !important;
+      height:${usablePx - 8}px !important;
       margin:0 auto !important;
       padding:0 !important;
       overflow:hidden !important;
@@ -206,12 +206,30 @@ ${
     html, body { height:auto !important; overflow:visible !important; }
     .print-slice .invoice-page { display:block !important; }
     .print-slice .invoice-page .invoice-sheet {
-      display:block !important;
-      min-height:0 !important;
+      display:flex !important;
+      flex-direction:column !important;
+      min-height:var(--print-sheet-height, 0px) !important;
       height:auto !important;
       max-height:none !important;
       overflow:visible !important;
       margin-bottom:0 !important;
+    }
+    /* Each print-slice is already an exact visual crop of the preview. The
+       invoice route marks whole sections as page-break-inside:avoid; leaving
+       that active makes Safari/Chromium move Work Performed to page two before
+       the crop is applied, so page one contains only the header. Never let the
+       print engine repaginate content inside these deterministic slices. */
+    .print-slice .invoice-page,
+    .print-slice .invoice-page *,
+    .print-slice .invoice-page [data-print-section],
+    .print-slice .invoice-page table,
+    .print-slice .invoice-page tr {
+      break-before:auto !important;
+      break-after:auto !important;
+      break-inside:auto !important;
+      page-break-before:auto !important;
+      page-break-after:auto !important;
+      page-break-inside:auto !important;
     }
   }
 
@@ -279,7 +297,10 @@ ${
             var clone = page.cloneNode(true);
             clone.style.zoom = '1';
             var cloneSheet = clone.querySelector('.invoice-sheet');
-            if (cloneSheet) cloneSheet.style.setProperty('--sheetmin', '0px');
+            if (cloneSheet) {
+              cloneSheet.style.setProperty('--sheetmin', (pages * unit) + 'px');
+              cloneSheet.style.setProperty('--print-sheet-height', (pages * unit) + 'px');
+            }
             content.appendChild(clone);
             slice.appendChild(content);
             printPages.appendChild(slice);
