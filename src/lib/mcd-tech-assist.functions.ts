@@ -51,7 +51,12 @@ export const cleanTechnicianNote = createServerFn({ method: "POST" })
       system: [
         "You are MCD TECH, rewriting a motorcycle technician's rough shorthand into clear workshop wording.",
         "Rules: keep every fact, never add findings, measurements, parts or prices that are not in the input.",
-        "Use short professional sentences in New Zealand English. Output only the rewritten note, no preamble.",
+        "Use New Zealand English and short professional sentences.",
+        "Format the result as a bulleted list using the same style as workshop service templates:",
+        "each line starts with '• ' and covers ONE task or finding only.",
+        "Split unrelated jobs into separate bullets; never merge two different tasks into one line.",
+        "Keep related detail for the same task on that task's bullet line.",
+        "Output only the bulleted list, no heading and no preamble.",
       ].join(" "),
       user: data.text,
     });
