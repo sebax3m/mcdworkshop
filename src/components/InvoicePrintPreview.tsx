@@ -169,7 +169,26 @@ ${
     html, body, .preview-viewport, .page-wrap, .invoice-page, .invoice-sheet { background:#ffffff !important; }
     .invoice-sheet .bg-background { background:#ffffff !important; }
     .invoice-sheet .border-border { border-color: var(--border) !important; }
-    .preview-viewport { padding:0 !important; zoom:1 !important; }
+    .preview-viewport { display:none !important; }
+    .print-pages { display:block !important; }
+    .print-slice {
+      position:relative !important;
+      width:calc(${pageW} - 2 * ${MARGIN[margin]}) !important;
+      height:${usablePx}px !important;
+      margin:0 auto !important;
+      padding:0 !important;
+      overflow:hidden !important;
+      background:#ffffff !important;
+      break-after:page;
+      page-break-after:always;
+    }
+    .print-slice:last-child { break-after:auto; page-break-after:auto; }
+    .print-slice-content {
+      position:absolute !important;
+      left:0 !important;
+      width:100% !important;
+      transform-origin:top left !important;
+    }
     .page-guides, .invoice-sheet::after, .invoice-page .invoice-sheet::after { content:none !important; display:none !important; background:none !important; }
     .page-wrap { width: calc(${pageW} - 2 * ${MARGIN[margin]}); margin:0 auto !important; }
     /* The invoice route's own print rules pull the page out of flow
@@ -184,14 +203,15 @@ ${
       visibility: visible !important;
     }
     body * { visibility: visible !important; }
-    /* Never let sub-pixel rounding push a blank third sheet out of the
-       snapped page box. */
-    html, body { height: auto !important; overflow: hidden !important; }
-    .preview-viewport, .page-wrap { overflow: hidden !important; margin-bottom:0 !important; padding-bottom:0 !important; }
-    .invoice-page .invoice-sheet {
-      max-height: var(--sheetmin) !important;
-      overflow: hidden !important;
-      margin-bottom: 0 !important;
+    html, body { height:auto !important; overflow:visible !important; }
+    .print-slice .invoice-page { display:block !important; }
+    .print-slice .invoice-page .invoice-sheet {
+      display:block !important;
+      min-height:0 !important;
+      height:auto !important;
+      max-height:none !important;
+      overflow:visible !important;
+      margin-bottom:0 !important;
     }
   }
 
@@ -200,6 +220,7 @@ ${
 </head>
 <body class="${bodyClass}">
   <div class="preview-viewport"><div class="page-wrap"><div class="page-guides"></div><div class="invoice-page">${getHtml()}</div></div></div>
+  <div class="print-pages" style="display:none"></div>
   <script>
     (function () {
       // Rule for every invoice: it never prints on more than 2 sheets, and the
@@ -226,6 +247,7 @@ ${
       function fit() {
         var page = document.querySelector('.invoice-page');
         var sheet = document.querySelector('.invoice-sheet');
+        var printPages = document.querySelector('.print-pages');
         if (!page || !sheet) return;
         var h = naturalHeight(page, sheet);
         if (!h) return;
@@ -240,6 +262,29 @@ ${
         // Unzoomed height of the printed page box, minus the safety gap.
         var unit = usable / scale;
         sheet.style.setProperty('--sheetmin', (pages * unit) + 'px');
+
+        // Chromium does not reliably fragment a tall flex invoice: it can put
+        // only the letterhead on page one and clip the remaining content. Build
+        // deterministic paper-sized slices from the exact preview instead.
+        if (printPages) {
+          printPages.innerHTML = '';
+          for (var i = 0; i < pages; i += 1) {
+            var slice = document.createElement('div');
+            slice.className = 'print-slice';
+            var content = document.createElement('div');
+            content.className = 'print-slice-content';
+            content.style.top = String(-(i * usable)) + 'px';
+            content.style.transform = 'scale(' + String(scale) + ')';
+            content.style.width = String(100 / scale) + '%';
+            var clone = page.cloneNode(true);
+            clone.style.zoom = '1';
+            var cloneSheet = clone.querySelector('.invoice-sheet');
+            if (cloneSheet) cloneSheet.style.setProperty('--sheetmin', '0px');
+            content.appendChild(clone);
+            slice.appendChild(content);
+            printPages.appendChild(slice);
+          }
+        }
       }
 
       window.__fitInvoice = fit;
