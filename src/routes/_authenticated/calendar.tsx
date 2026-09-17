@@ -46,6 +46,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { hasPhone } from "@/lib/data-quality";
+import { fetchAllRows } from "@/lib/fetch-all";
 import { initials } from "@/lib/format";
 import { BIKE_MAKES, BIKE_MAKE_NAMES, BIKE_YEARS } from "@/lib/bike-library";
 import { lookupRego } from "@/lib/rego-lookup.functions";
@@ -378,15 +379,17 @@ function CalendarPage() {
   const quickCustomers = useQuery({
     queryKey: ["quick-customers"],
     enabled: !!quickSlot || !!selectedBooking,
-    queryFn: async () => {
-      const { data } = await (supabase as any)
-        .from("customers")
-        .select("id, first_name, last_name, phone, email")
-        .eq("is_archived", false)
-        .order("first_name")
-        .range(0, 49999);
-      return data ?? [];
-    },
+    refetchOnMount: "always",
+    refetchOnWindowFocus: true,
+    queryFn: async () =>
+      await fetchAllRows((from, to) =>
+        (supabase as any)
+          .from("customers")
+          .select("id, first_name, last_name, phone, email")
+          .or("is_archived.is.null,is_archived.eq.false")
+          .order("first_name")
+          .range(from, to),
+      ),
   });
 
   const editBikes = useQuery({
