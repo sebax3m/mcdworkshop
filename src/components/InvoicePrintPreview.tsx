@@ -174,7 +174,7 @@ ${
     .print-slice {
       position:relative !important;
       width:calc(${pageW} - 2 * ${MARGIN[margin]}) !important;
-      height:${usablePx}px !important;
+      height:${usablePx - 8}px !important;
       margin:0 auto !important;
       padding:0 !important;
       overflow:hidden !important;
@@ -206,8 +206,9 @@ ${
     html, body { height:auto !important; overflow:visible !important; }
     .print-slice .invoice-page { display:block !important; }
     .print-slice .invoice-page .invoice-sheet {
-      display:block !important;
-      min-height:0 !important;
+      display:flex !important;
+      flex-direction:column !important;
+      min-height:var(--print-sheet-height, 0px) !important;
       height:auto !important;
       max-height:none !important;
       overflow:visible !important;
@@ -296,7 +297,10 @@ ${
             var clone = page.cloneNode(true);
             clone.style.zoom = '1';
             var cloneSheet = clone.querySelector('.invoice-sheet');
-            if (cloneSheet) cloneSheet.style.setProperty('--sheetmin', '0px');
+            if (cloneSheet) {
+              cloneSheet.style.setProperty('--sheetmin', (pages * unit) + 'px');
+              cloneSheet.style.setProperty('--print-sheet-height', (pages * unit) + 'px');
+            }
             content.appendChild(clone);
             slice.appendChild(content);
             printPages.appendChild(slice);
