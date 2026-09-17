@@ -105,6 +105,7 @@ function NewBooking() {
 
   const customers = useQuery({
     queryKey: ["bk-customers"],
+    refetchOnWindowFocus: true,
     queryFn: async () =>
       await fetchAllRows((from, to) =>
         (supabase as any)
@@ -129,6 +130,7 @@ function NewBooking() {
   });
   const allBikes = useQuery({
     queryKey: ["bk-all-bikes"],
+    refetchOnWindowFocus: true,
     queryFn: async () =>
       (
         await (supabase as any)
