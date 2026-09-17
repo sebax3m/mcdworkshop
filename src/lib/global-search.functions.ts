@@ -118,6 +118,19 @@ export const globalSearch = createServerFn({ method: "GET" })
         : Promise.resolve({ data: [] }),
     ]);
 
+    const bookingsRaw = [
+      bookingsByText,
+      bookingsByCustomer,
+      bookingsByBike,
+    ] as const;
+    const jobsRaw = [jobsByText, jobsByCustomer, jobsByBike] as const;
+    const invoicesRaw = [invoicesByText, invoicesByCustomer] as const;
+    for (const res of [...bookingsRaw, ...jobsRaw, ...invoicesRaw]) {
+      if (res.error) {
+        console.error("[globalSearch] query error:", res.error);
+      }
+    }
+
     const bookings = dedupeById([
       ...(bookingsByText.data ?? []),
       ...(bookingsByCustomer.data ?? []),
@@ -132,6 +145,7 @@ export const globalSearch = createServerFn({ method: "GET" })
       ...(invoicesByText.data ?? []),
       ...(invoicesByCustomer.data ?? []),
     ]);
+    console.log("[globalSearch] counts customers=", (customers ?? []).length, "bikes=", (bikes ?? []).length, "bookings=", bookings.length, "jobs=", jobs.length, "invoices=", invoices.length);
 
     if (customers) {
       for (const c of customers) {
