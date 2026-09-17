@@ -46,20 +46,20 @@ export function InvoicePrintPreview({
   const usablePx =
     ((parseFloat(pageH) - 2 * parseFloat(MARGIN[margin])) / 25.4) * 96;
 
-  /** Natural content height, ignoring the whole-page padding applied to the sheet. */
-  const measure = () => {
+  /** Natural, unscaled content height without the artificial whole-page minimum. */
+  const measureNaturalHeight = () => {
     const d = frameRef.current?.contentDocument;
     const page = d?.querySelector(".invoice-page") as HTMLElement | null;
     const sheet = d?.querySelector(".invoice-sheet") as HTMLElement | null;
-    if (!page) return 0;
-    const prev = sheet?.style.getPropertyValue("--sheetmin") ?? "";
-    sheet?.style.setProperty("--sheetmin", "0px");
-    // scrollHeight is in unzoomed CSS px; multiply by the print scale.
-    const h = page.scrollHeight * (printScale / 100);
-    if (sheet) {
-      if (prev) sheet.style.setProperty("--sheetmin", prev);
-      else sheet.style.removeProperty("--sheetmin");
-    }
+    if (!page || !sheet) return 0;
+    const previousMin = sheet.style.getPropertyValue("--sheetmin");
+    const previousZoom = page.style.zoom;
+    sheet.style.setProperty("--sheetmin", "0px");
+    page.style.zoom = "1";
+    const h = sheet.scrollHeight;
+    page.style.zoom = previousZoom;
+    if (previousMin) sheet.style.setProperty("--sheetmin", previousMin);
+    else sheet.style.removeProperty("--sheetmin");
     return h;
   };
 
@@ -90,11 +90,12 @@ ${styles}
   html, body { margin:0; padding:0; background:#f4f4f5; }
   body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   .preview-viewport { padding: 16px 0; }
-  .page-wrap { position: relative; width: ${pageW}; margin: 0 auto; }
+  .page-wrap { position: relative; width: calc(${pageW} - 2 * ${MARGIN[margin]}); margin: 0 auto; background:#ffffff; }
   .invoice-page {
     width: 100%;
     margin: 0;
     zoom: var(--pscale, 1);
+    background:#ffffff;
   }
   /* Keep the sheet exactly one page tall so the bottom-anchored blocks
      (notes + payment details + totals) stay pinned to the bottom edge,
@@ -108,6 +109,7 @@ ${styles}
     min-height: var(--sheetmin, calc((${pageH} - 2 * ${MARGIN[margin]}) / var(--pscale, 1))) !important;
     padding-block: ${margin === "none" ? "6mm" : "0mm"} !important;
     overflow: visible !important;
+    background:#ffffff !important;
   }
 
 
@@ -144,7 +146,7 @@ ${
   .invoice-page .print-only { display:inline !important; }
   .invoice-page .print-hide-empty { display:none !important; }
   .invoice-sheet { box-shadow:none !important; border-radius:0 !important; }
-  .invoice-sheet::after { display:none !important; }
+  .invoice-sheet::after { content:none !important; display:none !important; background:none !important; }
 
   /* Page-break guides (screen only) */
   .page-guides {
@@ -164,11 +166,11 @@ ${
   @media print {
     /* Neutralise the app's ink-saving print overrides so the printout is
        byte-for-byte the same design as the preview / on-screen sheet. */
-    html, body { background: var(--background) !important; }
-    .invoice-sheet .bg-background { background: var(--background) !important; }
+    html, body, .preview-viewport, .page-wrap, .invoice-page, .invoice-sheet { background:#ffffff !important; }
+    .invoice-sheet .bg-background { background:#ffffff !important; }
     .invoice-sheet .border-border { border-color: var(--border) !important; }
     .preview-viewport { padding:0 !important; zoom:1 !important; }
-    .page-guides, .invoice-sheet::after, .invoice-page .invoice-sheet::after { display:none !important; background:none !important; }
+    .page-guides, .invoice-sheet::after, .invoice-page .invoice-sheet::after { content:none !important; display:none !important; background:none !important; }
     .page-wrap { width: calc(${pageW} - 2 * ${MARGIN[margin]}); margin:0 auto !important; }
     /* The invoice route's own print rules pull the page out of flow
        (position:absolute + full-viewport width). Inside this preview the page
@@ -213,13 +215,14 @@ ${
 
     frame.srcdoc = doc;
     const t = setTimeout(() => {
-      const content = measure();
-      const count = Math.max(1, Math.ceil(content / usablePx));
+      const naturalHeight = measureNaturalHeight();
+      if (!naturalHeight) return;
+      const count = Math.max(1, Math.ceil((naturalHeight * (printScale / 100) - 2) / usablePx));
       // Rule: an invoice never prints on more than 2 pages — shrink the print
-      // scale automatically until the whole document fits within two sheets.
-      if (count > 2 && printScale > 55) {
-        const needed = Math.floor((printScale * ((2 * usablePx) / content)) * 0.99);
-        setPrintScale(Math.max(55, Math.min(printScale - 2, needed)));
+      // scale only when its natural 100% layout would require a third sheet.
+      if (count > 2) {
+        const needed = Math.floor(((2 * usablePx) / naturalHeight) * 100 * 0.985);
+        setPrintScale(Math.max(1, Math.min(printScale - 1, needed)));
         return;
       }
       setPages(count);
@@ -243,9 +246,9 @@ ${
     for (let v = 100; v >= 30; v -= 2) {
       d.documentElement.style.setProperty("--pdense", String(v / 100));
       value = v;
-      if (page.scrollHeight * (printScale / 100) <= usablePx) break;
+      if (measureNaturalHeight() * (printScale / 100) <= usablePx) break;
     }
-    const content = page.scrollHeight * (printScale / 100);
+    const content = measureNaturalHeight() * (printScale / 100);
     setDensity(value);
     setPages(Math.max(1, Math.ceil(content / usablePx)));
     sheet?.style.removeProperty("--sheetmin");
@@ -358,7 +361,7 @@ ${
             </div>
             <input
               type="range"
-              min={50}
+              min={10}
               max={130}
               step={1}
               value={printScale}
@@ -382,7 +385,7 @@ ${
             </div>
             <div className="flex gap-1">
               <button
-                onClick={() => setPrintScale((s) => Math.max(50, s - 1))}
+                 onClick={() => setPrintScale((s) => Math.max(10, s - 1))}
                 className="flex-1 rounded-md border border-border px-1 py-1 text-[0.65rem] text-muted-foreground hover:text-foreground"
               >
                 −1%
@@ -396,10 +399,10 @@ ${
             </div>
             <button
               onClick={() => {
-                const contentPx = measure();
+                const contentPx = measureNaturalHeight();
                 if (!contentPx) return;
                 setPrintScale(
-                  Math.round(Math.min(130, Math.max(50, (usablePx / contentPx) * printScale))),
+                  Math.round(Math.min(130, Math.max(10, (usablePx / contentPx) * 100 * 0.985))),
                 );
               }}
               className="w-full rounded-md border border-border px-2 py-1 text-[0.65rem] text-muted-foreground hover:text-foreground"
@@ -519,7 +522,7 @@ ${
           <button
             onClick={() => {
               setPrintScale(100);
-              setMargin("none");
+               setMargin("narrow");
               setOrientation("portrait");
               setPaper("A4");
               setZoom(100);
