@@ -273,7 +273,7 @@ ${
             slice.className = 'print-slice';
             var content = document.createElement('div');
             content.className = 'print-slice-content';
-            content.style.top = String(-(i * usable)) + 'px';
+            content.style.top = String(-(i * usable / scale)) + 'px';
             content.style.transform = 'scale(' + String(scale) + ')';
             content.style.width = String(100 / scale) + '%';
             var clone = page.cloneNode(true);
