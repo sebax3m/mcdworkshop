@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { displayCustomerName } from "@/lib/display";
+import { refreshContacts } from "@/lib/contacts-cache";
 
 type Customer = {
   id: string;

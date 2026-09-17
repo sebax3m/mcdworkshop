@@ -22,6 +22,7 @@ import { toast } from "sonner";
 import { fullBike } from "@/lib/format";
 import { fetchAllRows } from "@/lib/fetch-all";
 import logoAsset from "@/assets/motorcycle-doctors-logo.png.asset.json";
+import { refreshContacts } from "@/lib/contacts-cache";
 
 export const Route = createFileRoute("/_authenticated/invoices/new")({
   component: NewInvoice,

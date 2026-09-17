@@ -23,6 +23,7 @@ import { AddressAutocomplete, AddressMap } from "@/components/booking/AddressAut
 import { syncBookingCalendarEvent } from "@/lib/google-calendar.functions";
 
 import {
+import { refreshContacts } from "@/lib/contacts-cache";
   addMinutesToTime,
   findBookingConflicts,
   formatConflictMessage,

@@ -149,6 +149,7 @@ import { changeBookingServiceType, changeBookingServiceOther } from "@/lib/servi
 import { changeBookingMotorcycle } from "@/lib/bike-assign";
 
 import { initialsOf } from "@/hooks/use-technician-names";
+import { refreshContacts } from "@/lib/contacts-cache";
 
 const FALLBACK_SERVICE_TYPES = [
   "Basic Service",

@@ -14,6 +14,7 @@ import { fetchAllRows } from "@/lib/fetch-all";
 import { displayCustomerName } from "@/lib/display";
 import { NZ_INSURERS } from "@/lib/nz-insurers";
 import { BikeMakeModelYear } from "@/components/BikeMakeModelYear";
+import { refreshContacts } from "@/lib/contacts-cache";
 
 export const Route = createFileRoute("/_authenticated/insurance/new")({
   component: NewClaim,

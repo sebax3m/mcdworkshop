@@ -31,6 +31,7 @@ import { BikeMakeModelYear } from "@/components/BikeMakeModelYear";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { BikeCleanupDialog } from "@/components/BikeCleanupDialog";
 import {
+import { refreshContacts } from "@/lib/contacts-cache";
   duplicateGroups,
   duplicateIds,
   hasPhone,

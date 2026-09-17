@@ -10,6 +10,7 @@ import { ArrowLeft, Trash2, Save, Bike, Plus, ChevronRight } from "lucide-react"
 import { toast } from "sonner";
 import { displayCustomerName } from "@/lib/display";
 import {
+import { refreshContacts } from "@/lib/contacts-cache";
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
