@@ -1,7 +1,7 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { Search, User, Bike, Calendar, Wrench, FileText } from "lucide-react";
+import { Search, Calendar } from "lucide-react";
 import {
   CommandDialog,
   CommandEmpty,
@@ -12,17 +12,6 @@ import {
 } from "@/components/ui/command";
 import { globalSearch } from "@/lib/global-search.functions";
 import { cn } from "@/lib/utils";
-
-const typeMeta: Record<
-  string,
-  { label: string; icon: typeof User; color: string }
-> = {
-  customer: { label: "Customers", icon: User, color: "text-blue-500" },
-  bike: { label: "Bikes", icon: Bike, color: "text-emerald-500" },
-  booking: { label: "Book-ins", icon: Calendar, color: "text-amber-500" },
-  job: { label: "Jobs", icon: Wrench, color: "text-rose-500" },
-  invoice: { label: "Invoices", icon: FileText, color: "text-violet-500" },
-};
 
 export function GlobalSearchButton({ className }: { className?: string }) {
   const [open, setOpen] = useState(false);
@@ -103,18 +92,12 @@ export function GlobalSearchDialog({
     };
   }, [query, search]);
 
-  const grouped = useMemo(() => {
-    const groups: Record<string, typeof results> = {};
-    for (const r of results) {
-      groups[r.type] = groups[r.type] || [];
-      groups[r.type].push(r);
-    }
-    return groups;
-  }, [results]);
-
-  const handleSelect = (route: string) => {
+  const handleSelect = (item: Awaited<ReturnType<typeof globalSearch>>[number]) => {
     onOpenChange(false);
-    navigate({ to: route });
+    navigate({
+      to: "/calendar",
+      search: { highlight: item.id, date: item.date ?? undefined },
+    });
   };
 
   return (
@@ -124,44 +107,38 @@ export function GlobalSearchDialog({
       filter={() => 1}
     >
       <CommandInput
-        placeholder="Search customers, bikes, book-ins, jobs, invoices…"
+        placeholder="Search book-ins by customer, bike or rego…"
         value={query}
         onValueChange={setQuery}
       />
       <CommandList>
         {query.trim().length < 2 ? (
-          <CommandEmpty>Type at least 2 characters to search.</CommandEmpty>
+          <CommandEmpty>Type at least 2 characters to search book-ins.</CommandEmpty>
         ) : loading ? (
           <CommandEmpty>Searching…</CommandEmpty>
         ) : results.length === 0 ? (
-          <CommandEmpty>No results found.</CommandEmpty>
+          <CommandEmpty>No book-ins found.</CommandEmpty>
         ) : (
-          Object.entries(grouped).map(([type, items]) => {
-            const meta = typeMeta[type];
-            const Icon = meta.icon;
-            return (
-              <CommandGroup key={type} heading={meta.label}>
-                {items.map((item) => (
-                  <CommandItem
-                    key={`${item.type}-${item.id}`}
-                    value={`${item.type}-${item.id}`}
-                    onSelect={() => handleSelect(item.route)}
-                    className="cursor-pointer"
-                  >
-                    <Icon className={cn("mr-2 h-4 w-4 shrink-0", meta.color)} />
-                    <div className="flex flex-col min-w-0">
-                      <span className="truncate font-medium">{item.title}</span>
-                      {item.subtitle && (
-                        <span className="truncate text-xs text-muted-foreground">
-                          {item.subtitle}
-                        </span>
-                      )}
-                    </div>
-                  </CommandItem>
-                ))}
-              </CommandGroup>
-            );
-          })
+          <CommandGroup heading="Book-ins (most recent first)">
+            {results.map((item) => (
+              <CommandItem
+                key={item.id}
+                value={item.id}
+                onSelect={() => handleSelect(item)}
+                className="cursor-pointer"
+              >
+                <Calendar className="mr-2 h-4 w-4 shrink-0 text-amber-500" />
+                <div className="flex flex-col min-w-0">
+                  <span className="truncate font-medium">{item.title}</span>
+                  {item.subtitle && (
+                    <span className="truncate text-xs text-muted-foreground">
+                      {item.subtitle}
+                    </span>
+                  )}
+                </div>
+              </CommandItem>
+            ))}
+          </CommandGroup>
         )}
       </CommandList>
     </CommandDialog>
