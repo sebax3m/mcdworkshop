@@ -184,6 +184,15 @@ ${
       visibility: visible !important;
     }
     body * { visibility: visible !important; }
+    /* Never let sub-pixel rounding push a blank third sheet out of the
+       snapped page box. */
+    html, body { height: auto !important; overflow: hidden !important; }
+    .preview-viewport, .page-wrap { overflow: hidden !important; margin-bottom:0 !important; padding-bottom:0 !important; }
+    .invoice-page .invoice-sheet {
+      max-height: var(--sheetmin) !important;
+      overflow: hidden !important;
+      margin-bottom: 0 !important;
+    }
   }
 
 
@@ -193,21 +202,51 @@ ${
   <div class="preview-viewport"><div class="page-wrap"><div class="page-guides"></div><div class="invoice-page">${getHtml()}</div></div></div>
   <script>
     (function () {
-      // Rule for every invoice: the sheet always ends on a whole page boundary,
-      // so notes + payment details + TOTAL stay pinned to the bottom of the
-      // last page instead of floating up right after the last line item.
-      var unit = ${usablePx} / (${printScale} / 100);
-      function snap() {
-        var s = document.querySelector('.invoice-sheet');
-        if (!s) return;
-        s.style.setProperty('--sheetmin', '0px');
-        var pages = Math.max(1, Math.ceil((s.scrollHeight - 2) / unit));
-        s.style.setProperty('--sheetmin', (pages * unit) + 'px');
+      // Rule for every invoice: it never prints on more than 2 sheets, and the
+      // sheet always ends on a whole page boundary so notes + payment details +
+      // TOTAL stay pinned to the bottom of the last page.
+      var USABLE = ${usablePx};
+      // Safety gap: browsers round mm -> device px when paginating, so a block
+      // that is exactly N pages tall can spill 1px onto an extra blank sheet.
+      var SAFETY = 8;
+      var MAX_PAGES = 2;
+
+      function naturalHeight(page, sheet) {
+        var prevMin = sheet.style.getPropertyValue('--sheetmin');
+        var prevZoom = page.style.zoom;
+        sheet.style.setProperty('--sheetmin', '0px');
+        page.style.zoom = '1';
+        var h = sheet.scrollHeight;
+        page.style.zoom = prevZoom;
+        if (prevMin) sheet.style.setProperty('--sheetmin', prevMin);
+        else sheet.style.removeProperty('--sheetmin');
+        return h;
       }
-      snap();
-      setTimeout(snap, 150);
-      window.addEventListener('load', snap);
-      window.addEventListener('beforeprint', snap);
+
+      function fit() {
+        var page = document.querySelector('.invoice-page');
+        var sheet = document.querySelector('.invoice-sheet');
+        if (!page || !sheet) return;
+        var h = naturalHeight(page, sheet);
+        if (!h) return;
+        var scale = ${printScale} / 100;
+        var usable = USABLE - SAFETY;
+        // Shrink only when the natural layout would need a third sheet.
+        if (h * scale > MAX_PAGES * usable) {
+          scale = (MAX_PAGES * usable) / h;
+          document.documentElement.style.setProperty('--pscale', String(scale));
+        }
+        var pages = Math.max(1, Math.min(MAX_PAGES, Math.ceil((h * scale) / usable)));
+        // Unzoomed height of the printed page box, minus the safety gap.
+        var unit = usable / scale;
+        sheet.style.setProperty('--sheetmin', (pages * unit) + 'px');
+      }
+
+      window.__fitInvoice = fit;
+      fit();
+      setTimeout(fit, 150);
+      window.addEventListener('load', fit);
+      window.addEventListener('beforeprint', fit);
     })();
   </script>
 </body></html>`;
@@ -260,9 +299,14 @@ ${
   if (!open) return null;
 
   const print = () => {
-    const w = frameRef.current?.contentWindow;
+    const w = frameRef.current?.contentWindow as
+      | (Window & { __fitInvoice?: () => void })
+      | null
+      | undefined;
     if (!w) return;
     w.focus();
+    // Re-run the 2-page rule against the real paper box right before printing.
+    w.__fitInvoice?.();
     w.print();
   };
 
