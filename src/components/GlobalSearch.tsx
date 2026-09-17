@@ -109,6 +109,7 @@ export function GlobalSearchDialog({
       groups[r.type] = groups[r.type] || [];
       groups[r.type].push(r);
     }
+    console.log("[GlobalSearch] results", results.length, "groups", Object.keys(groups), groups);
     return groups;
   }, [results]);
 
