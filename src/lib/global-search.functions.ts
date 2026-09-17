@@ -46,24 +46,18 @@ export const globalSearch = createServerFn({ method: "GET" })
         .limit(8),
       supabase
         .from("bookings")
-        .select("id, scheduled_date, status, customers(first_name,last_name), motorcycles(make,model,rego)")
-        .or(
-          `id.ilike.${pattern},scheduled_date.ilike.${pattern},customers.first_name.ilike.${pattern},customers.last_name.ilike.${pattern},motorcycles.rego.ilike.${pattern}`,
-        )
+        .select("id, scheduled_date, status")
+        .or(`id.ilike.${pattern},scheduled_date.ilike.${pattern}`)
         .limit(8),
       supabase
         .from("jobs")
-        .select("id, status, customers(first_name,last_name), motorcycles(make,model,rego)")
-        .or(
-          `id.ilike.${pattern},customers.first_name.ilike.${pattern},customers.last_name.ilike.${pattern},motorcycles.rego.ilike.${pattern}`,
-        )
+        .select("id, status")
+        .ilike("id", pattern)
         .limit(8),
       supabase
         .from("invoices")
-        .select("id, invoice_number, total_gst, customers(first_name,last_name)")
-        .or(
-          `invoice_number.ilike.${pattern},customers.first_name.ilike.${pattern},customers.last_name.ilike.${pattern}`,
-        )
+        .select("id, invoice_number, total_gst")
+        .ilike("invoice_number", pattern)
         .limit(8),
     ]);
 
