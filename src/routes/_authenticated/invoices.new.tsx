@@ -45,6 +45,7 @@ function emptyLine(): Line {
 
 function NewInvoice() {
   const nav = useNavigate();
+  const qc = useQueryClient();
   const today = new Date().toISOString().slice(0, 10);
 
   const [customerId, setCustomerId] = useState<string | null>(null);
