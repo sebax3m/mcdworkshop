@@ -113,9 +113,16 @@ export default function WorkPerformedSection({
         toast.error("AI could not improve that text — try again.");
         return;
       }
-      if (which === "draft") setDraft((d) => ({ ...d, detail: suggestion }));
-      else setEditDraft((d) => ({ ...d, detail: suggestion }));
-      toast.success("Text tidied up for the invoice.");
+      // Normalise to the same bullet style used by the workshop templates.
+      const bulleted = suggestion
+        .split("\n")
+        .map((l) => l.trim())
+        .filter(Boolean)
+        .map((l) => (l.startsWith("•") ? l : `• ${l.replace(/^[-*\d.)\s]+/, "")}`))
+        .join("\n");
+      if (which === "draft") setDraft((d) => ({ ...d, detail: bulleted }));
+      else setEditDraft((d) => ({ ...d, detail: bulleted }));
+      toast.success("Wording tidied up for the invoice.");
     } catch (e: any) {
       toast.error(e?.message ?? "AI grammar check failed.");
     } finally {
@@ -279,7 +286,7 @@ export default function WorkPerformedSection({
                     ) : (
                       <Sparkles className="h-3.5 w-3.5" />
                     )}
-                    Fix grammar
+                    Fix Wording
                   </Button>
                 </div>
                 <Textarea
@@ -458,7 +465,7 @@ export default function WorkPerformedSection({
                 ) : (
                   <Sparkles className="h-3.5 w-3.5" />
                 )}
-                Fix grammar
+                Fix Wording
               </Button>
             </div>
             <Textarea
