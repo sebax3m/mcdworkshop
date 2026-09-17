@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -213,6 +213,7 @@ function NewInvoice() {
     }
     toast.success("Customer created");
     await customers.refetch();
+    await refreshContacts(qc);
     setCustomerId(data.id);
     setShowNewCustomer(false);
     setNcFirst("");
@@ -250,6 +251,7 @@ function NewInvoice() {
     }
     toast.success("Bike added");
     await bikes.refetch();
+    await refreshContacts(qc);
     setBikeId(data.id);
     setShowNewBike(false);
     setNbMake("");
