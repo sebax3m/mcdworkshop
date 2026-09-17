@@ -1754,7 +1754,13 @@ function InvoiceDetail() {
                       const isConsumable = `${p.name ?? ""} ${p.supplier ?? ""}`
                         .toLowerCase()
                         .includes("consumable");
-                      const display = partDisplay(p, { invent: false });
+                      const derived = partDisplay(p, { invent: false });
+                      // Anything typed by hand wins over the derived label, so
+                      // edits to ITEM / DESCRIPTION always show exactly as saved.
+                      const display = {
+                        item: (p.part_number ?? "").trim() || derived.item,
+                        description: (p.supplier ?? "").trim() || derived.description,
+                      };
                       return (
                         <tr key={p.id} {...rowDragProps(p.id, onReorder)}>
                           <td className="py-1 pr-1.5 align-top">
