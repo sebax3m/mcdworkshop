@@ -52,30 +52,26 @@ export const globalSearch = createServerFn({ method: "GET" })
     const customerIds = (customers ?? []).map((c) => c.id);
     const bikeIds = (bikes ?? []).map((b) => b.id);
 
+    const bookingSelect =
+      "id, scheduled_date, status, customers(first_name,last_name), motorcycles(make,model,rego)";
     const [bookingsByText, bookingsByCustomer, bookingsByBike] =
       await Promise.all([
         supabase
           .from("bookings")
-          .select(
-            "id, scheduled_date, status, customers(first_name,last_name), motorcycles(make,model,rego)",
-          )
+          .select(bookingSelect)
           .or(`id.ilike.${pattern},scheduled_date.ilike.${pattern}`)
           .limit(8),
         customerIds.length
           ? supabase
               .from("bookings")
-              .select(
-                "id, scheduled_date, status, customers(first_name,last_name), motorcycles(make,model,rego)",
-              )
+              .select(bookingSelect)
               .in("customer_id", customerIds)
               .limit(8)
           : Promise.resolve({ data: [] }),
         bikeIds.length
           ? supabase
               .from("bookings")
-              .select(
-                "id, scheduled_date, status, customers(first_name,last_name), motorcycles(make,model,rego)",
-              )
+              .select(bookingSelect)
               .in("motorcycle_id", bikeIds)
               .limit(8)
           : Promise.resolve({ data: [] }),
