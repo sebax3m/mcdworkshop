@@ -290,9 +290,14 @@ ${
   if (!open) return null;
 
   const print = () => {
-    const w = frameRef.current?.contentWindow;
+    const w = frameRef.current?.contentWindow as
+      | (Window & { __fitInvoice?: () => void })
+      | null
+      | undefined;
     if (!w) return;
     w.focus();
+    // Re-run the 2-page rule against the real paper box right before printing.
+    w.__fitInvoice?.();
     w.print();
   };
 
