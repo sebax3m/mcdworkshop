@@ -45,13 +45,18 @@ export async function learnInventoryPrice(
   const lowered = uniqueKeys.map((k) => k.toLowerCase());
   const norm = (v: any) => (v ?? "").toString().trim().toLowerCase();
 
-  // Prefer an exact code (sku) match, then an exact name match, then a
-  // single unambiguous partial match.
+  // The DESCRIPTION (inventory `name`) identifies the exact product, so it
+  // always wins. The ITEM code (`sku`) is a generic category like
+  // "Spark Plugs" shared by many products — only trust it when it maps to a
+  // single inventory row, otherwise we'd overwrite an unrelated product.
+  const nameMatches = data.filter((i: any) => lowered.includes(norm(i.name)));
+  const skuMatches = data.filter((i: any) => lowered.includes(norm(i.sku)));
+
   const match =
-    data.find((i: any) => lowered.includes(norm(i.sku))) ??
-    data.find((i: any) => lowered.includes(norm(i.name))) ??
-    (data.length === 1 ? data[0] : undefined);
+    (nameMatches.length === 1 ? nameMatches[0] : undefined) ??
+    (skuMatches.length === 1 ? skuMatches[0] : undefined);
   if (!match) return;
+
 
   const current = Number(match.unit_price ?? 0);
   if (Math.abs(current - price) < 0.005) return;
