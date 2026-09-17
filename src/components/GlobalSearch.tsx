@@ -118,7 +118,11 @@ export function GlobalSearchDialog({
   };
 
   return (
-    <CommandDialog open={open} onOpenChange={onOpenChange}>
+    <CommandDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      filter={() => 1}
+    >
       <CommandInput
         placeholder="Search customers, bikes, book-ins, jobs, invoices…"
         value={query}
