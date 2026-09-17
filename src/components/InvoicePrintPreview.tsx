@@ -213,6 +213,23 @@ ${
       overflow:visible !important;
       margin-bottom:0 !important;
     }
+    /* Each print-slice is already an exact visual crop of the preview. The
+       invoice route marks whole sections as page-break-inside:avoid; leaving
+       that active makes Safari/Chromium move Work Performed to page two before
+       the crop is applied, so page one contains only the header. Never let the
+       print engine repaginate content inside these deterministic slices. */
+    .print-slice .invoice-page,
+    .print-slice .invoice-page *,
+    .print-slice .invoice-page [data-print-section],
+    .print-slice .invoice-page table,
+    .print-slice .invoice-page tr {
+      break-before:auto !important;
+      break-after:auto !important;
+      break-inside:auto !important;
+      page-break-before:auto !important;
+      page-break-after:auto !important;
+      page-break-inside:auto !important;
+    }
   }
 
 
