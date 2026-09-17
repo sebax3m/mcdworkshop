@@ -59,7 +59,7 @@ export const globalSearch = createServerFn({ method: "GET" })
         supabase
           .from("bookings")
           .select(bookingSelect)
-          .or(`id.ilike.${pattern},scheduled_date.ilike.${pattern}`)
+          .ilike("scheduled_date", pattern)
           .limit(8),
         customerIds.length
           ? supabase
