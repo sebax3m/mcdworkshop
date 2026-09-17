@@ -197,6 +197,26 @@ function CalendarPage() {
   const [hiddenCompleted, setHiddenCompleted] = useState<Record<string, boolean>>({});
   const [loanEditBookingId, setLoanEditBookingId] = useState<string | null>(null);
 
+  // Jump the calendar to the date coming from the global search highlight
+  useEffect(() => {
+    if (!searchParams.date) return;
+    const target = new Date(`${searchParams.date}T00:00:00`);
+    if (isNaN(target.getTime())) return;
+    setWeekStart(startOfWeek(target, { weekStartsOn: 1 }));
+    setMonthStart(startOfMonth(target));
+  }, [searchParams.date]);
+
+  // Scroll the highlighted booking into view once it renders
+  useEffect(() => {
+    if (!highlightId) return;
+    const t = setTimeout(() => {
+      document
+        .getElementById(`booking-${highlightId}`)
+        ?.scrollIntoView({ block: "center", behavior: "smooth" });
+    }, 300);
+    return () => clearTimeout(t);
+  }, [highlightId, viewMode, weekStart, monthStart]);
+
   // View mode for the selected booking modal: quick summary vs full editor
   const [bookingView, setBookingView] = useState<"summary" | "edit">("summary");
   // Notes edit buffer for the summary view (independent from the edit view's textarea)
@@ -1133,6 +1153,10 @@ function CalendarPage() {
                             key={b.id}
                             className={`flex items-center gap-1 w-full min-w-0 rounded-md border-l-2 px-1 py-0.5 ${st.accent} ${
                               done ? "bg-muted/20 opacity-70 saturate-50" : st.tint
+                            } ${
+                              highlightId === b.id
+                                ? "ring-2 ring-amber-400 shadow-[0_0_10px_rgba(251,191,36,0.7)]"
+                                : ""
                             }`}
                             title={`${st.label} — ${b.service_type} — ${b.motorcycles?.make ?? ""} ${b.motorcycles?.model ?? ""}`}
                           >
@@ -1312,22 +1336,28 @@ function CalendarPage() {
                                 setDropHint(null);
                               }}
                             >
-                              <BookInCard
-                                booking={b}
-                                dense
-                                draggable
-                                onDragStart={(e) => {
-                                  e.dataTransfer.effectAllowed = "move";
-                                  e.dataTransfer.setData("text/booking-id", b.id);
-                                  setDraggingId(b.id);
-                                }}
-                                onDragEnd={() => {
-                                  setDraggingId(null);
-                                  setDropHint(null);
-                                }}
-                                onClick={() => setSelectedBooking(b)}
-                                className={draggingId === b.id ? "opacity-40" : ""}
-                              />
+                              <div id={`booking-${b.id}`} className="contents">
+                                <BookInCard
+                                  booking={b}
+                                  dense
+                                  draggable
+                                  onDragStart={(e) => {
+                                    e.dataTransfer.effectAllowed = "move";
+                                    e.dataTransfer.setData("text/booking-id", b.id);
+                                    setDraggingId(b.id);
+                                  }}
+                                  onDragEnd={() => {
+                                    setDraggingId(null);
+                                    setDropHint(null);
+                                  }}
+                                  onClick={() => setSelectedBooking(b)}
+                                  className={cn(
+                                    draggingId === b.id ? "opacity-40" : "",
+                                    highlightId === b.id &&
+                                      "ring-2 ring-amber-400 shadow-[0_0_14px_rgba(251,191,36,0.8)] animate-pulse",
+                                  )}
+                                />
+                              </div>
                             </div>
                           </div>
                         ))}
