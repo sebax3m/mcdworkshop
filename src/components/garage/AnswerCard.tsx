@@ -187,54 +187,46 @@ export function AnswerCard({
         </div>
       )}
 
-      {/* SAVE CORRECT ANSWER TO THIS BIKE */}
-      {modelId && answer.source !== "none" && (
-        <div className="pt-1">
-          <Button size="sm" variant="outline" className="gap-1 h-8" onClick={() => setSaveAnswer(true)}>
-            <BookmarkPlus className="h-3.5 w-3.5" /> Correct — save to this bike
-          </Button>
-        </div>
-      )}
-
-      {/* FEEDBACK */}
-      {answer.queryId && (
-        <div className="flex items-center gap-2 pt-1">
-          {feedbackSent ? (
-            <span className="text-xs text-muted-foreground">Thanks — feedback recorded.</span>
-          ) : (
-            <>
-              <Button
-                size="sm"
-                variant="ghost"
-                className="gap-1 h-8"
-                onClick={() => {
-                  void feedback(true);
-                  if (modelId) setSaveAnswer(true);
-                }}
-              >
-                <ThumbsUp className="h-3.5 w-3.5" /> Helpful
+      {/* SAVE TO GARAGE LIBRARY */}
+      {answer.source !== "none" && (
+        <div className="rounded border border-border bg-muted/30 p-3 space-y-2">
+          <div className="text-sm font-medium">
+            Is this correct? Add it to the Garage Library for future searches.
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            {modelId ? (
+              <Button size="sm" className="gap-1 h-8" onClick={() => { setSaveAnswer(true); if (!feedbackSent) void feedback(true); }}>
+                <BookmarkPlus className="h-3.5 w-3.5" /> Yes — add to Garage Library
               </Button>
-              <Button
-                size="sm"
-                variant="ghost"
-                className="gap-1 h-8"
-                onClick={() => setReasonOpen((v) => !v)}
-              >
-                <ThumbsDown className="h-3.5 w-3.5" /> Incorrect
+            ) : (
+              <span className="text-xs text-muted-foreground">
+                Select the motorcycle model to be able to save this answer.
+              </span>
+            )}
+            {answer.queryId && !feedbackSent && (
+              <Button size="sm" variant="ghost" className="gap-1 h-8" onClick={() => setReasonOpen((v) => !v)}>
+                <ThumbsDown className="h-3.5 w-3.5" /> No — it's wrong
               </Button>
-            </>
+            )}
+            {answer.queryId && !feedbackSent && (
+              <Button size="sm" variant="ghost" className="gap-1 h-8" onClick={() => void feedback(true)}>
+                <ThumbsUp className="h-3.5 w-3.5" /> Helpful, don't save
+              </Button>
+            )}
+            {feedbackSent && <span className="text-xs text-muted-foreground">Thanks — feedback recorded.</span>}
+          </div>
+          {reasonOpen && !feedbackSent && (
+            <div className="flex flex-wrap gap-1">
+              {FEEDBACK_REASONS.map((r) => (
+                <Button key={r} size="sm" variant="outline" className="h-7 text-xs" onClick={() => feedback(false, r)}>
+                  {r}
+                </Button>
+              ))}
+            </div>
           )}
         </div>
       )}
-      {reasonOpen && !feedbackSent && (
-        <div className="flex flex-wrap gap-1">
-          {FEEDBACK_REASONS.map((r) => (
-            <Button key={r} size="sm" variant="outline" className="h-7 text-xs" onClick={() => feedback(false, r)}>
-              {r}
-            </Button>
-          ))}
-        </div>
-      )}
+
 
       {saveAnswer && modelId && (
         <SaveAnswerDialog
