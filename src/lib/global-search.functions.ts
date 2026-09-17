@@ -67,14 +67,14 @@ export const globalSearch = createServerFn({ method: "GET" })
               .select(bookingSelect)
               .in("customer_id", customerIds)
               .limit(8)
-          : Promise.resolve({ data: [] }),
+          : Promise.resolve({ data: [], error: null } as any),
         bikeIds.length
           ? supabase
               .from("bookings")
               .select(bookingSelect)
               .in("motorcycle_id", bikeIds)
               .limit(8)
-          : Promise.resolve({ data: [] }),
+          : Promise.resolve({ data: [], error: null } as any),
       ]);
 
     const jobSelect =
