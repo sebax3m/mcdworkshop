@@ -42,6 +42,104 @@ export function answerToText(answer: TechAnswer) {
 }
 
 /**
+ * One-click save: writes the answer straight into the bike's library.
+ * Admins write verified rows; technicians raise a verification proposal.
+ */
+export async function autoSaveAnswer({
+  answer,
+  modelId,
+  isAdmin,
+  userId,
+}: {
+  answer: TechAnswer;
+  modelId: string;
+  isAdmin: boolean;
+  userId?: string | null;
+}) {
+  const body = answerToText(answer);
+  const sourceName =
+    answer.source === "external_ai"
+      ? "MCD TECH AI (confirmed by workshop)"
+      : answer.sections[0]
+        ? `${answer.sections[0].manufacturer ?? ""} ${answer.sections[0].title ?? ""}`.trim()
+        : "MCD TECH";
+  const specs = answer.specs.filter((s) => s.label?.trim() && s.value?.trim());
+
+  if (!isAdmin) {
+    if (specs.length > 0) {
+      for (const s of specs) {
+        await proposeUpdate({
+          modelId,
+          entityTable: "garage_tech_specs",
+          label: s.label,
+          field: s.label,
+          proposedValue: s.value,
+          note: `${sourceName} — ${answer.question}`.slice(0, 1000),
+          source: "technician_entry" as any,
+        });
+      }
+    } else {
+      await proposeUpdate({
+        modelId,
+        entityTable: "garage_notes",
+        label: answer.heading || answer.question,
+        proposedValue: body.slice(0, 2000),
+        note: sourceName,
+        source: "technician_entry" as any,
+      });
+    }
+    return "proposed" as const;
+  }
+
+  if (specs.length > 0) {
+    const rows = specs.map((s) => ({
+      model_id: modelId,
+      category: TECH_CATEGORIES[0]!.key,
+      subject: "",
+      field: s.label,
+      value_text: s.value,
+      value_num: toNum(s.value),
+      unit: null,
+      notes: s.note ?? null,
+      source_type: answer.source === "external_ai" ? "ai_assist" : "manual_entry",
+      source_name: sourceName,
+      verification: "workshop_verified",
+      verified_by: userId ?? null,
+      verified_at: new Date().toISOString(),
+      created_by: userId ?? null,
+      updated_by: userId ?? null,
+    }));
+    const { error } = await supabase.from("garage_tech_specs").insert(rows as never);
+    if (error) throw error;
+    await logRevision({
+      modelId,
+      entityTable: "garage_tech_specs",
+      label: answer.heading || answer.question,
+      newValue: specs.map((s) => `${s.label}: ${s.value}`).join(" · ").slice(0, 300),
+      action: "create",
+      note: sourceName,
+    });
+  } else {
+    const { error } = await supabase.from("garage_notes").insert({
+      model_id: modelId,
+      title: (answer.heading || answer.question).slice(0, 200),
+      body: `${body}\n\n— ${sourceName}`,
+      created_by: userId ?? null,
+    } as never);
+    if (error) throw error;
+    await logRevision({
+      modelId,
+      entityTable: "garage_notes",
+      label: answer.heading || answer.question,
+      newValue: body.slice(0, 300),
+      action: "create",
+      note: sourceName,
+    });
+  }
+  return "saved" as const;
+}
+
+/**
  * "This is correct — save it to this bike".
  * Admins write straight into the model's knowledge; technicians raise a
  * verification proposal so nothing unverified lands in the library silently.
