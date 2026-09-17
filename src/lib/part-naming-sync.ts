@@ -35,58 +35,92 @@ export async function learnPartNaming(args: {
   const productKeys = uniq([prevDesc, prevName].filter((k): k is string => !!k && k.length >= 2));
   const keys = productKeys.length ? productKeys : [prevCode].filter((k) => looksProductSpecific(k));
 
-  await updateInventory({ keys, nextCode, nextDesc, silent: args.silent });
+  await updateInventory({
+    keys,
+    prevDesc: prevDesc || prevName,
+    nextCode,
+    nextDesc,
+    silent: args.silent,
+  });
 }
 
 async function updateInventory(o: {
   keys: string[];
+  prevDesc: string;
   nextCode: string;
   nextDesc: string;
   silent?: boolean;
 }) {
-  if (!o.keys.length) return;
-  const filters = o.keys
+  const matchRow = o.keys.length ? await findInventoryRow(o.keys) : null;
+
+  // Is this the same product written better, or a different product?
+  // A different DESCRIPTION means a different product, so we must never
+  // rename the existing library row — we add a new one instead.
+  const sameProduct =
+    !o.nextDesc || !o.prevDesc || productKey(o.nextDesc) === productKey(o.prevDesc);
+
+  if (matchRow && sameProduct) {
+    const patch: { sku?: string; name?: string } = {};
+    if (o.nextCode && norm(matchRow.sku) !== o.nextCode.toLowerCase()) patch.sku = o.nextCode;
+    if (o.nextDesc && norm(matchRow.name) !== o.nextDesc.toLowerCase()) patch.name = o.nextDesc;
+    if (!Object.keys(patch).length) return;
+    const { error } = await supabase.from("inventory_items").update(patch).eq("id", matchRow.id);
+    if (error) {
+      if (!o.silent) toast.error(`Couldn't update inventory item: ${error.message}`);
+      return;
+    }
+    if (!o.silent) {
+      toast.success(
+        `Inventory updated — ${patch.sku ?? matchRow.sku ?? ""} ${patch.name ?? matchRow.name ?? ""}`.trim(),
+      );
+    }
+    return;
+  }
+
+  // Different product (or nothing to learn from): only add a library row when
+  // we have both halves of the house format and it isn't there already.
+  if (!o.nextCode || !o.nextDesc) return;
+  const existing = await findInventoryRow([o.nextDesc]);
+  if (existing) return;
+  const category = guessInventoryCategory(`${o.nextDesc} ${o.nextCode}`);
+  const { error } = await supabase.from("inventory_items").insert({
+    name: o.nextDesc,
+    sku: o.nextCode,
+    category,
+    unit: categoryUnit(category),
+    unit_price: 0,
+  } as never);
+  if (error) return;
+  if (!o.silent) toast.success(`Added to inventory — ${o.nextCode} · ${o.nextDesc}`);
+}
+
+/** Exact (case-insensitive) match on the product DESCRIPTION, never on the shared ITEM label. */
+async function findInventoryRow(keys: string[]) {
+  const filters = keys
     .flatMap((k) => {
       const safe = escapeFilter(k);
-      return safe ? [`name.ilike.${safe}`, `sku.ilike.${safe}`] : [];
+      return safe ? [`name.ilike.${safe}`] : [];
     })
     .join(",");
-  if (!filters) return;
-
+  if (!filters) return null;
   const { data, error } = await supabase
     .from("inventory_items")
     .select("id, name, sku")
     .or(filters)
     .limit(20);
-  if (error || !data?.length) return;
-
-  const lowered = o.keys.map((k) => k.toLowerCase());
-  const match =
-    data.find((i: any) => lowered.includes(norm(i.sku))) ??
-    data.find((i: any) => lowered.includes(norm(i.name))) ??
-    (data.length === 1 ? data[0] : undefined);
-  if (!match) return;
-
-  const patch: { sku?: string; name?: string } = {};
-  if (o.nextCode && norm(match.sku) !== o.nextCode.toLowerCase()) patch.sku = o.nextCode;
-  if (o.nextDesc && norm(match.name) !== o.nextDesc.toLowerCase()) patch.name = o.nextDesc;
-  if (!Object.keys(patch).length) return;
-
-  const { error: upErr } = await supabase.from("inventory_items").update(patch).eq("id", match.id);
-  if (upErr) {
-    if (!o.silent) toast.error(`Couldn't update inventory item: ${upErr.message}`);
-    return;
-  }
-  if (!o.silent) {
-    toast.success(`Inventory updated — ${patch.sku ?? match.sku ?? ""} ${patch.name ?? match.name ?? ""}`.trim());
-  }
+  if (error || !data?.length) return null;
+  const lowered = keys.map((k) => k.toLowerCase());
+  const matches = data.filter((i: any) => lowered.includes(norm(i.name)));
+  return matches.length === 1 ? matches[0] : null;
 }
 
 const clean = (v?: string | null) => (v ?? "").trim();
 const norm = (v: any) => (v ?? "").toString().trim().toLowerCase();
+const productKey = (v: string) => v.toLowerCase().replace(/[^a-z0-9]/g, "");
 const uniq = (a: string[]) => Array.from(new Set(a.map((s) => s.toLowerCase()))).map((l) => a.find((s) => s.toLowerCase() === l)!);
 const looksProductSpecific = (value: string) => /\d/.test(value) || value.trim().split(/\s+/).length > 3;
 
 function escapeFilter(v: string) {
   return v.replace(/[(),*]/g, " ").replace(/\s{2,}/g, " ").trim();
 }
+
