@@ -978,6 +978,7 @@ function CalendarPage() {
       <div className="flex items-center gap-2.5">
         <CalendarDays className="h-6 w-6 text-foreground" />
         <h1 className="font-display text-2xl font-bold leading-none">Book-ins</h1>
+        <GlobalSearchButton />
       </div>
 
       {/* NAV + TOGGLE */}
@@ -996,7 +997,6 @@ function CalendarPage() {
           >
             Today
           </button>
-          <GlobalSearchButton />
           <button
             onClick={goNext}
             className="grid h-10 w-10 place-items-center rounded-xl border border-border hover:border-primary/50 hover:bg-primary/5 transition-colors"
