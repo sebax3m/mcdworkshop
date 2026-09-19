@@ -186,7 +186,7 @@ ${
     .print-slice-content {
       position:absolute !important;
       left:0 !important;
-      width:100% !important;
+      width:100%;
       transform-origin:top left !important;
     }
     .page-guides, .invoice-sheet::after, .invoice-page .invoice-sheet::after { content:none !important; display:none !important; background:none !important; }
