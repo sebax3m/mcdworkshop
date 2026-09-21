@@ -1,8 +1,7 @@
 import { useState } from "react";
-import { Check, Loader2, Pencil, Plus, Sparkles, Trash2, Wrench, X } from "lucide-react";
-import { useServerFn } from "@tanstack/react-start";
-import { cleanTechnicianNote } from "@/lib/mcd-tech-assist.functions";
+import { Check, MessageSquareText, Pencil, Plus, Trash2, Wrench, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { FixWordingChatDialog } from "@/components/job/FixWordingChatDialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -94,42 +93,6 @@ export default function WorkPerformedSection({
     };
   }
   const [busy, setBusy] = useState(false);
-  // AI grammar helper: turns the technician's rough notes into clean workshop
-  // wording so the text reads properly on the invoice. Facts are never added.
-  const cleanNote = useServerFn(cleanTechnicianNote);
-  const [fixing, setFixing] = useState<"draft" | "edit" | null>(null);
-
-  async function fixGrammar(which: "draft" | "edit") {
-    const text = which === "draft" ? draft.detail : editDraft.detail;
-    if (text.trim().length < 3) {
-      toast.error("Write a few words first, then let AI tidy them up.");
-      return;
-    }
-    setFixing(which);
-    try {
-      const res = await cleanNote({ data: { text: text.trim() } });
-      const suggestion = (res as { suggestion?: string })?.suggestion?.trim();
-      if (!suggestion) {
-        toast.error("AI could not improve that text — try again.");
-        return;
-      }
-      // Keep the report structure returned by MCD TECH: heading, blank lines and
-      // separate paragraphs mirror the customer-ready invoice format.
-      const report = suggestion
-        .split("\n")
-        .map((line) => line.trim())
-        .join("\n")
-        .replace(/\n{3,}/g, "\n\n")
-        .trim();
-      if (which === "draft") setDraft((d) => ({ ...d, detail: report }));
-      else setEditDraft((d) => ({ ...d, detail: report }));
-      toast.success("Wording tidied up for the invoice.");
-    } catch (e: any) {
-      toast.error(e?.message ?? "AI grammar check failed.");
-    } finally {
-      setFixing(null);
-    }
-  }
   const [draft, setDraft] = useState<WorkPerformedEntry>({
     id: "",
     title: "",
@@ -144,6 +107,21 @@ export default function WorkPerformedSection({
     detail: "",
     hours: 0,
   });
+  const [wordingTarget, setWordingTarget] = useState<"draft" | "edit" | null>(null);
+
+  function openWordingChat(which: "draft" | "edit") {
+    const text = which === "draft" ? draft.detail : editDraft.detail;
+    if (text.trim().length < 3) {
+      toast.error("Write a few words first, then open Fix Wording.");
+      return;
+    }
+    setWordingTarget(which);
+  }
+
+  function acceptWording(value: string) {
+    if (wordingTarget === "draft") setDraft((current) => ({ ...current, detail: value }));
+    if (wordingTarget === "edit") setEditDraft((current) => ({ ...current, detail: value }));
+  }
 
   function applyPresetToEdit(presetId: string) {
     if (presetId.startsWith("tmpl:")) {
@@ -279,14 +257,9 @@ export default function WorkPerformedSection({
                     variant="ghost"
                     size="sm"
                     className="h-7 gap-1.5 text-xs text-primary"
-                    disabled={fixing !== null}
-                    onClick={() => fixGrammar("edit")}
+                    onClick={() => openWordingChat("edit")}
                   >
-                    {fixing === "edit" ? (
-                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                    ) : (
-                      <Sparkles className="h-3.5 w-3.5" />
-                    )}
+                    <MessageSquareText className="h-3.5 w-3.5" />
                     Fix Wording
                   </Button>
                 </div>
@@ -458,14 +431,9 @@ export default function WorkPerformedSection({
                 variant="ghost"
                 size="sm"
                 className="h-7 gap-1.5 text-xs text-primary"
-                disabled={fixing !== null}
-                onClick={() => fixGrammar("draft")}
+                onClick={() => openWordingChat("draft")}
               >
-                {fixing === "draft" ? (
-                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                ) : (
-                  <Sparkles className="h-3.5 w-3.5" />
-                )}
+                <MessageSquareText className="h-3.5 w-3.5" />
                 Fix Wording
               </Button>
             </div>
@@ -482,6 +450,14 @@ export default function WorkPerformedSection({
           </Button>
         </div>
       )}
+      <FixWordingChatDialog
+        open={wordingTarget !== null}
+        originalText={wordingTarget === "edit" ? editDraft.detail : draft.detail}
+        onOpenChange={(open) => {
+          if (!open) setWordingTarget(null);
+        }}
+        onAccept={acceptWording}
+      />
     </div>
   );
 }
