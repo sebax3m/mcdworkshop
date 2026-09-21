@@ -16,6 +16,7 @@ import { Slider } from "@/components/ui/slider";
 import { toast } from "sonner";
 import type { ClaimPdfData } from "@/lib/claim-pdf";
 import { MAX_ATTACHMENT_BYTES } from "@/lib/pdf-attachments";
+import { retryImport } from "@/lib/lazy-module";
 
 const mb = (b: number) => `${(b / 1024 / 1024).toFixed(1)} MB`;
 
@@ -51,7 +52,7 @@ export function ClaimPdfExportDialog({
     setResult(null);
     setEst(null);
     (async () => {
-      const { countClaimPhotos } = await import("@/lib/claim-pdf");
+      const { countClaimPhotos } = await retryImport(() => import("@/lib/claim-pdf"));
       const n = await countClaimPhotos(data.claim.id);
       setPhotoCount(n);
       setMaxPhotos(Math.max(1, n));
@@ -74,8 +75,8 @@ export function ClaimPdfExportDialog({
   const estimate = async () => {
     setEstimating(true);
     try {
-      const { buildClaimPdf } = await import("@/lib/claim-pdf");
-      const { estimateAttachments } = await import("@/lib/pdf-attachments");
+      const { buildClaimPdf } = await retryImport(() => import("@/lib/claim-pdf"));
+      const { estimateAttachments } = await retryImport(() => import("@/lib/pdf-attachments"));
       const blob = await buildClaimPdf({ ...data, options: buildOptions() });
       const e = await estimateAttachments(blob, fileBaseName);
       setEst({
@@ -94,8 +95,8 @@ export function ClaimPdfExportDialog({
   const build = async (minParts = 1) => {
     setBuilding(true);
     try {
-      const { buildClaimPdf } = await import("@/lib/claim-pdf");
-      const { preparePdfAttachments, downloadFile } = await import("@/lib/pdf-attachments");
+      const { buildClaimPdf } = await retryImport(() => import("@/lib/claim-pdf"));
+      const { preparePdfAttachments, downloadFile } = await retryImport(() => import("@/lib/pdf-attachments"));
       const blob = await buildClaimPdf({ ...data, options: buildOptions() });
       const prepared = await preparePdfAttachments(blob, fileBaseName, { minParts });
       prepared.forEach((p, i) => setTimeout(() => downloadFile(p.file), i * 400));

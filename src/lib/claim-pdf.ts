@@ -2,6 +2,7 @@
 import jsPDF from "jspdf";
 import { supabase } from "@/integrations/supabase/client";
 import logoAsset from "@/assets/motorcycle-doctors-logo.png.asset.json";
+import { retryImport } from "@/lib/lazy-module";
 
 const COMPANY = {
   name: "Motorcycle Doctors",
@@ -431,7 +432,7 @@ export async function sendClaimEmailWithPdf(
     body: string;
   },
 ): Promise<{ shared: boolean }> {
-  const { preparePdfAttachments, downloadFile } = await import("@/lib/pdf-attachments");
+  const { preparePdfAttachments, downloadFile } = await retryImport(() => import("@/lib/pdf-attachments"));
   const blob = await buildClaimPdf(d);
   const prepared = await preparePdfAttachments(blob, `Claim-${d.claim.claim_number}`);
   const files = prepared.map((p) => p.file);

@@ -1,4 +1,5 @@
 import { zipSync } from "fflate";
+import { retryImport } from "@/lib/lazy-module";
 
 /** Max attachment size accepted by most email providers (24 MB). */
 export const MAX_ATTACHMENT_BYTES = 24 * 1024 * 1024;
@@ -18,7 +19,7 @@ function zipFile(name: string, bytes: Uint8Array): Uint8Array {
  * PDF on its own (no spanned-archive tricks), so each zip opens normally.
  */
 async function splitPdfByPages(bytes: Uint8Array, parts: number): Promise<Uint8Array[]> {
-  const { PDFDocument } = await import("pdf-lib");
+  const { PDFDocument } = await retryImport(() => import("pdf-lib"));
   const src = await PDFDocument.load(bytes);
   const total = src.getPageCount();
   const effective = Math.min(parts, Math.max(1, total));
