@@ -15,10 +15,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 type Guard = { customerText?: boolean };
 
-async function guard(
-  context: { supabase: any; userId: string },
-  opts: Guard = {},
-): Promise<void> {
+async function guard(context: { supabase: any; userId: string }, opts: Guard = {}): Promise<void> {
   const [{ data: roles }, { data: settings }] = await Promise.all([
     context.supabase.from("user_roles").select("role").eq("user_id", context.userId),
     context.supabase.from("mcd_tech_settings").select("*").maybeSingle(),
@@ -111,7 +108,16 @@ export const explainToCustomer = createServerFn({ method: "POST" })
 /* ------------------------------------------------------------------ */
 
 const TriageInput = z.object({
-  findings: z.array(z.object({ id: z.string(), title: z.string().max(300), detail: z.string().max(600).nullable() })).min(1).max(30),
+  findings: z
+    .array(
+      z.object({
+        id: z.string(),
+        title: z.string().max(300),
+        detail: z.string().max(600).nullable(),
+      }),
+    )
+    .min(1)
+    .max(30),
 });
 
 /** Suggest CRITICAL / RECOMMENDED / MONITOR buckets. The technician decides. */
@@ -127,7 +133,9 @@ export const triageFindings = createServerFn({ method: "POST" })
         "Allowed buckets: CRITICAL, RECOMMENDED, MONITOR. Anything affecting rider safety now is CRITICAL.",
         "Return ONLY lines of the form: <id>|<BUCKET>|<max 12 word reason>. No other text.",
       ].join(" "),
-      user: data.findings.map((f) => `${f.id}: ${f.title}${f.detail ? ` — ${f.detail}` : ""}`).join("\n"),
+      user: data.findings
+        .map((f) => `${f.id}: ${f.title}${f.detail ? ` — ${f.detail}` : ""}`)
+        .join("\n"),
     });
     const allowed = new Set(["CRITICAL", "RECOMMENDED", "MONITOR"]);
     const byId = new Map(data.findings.map((f) => [f.id, f]));

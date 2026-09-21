@@ -141,7 +141,6 @@ export default function WorkPerformedSection({
     }));
   }
 
-
   async function persist(next: WorkPerformedEntry[]) {
     setBusy(true);
     const { error } = await supabase
@@ -177,14 +176,17 @@ export default function WorkPerformedSection({
     const ok = await persist(
       entries.map((x) =>
         x.id === editingId
-          ? { ...editDraft, id: x.id, title: editDraft.title.trim(), detail: editDraft.detail.trim() }
+          ? {
+              ...editDraft,
+              id: x.id,
+              title: editDraft.title.trim(),
+              detail: editDraft.detail.trim(),
+            }
           : x,
       ),
     );
     if (ok) setEditingId(null);
   }
-
-
 
   function applyPreset(presetId: string) {
     if (presetId.startsWith("tmpl:")) {
@@ -211,11 +213,16 @@ export default function WorkPerformedSection({
   }
 
   return (
-    <div className="rounded-xl border border-border bg-card p-4" data-print-section="work-performed">
+    <div
+      className="rounded-xl border border-border bg-card p-4"
+      data-print-section="work-performed"
+    >
       <div className="flex items-center justify-between gap-2 mb-4">
         <div className="flex items-center gap-2">
           <Wrench className="h-4 w-4 text-service-banana" />
-          <h2 className="font-display text-base font-bold uppercase tracking-wider text-service-banana bg-service-banana/10 px-2 py-0.5 rounded-md">Work Performed</h2>
+          <h2 className="font-display text-base font-bold uppercase tracking-wider text-service-banana bg-service-banana/10 px-2 py-0.5 rounded-md">
+            Work Performed
+          </h2>
         </div>
         {entries.length > 0 && (
           <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-primary/10 text-primary">
@@ -227,7 +234,10 @@ export default function WorkPerformedSection({
       <div className="space-y-2">
         {entries.map((e) =>
           editingId === e.id ? (
-            <div key={e.id} className="rounded-lg border border-primary/50 bg-background/60 p-3 space-y-2">
+            <div
+              key={e.id}
+              className="rounded-lg border border-primary/50 bg-background/60 p-3 space-y-2"
+            >
               <div className="grid gap-2 sm:grid-cols-[1fr_120px]">
                 <div>
                   <Label className="text-xs">What was done</Label>
@@ -278,7 +288,9 @@ export default function WorkPerformedSection({
                   <SelectContent>
                     {(serviceTemplates.data ?? []).length > 0 && (
                       <SelectGroup>
-                        <SelectLabel className={groupLabelClass("Workshop service templates")}>Workshop service templates</SelectLabel>
+                        <SelectLabel className={groupLabelClass("Workshop service templates")}>
+                          Workshop service templates
+                        </SelectLabel>
                         {(serviceTemplates.data ?? []).map((t) => (
                           <SelectItem key={t.id} value={`tmpl:${t.id}`}>
                             {t.name}
@@ -321,9 +333,7 @@ export default function WorkPerformedSection({
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
                   {e.hours > 0 && (
-                    <span className="text-xs text-muted-foreground print:hidden">
-                      ~{e.hours} h
-                    </span>
+                    <span className="text-xs text-muted-foreground print:hidden">~{e.hours} h</span>
                   )}
                   {canEdit && (
                     <>
@@ -368,7 +378,9 @@ export default function WorkPerformedSection({
                 <SelectContent>
                   {(serviceTemplates.data ?? []).length > 0 && (
                     <SelectGroup>
-                      <SelectLabel className={groupLabelClass("Workshop service templates")}>Workshop service templates</SelectLabel>
+                      <SelectLabel className={groupLabelClass("Workshop service templates")}>
+                        Workshop service templates
+                      </SelectLabel>
                       {(serviceTemplates.data ?? []).map((t) => (
                         <SelectItem key={t.id} value={`tmpl:${t.id}`}>
                           {t.name}

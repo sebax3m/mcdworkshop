@@ -8,11 +8,7 @@ import {
   ConversationContent,
   ConversationScrollButton,
 } from "@/components/ai-elements/conversation";
-import {
-  Message,
-  MessageContent,
-  MessageResponse,
-} from "@/components/ai-elements/message";
+import { Message, MessageContent, MessageResponse } from "@/components/ai-elements/message";
 import {
   PromptInput,
   PromptInputFooter,
@@ -148,7 +144,9 @@ export function FixWordingChatDialog({
             </div>
             <div>
               <DialogTitle>Fix Wording</DialogTitle>
-              <DialogDescription>Refine the report, then use the version you approve.</DialogDescription>
+              <DialogDescription>
+                Refine the report, then use the version you approve.
+              </DialogDescription>
             </div>
           </div>
         </DialogHeader>
@@ -200,9 +198,7 @@ export function FixWordingChatDialog({
                 disabled={status === "submitted" || status === "streaming"}
                 onClick={() => {
                   const current = latestSuggestion ?? originalText;
-                  setMessages([
-                    { id: `user-${Date.now()}`, role: "user", content: originalText },
-                  ]);
+                  setMessages([{ id: `user-${Date.now()}`, role: "user", content: originalText }]);
                   void requestWording(current, []);
                 }}
               >
@@ -217,7 +213,9 @@ export function FixWordingChatDialog({
         </div>
 
         <DialogFooter className="border-t border-border bg-card px-5 py-3 sm:space-x-2">
-          <Button type="button" variant="ghost" onClick={close}>Cancel</Button>
+          <Button type="button" variant="ghost" onClick={close}>
+            Cancel
+          </Button>
           <Button type="button" className="gap-2" disabled={!latestSuggestion} onClick={accept}>
             <Check className="size-4" /> Use wording
           </Button>
