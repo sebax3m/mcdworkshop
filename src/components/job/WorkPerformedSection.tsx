@@ -113,15 +113,16 @@ export default function WorkPerformedSection({
         toast.error("AI could not improve that text — try again.");
         return;
       }
-      // Normalise to the same bullet style used by the workshop templates.
-      const bulleted = suggestion
+      // Keep the report structure returned by MCD TECH: heading, blank lines and
+      // separate paragraphs mirror the customer-ready invoice format.
+      const report = suggestion
         .split("\n")
-        .map((l) => l.trim())
-        .filter(Boolean)
-        .map((l) => (l.startsWith("•") ? l : `• ${l.replace(/^[-*\d.)\s]+/, "")}`))
-        .join("\n");
-      if (which === "draft") setDraft((d) => ({ ...d, detail: bulleted }));
-      else setEditDraft((d) => ({ ...d, detail: bulleted }));
+        .map((line) => line.trim())
+        .join("\n")
+        .replace(/\n{3,}/g, "\n\n")
+        .trim();
+      if (which === "draft") setDraft((d) => ({ ...d, detail: report }));
+      else setEditDraft((d) => ({ ...d, detail: report }));
       toast.success("Wording tidied up for the invoice.");
     } catch (e: any) {
       toast.error(e?.message ?? "AI grammar check failed.");
