@@ -197,9 +197,8 @@ export function FixWordingChatDialog({
                 className="gap-1.5"
                 disabled={status === "submitted" || status === "streaming"}
                 onClick={() => {
-                  const current = latestSuggestion ?? originalText;
                   setMessages([{ id: `user-${Date.now()}`, role: "user", content: originalText }]);
-                  void requestWording(current, []);
+                  void requestWording(originalText, []);
                 }}
               >
                 <RotateCcw className="size-4" /> Rewrite
