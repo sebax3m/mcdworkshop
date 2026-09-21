@@ -219,6 +219,14 @@ function CalendarPage() {
     return () => clearTimeout(t);
   }, [highlightId, viewMode, weekStart, monthStart]);
 
+  // Once the highlighted booking is opened, drop the highlight from the URL so
+  // it doesn't stay lit after the modal closes.
+  useEffect(() => {
+    if (selectedBooking?.id && highlightId && selectedBooking.id === highlightId) {
+      nav({ to: "/calendar", search: {}, replace: true });
+    }
+  }, [selectedBooking?.id, highlightId, nav]);
+
   // View mode for the selected booking modal: quick summary vs full editor
   const [bookingView, setBookingView] = useState<"summary" | "edit">("summary");
   // Notes edit buffer for the summary view (independent from the edit view's textarea)
