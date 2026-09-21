@@ -11,7 +11,7 @@ const GATEWAY = "https://ai.gateway.lovable.dev/v1";
 export const AI_MODELS = {
   chat: "google/gemini-3.6-flash",
   /** Deep reasoning model for precise technical specifications. */
-  reasoning: "openai/gpt-5.5",
+  reasoning: "openai/gpt-6-astra",
   embedding: "openai/text-embedding-3-small",
 } as const;
 
@@ -58,8 +58,6 @@ export async function aiChat(opts: {
   return json.choices?.[0]?.message?.content?.trim() ?? "";
 }
 
-
-
 /**
  * Deep reasoning answer (OpenAI Responses API, streamed server-side).
  * Used for precise technical questions — valve clearances, torque figures,
@@ -76,7 +74,10 @@ export async function aiReason(opts: {
     { role: "developer" as const, content: [{ type: "input_text" as const, text: opts.system }] },
     ...(opts.history ?? []).map((m) =>
       m.role === "assistant"
-        ? { role: "assistant" as const, content: [{ type: "output_text" as const, text: m.content }] }
+        ? {
+            role: "assistant" as const,
+            content: [{ type: "output_text" as const, text: m.content }],
+          }
         : { role: "user" as const, content: [{ type: "input_text" as const, text: m.content }] },
     ),
     { role: "user" as const, content: [{ type: "input_text" as const, text: opts.user }] },
@@ -85,7 +86,7 @@ export async function aiReason(opts: {
   const res = await fetch(`${GATEWAY}/responses`, {
     method: "POST",
     headers: {
-      Authorization: `Bearer ${apiKey()}`,
+      "Lovable-API-Key": apiKey(),
       "Content-Type": "application/json",
       "X-Lovable-AIG-SDK": "fetch",
     },
@@ -118,7 +119,8 @@ export async function aiReason(opts: {
         if (!payload || payload === "[DONE]") continue;
         try {
           const evt = JSON.parse(payload) as any;
-          if (evt.type === "response.output_text.delta" && typeof evt.delta === "string") text += evt.delta;
+          if (evt.type === "response.output_text.delta" && typeof evt.delta === "string")
+            text += evt.delta;
           else if (evt.type === "response.completed" && !text)
             text = String(evt.response?.output_text ?? "");
         } catch {
@@ -129,7 +131,6 @@ export async function aiReason(opts: {
   }
   return text.trim();
 }
-
 
 /** Embeddings for document indexing and semantic retrieval. */
 export async function aiEmbed(input: string[], model = AI_MODELS.embedding): Promise<number[][]> {

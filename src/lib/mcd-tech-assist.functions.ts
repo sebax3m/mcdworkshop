@@ -15,10 +15,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 type Guard = { customerText?: boolean };
 
-async function guard(
-  context: { supabase: any; userId: string },
-  opts: Guard = {},
-): Promise<void> {
+async function guard(context: { supabase: any; userId: string }, opts: Guard = {}): Promise<void> {
   const [{ data: roles }, { data: settings }] = await Promise.all([
     context.supabase.from("user_roles").select("role").eq("user_id", context.userId),
     context.supabase.from("mcd_tech_settings").select("*").maybeSingle(),
@@ -38,7 +35,18 @@ async function guard(
 
 /* ------------------------------------------------------------------ */
 
-const NoteInput = z.object({ text: z.string().min(3).max(4000) });
+const NoteInput = z.object({
+  text: z.string().min(3).max(4000),
+  history: z
+    .array(
+      z.object({
+        role: z.enum(["user", "assistant"]),
+        content: z.string().min(1).max(5000),
+      }),
+    )
+    .max(20)
+    .optional(),
+});
 
 /** Rewrite rough shorthand into workshop wording. Original text is never touched. */
 export const cleanTechnicianNote = createServerFn({ method: "POST" })
@@ -46,8 +54,8 @@ export const cleanTechnicianNote = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => NoteInput.parse(d))
   .handler(async ({ data, context }) => {
     await guard(context as never);
-    const { aiChat } = await import("./ai-gateway.server");
-    const suggestion = await aiChat({
+    const { aiReason } = await import("./ai-gateway.server");
+    const suggestion = await aiReason({
       system: [
         "You are MCD TECH, rewriting a motorcycle technician's rough notes into a polished workshop invoice and job report.",
         "Preserve every fact from the input, but correct grammar, clarify the meaning and arrange the events in a logical chronological order.",
@@ -58,9 +66,14 @@ export const cleanTechnicianNote = createServerFn({ method: "POST" })
         "Use one paragraph for the reported concern, one for each unrelated inspection/test/work stage, one for the result, and a final paragraph for advice or next steps only when the input contains that advice.",
         "Separate unrelated work into its own titled section with blank lines so different jobs are never merged.",
         "Do not include a preamble such as 'Here is a cleaner version', markdown symbols, labels like 'Title:', or commentary about the rewrite.",
+        "When the technician asks for a follow-up change, revise the most recent report while keeping every factual constraint from the original note.",
+        "Treat requests such as shorter, clearer, more technical, or more customer-friendly as style changes only; never turn them into new workshop facts.",
         "Output only the finished customer-ready report.",
       ].join(" "),
+      history: data.history,
       user: data.text,
+      model: "openai/gpt-6-astra",
+      effort: "low",
     });
     return { suggestion, original: data.text };
   });
@@ -95,7 +108,16 @@ export const explainToCustomer = createServerFn({ method: "POST" })
 /* ------------------------------------------------------------------ */
 
 const TriageInput = z.object({
-  findings: z.array(z.object({ id: z.string(), title: z.string().max(300), detail: z.string().max(600).nullable() })).min(1).max(30),
+  findings: z
+    .array(
+      z.object({
+        id: z.string(),
+        title: z.string().max(300),
+        detail: z.string().max(600).nullable(),
+      }),
+    )
+    .min(1)
+    .max(30),
 });
 
 /** Suggest CRITICAL / RECOMMENDED / MONITOR buckets. The technician decides. */
@@ -111,7 +133,9 @@ export const triageFindings = createServerFn({ method: "POST" })
         "Allowed buckets: CRITICAL, RECOMMENDED, MONITOR. Anything affecting rider safety now is CRITICAL.",
         "Return ONLY lines of the form: <id>|<BUCKET>|<max 12 word reason>. No other text.",
       ].join(" "),
-      user: data.findings.map((f) => `${f.id}: ${f.title}${f.detail ? ` — ${f.detail}` : ""}`).join("\n"),
+      user: data.findings
+        .map((f) => `${f.id}: ${f.title}${f.detail ? ` — ${f.detail}` : ""}`)
+        .join("\n"),
     });
     const allowed = new Set(["CRITICAL", "RECOMMENDED", "MONITOR"]);
     const byId = new Map(data.findings.map((f) => [f.id, f]));
