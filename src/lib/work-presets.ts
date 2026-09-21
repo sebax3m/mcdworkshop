@@ -271,6 +271,49 @@ export const WORK_PRESETS: WorkPreset[] = [
       "Chain tension / alignment re-checked, road tested",
     ],
   },
+  {
+    id: "steering-head-bearings",
+    label: "Steering Head Bearings Replacement",
+    group: "Suspension",
+    hours: 2.5,
+    items: [
+      "Front end supported, wheel, mudguard and forks removed as required",
+      "Triple clamps removed and old steering head bearings stripped",
+      "Steering head races inspected and replaced",
+      "New bearings packed with grease and fitted",
+      "Steering head reassembled and torqued to spec",
+      "Steering bearing preload set, free movement and no play confirmed",
+      "Front end refitted and all fasteners torqued to spec",
+      "Road tested — steering smooth with no notchiness",
+    ],
+  },
+  {
+    id: "wheel-bearings",
+    label: "Front / Rear Wheel Bearings Replacement",
+    group: "Tyres & Wheels",
+    hours: 1.5,
+    items: [
+      "Wheel(s) removed",
+      "Old wheel bearings removed and hub inspected",
+      "New bearings fitted and sealed",
+      "Spacers and seals inspected / replaced as required",
+      "Wheel(s) refitted, axle(s) torqued to spec",
+      "Wheel spin checked — smooth and free, no play",
+    ],
+  },
+  {
+    id: "brake-declaration",
+    label: "Brake Declaration",
+    group: "Brakes",
+    hours: 0.5,
+    items: [
+      "Brake pads and discs inspected and measured",
+      "Brake fluid condition and level checked",
+      "Brake lines, hoses and calipers inspected for leaks",
+      "Brake performance tested",
+      "Brake declaration completed and supplied",
+    ],
+  },
 ];
 
 export function presetDetail(p: WorkPreset) {
