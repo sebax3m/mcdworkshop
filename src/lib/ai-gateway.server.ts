@@ -11,7 +11,7 @@ const GATEWAY = "https://ai.gateway.lovable.dev/v1";
 export const AI_MODELS = {
   chat: "google/gemini-3.6-flash",
   /** Deep reasoning model for precise technical specifications. */
-  reasoning: "openai/gpt-5.5",
+  reasoning: "openai/gpt-6-astra",
   embedding: "openai/text-embedding-3-small",
 } as const;
 
@@ -85,7 +85,7 @@ export async function aiReason(opts: {
   const res = await fetch(`${GATEWAY}/responses`, {
     method: "POST",
     headers: {
-      Authorization: `Bearer ${apiKey()}`,
+      "Lovable-API-Key": apiKey(),
       "Content-Type": "application/json",
       "X-Lovable-AIG-SDK": "fetch",
     },
