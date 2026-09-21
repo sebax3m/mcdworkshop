@@ -90,8 +90,6 @@ export function FixWordingChatDialog({
     }
   }
 
-  // Opening the dialog intentionally starts one temporary wording session.
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (!open) return;
     sessionRef.current += 1;
@@ -106,6 +104,8 @@ export function FixWordingChatDialog({
     return () => {
       sessionRef.current += 1;
     };
+    // Opening the dialog intentionally starts one temporary wording session.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, originalText]);
 
   async function submitFollowUp() {
