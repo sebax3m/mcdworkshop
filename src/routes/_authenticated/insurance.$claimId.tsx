@@ -240,7 +240,7 @@ function ClaimDetail() {
     if (!c) return;
     setPrintingQuote(true);
     try {
-      const { buildClaimPdf } = await import("@/lib/claim-pdf");
+      const { buildClaimPdf } = await retryImport(() => import("@/lib/claim-pdf"));
       const items = Array.isArray(c.quote_items) ? c.quote_items : [];
       const blob = await buildClaimPdf({
         claim: c,
@@ -410,6 +410,7 @@ function ClaimDetail() {
 
 import { Plus, Trash, Hash } from "lucide-react";
 import { CRASH_PARTS, PART_CATEGORIES, LABOUR_PRESETS, type DamageLevel } from "@/lib/crash-parts";
+import { retryImport } from "@/lib/lazy-module";
 
 type QuoteItem = {
   id: string;
