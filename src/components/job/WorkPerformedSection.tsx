@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { Check, MessageSquareText, Pencil, Plus, Trash2, Wrench, X } from "lucide-react";
+import { Check, Pencil, Plus, Trash2, Wrench, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { FixWordingChatDialog } from "@/components/job/FixWordingChatDialog";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -107,21 +107,6 @@ export default function WorkPerformedSection({
     detail: "",
     hours: 0,
   });
-  const [wordingTarget, setWordingTarget] = useState<"draft" | "edit" | null>(null);
-
-  function openWordingChat(which: "draft" | "edit") {
-    const text = which === "draft" ? draft.detail : editDraft.detail;
-    if (text.trim().length < 3) {
-      toast.error("Write a few words first, then open Fix Wording.");
-      return;
-    }
-    setWordingTarget(which);
-  }
-
-  function acceptWording(value: string) {
-    if (wordingTarget === "draft") setDraft((current) => ({ ...current, detail: value }));
-    if (wordingTarget === "edit") setEditDraft((current) => ({ ...current, detail: value }));
-  }
 
   function applyPresetToEdit(presetId: string) {
     if (presetId.startsWith("tmpl:")) {
@@ -260,19 +245,8 @@ export default function WorkPerformedSection({
                 </div>
               </div>
               <div>
-                <div className="flex items-center justify-between gap-2">
-                  <Label className="text-xs">Process / details</Label>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="h-7 gap-1.5 text-xs text-primary"
-                    onClick={() => openWordingChat("edit")}
-                  >
-                    <MessageSquareText className="h-3.5 w-3.5" />
-                    Fix Wording
-                  </Button>
-                </div>
+                <Label className="text-xs">Process / details</Label>
+
                 <Textarea
                   rows={6}
                   className="min-h-[160px] resize-y"
@@ -436,19 +410,8 @@ export default function WorkPerformedSection({
             </div>
           </div>
           <div>
-            <div className="flex items-center justify-between gap-2">
-              <Label className="text-xs">Details</Label>
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                className="h-7 gap-1.5 text-xs text-primary"
-                onClick={() => openWordingChat("draft")}
-              >
-                <MessageSquareText className="h-3.5 w-3.5" />
-                Fix Wording
-              </Button>
-            </div>
+            <Label className="text-xs">Details</Label>
+
             <Textarea
               rows={4}
               className="min-h-[100px] resize-y"
@@ -462,14 +425,6 @@ export default function WorkPerformedSection({
           </Button>
         </div>
       )}
-      <FixWordingChatDialog
-        open={wordingTarget !== null}
-        originalText={wordingTarget === "edit" ? editDraft.detail : draft.detail}
-        onOpenChange={(open) => {
-          if (!open) setWordingTarget(null);
-        }}
-        onAccept={acceptWording}
-      />
     </div>
   );
 }
