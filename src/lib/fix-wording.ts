@@ -14,18 +14,12 @@ const REPLACEMENTS: [RegExp, string][] = [
   [/\becu\b/gi, "ECU"],
   [/\becm\b/gi, "ECM"],
   [/\bwof\b/gi, "WOF"],
-  [/\brego\b/gi, "rego"],
   [/\bkms\b/gi, "km"],
-  [/\bfrt\b/gi, "front"],
-  [/\brr\b/gi, "rear"],
-  [/\bltr?s?\b/gi, "L"],
   [/\bplz\b/gi, "please"],
   [/\bcust\b/gi, "customer"],
   [/\bautorise\b/gi, "authorise"],
-  [/\brecomend(ed|s)?\b/gi, (_m: string, s: string) => `recommend${s ?? ""}`] as unknown as [
-    RegExp,
-    string,
-  ],
+  [/\brecomended\b/gi, "recommended"],
+  [/\brecomend\b/gi, "recommend"],
 ];
 
 function tidySpacing(line: string): string {
@@ -33,28 +27,23 @@ function tidySpacing(line: string): string {
     .replace(/\s+/g, " ")
     .replace(/\s+([,.;:!?])/g, "$1")
     .replace(/([,;:])(?=\S)/g, "$1 ")
-    .replace(/\.(?=[A-Za-z])/g, ". ")
     .trim();
 }
 
 function capitalise(line: string): string {
-  // Capitalise the first letter and anything after a full stop.
   return line
     .replace(/^([a-z])/, (m) => m.toUpperCase())
-    .replace(/([.!?]\s+)([a-z])/g, (_m, p, c: string) => p + c.toUpperCase());
+    .replace(/([.!?]\s+)([a-z])/g, (_m, p: string, c: string) => p + c.toUpperCase());
 }
 
 function applyReplacements(line: string): string {
   let out = line;
-  for (const [pattern, value] of REPLACEMENTS) {
-    out = out.replace(pattern, value as string);
-  }
+  for (const [pattern, value] of REPLACEMENTS) out = out.replace(pattern, value);
   return out;
 }
 
 function polish(line: string): string {
-  let out = applyReplacements(tidySpacing(line));
-  out = capitalise(out);
+  let out = capitalise(applyReplacements(tidySpacing(line)));
   if (out && !/[.!?:]$/.test(out)) out += ".";
   return out;
 }
@@ -72,7 +61,6 @@ export function fixWording(raw: string): string {
   for (const rawLine of source.split("\n")) {
     const line = rawLine.replace(/^\s*(?:[-*•]|\d+[.)])\s*/, "").trim();
     if (!line) continue;
-    // Split run-on text into sentences so each step reads on its own line.
     const sentences = line
       .split(/(?<=[.!?])\s+(?=[A-Za-z])/)
       .map((s) => s.trim())
