@@ -110,6 +110,21 @@ export default function WorkPerformedSection({
     hours: 0,
   });
 
+  /** Tidies the notes locally (no AI, no credits used). */
+  function runFixWording(which: "draft" | "edit") {
+    const text = which === "draft" ? draft.detail : editDraft.detail;
+    if (text.trim().length < 3) {
+      toast.error("Write a few words first, then press Fix Wording.");
+      return;
+    }
+    const tidy = fixWording(text);
+    if (which === "draft") setDraft((d) => ({ ...d, detail: tidy }));
+    else setEditDraft((d) => ({ ...d, detail: tidy }));
+    toast.success("Wording tidied up.");
+  }
+
+
+
   function applyPresetToEdit(presetId: string) {
     if (presetId.startsWith("tmpl:")) {
       const t = (serviceTemplates.data ?? []).find((x) => `tmpl:${x.id}` === presetId);
