@@ -1,6 +1,8 @@
 import { useState } from "react";
-import { Check, Pencil, Plus, Trash2, Wrench, X } from "lucide-react";
+import { Check, Pencil, Plus, Trash2, Wand2, Wrench, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { fixWording } from "@/lib/fix-wording";
+
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -245,7 +247,20 @@ export default function WorkPerformedSection({
                 </div>
               </div>
               <div>
-                <Label className="text-xs">Process / details</Label>
+                <div className="flex items-center justify-between gap-2">
+                  <Label className="text-xs">Process / details</Label>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 gap-1.5 text-xs text-primary"
+                    onClick={() => runFixWording("edit")}
+                  >
+                    <Wand2 className="h-3.5 w-3.5" />
+                    Fix Wording
+                  </Button>
+                </div>
+
 
                 <Textarea
                   rows={6}
@@ -410,7 +425,20 @@ export default function WorkPerformedSection({
             </div>
           </div>
           <div>
-            <Label className="text-xs">Details</Label>
+            <div className="flex items-center justify-between gap-2">
+              <Label className="text-xs">Details</Label>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="h-7 gap-1.5 text-xs text-primary"
+                onClick={() => runFixWording("draft")}
+              >
+                <Wand2 className="h-3.5 w-3.5" />
+                Fix Wording
+              </Button>
+            </div>
+
 
             <Textarea
               rows={4}
