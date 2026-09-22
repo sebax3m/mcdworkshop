@@ -1,6 +1,8 @@
 import { useState } from "react";
-import { Check, Pencil, Plus, Trash2, Wrench, X } from "lucide-react";
+import { Check, Pencil, Plus, Trash2, Wand2, Wrench, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { fixWording } from "@/lib/fix-wording";
+
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -107,6 +109,21 @@ export default function WorkPerformedSection({
     detail: "",
     hours: 0,
   });
+
+  /** Tidies the notes locally (no AI, no credits used). */
+  function runFixWording(which: "draft" | "edit") {
+    const text = which === "draft" ? draft.detail : editDraft.detail;
+    if (text.trim().length < 3) {
+      toast.error("Write a few words first, then press Fix Wording.");
+      return;
+    }
+    const tidy = fixWording(text);
+    if (which === "draft") setDraft((d) => ({ ...d, detail: tidy }));
+    else setEditDraft((d) => ({ ...d, detail: tidy }));
+    toast.success("Wording tidied up.");
+  }
+
+
 
   function applyPresetToEdit(presetId: string) {
     if (presetId.startsWith("tmpl:")) {
@@ -245,7 +262,20 @@ export default function WorkPerformedSection({
                 </div>
               </div>
               <div>
-                <Label className="text-xs">Process / details</Label>
+                <div className="flex items-center justify-between gap-2">
+                  <Label className="text-xs">Process / details</Label>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 gap-1.5 text-xs text-primary"
+                    onClick={() => runFixWording("edit")}
+                  >
+                    <Wand2 className="h-3.5 w-3.5" />
+                    Fix Wording
+                  </Button>
+                </div>
+
 
                 <Textarea
                   rows={6}
@@ -410,7 +440,20 @@ export default function WorkPerformedSection({
             </div>
           </div>
           <div>
-            <Label className="text-xs">Details</Label>
+            <div className="flex items-center justify-between gap-2">
+              <Label className="text-xs">Details</Label>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="h-7 gap-1.5 text-xs text-primary"
+                onClick={() => runFixWording("draft")}
+              >
+                <Wand2 className="h-3.5 w-3.5" />
+                Fix Wording
+              </Button>
+            </div>
+
 
             <Textarea
               rows={4}
