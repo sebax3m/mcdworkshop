@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -745,7 +745,7 @@ function QuoteBuilder({
     setDirty(true);
   }
 
-  async function save() {
+  async function save(opts?: { silent?: boolean }) {
     setSaving(true);
     try {
       await onUpdate({
@@ -754,11 +754,24 @@ function QuoteBuilder({
         quote_labour_rate: rate || null,
       });
       setDirty(false);
-      toast.success("Quote saved");
+      if (!opts?.silent) toast.success("Quote saved");
     } finally {
       setSaving(false);
     }
   }
+
+  // Auto-save: 1.2s after the last edit the quote saves itself, so leaving
+  // the page never loses a completed line. The "Save quote" button stays as
+  // a manual fallback.
+  const saveRef = useRef(save);
+  saveRef.current = save;
+  useEffect(() => {
+    if (!dirty) return;
+    const t = setTimeout(() => {
+      void saveRef.current({ silent: true });
+    }, 1200);
+    return () => clearTimeout(t);
+  }, [dirty, items, rate]);
 
   return (
     <section className="card-surface p-4 sm:p-5 border-l-4 border-primary/60 print:break-inside-avoid print:border-0">
