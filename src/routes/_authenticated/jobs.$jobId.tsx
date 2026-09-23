@@ -2091,7 +2091,7 @@ function InventoryPicker({
                   <div className="min-w-0">
                     <div className="font-semibold text-sm truncate">{i.name}</div>
                     <div className="text-xs text-muted-foreground truncate">
-                      {[i.brand, i.type].filter(Boolean).join(" · ")}
+                      {[i.sku, i.brand, i.type].filter(Boolean).join(" · ")}
                     </div>
                   </div>
                   <div className="text-right shrink-0">
@@ -2099,8 +2099,14 @@ function InventoryPicker({
                     <div className="text-[0.625rem] text-muted-foreground">
                       {Number(i.stock_qty)} {i.unit}
                     </div>
+                    {i.updated_at && (
+                      <div className="text-[0.625rem] text-muted-foreground">
+                        price {new Date(i.updated_at).toLocaleDateString("en-GB")}
+                      </div>
+                    )}
                   </div>
                 </div>
+
               </button>
             ))}
           </div>
