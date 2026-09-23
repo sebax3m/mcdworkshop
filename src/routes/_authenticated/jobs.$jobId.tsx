@@ -2005,10 +2005,14 @@ function InventoryPicker({
 
   const items = useQuery({
     queryKey: ["inventory-pick", category],
+    staleTime: 0,
+    refetchOnMount: "always",
+    refetchOnWindowFocus: true,
     queryFn: async () =>
       (await supabase.from("inventory_items").select("*").eq("category", category).order("name"))
         .data ?? [],
   });
+
 
   async function confirm() {
     const item = (items.data ?? []).find((i: any) => i.id === pickedId);
