@@ -66,8 +66,12 @@ export function TeamClockBoard() {
       rolesByUser.forEach((rs, id) => roleByUser.set(id, rs.includes("admin") ? "admin" : rs[0]!));
 
       return (profiles ?? [])
-        // anyone holding the technician role clocks in — including dual admin+tech users
-        .filter((p: any) => (rolesByUser.get(p.id) ?? []).includes("technician"))
+        // technicians and admins both clock in
+        .filter((p: any) => {
+          const rs = rolesByUser.get(p.id) ?? [];
+          return rs.includes("technician") || rs.includes("admin");
+        })
+
         .map((p: any) => {
           const last = latest.get(p.id);
           const status: Status = !last
