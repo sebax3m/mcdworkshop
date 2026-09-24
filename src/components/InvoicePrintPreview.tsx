@@ -225,8 +225,9 @@ ${
       // TOTAL stay pinned to the bottom of the last page.
       var USABLE = ${usablePx};
       // Safety gap: browsers round mm -> device px when paginating, so a block
-      // that is exactly N pages tall can spill 1px onto an extra blank sheet.
-      var SAFETY = 8;
+      // that is exactly N pages tall can spill onto an extra sheet. Keep a
+      // comfortable gap so the totals never tip onto a third page.
+      var SAFETY = 24;
       var MAX_PAGES = 2;
 
       function naturalHeight(page, sheet) {
