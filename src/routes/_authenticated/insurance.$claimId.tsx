@@ -805,7 +805,7 @@ function QuoteBuilder({
             />
           </div>
           {dirty && (
-            <Button onClick={save} disabled={saving} size="sm" className="gold-surface gap-2">
+            <Button onClick={() => void save()} disabled={saving} size="sm" className="gold-surface gap-2">
               <Check className="h-3.5 w-3.5" /> {saving ? "Saving…" : "Save quote"}
             </Button>
           )}
