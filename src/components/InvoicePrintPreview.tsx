@@ -218,7 +218,6 @@ ${
 </head>
 <body class="${bodyClass}">
   <div class="preview-viewport"><div class="page-wrap"><div class="page-guides"></div><div class="invoice-page">${getHtml()}</div></div></div>
-  <div class="print-pages" style="display:none"></div>
   <script>
     (function () {
       // Rule for every invoice: it never prints on more than 2 sheets, and the
@@ -245,7 +244,6 @@ ${
       function fit() {
         var page = document.querySelector('.invoice-page');
         var sheet = document.querySelector('.invoice-sheet');
-        var printPages = document.querySelector('.print-pages');
         if (!page || !sheet) return;
         var h = naturalHeight(page, sheet);
         if (!h) return;
@@ -257,35 +255,12 @@ ${
           document.documentElement.style.setProperty('--pscale', String(scale));
         }
         var pages = Math.max(1, Math.min(MAX_PAGES, Math.ceil((h * scale) / usable)));
-        // Unzoomed height of the printed page box, minus the safety gap.
+        // Unzoomed height of the printed page box, minus the safety gap, so the
+        // sheet ends on a whole page boundary and the totals stay pinned to the
+        // bottom of the last page. The content itself is one continuous flow —
+        // the browser paginates it naturally and nothing can be clipped away.
         var unit = usable / scale;
         sheet.style.setProperty('--sheetmin', (pages * unit) + 'px');
-
-        // Chromium does not reliably fragment a tall flex invoice: it can put
-        // only the letterhead on page one and clip the remaining content. Build
-        // deterministic paper-sized slices from the exact preview instead.
-        if (printPages) {
-          printPages.innerHTML = '';
-          for (var i = 0; i < pages; i += 1) {
-            var slice = document.createElement('div');
-            slice.className = 'print-slice';
-            var content = document.createElement('div');
-            content.className = 'print-slice-content';
-            content.style.top = String(-(i * usable / scale)) + 'px';
-            content.style.transform = 'scale(' + String(scale) + ')';
-            content.style.width = String(100 / scale) + '%';
-            var clone = page.cloneNode(true);
-            clone.style.zoom = '1';
-            var cloneSheet = clone.querySelector('.invoice-sheet');
-            if (cloneSheet) {
-              cloneSheet.style.setProperty('--sheetmin', (pages * unit) + 'px');
-              cloneSheet.style.setProperty('--print-sheet-height', (pages * unit) + 'px');
-            }
-            content.appendChild(clone);
-            slice.appendChild(content);
-            printPages.appendChild(slice);
-          }
-        }
       }
 
       window.__fitInvoice = fit;
