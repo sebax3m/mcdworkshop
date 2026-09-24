@@ -164,37 +164,19 @@ ${
     .preview-viewport { zoom: var(--pzoom, 1); }
   }
   @media print {
-    /* Neutralise the app's ink-saving print overrides so the printout is
-       byte-for-byte the same design as the preview / on-screen sheet. */
+    /* Print exactly the sheet the preview shows: one continuous flow that the
+       browser paginates naturally. No cropping and no cloned slices, so no
+       content can ever be lost between pages. */
     html, body, .preview-viewport, .page-wrap, .invoice-page, .invoice-sheet { background:#ffffff !important; }
     .invoice-sheet .bg-background { background:#ffffff !important; }
     .invoice-sheet .border-border { border-color: var(--border) !important; }
-    .preview-viewport { display:none !important; }
-    .print-pages { display:block !important; }
-    .print-slice {
-      position:relative !important;
-      width:calc(${pageW} - 2 * ${MARGIN[margin]}) !important;
-      height:${usablePx - 8}px !important;
-      margin:0 auto !important;
-      padding:0 !important;
-      overflow:hidden !important;
-      background:#ffffff !important;
-      break-after:page;
-      page-break-after:always;
-    }
-    .print-slice:last-child { break-after:auto; page-break-after:auto; }
-    .print-slice-content {
-      position:absolute !important;
-      left:0 !important;
-      width:100%;
-      transform-origin:top left !important;
-    }
+    .preview-viewport { display:block !important; padding:0 !important; zoom:1 !important; }
     .page-guides, .invoice-sheet::after, .invoice-page .invoice-sheet::after { content:none !important; display:none !important; background:none !important; }
     .page-wrap { width: calc(${pageW} - 2 * ${MARGIN[margin]}); margin:0 auto !important; }
     /* The invoice route's own print rules pull the page out of flow
        (position:absolute + full-viewport width). Inside this preview the page
-       box is provided by @page, so keep the clone exactly where the preview
-       shows it — this is what made the printout differ from the preview. */
+       box is provided by @page, so keep the sheet exactly where the preview
+       shows it. */
     .invoice-page {
       position: static !important;
       left: auto !important; top: auto !important;
@@ -204,32 +186,30 @@ ${
     }
     body * { visibility: visible !important; }
     html, body { height:auto !important; overflow:visible !important; }
-    .print-slice .invoice-page { display:block !important; }
-    .print-slice .invoice-page .invoice-sheet {
-      display:flex !important;
-      flex-direction:column !important;
-      min-height:var(--print-sheet-height, 0px) !important;
-      height:auto !important;
-      max-height:none !important;
-      overflow:visible !important;
-      margin-bottom:0 !important;
-    }
-    /* Each print-slice is already an exact visual crop of the preview. The
-       invoice route marks whole sections as page-break-inside:avoid; leaving
-       that active makes Safari/Chromium move Work Performed to page two before
-       the crop is applied, so page one contains only the header. Never let the
-       print engine repaginate content inside these deterministic slices. */
-    .print-slice .invoice-page,
-    .print-slice .invoice-page *,
-    .print-slice .invoice-page [data-print-section],
-    .print-slice .invoice-page table,
-    .print-slice .invoice-page tr {
+    /* Never let the route's keep-together rules push whole sections onto the
+       next page — that left blank gaps and made content vanish between pages.
+       Breaks may happen anywhere between lines, matching the preview guides. */
+    .invoice-page,
+    .invoice-page *,
+    .invoice-page [data-print-section],
+    .invoice-page table,
+    .invoice-page tr {
       break-before:auto !important;
       break-after:auto !important;
       break-inside:auto !important;
       page-break-before:auto !important;
       page-break-after:auto !important;
       page-break-inside:auto !important;
+    }
+    /* The sheet is a flex column exactly N pages tall so notes + payment +
+       TOTAL stay pinned to the bottom of the last page. */
+    .invoice-page .invoice-sheet {
+      display:flex !important;
+      flex-direction:column !important;
+      height:auto !important;
+      max-height:none !important;
+      overflow:visible !important;
+      margin-bottom:0 !important;
     }
   }
 
@@ -238,7 +218,6 @@ ${
 </head>
 <body class="${bodyClass}">
   <div class="preview-viewport"><div class="page-wrap"><div class="page-guides"></div><div class="invoice-page">${getHtml()}</div></div></div>
-  <div class="print-pages" style="display:none"></div>
   <script>
     (function () {
       // Rule for every invoice: it never prints on more than 2 sheets, and the
@@ -246,8 +225,9 @@ ${
       // TOTAL stay pinned to the bottom of the last page.
       var USABLE = ${usablePx};
       // Safety gap: browsers round mm -> device px when paginating, so a block
-      // that is exactly N pages tall can spill 1px onto an extra blank sheet.
-      var SAFETY = 8;
+      // that is exactly N pages tall can spill onto an extra sheet. Keep a
+      // comfortable gap so the totals never tip onto a third page.
+      var SAFETY = 24;
       var MAX_PAGES = 2;
 
       function naturalHeight(page, sheet) {
@@ -265,7 +245,6 @@ ${
       function fit() {
         var page = document.querySelector('.invoice-page');
         var sheet = document.querySelector('.invoice-sheet');
-        var printPages = document.querySelector('.print-pages');
         if (!page || !sheet) return;
         var h = naturalHeight(page, sheet);
         if (!h) return;
@@ -277,35 +256,12 @@ ${
           document.documentElement.style.setProperty('--pscale', String(scale));
         }
         var pages = Math.max(1, Math.min(MAX_PAGES, Math.ceil((h * scale) / usable)));
-        // Unzoomed height of the printed page box, minus the safety gap.
+        // Unzoomed height of the printed page box, minus the safety gap, so the
+        // sheet ends on a whole page boundary and the totals stay pinned to the
+        // bottom of the last page. The content itself is one continuous flow —
+        // the browser paginates it naturally and nothing can be clipped away.
         var unit = usable / scale;
         sheet.style.setProperty('--sheetmin', (pages * unit) + 'px');
-
-        // Chromium does not reliably fragment a tall flex invoice: it can put
-        // only the letterhead on page one and clip the remaining content. Build
-        // deterministic paper-sized slices from the exact preview instead.
-        if (printPages) {
-          printPages.innerHTML = '';
-          for (var i = 0; i < pages; i += 1) {
-            var slice = document.createElement('div');
-            slice.className = 'print-slice';
-            var content = document.createElement('div');
-            content.className = 'print-slice-content';
-            content.style.top = String(-(i * usable / scale)) + 'px';
-            content.style.transform = 'scale(' + String(scale) + ')';
-            content.style.width = String(100 / scale) + '%';
-            var clone = page.cloneNode(true);
-            clone.style.zoom = '1';
-            var cloneSheet = clone.querySelector('.invoice-sheet');
-            if (cloneSheet) {
-              cloneSheet.style.setProperty('--sheetmin', (pages * unit) + 'px');
-              cloneSheet.style.setProperty('--print-sheet-height', (pages * unit) + 'px');
-            }
-            content.appendChild(clone);
-            slice.appendChild(content);
-            printPages.appendChild(slice);
-          }
-        }
       }
 
       window.__fitInvoice = fit;
