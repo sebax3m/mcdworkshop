@@ -295,6 +295,10 @@ function CalendarPage() {
   const [qNotes, setQNotes] = useState<string>("");
   const [qWofNeeded, setQWofNeeded] = useState(false);
   const [qWofExpiry, setQWofExpiry] = useState<string>("");
+  const [qRegoExpiry, setQRegoExpiry] = useState<string>("");
+  const [qVin, setQVin] = useState<string>("");
+  const [qBikeColor, setQBikeColor] = useState<string>("");
+  const [qCarjamFetched, setQCarjamFetched] = useState(false);
   const [qLoanBike, setQLoanBike] = useState(false);
   const [qParts, setQParts] = useState(false);
   const [qPartRows, setQPartRows] = useState<{ description: string; part_number: string; qty: string; supplier: string }[]>([]);
@@ -339,12 +343,14 @@ function CalendarPage() {
     setLookingUpRego(true);
     try {
       const r = await lookupRego({ data: { rego: plate } });
-      console.log("[carjam] response:", r);
-      if (r._debugKeys) console.log("[carjam] flat keys:", r._debugKeys, "sample:", r._debugSample);
       if (r.make) setQBikeMake(r.make);
       if (r.model) setQBikeModel(r.model);
       if (r.year) setQBikeYear(String(r.year));
       if (r.wof_expiry) setQWofExpiry(r.wof_expiry);
+      if (r.rego_expiry) setQRegoExpiry(r.rego_expiry);
+      if (r.vin) setQVin(r.vin);
+      if (r.color) setQBikeColor(r.color);
+      setQCarjamFetched(true);
       toast.success(`Found ${[r.year, r.make, r.model].filter(Boolean).join(" ") || plate}`);
     } catch (e: any) {
       toast.error(e?.message || "Lookup failed");
@@ -559,6 +565,10 @@ function CalendarPage() {
     setQNotes("");
     setQWofNeeded(false);
     setQWofExpiry("");
+    setQRegoExpiry("");
+    setQVin("");
+    setQBikeColor("");
+    setQCarjamFetched(false);
     setQLoanBike(false);
     setQParts(false);
     setQPartRows([]);
@@ -614,11 +624,24 @@ function CalendarPage() {
             model: qBikeModel.trim(),
             year: qBikeYear ? Number(qBikeYear) : null,
             rego: qBikeRego.trim().toUpperCase() || null,
+            vin: qVin.trim().toUpperCase() || null,
+            color: qBikeColor.trim() || null,
+            wof_expiry: qWofExpiry || null,
+            rego_expiry: qRegoExpiry || null,
           })
           .select("id")
           .single();
         if (bErr) throw bErr;
         bikeId = bike.id;
+      } else if (qCarjamFetched) {
+        const patch: Record<string, any> = {};
+        if (qVin.trim()) patch.vin = qVin.trim().toUpperCase();
+        if (qBikeColor.trim()) patch.color = qBikeColor.trim();
+        if (qWofExpiry) patch.wof_expiry = qWofExpiry;
+        if (qRegoExpiry) patch.rego_expiry = qRegoExpiry;
+        if (Object.keys(patch).length) {
+          await (supabase as any).from("motorcycles").update(patch).eq("id", bikeId);
+        }
       }
 
       const { data: created, error: bkErr } = await supabase
@@ -643,7 +666,9 @@ function CalendarPage() {
             qPickup || qDelivery ? qTransportAddress.trim() || null : null,
           transport_notes: qPickup || qDelivery ? qTransportNotes.trim() || null : null,
           status: "booked",
-          wof_expiry: qWofNeeded && qWofExpiry ? qWofExpiry : null,
+          wof_expiry: qWofExpiry || null,
+          vin: qVin.trim().toUpperCase() || null,
+          color: qBikeColor.trim() || null,
           notes:
             [qNotes.trim(), qWofNeeded ? "WOF required" : ""].filter(Boolean).join("\n") || null,
         })
@@ -2650,6 +2675,59 @@ function CalendarPage() {
                         ))}
                       </datalist>
                     </div>
+                    {(qCarjamFetched || qVin || qWofExpiry || qRegoExpiry) && (
+                      <div className="col-span-2 rounded-xl border border-primary/30 bg-primary/5 p-3">
+                        <div className="text-[0.625rem] uppercase tracking-wider text-primary font-bold mb-2">
+                          Vehicle details {qCarjamFetched ? "(from Carjam)" : ""}
+                        </div>
+                        <div className="grid grid-cols-2 gap-2">
+                          <div>
+                            <label className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">
+                              WOF expiry
+                            </label>
+                            <input
+                              type="date"
+                              value={qWofExpiry}
+                              onChange={(e) => setQWofExpiry(e.target.value)}
+                              className="w-full mt-1 rounded-lg border border-border bg-background/60 px-3 py-2 text-sm"
+                            />
+                          </div>
+                          <div>
+                            <label className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">
+                              Rego expiry
+                            </label>
+                            <input
+                              type="date"
+                              value={qRegoExpiry}
+                              onChange={(e) => setQRegoExpiry(e.target.value)}
+                              className="w-full mt-1 rounded-lg border border-border bg-background/60 px-3 py-2 text-sm"
+                            />
+                          </div>
+                          <div>
+                            <label className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">
+                              VIN
+                            </label>
+                            <input
+                              value={qVin}
+                              onChange={(e) => setQVin(e.target.value.toUpperCase())}
+                              placeholder="VIN / chassis"
+                              className="w-full mt-1 rounded-lg border border-border bg-background/60 px-3 py-2 text-sm uppercase tracking-wider"
+                            />
+                          </div>
+                          <div>
+                            <label className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">
+                              Colour
+                            </label>
+                            <input
+                              value={qBikeColor}
+                              onChange={(e) => setQBikeColor(e.target.value)}
+                              placeholder="Colour"
+                              className="w-full mt-1 rounded-lg border border-border bg-background/60 px-3 py-2 text-sm"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    )}
                     <div className="col-span-2">
                       <label className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">
                         Est. hours
