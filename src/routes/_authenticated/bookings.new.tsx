@@ -117,6 +117,11 @@ function NewBooking() {
       if (r.make) setNbMake(r.make);
       if (r.model) setNbModel(r.model);
       if (r.year) setNbYear(String(r.year));
+      if (r.color) setNbColor(r.color);
+      if (r.vin) setNbVin(r.vin);
+      if (r.wof_expiry) setNbWofExpiry(r.wof_expiry);
+      if (r.rego_expiry) setNbRegoExpiry(r.rego_expiry);
+      setNbFetched(true);
       toast.success(`Found ${[r.year, r.make, r.model].filter(Boolean).join(" ") || plate}`);
     } catch (e: any) {
       toast.error(e?.message || "Rego lookup failed");
@@ -125,6 +130,10 @@ function NewBooking() {
     }
   }
   const [nbColor, setNbColor] = useState("");
+  const [nbVin, setNbVin] = useState("");
+  const [nbWofExpiry, setNbWofExpiry] = useState("");
+  const [nbRegoExpiry, setNbRegoExpiry] = useState("");
+  const [nbFetched, setNbFetched] = useState(false);
   const [creatingBike, setCreatingBike] = useState(false);
 
   const customers = useQuery({
@@ -287,6 +296,9 @@ function NewBooking() {
           year: nbYear ? Number(nbYear) : null,
           rego: nbRego.trim().toUpperCase() || null,
           color: nbColor.trim() || null,
+          vin: nbVin.trim().toUpperCase() || null,
+          wof_expiry: nbWofExpiry || null,
+          rego_expiry: nbRegoExpiry || null,
         })
         .select("id")
         .single();
@@ -299,6 +311,10 @@ function NewBooking() {
       setNbRego("");
       setNbNoRego(false);
       setNbColor("");
+      setNbVin("");
+      setNbWofExpiry("");
+      setNbRegoExpiry("");
+      setNbFetched(false);
       setShowNewBike(false);
       toast.success("Motorcycle added");
     } catch (err: any) {
