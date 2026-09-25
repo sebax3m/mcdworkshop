@@ -495,6 +495,74 @@ export type Database = {
           },
         ]
       }
+      booking_parts: {
+        Row: {
+          booking_id: string
+          created_at: string
+          created_by: string | null
+          description: string
+          eta: string | null
+          id: string
+          notes: string | null
+          order_ref: string | null
+          ordered_at: string | null
+          part_number: string | null
+          qty_received: number
+          qty_required: number
+          received_at: string | null
+          sort_order: number
+          status: string
+          supplier: string | null
+          updated_at: string
+        }
+        Insert: {
+          booking_id: string
+          created_at?: string
+          created_by?: string | null
+          description?: string
+          eta?: string | null
+          id?: string
+          notes?: string | null
+          order_ref?: string | null
+          ordered_at?: string | null
+          part_number?: string | null
+          qty_received?: number
+          qty_required?: number
+          received_at?: string | null
+          sort_order?: number
+          status?: string
+          supplier?: string | null
+          updated_at?: string
+        }
+        Update: {
+          booking_id?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string
+          eta?: string | null
+          id?: string
+          notes?: string | null
+          order_ref?: string | null
+          ordered_at?: string | null
+          part_number?: string | null
+          qty_received?: number
+          qty_required?: number
+          received_at?: string | null
+          sort_order?: number
+          status?: string
+          supplier?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "booking_parts_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       booking_types: {
         Row: {
           color: string | null
@@ -560,6 +628,7 @@ export type Database = {
           mileage: number | null
           motorcycle_id: string | null
           notes: string | null
+          parts_required: boolean
           pickup_required: boolean
           priority: string
           rego: string | null
@@ -610,6 +679,7 @@ export type Database = {
           mileage?: number | null
           motorcycle_id?: string | null
           notes?: string | null
+          parts_required?: boolean
           pickup_required?: boolean
           priority?: string
           rego?: string | null
@@ -660,6 +730,7 @@ export type Database = {
           mileage?: number | null
           motorcycle_id?: string | null
           notes?: string | null
+          parts_required?: boolean
           pickup_required?: boolean
           priority?: string
           rego?: string | null

@@ -8,6 +8,13 @@
       "when": 1790306110703,
       "tag": "0000_booking_part_orders",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1790306736595,
+      "tag": "0001_booking_parts",
+      "breakpoints": true
     }
   ]
 }
