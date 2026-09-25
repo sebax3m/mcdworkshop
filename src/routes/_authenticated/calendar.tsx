@@ -52,6 +52,7 @@ import { BIKE_MAKES, BIKE_MAKE_NAMES, BIKE_YEARS } from "@/lib/bike-library";
 import { lookupRego } from "@/lib/rego-lookup.functions";
 import { useBookingTypes } from "@/hooks/useBookingTypes";
 import { useDailyNotesRange, useUpdateDailyNote, type DailyNote } from "@/hooks/useDailyNotes";
+import { PartsOrderReminders } from "@/components/booking/PartsOrderReminders";
 import { NoteDialog } from "@/components/booking/NoteDialog";
 import { BookInCard, CapacityBadge } from "@/components/booking/BookInCard";
 import { CalendarDayHeader } from "@/components/booking/CalendarDayHeader";
@@ -988,6 +989,9 @@ function CalendarPage() {
         <h1 className="font-display text-2xl font-bold leading-none">Book-ins</h1>
         <GlobalSearchButton />
       </div>
+
+      <PartsOrderReminders />
+
 
       {/* NAV + TOGGLE */}
       <div className="flex items-center justify-between">
