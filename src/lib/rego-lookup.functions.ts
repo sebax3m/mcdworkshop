@@ -5,6 +5,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 const Input = z.object({
   rego: z.string().trim().min(1).max(10),
+  refresh: z.boolean().optional().default(false),
 });
 
 export type RegoLookupResult = {
@@ -69,17 +70,17 @@ export const lookupRego = createServerFn({ method: "POST" })
   .handler(async ({ data, context }): Promise<RegoLookupResult> => {
     const plate = data.rego.replace(/\s+/g, "").toUpperCase();
 
-    // A CarJam response is reusable for the same rego. Keep a short-lived
-    // workshop cache so repeatedly opening an unfinished booking does not
-    // spend another lookup credit.
-    const freshAfter = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
-    const { data: cached } = await context.supabase
+    // A paid CarJam response belongs to the workshop and is reusable for the
+    // same rego. Only bypass it after staff explicitly approve a refresh.
+    const { data: cached, error: cacheError } = await context.supabase
       .from("carjam_vehicle_cache")
       .select("vehicle_data, fetched_at")
       .eq("rego", plate)
-      .gte("fetched_at", freshAfter)
       .maybeSingle();
-    if (cached?.vehicle_data) {
+    if (!data.refresh && cacheError) {
+      throw new Error("Could not check the saved CarJam record. No lookup credit was used.");
+    }
+    if (!data.refresh && cached?.vehicle_data) {
       return {
         ...(cached.vehicle_data as RegoLookupResult),
         rego: plate,

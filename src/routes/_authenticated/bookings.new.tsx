@@ -114,6 +114,7 @@ function NewBooking() {
     if (!plate) return toast.error("Enter a rego first");
     setNbLookingUp(true);
     try {
+      let refreshCarjam = false;
       // 1) Check the workshop's own records first — saves a Carjam lookup.
       const local = await findLocalBikeByRego(plate);
       if (local) {
@@ -140,9 +141,10 @@ function NewBooking() {
           toast.success("Loaded from workshop records — no CarJam credit used");
           return;
         }
+        refreshCarjam = true;
       }
       // 2) Fall back to Carjam.
-      const r = await lookupRego({ data: { rego: plate } });
+      const r = await lookupRego({ data: { rego: plate, refresh: refreshCarjam } });
       if (r.make) setNbMake(r.make);
       if (r.model) setNbModel(r.model);
       if (r.year) setNbYear(String(r.year));
