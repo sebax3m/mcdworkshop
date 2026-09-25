@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { ArrowLeft, Plus, Search, Bike as BikeIcon, Camera, X } from "lucide-react";
 import { toast } from "sonner";
+import { SUPPLIERS } from "@/lib/parts-orders";
 import { hasPhone } from "@/lib/data-quality";
 import { fullBike, initials } from "@/lib/format";
 import { fetchAllRows } from "@/lib/fetch-all";
@@ -71,6 +72,10 @@ function NewBooking() {
   const [mileage, setMileage] = useState<string>("");
   const [wof, setWof] = useState<string>("");
   const [instructions, setInstructions] = useState<string>("");
+  const [partsRequired, setPartsRequired] = useState(false);
+  const [partRows, setPartRows] = useState<
+    { description: string; part_number: string; qty: string; supplier: string; notes: string }[]
+  >([]);
   const [loanBike, setLoanBike] = useState<boolean>(false);
   const [loanBikeId, setLoanBikeId] = useState<string | null>(null);
   const [loanBikeReturn, setLoanBikeReturn] = useState<string>("");
@@ -216,6 +221,23 @@ function NewBooking() {
         .select("id")
         .single();
       if (error) throw error;
+      if (partsRequired) {
+        const rows = partRows
+          .filter((r) => r.description.trim())
+          .map((r, i) => ({
+            booking_id: data.id,
+            description: r.description.trim(),
+            part_number: r.part_number.trim() || null,
+            qty_required: Number(r.qty) || 1,
+            supplier: r.supplier || null,
+            notes: r.notes.trim() || null,
+            sort_order: i,
+          }));
+        if (rows.length) {
+          const { error: pe } = await supabase.from("booking_parts").insert(rows);
+          if (pe) toast.error(`Parts not saved: ${pe.message}`);
+        }
+      }
       await refreshContacts(qc);
       setCustomerId(data.id);
       setShowNewCustomer(false);
@@ -328,6 +350,7 @@ function NewBooking() {
           rego: bike.rego ?? null,
           vin: bike.vin ?? null,
           instructions,
+          parts_required: partsRequired,
           arrival_photos: arrivalPhotos,
           loan_bike: loanBike,
           loan_bike_id: loanBike ? loanBikeId : null,
@@ -920,6 +943,49 @@ function NewBooking() {
               placeholder="Step-by-step instructions for the technician — shown on the Job Card"
               rows={3}
             />
+            <div className="rounded-xl border border-orange-500/40 p-3 space-y-2">
+              <div className="text-xs uppercase tracking-wider text-muted-foreground">Parts required?</div>
+              <label className="flex items-center gap-3 text-sm cursor-pointer">
+                <input
+                  type="checkbox"
+                  className="h-5 w-5 accent-primary"
+                  checked={partsRequired}
+                  onChange={(e) => {
+                    setPartsRequired(e.target.checked);
+                    if (e.target.checked && partRows.length === 0)
+                      setPartRows([{ description: "", part_number: "", qty: "1", supplier: "", notes: "" }]);
+                  }}
+                />
+                Yes, parts need to be ordered
+              </label>
+              {partsRequired && (
+                <div className="space-y-2">
+                  <p className="text-xs text-muted-foreground">
+                    Optional — leave blank if you don't know the exact parts yet. The book-in will be flagged PARTS REQUIRED.
+                  </p>
+                  {partRows.map((r, i) => {
+                    const upd = (k: string, v: string) =>
+                      setPartRows((rs) => rs.map((x, j) => (j === i ? { ...x, [k]: v } : x)));
+                    return (
+                      <div key={i} className="grid grid-cols-12 gap-1.5">
+                        <input className="col-span-12 sm:col-span-4 h-9 rounded-md border border-border bg-background px-2 text-sm" placeholder="Part description" value={r.description} onChange={(e) => upd("description", e.target.value)} />
+                        <input className="col-span-5 sm:col-span-2 h-9 rounded-md border border-border bg-background px-2 text-sm" placeholder="Part #" value={r.part_number} onChange={(e) => upd("part_number", e.target.value)} />
+                        <input type="number" min={1} className="col-span-2 sm:col-span-1 h-9 rounded-md border border-border bg-background px-2 text-sm" value={r.qty} onChange={(e) => upd("qty", e.target.value)} />
+                        <select className="col-span-5 sm:col-span-2 h-9 rounded-md border border-border bg-background px-1 text-sm" value={r.supplier} onChange={(e) => upd("supplier", e.target.value)}>
+                          <option value="">Supplier</option>
+                          {SUPPLIERS.map((s) => <option key={s}>{s}</option>)}
+                        </select>
+                        <input className="col-span-10 sm:col-span-2 h-9 rounded-md border border-border bg-background px-2 text-sm" placeholder="Notes" value={r.notes} onChange={(e) => upd("notes", e.target.value)} />
+                        <button type="button" onClick={() => setPartRows((rs) => rs.filter((_, j) => j !== i))} className="col-span-2 sm:col-span-1 h-9 rounded-md border border-border text-xs hover:border-red-500/60">✕</button>
+                      </div>
+                    );
+                  })}
+                  <button type="button" onClick={() => setPartRows((rs) => [...rs, { description: "", part_number: "", qty: "1", supplier: "", notes: "" }])} className="rounded-md border border-border px-3 h-8 text-xs font-semibold hover:border-primary/50">
+                    + Add part
+                  </button>
+                </div>
+              )}
+            </div>
             <div className="rounded-xl border border-border p-3 space-y-2">
               <div className="text-xs uppercase tracking-wider text-muted-foreground">
                 Bike transport

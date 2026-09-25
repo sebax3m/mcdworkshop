@@ -17,6 +17,7 @@ import { Route as AuthenticatedUsersRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedTemplatesRouteImport } from './routes/_authenticated/templates'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedPostBikeRouteImport } from './routes/_authenticated/post-bike'
+import { Route as AuthenticatedPartsOrdersRouteImport } from './routes/_authenticated/parts-orders'
 import { Route as AuthenticatedMyWorkRouteImport } from './routes/_authenticated/my-work'
 import { Route as AuthenticatedInvoicesRouteImport } from './routes/_authenticated/invoices'
 import { Route as AuthenticatedInventoryRouteImport } from './routes/_authenticated/inventory'
@@ -102,6 +103,12 @@ const AuthenticatedPostBikeRoute = AuthenticatedPostBikeRouteImport.update({
   path: '/post-bike',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedPartsOrdersRoute =
+  AuthenticatedPartsOrdersRouteImport.update({
+    id: '/parts-orders',
+    path: '/parts-orders',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedMyWorkRoute = AuthenticatedMyWorkRouteImport.update({
   id: '/my-work',
   path: '/my-work',
@@ -374,6 +381,7 @@ export interface FileRoutesByFullPath {
   '/inventory': typeof AuthenticatedInventoryRoute
   '/invoices': typeof AuthenticatedInvoicesRouteWithChildren
   '/my-work': typeof AuthenticatedMyWorkRoute
+  '/parts-orders': typeof AuthenticatedPartsOrdersRoute
   '/post-bike': typeof AuthenticatedPostBikeRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/templates': typeof AuthenticatedTemplatesRoute
@@ -425,6 +433,7 @@ export interface FileRoutesByTo {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/inventory': typeof AuthenticatedInventoryRoute
   '/my-work': typeof AuthenticatedMyWorkRoute
+  '/parts-orders': typeof AuthenticatedPartsOrdersRoute
   '/post-bike': typeof AuthenticatedPostBikeRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/templates': typeof AuthenticatedTemplatesRoute
@@ -481,6 +490,7 @@ export interface FileRoutesById {
   '/_authenticated/inventory': typeof AuthenticatedInventoryRoute
   '/_authenticated/invoices': typeof AuthenticatedInvoicesRouteWithChildren
   '/_authenticated/my-work': typeof AuthenticatedMyWorkRoute
+  '/_authenticated/parts-orders': typeof AuthenticatedPartsOrdersRoute
   '/_authenticated/post-bike': typeof AuthenticatedPostBikeRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/templates': typeof AuthenticatedTemplatesRoute
@@ -537,6 +547,7 @@ export interface FileRouteTypes {
     | '/inventory'
     | '/invoices'
     | '/my-work'
+    | '/parts-orders'
     | '/post-bike'
     | '/settings'
     | '/templates'
@@ -588,6 +599,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/inventory'
     | '/my-work'
+    | '/parts-orders'
     | '/post-bike'
     | '/settings'
     | '/templates'
@@ -643,6 +655,7 @@ export interface FileRouteTypes {
     | '/_authenticated/inventory'
     | '/_authenticated/invoices'
     | '/_authenticated/my-work'
+    | '/_authenticated/parts-orders'
     | '/_authenticated/post-bike'
     | '/_authenticated/settings'
     | '/_authenticated/templates'
@@ -748,6 +761,13 @@ declare module '@tanstack/react-router' {
       path: '/post-bike'
       fullPath: '/post-bike'
       preLoaderRoute: typeof AuthenticatedPostBikeRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/parts-orders': {
+      id: '/_authenticated/parts-orders'
+      path: '/parts-orders'
+      fullPath: '/parts-orders'
+      preLoaderRoute: typeof AuthenticatedPartsOrdersRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/my-work': {
@@ -1131,6 +1151,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedInventoryRoute: typeof AuthenticatedInventoryRoute
   AuthenticatedInvoicesRoute: typeof AuthenticatedInvoicesRouteWithChildren
   AuthenticatedMyWorkRoute: typeof AuthenticatedMyWorkRoute
+  AuthenticatedPartsOrdersRoute: typeof AuthenticatedPartsOrdersRoute
   AuthenticatedPostBikeRoute: typeof AuthenticatedPostBikeRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedTemplatesRoute: typeof AuthenticatedTemplatesRoute
@@ -1174,6 +1195,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedInventoryRoute: AuthenticatedInventoryRoute,
   AuthenticatedInvoicesRoute: AuthenticatedInvoicesRouteWithChildren,
   AuthenticatedMyWorkRoute: AuthenticatedMyWorkRoute,
+  AuthenticatedPartsOrdersRoute: AuthenticatedPartsOrdersRoute,
   AuthenticatedPostBikeRoute: AuthenticatedPostBikeRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedTemplatesRoute: AuthenticatedTemplatesRoute,

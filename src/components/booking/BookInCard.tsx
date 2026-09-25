@@ -12,6 +12,8 @@ import { useTechnicianNames } from "@/hooks/use-technician-names";
 import { StatusBadge, BookInStatusIcon } from "@/components/booking/StatusBadge";
 import { TechnicianIndicator } from "@/components/booking/TechnicianIndicator";
 import { TransportIndicator, transportKind } from "@/components/booking/TransportIndicator";
+import { Package } from "lucide-react";
+import { OVERALL_META, overallStatus, useBookingPartsIndex } from "@/lib/parts-orders";
 
 type Props = {
   booking: any;
@@ -51,6 +53,8 @@ export function BookInCard({
     : null;
 
   const kind = transportKind(b);
+  const partsIdx = useBookingPartsIndex();
+  const partsState = overallStatus(partsIdx.data?.get(b.id) ?? [], !!b.parts_required);
 
   const qc = useQueryClient();
   const [completing, setCompleting] = useState(false);
@@ -218,6 +222,14 @@ export function BookInCard({
           </div>
           <div className="flex shrink-0 items-center gap-1">
             <TransportIndicator kind={kind} address={b.transport_address} />
+            {partsState && (
+              <span
+                className={cn("grid h-5 w-5 place-items-center rounded-full border", OVERALL_META[partsState].cls)}
+                title={OVERALL_META[partsState].label}
+              >
+                <Package className="h-3 w-3" />
+              </span>
+            )}
             {b.loan_bike && (
               <span
                 className="grid h-5 w-5 place-items-center rounded-full bg-fuchsia-500/15 text-fuchsia-500"
