@@ -565,6 +565,10 @@ function CalendarPage() {
     setQNotes("");
     setQWofNeeded(false);
     setQWofExpiry("");
+    setQRegoExpiry("");
+    setQVin("");
+    setQBikeColor("");
+    setQCarjamFetched(false);
     setQLoanBike(false);
     setQParts(false);
     setQPartRows([]);
