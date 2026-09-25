@@ -358,7 +358,7 @@ function CalendarPage() {
         // Complete record with WOF/rego still valid — no Carjam lookup needed.
         if (missing.length === 0 && expiryIssues.length === 0) {
           setQCarjamFetched(true);
-          toast.success(`Loaded from workshop records: ${[local.year, local.make, local.model].filter(Boolean).join(" ")}`);
+          toast.success(`Loaded from workshop records: ${[local.year, local.make, local.model].filter(Boolean).join(" ")} — no CarJam credit used`);
           return;
         }
         // Missing data or WOF/rego expired/expiring — ask before spending a Carjam lookup.
@@ -371,7 +371,7 @@ function CalendarPage() {
         );
         if (!wantsUpdate) {
           setQCarjamFetched(true);
-          toast.success("Loaded from workshop records (not updated from CarJam)");
+          toast.success("Loaded from workshop records — no CarJam credit used");
           return;
         }
       }
@@ -391,7 +391,7 @@ function CalendarPage() {
           .then(() => toast.success("Bike record updated with CarJam data"))
           .catch(() => {});
       }
-      toast.success(`Found ${[r.year, r.make, r.model].filter(Boolean).join(" ") || plate}`);
+      toast.success(`Found ${[r.year, r.make, r.model].filter(Boolean).join(" ") || plate} via CarJam — 1 lookup credit used`);
     } catch (e: any) {
       toast.error(e?.message || "Lookup failed");
     } finally {

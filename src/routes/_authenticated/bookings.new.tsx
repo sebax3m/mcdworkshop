@@ -129,7 +129,7 @@ function NewBooking() {
         // Complete record with WOF/rego still valid — no Carjam lookup needed.
         if (missing.length === 0 && expiryIssues.length === 0) {
           setNbFetched(true);
-          toast.success(`Loaded from workshop records: ${[local.year, local.make, local.model].filter(Boolean).join(" ")}`);
+          toast.success(`Loaded from workshop records: ${[local.year, local.make, local.model].filter(Boolean).join(" ")} — no CarJam credit used`);
           return;
         }
         const wantsUpdate = window.confirm(
@@ -137,7 +137,7 @@ function NewBooking() {
         );
         if (!wantsUpdate) {
           setNbFetched(true);
-          toast.success("Loaded from workshop records (not updated from CarJam)");
+          toast.success("Loaded from workshop records — no CarJam credit used");
           return;
         }
       }
@@ -157,7 +157,7 @@ function NewBooking() {
           .then(() => toast.success("Bike record updated with CarJam data"))
           .catch(() => {});
       }
-      toast.success(`Found ${[r.year, r.make, r.model].filter(Boolean).join(" ") || plate}`);
+      toast.success(`Found ${[r.year, r.make, r.model].filter(Boolean).join(" ") || plate} via CarJam — 1 lookup credit used`);
     } catch (e: any) {
       toast.error(e?.message || "Rego lookup failed");
     } finally {
