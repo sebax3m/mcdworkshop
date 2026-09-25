@@ -785,6 +785,27 @@ export type Database = {
           },
         ]
       }
+      carjam_vehicle_cache: {
+        Row: {
+          fetched_at: string
+          rego: string
+          updated_at: string
+          vehicle_data: Json
+        }
+        Insert: {
+          fetched_at?: string
+          rego: string
+          updated_at?: string
+          vehicle_data: Json
+        }
+        Update: {
+          fetched_at?: string
+          rego?: string
+          updated_at?: string
+          vehicle_data?: Json
+        }
+        Relationships: []
+      }
       clock_events: {
         Row: {
           event_type: Database["public"]["Enums"]["clock_event_type"]
