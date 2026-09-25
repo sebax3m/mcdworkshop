@@ -451,6 +451,50 @@ export type Database = {
           },
         ]
       }
+      booking_part_orders: {
+        Row: {
+          booking_id: string
+          created_at: string
+          id: string
+          notes: string | null
+          order_number: string | null
+          ordered_at: string
+          ordered_by: string | null
+          parts: string
+          supplier: string
+        }
+        Insert: {
+          booking_id: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          order_number?: string | null
+          ordered_at?: string
+          ordered_by?: string | null
+          parts: string
+          supplier: string
+        }
+        Update: {
+          booking_id?: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          order_number?: string | null
+          ordered_at?: string
+          ordered_by?: string | null
+          parts?: string
+          supplier?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "booking_part_orders_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       booking_types: {
         Row: {
           color: string | null
