@@ -124,38 +124,48 @@ function AccountPage() {
         </button>
       </section>
 
-      <section className="card-surface p-5 space-y-4">
-        <h2 className="font-display text-lg font-bold">Change password</h2>
-        <div className="grid sm:grid-cols-2 gap-4">
-          <label className="block text-sm">
-            <span className="text-muted-foreground">New password</span>
-            <input
-              type="password"
-              value={pw1}
-              onChange={(e) => setPw1(e.target.value)}
-              autoComplete="new-password"
-              className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
-            />
-          </label>
-          <label className="block text-sm">
-            <span className="text-muted-foreground">Confirm password</span>
-            <input
-              type="password"
-              value={pw2}
-              onChange={(e) => setPw2(e.target.value)}
-              autoComplete="new-password"
-              className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
-            />
-          </label>
-        </div>
-        <button
-          onClick={changePassword}
-          disabled={savingPw}
-          className="rounded-lg border border-border px-4 py-2 text-sm font-semibold hover:border-foreground/30 disabled:opacity-60"
-        >
-          {savingPw ? "Updating…" : "Update password"}
-        </button>
-      </section>
+      {isAdmin ? (
+        <section className="card-surface p-5 space-y-4">
+          <h2 className="font-display text-lg font-bold">Change password</h2>
+          <div className="grid sm:grid-cols-2 gap-4">
+            <label className="block text-sm">
+              <span className="text-muted-foreground">New password</span>
+              <input
+                type="password"
+                value={pw1}
+                onChange={(e) => setPw1(e.target.value)}
+                autoComplete="new-password"
+                className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
+              />
+            </label>
+            <label className="block text-sm">
+              <span className="text-muted-foreground">Confirm password</span>
+              <input
+                type="password"
+                value={pw2}
+                onChange={(e) => setPw2(e.target.value)}
+                autoComplete="new-password"
+                className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
+              />
+            </label>
+          </div>
+          <button
+            onClick={changePassword}
+            disabled={savingPw}
+            className="rounded-lg border border-border px-4 py-2 text-sm font-semibold hover:border-foreground/30 disabled:opacity-60"
+          >
+            {savingPw ? "Updating…" : "Update password"}
+          </button>
+        </section>
+      ) : (
+        <section className="card-surface p-5">
+          <h2 className="font-display text-lg font-bold">Password</h2>
+          <p className="text-sm text-muted-foreground mt-2">
+            Your password is managed by the workshop admin. Ask an admin if you need it changed.
+          </p>
+        </section>
+      )}
+
     </div>
   );
 }
