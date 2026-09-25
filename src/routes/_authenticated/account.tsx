@@ -68,6 +68,7 @@ function AccountPage() {
   }
 
   async function changePassword() {
+    if (!isAdmin) return toast.error("Only an admin can change passwords");
     if (pw1.length < 8) return toast.error("Password must be at least 8 characters");
     if (pw1 !== pw2) return toast.error("Passwords do not match");
     setSavingPw(true);
@@ -78,6 +79,7 @@ function AccountPage() {
     setPw2("");
     toast.success("Password changed");
   }
+
 
   if (loading) {
     return <p className="text-sm text-muted-foreground">Loading…</p>;
