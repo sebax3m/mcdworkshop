@@ -805,7 +805,7 @@ function NewBooking() {
                       className="col-span-2"
                     />
                   </div>
-                  {(nbFetched || nbVin || nbWofExpiry || nbRegoExpiry) && (
+                  {
                     <div className="rounded-xl border border-primary/30 bg-primary/5 p-3 space-y-2">
                       <div className="text-[0.625rem] uppercase tracking-wider text-primary font-bold">
                         Vehicle details {nbFetched ? "(from Carjam)" : ""}
@@ -846,7 +846,7 @@ function NewBooking() {
                         </div>
                       </div>
                     </div>
-                  )}
+                  }
                   <div className="flex justify-end gap-2 pt-1">
                     <button
                       onClick={() => setShowNewBike(false)}

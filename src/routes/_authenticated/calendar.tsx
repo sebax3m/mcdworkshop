@@ -2726,7 +2726,7 @@ function CalendarPage() {
                         ))}
                       </datalist>
                     </div>
-                    {(qCarjamFetched || qVin || qWofExpiry || qRegoExpiry) && (
+                    {
                       <div className="col-span-2 rounded-xl border border-primary/30 bg-primary/5 p-3">
                         <div className="text-[0.625rem] uppercase tracking-wider text-primary font-bold mb-2">
                           Vehicle details {qCarjamFetched ? "(from Carjam)" : ""}
@@ -2778,7 +2778,7 @@ function CalendarPage() {
                           </div>
                         </div>
                       </div>
-                    )}
+                    }
                     <div className="col-span-2">
                       <label className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">
                         Est. hours
