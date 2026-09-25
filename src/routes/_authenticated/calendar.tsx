@@ -53,6 +53,7 @@ import { lookupRego } from "@/lib/rego-lookup.functions";
 import { useBookingTypes } from "@/hooks/useBookingTypes";
 import { useDailyNotesRange, useUpdateDailyNote, type DailyNote } from "@/hooks/useDailyNotes";
 import { PartsOrderReminders } from "@/components/booking/PartsOrderReminders";
+import { SUPPLIERS } from "@/lib/parts-orders";
 import { NoteDialog } from "@/components/booking/NoteDialog";
 import { BookInCard, CapacityBadge } from "@/components/booking/BookInCard";
 import { CalendarDayHeader } from "@/components/booking/CalendarDayHeader";
@@ -295,6 +296,8 @@ function CalendarPage() {
   const [qWofNeeded, setQWofNeeded] = useState(false);
   const [qWofExpiry, setQWofExpiry] = useState<string>("");
   const [qLoanBike, setQLoanBike] = useState(false);
+  const [qParts, setQParts] = useState(false);
+  const [qPartRows, setQPartRows] = useState<{ description: string; part_number: string; qty: string; supplier: string }[]>([]);
   const [qLoanBikeId, setQLoanBikeId] = useState<string | null>(null);
   const [qLoanBikeReturn, setQLoanBikeReturn] = useState<string>("");
   const [qPickup, setQPickup] = useState(false);
@@ -557,6 +560,8 @@ function CalendarPage() {
     setQWofNeeded(false);
     setQWofExpiry("");
     setQLoanBike(false);
+    setQParts(false);
+    setQPartRows([]);
     setQLoanBikeId(null);
     setQLoanBikeReturn("");
     setQPickup(false);
@@ -628,6 +633,7 @@ function CalendarPage() {
           scheduled_end_time: `${endTime}:00`,
           estimated_hours: Number(qEstHours) || 1,
           rego: qBikeRego.trim().toUpperCase() || null,
+          parts_required: qParts,
           loan_bike: qLoanBike,
           loan_bike_id: qLoanBike ? qLoanBikeId : null,
           loan_bike_expected_return: qLoanBike && qLoanBikeReturn ? qLoanBikeReturn : null,
@@ -646,6 +652,27 @@ function CalendarPage() {
         )
         .single();
       if (bkErr) throw bkErr;
+
+      if (qParts) {
+        const rows = qPartRows
+          .filter((r) => r.description.trim() || r.part_number.trim())
+          .map((r, i) => ({
+            booking_id: created.id,
+            description: r.description.trim() || r.part_number.trim(),
+            part_number: r.part_number.trim() || null,
+            qty_required: Number(r.qty) || 1,
+            supplier: r.supplier || null,
+            status: "needs_ordering",
+            sort_order: i,
+          }));
+        if (rows.length) {
+          const { error: pErr } = await (supabase as any).from("booking_parts").insert(rows);
+          if (pErr) toast.error(`Parts not saved: ${pErr.message}`);
+        }
+        qc.invalidateQueries({ queryKey: ["booking-parts-index"] });
+        qc.invalidateQueries({ queryKey: ["parts-orders"] });
+        qc.invalidateQueries({ queryKey: ["parts-order-reminders"] });
+      }
 
       toast.success("Booking created");
 
@@ -2832,6 +2859,50 @@ function CalendarPage() {
                             className="w-full mt-1 rounded-lg border border-border bg-background/60 px-3 py-2 text-sm"
                           />
                         </div>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="rounded-xl border border-orange-400/40 bg-orange-400/5 p-3 space-y-2">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        className="h-4 w-4 accent-orange-500"
+                        checked={qParts}
+                        onChange={(e) => {
+                          setQParts(e.target.checked);
+                          if (e.target.checked && qPartRows.length === 0)
+                            setQPartRows([{ description: "", part_number: "", qty: "1", supplier: "" }]);
+                        }}
+                      />
+                      <span className="flex-1">
+                        <span className="block text-sm font-semibold">📦 Order parts</span>
+                        <span className="block text-[0.6875rem] text-muted-foreground">
+                          Adds this book-in to Parts Orders (details optional)
+                        </span>
+                      </span>
+                    </label>
+                    {qParts && (
+                      <div className="space-y-1.5">
+                        {qPartRows.map((r, i) => {
+                          const upd = (k: string, v: string) =>
+                            setQPartRows((rs) => rs.map((x, j) => (j === i ? { ...x, [k]: v } : x)));
+                          return (
+                            <div key={i} className="grid grid-cols-12 gap-1.5">
+                              <input className="col-span-12 h-9 rounded-md border border-border bg-background px-2 text-sm" placeholder="Part description" value={r.description} onChange={(e) => upd("description", e.target.value)} />
+                              <input className="col-span-4 h-9 rounded-md border border-border bg-background px-2 text-sm" placeholder="Part #" value={r.part_number} onChange={(e) => upd("part_number", e.target.value)} />
+                              <input type="number" min={1} className="col-span-2 h-9 rounded-md border border-border bg-background px-2 text-sm" value={r.qty} onChange={(e) => upd("qty", e.target.value)} />
+                              <select className="col-span-4 h-9 rounded-md border border-border bg-background px-1 text-sm" value={r.supplier} onChange={(e) => upd("supplier", e.target.value)}>
+                                <option value="">Supplier</option>
+                                {SUPPLIERS.map((x) => <option key={x}>{x}</option>)}
+                              </select>
+                              <button type="button" onClick={() => setQPartRows((rs) => rs.filter((_, j) => j !== i))} className="col-span-2 h-9 rounded-md border border-border text-xs">✕</button>
+                            </div>
+                          );
+                        })}
+                        <button type="button" onClick={() => setQPartRows((rs) => [...rs, { description: "", part_number: "", qty: "1", supplier: "" }])} className="rounded-md border border-border px-3 h-8 text-xs font-semibold">
+                          + Add part
+                        </button>
                       </div>
                     )}
                   </div>
