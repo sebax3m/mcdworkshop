@@ -25,6 +25,15 @@ export type RegoLookupResult = {
 /** Try to coerce a Carjam date string (many formats) into YYYY-MM-DD. */
 function toISODate(v: unknown): string | undefined {
   if (!v) return undefined;
+  // Carjam returns dates as Unix epoch seconds (e.g. 1833274800)
+  if (typeof v === "number" || /^\d{9,13}$/.test(String(v).trim())) {
+    const n = Number(v);
+    if (!isFinite(n) || n <= 0) return undefined;
+    const ms = n > 1e12 ? n : n * 1000; // seconds vs milliseconds
+    const dt = new Date(ms);
+    if (isNaN(dt.getTime())) return undefined;
+    return `${dt.getUTCFullYear()}-${String(dt.getUTCMonth() + 1).padStart(2, "0")}-${String(dt.getUTCDate()).padStart(2, "0")}`;
+  }
   const s = String(v).trim();
   if (!s) return undefined;
   // Already ISO
@@ -174,10 +183,26 @@ export const lookupRego = createServerFn({ method: "POST" })
       cc: ccNum,
       fuel: get("fuel_type", "fueltype", "fuel"),
       wof_expiry: toISODate(
-        get("wof_expiry", "wofexpiry", "next_inspection", "nextinspection", "wof"),
+        get(
+          "expiry_date_of_last_successful_wof",
+          "expirydateoflastsuccessfulwof",
+          "wof_expiry",
+          "wofexpiry",
+          "next_inspection",
+          "nextinspection",
+          "wof",
+        ),
       ),
       rego_expiry: toISODate(
-        get("licence_expiry", "licenceexpiry", "rego_expiry", "regoexpiry", "expirydate"),
+        get(
+          "licence_expiry_date",
+          "licenceexpirydate",
+          "licence_expiry",
+          "licenceexpiry",
+          "rego_expiry",
+          "regoexpiry",
+          "expirydate",
+        ),
       ),
     };
 
@@ -185,8 +210,8 @@ export const lookupRego = createServerFn({ method: "POST" })
       throw new Error(`Carjam returned no vehicle details for ${plate}`);
     }
     if (false) {
-      result._debugKeys = Object.keys(flat).slice(0, 80);
-      result._debugSample = JSON.stringify(flat).slice(0, 2000);
+      result._debugKeys = Object.keys(flat).slice(0, 120);
+      result._debugSample = JSON.stringify(flat).slice(0, 3000);
     }
 
     return result;
