@@ -202,7 +202,7 @@ export const lookupRego = createServerFn({ method: "POST" })
     }
     // TEMP DEBUG: inspect raw Carjam fields (disable after verification)
     result._debugKeys = Object.keys(flat).slice(0, 120);
-    result._debugSample = JSON.stringify(flat).slice(0, 3000);
+    result._debugSample = JSON.stringify(flat).slice(0, 8000);
 
     return result;
   });
