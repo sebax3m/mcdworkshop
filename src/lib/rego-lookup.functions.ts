@@ -106,6 +106,9 @@ export const lookupRego = createServerFn({ method: "POST" })
 
     // Carjam error responses are returned with HTTP 200 and a code field.
     if (json?.error) json = json.error;
+    if (typeof json?.scode === "string" && json.scode.startsWith("err-") && json.scode !== "err-invalid-api-key") {
+      throw new Error(`Carjam: ${json.message ?? json.scode}`);
+    }
     if (json?.scode === "err-invalid-api-key" || /invalid api key/i.test(String(json?.message ?? ""))) {
       throw new Error("Carjam rejected the API key (Invalid API Key). Please update CARJAM_API_KEY.");
     }
