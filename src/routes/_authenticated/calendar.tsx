@@ -2187,7 +2187,7 @@ function CalendarPage() {
               exit={{ opacity: 0, scale: 0.96, y: 8 }}
               transition={{ duration: 0.15 }}
               onClick={(e) => e.stopPropagation()}
-              className="w-full max-w-md max-h-[90vh] overflow-y-auto rounded-2xl border border-border/60 bg-background/70 backdrop-blur-xl shadow-2xl p-5 space-y-4"
+              className="w-full max-w-4xl max-h-[92vh] overflow-y-auto rounded-2xl border border-border/60 bg-background/70 backdrop-blur-xl shadow-2xl p-5 space-y-4"
             >
               {justCreated ? (
                 <div className="space-y-4">
@@ -2346,6 +2346,8 @@ function CalendarPage() {
                     </div>
                   </div>
 
+                  <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="space-y-4 min-w-0">
                   <div>
                     <label className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">
                       Service *
@@ -2581,6 +2583,11 @@ function CalendarPage() {
                           );
                         })()}
                     </div>
+                  </div>
+                  </div>
+
+                  <div className="space-y-4 min-w-0">
+                  <div className="grid grid-cols-2 gap-2">
                     <div className="col-span-1">
                       <label className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">
                         Year
@@ -2752,7 +2759,10 @@ function CalendarPage() {
                       />
                     </div>
                   </div>
+                  </div>
+                  </div>
 
+                  <div className="grid gap-4 sm:grid-cols-2">
                   <div>
                     <label className="flex items-center gap-2 cursor-pointer">
                       <input
@@ -2941,7 +2951,7 @@ function CalendarPage() {
                     )}
                   </div>
 
-                  <div className="rounded-xl border border-orange-400/40 bg-orange-400/5 p-3 space-y-2">
+                  <div className="rounded-xl border border-orange-400/40 bg-orange-400/5 p-3 space-y-2 sm:col-span-2">
                     <label className="flex items-center gap-2 cursor-pointer">
                       <input
                         type="checkbox"
@@ -2983,6 +2993,7 @@ function CalendarPage() {
                         </button>
                       </div>
                     )}
+                  </div>
                   </div>
 
                   <div className="flex gap-2 pt-2 border-t border-border/60">
