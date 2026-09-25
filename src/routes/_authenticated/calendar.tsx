@@ -381,6 +381,12 @@ function CalendarPage() {
       if (r.vin) setQVin(r.vin);
       if (r.color) setQBikeColor(r.color);
       setQCarjamFetched(true);
+      // Persist to the bike's record right away, even if the booking is never finished.
+      if (local) {
+        saveCarjamDataToBike(local.id, r, local)
+          .then(() => toast.success("Bike record updated with CarJam data"))
+          .catch(() => {});
+      }
       toast.success(`Found ${[r.year, r.make, r.model].filter(Boolean).join(" ") || plate}`);
     } catch (e: any) {
       toast.error(e?.message || "Lookup failed");

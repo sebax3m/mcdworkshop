@@ -151,6 +151,12 @@ function NewBooking() {
       if (r.wof_expiry) setNbWofExpiry(r.wof_expiry);
       if (r.rego_expiry) setNbRegoExpiry(r.rego_expiry);
       setNbFetched(true);
+      // Persist to the bike's record right away, even if the booking is never finished.
+      if (local) {
+        saveCarjamDataToBike(local.id, r, local)
+          .then(() => toast.success("Bike record updated with CarJam data"))
+          .catch(() => {});
+      }
       toast.success(`Found ${[r.year, r.make, r.model].filter(Boolean).join(" ") || plate}`);
     } catch (e: any) {
       toast.error(e?.message || "Rego lookup failed");
