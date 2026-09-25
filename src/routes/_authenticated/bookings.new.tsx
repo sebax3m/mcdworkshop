@@ -31,6 +31,7 @@ import {
 } from "@/lib/booking-conflicts";
 import { refreshContacts } from "@/lib/contacts-cache";
 import { lookupRego } from "@/lib/rego-lookup.functions";
+import { findLocalBikeByRego, localBikeMissingFields } from "@/lib/rego-local-lookup";
 
 const searchSchema = z.object({
   date: z.string().optional(),
