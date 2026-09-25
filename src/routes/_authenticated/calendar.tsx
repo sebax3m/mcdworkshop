@@ -2675,6 +2675,59 @@ function CalendarPage() {
                         ))}
                       </datalist>
                     </div>
+                    {(qCarjamFetched || qVin || qWofExpiry || qRegoExpiry) && (
+                      <div className="col-span-2 rounded-xl border border-primary/30 bg-primary/5 p-3">
+                        <div className="text-[0.625rem] uppercase tracking-wider text-primary font-bold mb-2">
+                          Vehicle details {qCarjamFetched ? "(from Carjam)" : ""}
+                        </div>
+                        <div className="grid grid-cols-2 gap-2">
+                          <div>
+                            <label className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">
+                              WOF expiry
+                            </label>
+                            <input
+                              type="date"
+                              value={qWofExpiry}
+                              onChange={(e) => setQWofExpiry(e.target.value)}
+                              className="w-full mt-1 rounded-lg border border-border bg-background/60 px-3 py-2 text-sm"
+                            />
+                          </div>
+                          <div>
+                            <label className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">
+                              Rego expiry
+                            </label>
+                            <input
+                              type="date"
+                              value={qRegoExpiry}
+                              onChange={(e) => setQRegoExpiry(e.target.value)}
+                              className="w-full mt-1 rounded-lg border border-border bg-background/60 px-3 py-2 text-sm"
+                            />
+                          </div>
+                          <div>
+                            <label className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">
+                              VIN
+                            </label>
+                            <input
+                              value={qVin}
+                              onChange={(e) => setQVin(e.target.value.toUpperCase())}
+                              placeholder="VIN / chassis"
+                              className="w-full mt-1 rounded-lg border border-border bg-background/60 px-3 py-2 text-sm uppercase tracking-wider"
+                            />
+                          </div>
+                          <div>
+                            <label className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">
+                              Colour
+                            </label>
+                            <input
+                              value={qBikeColor}
+                              onChange={(e) => setQBikeColor(e.target.value)}
+                              placeholder="Colour"
+                              className="w-full mt-1 rounded-lg border border-border bg-background/60 px-3 py-2 text-sm"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    )}
                     <div className="col-span-2">
                       <label className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">
                         Est. hours
