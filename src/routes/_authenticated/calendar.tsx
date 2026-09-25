@@ -2187,7 +2187,7 @@ function CalendarPage() {
               exit={{ opacity: 0, scale: 0.96, y: 8 }}
               transition={{ duration: 0.15 }}
               onClick={(e) => e.stopPropagation()}
-              className="w-full max-w-md max-h-[90vh] overflow-y-auto rounded-2xl border border-border/60 bg-background/70 backdrop-blur-xl shadow-2xl p-5 space-y-4"
+              className="w-full max-w-4xl max-h-[92vh] overflow-y-auto rounded-2xl border border-border/60 bg-background/70 backdrop-blur-xl shadow-2xl p-5 space-y-4"
             >
               {justCreated ? (
                 <div className="space-y-4">
