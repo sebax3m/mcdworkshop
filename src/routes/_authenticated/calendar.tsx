@@ -50,6 +50,7 @@ import { fetchAllRows } from "@/lib/fetch-all";
 import { initials } from "@/lib/format";
 import { BIKE_MAKES, BIKE_MAKE_NAMES, BIKE_YEARS } from "@/lib/bike-library";
 import { lookupRego } from "@/lib/rego-lookup.functions";
+import { findLocalBikeByRego, localBikeMissingFields } from "@/lib/rego-local-lookup";
 import { useBookingTypes } from "@/hooks/useBookingTypes";
 import { useDailyNotesRange, useUpdateDailyNote, type DailyNote } from "@/hooks/useDailyNotes";
 import { PartsOrderReminders } from "@/components/booking/PartsOrderReminders";
@@ -342,6 +343,35 @@ function CalendarPage() {
     if (!plate) return toast.error("Enter a rego first");
     setLookingUpRego(true);
     try {
+      // 1) Check the workshop's own records first — saves a Carjam lookup.
+      const local = await findLocalBikeByRego(plate);
+      if (local) {
+        const missing = localBikeMissingFields(local);
+        if (local.make) setQBikeMake(local.make);
+        if (local.model) setQBikeModel(local.model);
+        if (local.year) setQBikeYear(String(local.year));
+        if (local.wof_expiry) setQWofExpiry(local.wof_expiry);
+        if (local.rego_expiry) setQRegoExpiry(local.rego_expiry);
+        if (local.vin) setQVin(local.vin);
+        if (local.color) setQBikeColor(local.color);
+        if (missing.length === 0) {
+          setQCarjamFetched(true);
+          toast.success(
+            `Loaded from workshop records: ${[local.year, local.make, local.model].filter(Boolean).join(" ")}`,
+          );
+          return;
+        }
+        // Incomplete record — ask before spending a Carjam lookup.
+        const wantsUpdate = window.confirm(
+          `This bike is already in the workshop records, but missing: ${missing.join(", ")}.\n\nUpdate from CarJam now?`,
+        );
+        if (!wantsUpdate) {
+          setQCarjamFetched(true);
+          toast.success("Loaded from workshop records (not updated from CarJam)");
+          return;
+        }
+      }
+      // 2) Fall back to Carjam.
       const r = await lookupRego({ data: { rego: plate } });
       if (r.make) setQBikeMake(r.make);
       if (r.model) setQBikeModel(r.model);
