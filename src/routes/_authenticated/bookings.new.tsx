@@ -701,15 +701,36 @@ function NewBooking() {
                       value={nbYear}
                       onChange={(e) => setNbYear(e.target.value)}
                     />
-                    <Input
-                      placeholder={nbNoRego ? "No rego" : "Rego (plate)"}
-                      value={nbNoRego ? "" : nbRego}
-                      onChange={(e) => {
-                        setNbRego(e.target.value);
-                        if (e.target.value.trim()) setNbNoRego(false);
-                      }}
-                      disabled={nbNoRego}
-                    />
+                    <div className="flex gap-1.5">
+                      <Input
+                        placeholder={nbNoRego ? "No rego" : "Rego (plate)"}
+                        value={nbNoRego ? "" : nbRego}
+                        onChange={(e) => {
+                          setNbRego(e.target.value);
+                          if (e.target.value.trim()) setNbNoRego(false);
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            fetchBikeFromRego();
+                          }
+                        }}
+                        disabled={nbNoRego}
+                        className="flex-1"
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="h-9 px-2.5 text-xs shrink-0"
+                        disabled={nbNoRego || nbLookingUp || !nbRego.trim()}
+                        onClick={fetchBikeFromRego}
+                        title="Look up make, model and year from the rego"
+                      >
+                        <Search className="h-3.5 w-3.5" />
+                        {nbLookingUp ? "…" : "Fetch"}
+                      </Button>
+                    </div>
                     <label className="col-span-2 flex items-center gap-2 text-xs text-muted-foreground cursor-pointer">
                       <input
                         type="checkbox"
