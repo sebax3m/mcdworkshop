@@ -25,6 +25,15 @@ export type RegoLookupResult = {
 /** Try to coerce a Carjam date string (many formats) into YYYY-MM-DD. */
 function toISODate(v: unknown): string | undefined {
   if (!v) return undefined;
+  // Carjam returns dates as Unix epoch seconds (e.g. 1833274800)
+  if (typeof v === "number" || /^\d{9,13}$/.test(String(v).trim())) {
+    const n = Number(v);
+    if (!isFinite(n) || n <= 0) return undefined;
+    const ms = n > 1e12 ? n : n * 1000; // seconds vs milliseconds
+    const dt = new Date(ms);
+    if (isNaN(dt.getTime())) return undefined;
+    return `${dt.getUTCFullYear()}-${String(dt.getUTCMonth() + 1).padStart(2, "0")}-${String(dt.getUTCDate()).padStart(2, "0")}`;
+  }
   const s = String(v).trim();
   if (!s) return undefined;
   // Already ISO
