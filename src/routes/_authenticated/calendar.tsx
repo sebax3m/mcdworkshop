@@ -2951,7 +2951,7 @@ function CalendarPage() {
                     )}
                   </div>
 
-                  <div className="rounded-xl border border-orange-400/40 bg-orange-400/5 p-3 space-y-2">
+                  <div className="rounded-xl border border-orange-400/40 bg-orange-400/5 p-3 space-y-2 sm:col-span-2">
                     <label className="flex items-center gap-2 cursor-pointer">
                       <input
                         type="checkbox"
