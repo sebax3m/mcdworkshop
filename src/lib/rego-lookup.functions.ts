@@ -18,6 +18,7 @@ export type RegoLookupResult = {
   fuel?: string;
   wof_expiry?: string; // YYYY-MM-DD
   rego_expiry?: string; // YYYY-MM-DD
+  source?: "carjam" | "cache";
   _debugKeys?: string[];
   _debugSample?: string;
 };
@@ -65,7 +66,27 @@ function pick(obj: any, keys: string[]): any {
 export const lookupRego = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: unknown) => Input.parse(data))
-  .handler(async ({ data }): Promise<RegoLookupResult> => {
+  .handler(async ({ data, context }): Promise<RegoLookupResult> => {
+    const plate = data.rego.replace(/\s+/g, "").toUpperCase();
+
+    // A CarJam response is reusable for the same rego. Keep a short-lived
+    // workshop cache so repeatedly opening an unfinished booking does not
+    // spend another lookup credit.
+    const freshAfter = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+    const { data: cached } = await context.supabase
+      .from("carjam_vehicle_cache")
+      .select("vehicle_data, fetched_at")
+      .eq("rego", plate)
+      .gte("fetched_at", freshAfter)
+      .maybeSingle();
+    if (cached?.vehicle_data) {
+      return {
+        ...(cached.vehicle_data as RegoLookupResult),
+        rego: plate,
+        source: "cache",
+      };
+    }
+
     const key = process.env.CARJAM_API_KEY;
     if (!key) throw new Error("Missing CARJAM_API_KEY — add it in Backend → Secrets");
     if (key.length !== 40) {
@@ -73,7 +94,6 @@ export const lookupRego = createServerFn({ method: "POST" })
         `CARJAM_API_KEY looks malformed (expected 40 hex characters, got ${key.length}). Please check the secret in Backend → Secrets.`,
       );
     }
-    const plate = data.rego.replace(/\s+/g, "").toUpperCase();
 
     const url = `https://www.carjam.co.nz/api/car/?plate=${encodeURIComponent(plate)}&key=${encodeURIComponent(key)}&format=json&info=basic,identification,other,inspections`;
 
@@ -204,11 +224,21 @@ export const lookupRego = createServerFn({ method: "POST" })
           "expirydate",
         ),
       ),
+      source: "carjam",
     };
 
     if (!result.make && !result.model) {
       throw new Error(`Carjam returned no vehicle details for ${plate}`);
     }
+    await context.supabase.from("carjam_vehicle_cache").upsert(
+      {
+        rego: plate,
+        vehicle_data: result,
+        fetched_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: "rego" },
+    );
     if (false) {
       result._debugKeys = Object.keys(flat).slice(0, 120);
       result._debugSample = JSON.stringify(flat).slice(0, 3000);
