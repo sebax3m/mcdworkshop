@@ -30,6 +30,7 @@ import {
   validateTimeRange,
 } from "@/lib/booking-conflicts";
 import { refreshContacts } from "@/lib/contacts-cache";
+import { lookupRego } from "@/lib/rego-lookup.functions";
 
 const searchSchema = z.object({
   date: z.string().optional(),
@@ -105,6 +106,24 @@ function NewBooking() {
   const [nbYear, setNbYear] = useState("");
   const [nbRego, setNbRego] = useState("");
   const [nbNoRego, setNbNoRego] = useState(false);
+  const [nbLookingUp, setNbLookingUp] = useState(false);
+
+  async function fetchBikeFromRego() {
+    const plate = nbRego.trim();
+    if (!plate) return toast.error("Enter a rego first");
+    setNbLookingUp(true);
+    try {
+      const r = await lookupRego({ data: { rego: plate } });
+      if (r.make) setNbMake(r.make);
+      if (r.model) setNbModel(r.model);
+      if (r.year) setNbYear(String(r.year));
+      toast.success(`Found ${[r.year, r.make, r.model].filter(Boolean).join(" ") || plate}`);
+    } catch (e: any) {
+      toast.error(e?.message || "Rego lookup failed");
+    } finally {
+      setNbLookingUp(false);
+    }
+  }
   const [nbColor, setNbColor] = useState("");
   const [creatingBike, setCreatingBike] = useState(false);
 
