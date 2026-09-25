@@ -113,6 +113,34 @@ function NewBooking() {
     if (!plate) return toast.error("Enter a rego first");
     setNbLookingUp(true);
     try {
+      // 1) Check the workshop's own records first — saves a Carjam lookup.
+      const local = await findLocalBikeByRego(plate);
+      if (local) {
+        const missing = localBikeMissingFields(local);
+        if (local.make) setNbMake(local.make);
+        if (local.model) setNbModel(local.model);
+        if (local.year) setNbYear(String(local.year));
+        if (local.color) setNbColor(local.color);
+        if (local.vin) setNbVin(local.vin);
+        if (local.wof_expiry) setNbWofExpiry(local.wof_expiry);
+        if (local.rego_expiry) setNbRegoExpiry(local.rego_expiry);
+        if (missing.length === 0) {
+          setNbFetched(true);
+          toast.success(
+            `Loaded from workshop records: ${[local.year, local.make, local.model].filter(Boolean).join(" ")}`,
+          );
+          return;
+        }
+        const wantsUpdate = window.confirm(
+          `This bike is already in the workshop records, but missing: ${missing.join(", ")}.\n\nUpdate from CarJam now?`,
+        );
+        if (!wantsUpdate) {
+          setNbFetched(true);
+          toast.success("Loaded from workshop records (not updated from CarJam)");
+          return;
+        }
+      }
+      // 2) Fall back to Carjam.
       const r = await lookupRego({ data: { rego: plate } });
       if (r.make) setNbMake(r.make);
       if (r.model) setNbModel(r.model);
