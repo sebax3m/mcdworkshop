@@ -209,9 +209,10 @@ export const lookupRego = createServerFn({ method: "POST" })
     if (!result.make && !result.model) {
       throw new Error(`Carjam returned no vehicle details for ${plate}`);
     }
-    // TEMP DEBUG: inspect raw Carjam fields (disable after verification)
-    result._debugKeys = Object.keys(flat).slice(0, 120);
-    result._debugSample = JSON.stringify(flat).slice(0, 8000);
+    if (false) {
+      result._debugKeys = Object.keys(flat).slice(0, 120);
+      result._debugSample = JSON.stringify(flat).slice(0, 3000);
+    }
 
     return result;
   });
