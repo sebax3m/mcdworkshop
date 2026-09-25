@@ -50,7 +50,7 @@ import { fetchAllRows } from "@/lib/fetch-all";
 import { initials } from "@/lib/format";
 import { BIKE_MAKES, BIKE_MAKE_NAMES, BIKE_YEARS } from "@/lib/bike-library";
 import { lookupRego } from "@/lib/rego-lookup.functions";
-import { findLocalBikeByRego, localBikeMissingFields } from "@/lib/rego-local-lookup";
+import { findLocalBikeByRego, localBikeMissingFields, saveCarjamDataToBike } from "@/lib/rego-local-lookup";
 import { useBookingTypes } from "@/hooks/useBookingTypes";
 import { useDailyNotesRange, useUpdateDailyNote, type DailyNote } from "@/hooks/useDailyNotes";
 import { PartsOrderReminders } from "@/components/booking/PartsOrderReminders";
@@ -381,6 +381,12 @@ function CalendarPage() {
       if (r.vin) setQVin(r.vin);
       if (r.color) setQBikeColor(r.color);
       setQCarjamFetched(true);
+      // Persist to the bike's record right away, even if the booking is never finished.
+      if (local) {
+        saveCarjamDataToBike(local.id, r, local)
+          .then(() => toast.success("Bike record updated with CarJam data"))
+          .catch(() => {});
+      }
       toast.success(`Found ${[r.year, r.make, r.model].filter(Boolean).join(" ") || plate}`);
     } catch (e: any) {
       toast.error(e?.message || "Lookup failed");
