@@ -2346,6 +2346,8 @@ function CalendarPage() {
                     </div>
                   </div>
 
+                  <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="space-y-4 min-w-0">
                   <div>
                     <label className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">
                       Service *
