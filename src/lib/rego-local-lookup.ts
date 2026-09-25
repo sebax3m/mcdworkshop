@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import type { RegoLookupResult } from "@/lib/rego-lookup.functions";
 
 export type LocalBikeRecord = {
   id: string;
@@ -12,6 +13,29 @@ export type LocalBikeRecord = {
   rego_expiry?: string;
   customer_id?: string | null;
 };
+
+/**
+ * After a successful Carjam fetch, persist the data onto the existing
+ * workshop motorcycle record right away — even if the booking is never
+ * finished. Expiry dates are refreshed (they change over time); identity
+ * fields only fill blanks so we never clobber staff-entered data.
+ */
+export async function saveCarjamDataToBike(
+  bikeId: string,
+  r: RegoLookupResult,
+  current?: LocalBikeRecord | null,
+): Promise<void> {
+  const patch: Record<string, unknown> = {};
+  if (r.wof_expiry) patch.wof_expiry = r.wof_expiry;
+  if (r.rego_expiry) patch.rego_expiry = r.rego_expiry;
+  if (r.vin && !current?.vin) patch.vin = r.vin;
+  if (r.color && !current?.color) patch.color = r.color;
+  if (r.make && !current?.make) patch.make = r.make;
+  if (r.model && !current?.model) patch.model = r.model;
+  if (r.year && !current?.year) patch.year = r.year;
+  if (Object.keys(patch).length === 0) return;
+  await (supabase as any).from("motorcycles").update(patch).eq("id", bikeId);
+}
 
 /** Fields we consider "complete" for a workshop record. */
 export function localBikeMissingFields(b: LocalBikeRecord): string[] {
