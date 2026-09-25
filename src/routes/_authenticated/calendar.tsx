@@ -355,7 +355,12 @@ function CalendarPage() {
         if (local.rego_expiry) setQRegoExpiry(local.rego_expiry);
         if (local.vin) setQVin(local.vin);
         if (local.color) setQBikeColor(local.color);
-...
+        // Complete record with WOF/rego still valid — no Carjam lookup needed.
+        if (missing.length === 0 && expiryIssues.length === 0) {
+          setQCarjamFetched(true);
+          toast.success(`Loaded from workshop records: ${[local.year, local.make, local.model].filter(Boolean).join(" ")}`);
+          return;
+        }
         // Missing data or WOF/rego expired/expiring — ask before spending a Carjam lookup.
         const reasons = [
           ...(missing.length ? [`missing: ${missing.join(", ")}`] : []),

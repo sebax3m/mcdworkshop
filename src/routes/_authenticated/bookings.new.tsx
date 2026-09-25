@@ -125,7 +125,14 @@ function NewBooking() {
         if (local.color) setNbColor(local.color);
         if (local.vin) setNbVin(local.vin);
         if (local.wof_expiry) setNbWofExpiry(local.wof_expiry);
-...
+        if (local.rego_expiry) setNbRegoExpiry(local.rego_expiry);
+        // Complete record with WOF/rego still valid — no Carjam lookup needed.
+        if (missing.length === 0 && expiryIssues.length === 0) {
+          setNbFetched(true);
+          toast.success(`Loaded from workshop records: ${[local.year, local.make, local.model].filter(Boolean).join(" ")}`);
+          return;
+        }
+        const wantsUpdate = window.confirm(
           `This bike is already in the workshop records (${[...(missing.length ? [`missing: ${missing.join(", ")}`] : []), ...expiryIssues].join("; ")}).\n\nUpdate from CarJam now?`,
         );
         if (!wantsUpdate) {
