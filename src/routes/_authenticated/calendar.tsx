@@ -2759,7 +2759,10 @@ function CalendarPage() {
                       />
                     </div>
                   </div>
+                  </div>
+                  </div>
 
+                  <div className="grid gap-4 sm:grid-cols-2">
                   <div>
                     <label className="flex items-center gap-2 cursor-pointer">
                       <input
