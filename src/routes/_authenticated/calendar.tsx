@@ -2629,6 +2629,17 @@ function CalendarPage() {
                           );
                         })()}
                     </div>
+                    <div className="col-span-2">
+                      <label className="text-[0.625rem] uppercase tracking-wider text-muted-foreground flex items-center gap-1">
+                        <StickyNote className="h-3 w-3" /> Instructions
+                      </label>
+                      <textarea
+                        value={qNotes}
+                        onChange={(e) => setQNotes(e.target.value)}
+                        placeholder="Add instructions"
+                        className="mt-1 w-full min-h-[64px] rounded-lg border border-border bg-background/60 px-3 py-2 text-sm focus:border-primary/60 focus:outline-none resize-y"
+                      />
+                    </div>
                   </div>
                   </div>
 
@@ -2781,29 +2792,6 @@ function CalendarPage() {
                         </div>
                       </div>
                     }
-                    <div className="col-span-2">
-                      <label className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">
-                        Est. hours
-                      </label>
-                      <input
-                        value={qEstHours}
-                        onChange={(e) => setQEstHours(e.target.value)}
-                        inputMode="decimal"
-                        placeholder="1"
-                        className="w-full mt-1 rounded-lg border border-border bg-background/60 px-3 py-2 text-sm focus:border-primary/60 focus:outline-none"
-                      />
-                    </div>
-                    <div className="col-span-2">
-                      <label className="text-[0.625rem] uppercase tracking-wider text-muted-foreground flex items-center gap-1">
-                        <StickyNote className="h-3 w-3" /> Instructions
-                      </label>
-                      <textarea
-                        value={qNotes}
-                        onChange={(e) => setQNotes(e.target.value)}
-                        placeholder="Add instructions"
-                        className="mt-1 w-full min-h-[64px] rounded-lg border border-border bg-background/60 px-3 py-2 text-sm focus:border-primary/60 focus:outline-none resize-y"
-                      />
-                    </div>
                   </div>
                   </div>
                   </div>
