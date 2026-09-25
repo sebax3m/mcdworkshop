@@ -943,49 +943,6 @@ function NewBooking() {
               placeholder="Step-by-step instructions for the technician — shown on the Job Card"
               rows={3}
             />
-            <div className="rounded-xl border border-orange-500/40 p-3 space-y-2">
-              <div className="text-xs uppercase tracking-wider text-muted-foreground">Parts required?</div>
-              <label className="flex items-center gap-3 text-sm cursor-pointer">
-                <input
-                  type="checkbox"
-                  className="h-5 w-5 accent-primary"
-                  checked={partsRequired}
-                  onChange={(e) => {
-                    setPartsRequired(e.target.checked);
-                    if (e.target.checked && partRows.length === 0)
-                      setPartRows([{ description: "", part_number: "", qty: "1", supplier: "", notes: "" }]);
-                  }}
-                />
-                Yes, parts need to be ordered
-              </label>
-              {partsRequired && (
-                <div className="space-y-2">
-                  <p className="text-xs text-muted-foreground">
-                    Optional — leave blank if you don't know the exact parts yet. The book-in will be flagged PARTS REQUIRED.
-                  </p>
-                  {partRows.map((r, i) => {
-                    const upd = (k: string, v: string) =>
-                      setPartRows((rs) => rs.map((x, j) => (j === i ? { ...x, [k]: v } : x)));
-                    return (
-                      <div key={i} className="grid grid-cols-12 gap-1.5">
-                        <input className="col-span-12 sm:col-span-4 h-9 rounded-md border border-border bg-background px-2 text-sm" placeholder="Part description" value={r.description} onChange={(e) => upd("description", e.target.value)} />
-                        <input className="col-span-5 sm:col-span-2 h-9 rounded-md border border-border bg-background px-2 text-sm" placeholder="Part #" value={r.part_number} onChange={(e) => upd("part_number", e.target.value)} />
-                        <input type="number" min={1} className="col-span-2 sm:col-span-1 h-9 rounded-md border border-border bg-background px-2 text-sm" value={r.qty} onChange={(e) => upd("qty", e.target.value)} />
-                        <select className="col-span-5 sm:col-span-2 h-9 rounded-md border border-border bg-background px-1 text-sm" value={r.supplier} onChange={(e) => upd("supplier", e.target.value)}>
-                          <option value="">Supplier</option>
-                          {SUPPLIERS.map((s) => <option key={s}>{s}</option>)}
-                        </select>
-                        <input className="col-span-10 sm:col-span-2 h-9 rounded-md border border-border bg-background px-2 text-sm" placeholder="Notes" value={r.notes} onChange={(e) => upd("notes", e.target.value)} />
-                        <button type="button" onClick={() => setPartRows((rs) => rs.filter((_, j) => j !== i))} className="col-span-2 sm:col-span-1 h-9 rounded-md border border-border text-xs hover:border-red-500/60">✕</button>
-                      </div>
-                    );
-                  })}
-                  <button type="button" onClick={() => setPartRows((rs) => [...rs, { description: "", part_number: "", qty: "1", supplier: "", notes: "" }])} className="rounded-md border border-border px-3 h-8 text-xs font-semibold hover:border-primary/50">
-                    + Add part
-                  </button>
-                </div>
-              )}
-            </div>
             <div className="rounded-xl border border-border p-3 space-y-2">
               <div className="text-xs uppercase tracking-wider text-muted-foreground">
                 Bike transport
@@ -1089,6 +1046,55 @@ function NewBooking() {
                 </span>
               </span>
             </label>
+
+            <div className="rounded-xl border border-orange-500/40 p-3 space-y-2">
+              <label className="flex items-center gap-3 text-sm cursor-pointer">
+                <input
+                  type="checkbox"
+                  className="h-5 w-5 accent-orange-500"
+                  checked={partsRequired}
+                  onChange={(e) => {
+                    setPartsRequired(e.target.checked);
+                    if (e.target.checked && partRows.length === 0)
+                      setPartRows([{ description: "", part_number: "", qty: "1", supplier: "", notes: "" }]);
+                  }}
+                />
+                <span className="flex-1">
+                  <span className="block text-sm font-semibold">📦 Order parts</span>
+                  <span className="block text-xs text-muted-foreground">
+                    Flags the book-in as PARTS REQUIRED and adds it to Parts Orders
+                  </span>
+                </span>
+              </label>
+              {partsRequired && (
+                <div className="space-y-2 pt-1">
+                  <p className="text-xs text-muted-foreground">
+                    Optional — leave blank if you don't know the exact parts yet.
+                  </p>
+                  {partRows.map((r, i) => {
+                    const upd = (k: string, v: string) =>
+                      setPartRows((rs) => rs.map((x, j) => (j === i ? { ...x, [k]: v } : x)));
+                    return (
+                      <div key={i} className="grid grid-cols-12 gap-1.5">
+                        <input className="col-span-12 sm:col-span-4 h-9 rounded-md border border-border bg-background px-2 text-sm" placeholder="Part description" value={r.description} onChange={(e) => upd("description", e.target.value)} />
+                        <input className="col-span-5 sm:col-span-2 h-9 rounded-md border border-border bg-background px-2 text-sm" placeholder="Part #" value={r.part_number} onChange={(e) => upd("part_number", e.target.value)} />
+                        <input type="number" min={1} className="col-span-2 sm:col-span-1 h-9 rounded-md border border-border bg-background px-2 text-sm" value={r.qty} onChange={(e) => upd("qty", e.target.value)} />
+                        <select className="col-span-5 sm:col-span-2 h-9 rounded-md border border-border bg-background px-1 text-sm" value={r.supplier} onChange={(e) => upd("supplier", e.target.value)}>
+                          <option value="">Supplier</option>
+                          {SUPPLIERS.map((s) => <option key={s}>{s}</option>)}
+                        </select>
+                        <input className="col-span-10 sm:col-span-2 h-9 rounded-md border border-border bg-background px-2 text-sm" placeholder="Notes" value={r.notes} onChange={(e) => upd("notes", e.target.value)} />
+                        <button type="button" onClick={() => setPartRows((rs) => rs.filter((_, j) => j !== i))} className="col-span-2 sm:col-span-1 h-9 rounded-md border border-border text-xs hover:border-red-500/60">✕</button>
+                      </div>
+                    );
+                  })}
+                  <button type="button" onClick={() => setPartRows((rs) => [...rs, { description: "", part_number: "", qty: "1", supplier: "", notes: "" }])} className="rounded-md border border-border px-3 h-8 text-xs font-semibold hover:border-primary/50">
+                    + Add part
+                  </button>
+                </div>
+              )}
+            </div>
+
             {loanBike && (
               <div className="space-y-3 rounded-xl border border-amber-400/40 bg-amber-400/5 p-3">
                 <div>
