@@ -1,10 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useMemo, useState } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { addDays, format, parseISO } from "date-fns";
 import { Package, Check } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { SUPPLIERS, suggestedParts, useInvalidateParts } from "@/lib/parts-orders";
 import {
   Dialog,
   DialogContent,
@@ -13,18 +14,18 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 
-export const SUPPLIERS = ["Darbi", "R2", "F & Davies", "Nationwide", "Eurobike", "Whites", "Others"];
+export { SUPPLIERS };
 
-/** Parts that must be ordered ahead for a booking, based on service type + notes. */
+/** Parts still to order for a booking: listed parts needing ordering + auto-suggested ones not yet listed. */
 export function partsNeededFor(b: any): string[] {
-  const svc = `${b.service_type ?? ""} ${b.service_type_other ?? ""}`.toLowerCase();
-  const txt = `${svc} ${b.complaints ?? ""} ${b.notes ?? ""}`.toLowerCase();
-  const out = new Set<string>();
-  if (svc.includes("full")) ["Oil filter", "Air filter", "Spark plugs"].forEach((p) => out.add(p));
-  if (/rotor|brake\s*disc|\bdiscs?\b/.test(txt)) out.add("Brake rotors");
-  if (/brake|pads?\b/.test(txt)) out.add("Brake pads");
-  if (/tyre|tire/.test(txt)) out.add("Tyres");
-  return [...out];
+  const listed = (b.booking_parts ?? []) as any[];
+  const pending = listed.filter((p) => p.status === "needs_ordering").map((p) => p.description);
+  const extra = suggestedParts(b).filter(
+    (s) => !listed.some((p) => String(p.description).toLowerCase().includes(s.toLowerCase().split(" ")[0])),
+  );
+  const out = [...pending, ...extra];
+  if (!out.length && b.parts_required && !listed.length) out.push("Parts (not specified)");
+  return out;
 }
 
 function fmtDate(d: string) {
@@ -32,7 +33,7 @@ function fmtDate(d: string) {
 }
 
 export function PartsOrderReminders() {
-  const qc = useQueryClient();
+  const invalidateParts = useInvalidateParts();
   const today = format(new Date(), "yyyy-MM-dd");
   const until = format(addDays(new Date(), 3), "yyyy-MM-dd");
 
@@ -43,7 +44,7 @@ export function PartsOrderReminders() {
       const { data, error } = await supabase
         .from("bookings")
         .select(
-          "id, scheduled_date, service_type, service_type_other, complaints, notes, status, customers(first_name,last_name), motorcycles(year,make,model), booking_part_orders(id, supplier, order_number, parts)",
+          "id, scheduled_date, service_type, service_type_other, complaints, notes, status, customers(first_name,last_name), motorcycles(year,make,model), instructions, parts_required, booking_parts(id, description, status)",
         )
         .gte("scheduled_date", today)
         .lte("scheduled_date", until)
@@ -58,7 +59,7 @@ export function PartsOrderReminders() {
       (q.data ?? [])
         .filter((b) => !["cancelled", "deleted", "no_show"].includes(String(b.status ?? "").toLowerCase()))
         .map((b) => ({ ...b, needed: partsNeededFor(b) }))
-        .filter((b) => b.needed.length > 0 && (b.booking_part_orders ?? []).length === 0),
+        .filter((b) => b.needed.length > 0),
     [q.data],
   );
 
@@ -90,17 +91,26 @@ export function PartsOrderReminders() {
     if (!active) return;
     if (!orderNo.trim()) return toast.error("Enter the order number / confirmation");
     setSaving(true);
-    const { error } = await supabase.from("booking_part_orders").insert({
-      booking_id: active.id,
-      parts: parts.trim() || active.needed.join(", "),
-      supplier,
-      order_number: orderNo.trim(),
-    });
+    const todayD = new Date().toISOString().slice(0, 10);
+    const stamp = { status: "ordered", supplier, order_ref: orderNo.trim(), ordered_at: todayD };
+    const existing = ((active.booking_parts ?? []) as any[]).filter((p) => p.status === "needs_ordering");
+    const names = parts.split(",").map((x) => x.trim()).filter((x) => x && x !== "Parts (not specified)");
+    let error: any = null;
+    if (existing.length) {
+      ({ error } = await supabase.from("booking_parts").update(stamp).in("id", existing.map((p) => p.id)));
+    }
+    const newNames = names.filter((n) => !existing.some((p) => p.description.toLowerCase() === n.toLowerCase()));
+    if (!error && (newNames.length || !existing.length)) {
+      ({ error } = await supabase.from("booking_parts").insert(
+        (newNames.length ? newNames : ["Parts"]).map((d) => ({ booking_id: active.id, description: d, ...stamp })),
+      ));
+    }
+    if (!error) await supabase.from("bookings").update({ parts_required: true }).eq("id", active.id);
     setSaving(false);
     if (error) return toast.error(error.message);
     toast.success(`Order recorded — ${supplier} #${orderNo.trim()}`);
     setActive(null);
-    qc.invalidateQueries({ queryKey: ["parts-order-reminders"] });
+    invalidateParts();
   }
 
   const label = (b: any) =>
