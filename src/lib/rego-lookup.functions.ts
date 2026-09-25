@@ -66,7 +66,7 @@ export const lookupRego = createServerFn({ method: "POST" })
     }
     const plate = data.rego.replace(/\s+/g, "").toUpperCase();
 
-    const url = `https://api.carjam.co.nz/api/car/?plate=${encodeURIComponent(plate)}&key=${encodeURIComponent(key)}&format=json&info=basic,identification,other,inspections`;
+    const url = `https://www.carjam.co.nz/api/car/?plate=${encodeURIComponent(plate)}&key=${encodeURIComponent(key)}&format=json&info=basic,identification,other,inspections`;
 
     const res = await fetch(url, { method: "GET" });
     if (!res.ok) {
@@ -105,6 +105,10 @@ export const lookupRego = createServerFn({ method: "POST" })
     }
 
     // Carjam error responses are returned with HTTP 200 and a code field.
+    if (json?.error) json = json.error;
+    if (json?.scode === "err-invalid-api-key" || /invalid api key/i.test(String(json?.message ?? ""))) {
+      throw new Error("Carjam rejected the API key (Invalid API Key). Please update CARJAM_API_KEY.");
+    }
     if (json?.code === -1 || json?.scode === "err-invalid-api-key") {
       throw new Error(
         "Carjam rejected the API key (err-invalid-api-key). Please check the secret in Backend → Secrets.",
@@ -175,6 +179,9 @@ export const lookupRego = createServerFn({ method: "POST" })
     };
 
     if (!result.make && !result.model) {
+      throw new Error(`Carjam returned no vehicle details for ${plate}`);
+    }
+    if (false) {
       result._debugKeys = Object.keys(flat).slice(0, 80);
       result._debugSample = JSON.stringify(flat).slice(0, 2000);
     }
