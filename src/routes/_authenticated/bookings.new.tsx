@@ -157,7 +157,11 @@ function NewBooking() {
           .then(() => toast.success("Bike record updated with CarJam data"))
           .catch(() => {});
       }
-      toast.success(`Found ${[r.year, r.make, r.model].filter(Boolean).join(" ") || plate} via CarJam — 1 lookup credit used`);
+      toast.success(
+        r.source === "cache"
+          ? `Loaded ${[r.year, r.make, r.model].filter(Boolean).join(" ") || plate} from the recent CarJam record — no new credit used`
+          : `Found ${[r.year, r.make, r.model].filter(Boolean).join(" ") || plate} via CarJam — 1 lookup credit used`,
+      );
     } catch (e: any) {
       toast.error(e?.message || "Rego lookup failed");
     } finally {

@@ -15,6 +15,13 @@
       "when": 1790306736595,
       "tag": "0001_booking_parts",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1790310525120,
+      "tag": "0002_cache_carjam_vehicle_lookups",
+      "breakpoints": true
     }
   ]
 }
