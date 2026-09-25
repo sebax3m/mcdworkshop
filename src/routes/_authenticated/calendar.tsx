@@ -624,11 +624,24 @@ function CalendarPage() {
             model: qBikeModel.trim(),
             year: qBikeYear ? Number(qBikeYear) : null,
             rego: qBikeRego.trim().toUpperCase() || null,
+            vin: qVin.trim().toUpperCase() || null,
+            color: qBikeColor.trim() || null,
+            wof_expiry: qWofExpiry || null,
+            rego_expiry: qRegoExpiry || null,
           })
           .select("id")
           .single();
         if (bErr) throw bErr;
         bikeId = bike.id;
+      } else if (qCarjamFetched) {
+        const patch: Record<string, any> = {};
+        if (qVin.trim()) patch.vin = qVin.trim().toUpperCase();
+        if (qBikeColor.trim()) patch.color = qBikeColor.trim();
+        if (qWofExpiry) patch.wof_expiry = qWofExpiry;
+        if (qRegoExpiry) patch.rego_expiry = qRegoExpiry;
+        if (Object.keys(patch).length) {
+          await (supabase as any).from("motorcycles").update(patch).eq("id", bikeId);
+        }
       }
 
       const { data: created, error: bkErr } = await supabase
