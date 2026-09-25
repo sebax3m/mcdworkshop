@@ -50,6 +50,33 @@ export function localBikeMissingFields(b: LocalBikeRecord): string[] {
 }
 
 /**
+ * Expiry problems on a local bike record: WOF/rego already expired, or
+ * expiring within `withinDays` (default 30). If both are still comfortably
+ * valid, there's no reason to spend a Carjam lookup.
+ */
+export function localBikeExpiryIssues(b: LocalBikeRecord, withinDays = 30): string[] {
+  const issues: string[] = [];
+  const today = new Date(new Date().toDateString());
+  const soon = new Date(today);
+  soon.setDate(soon.getDate() + withinDays);
+  const fmt = (iso: string) => {
+    const [y, m, d] = iso.split("-");
+    return `${d}/${m}/${y}`;
+  };
+  const check = (iso: string | undefined, label: string) => {
+    if (!iso) return; // missing is reported by localBikeMissingFields
+    const d = new Date(`${iso}T00:00:00`);
+    if (Number.isNaN(d.getTime())) return;
+    if (d < today) issues.push(`${label} expired ${fmt(iso)}`);
+    else if (d <= soon) issues.push(`${label} expires ${fmt(iso)}`);
+  };
+  check(b.wof_expiry, "WOF");
+  check(b.rego_expiry, "rego");
+  return issues;
+}
+
+
+/**
  * Search the workshop's own motorcycle records by rego plate before
  * spending a Carjam lookup. Returns the best match or null.
  */
