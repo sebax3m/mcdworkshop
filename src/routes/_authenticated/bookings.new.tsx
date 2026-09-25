@@ -31,7 +31,7 @@ import {
 } from "@/lib/booking-conflicts";
 import { refreshContacts } from "@/lib/contacts-cache";
 import { lookupRego } from "@/lib/rego-lookup.functions";
-import { findLocalBikeByRego, localBikeMissingFields, saveCarjamDataToBike } from "@/lib/rego-local-lookup";
+import { findLocalBikeByRego, localBikeExpiryIssues, localBikeMissingFields, saveCarjamDataToBike } from "@/lib/rego-local-lookup";
 
 const searchSchema = z.object({
   date: z.string().optional(),
@@ -118,6 +118,7 @@ function NewBooking() {
       const local = await findLocalBikeByRego(plate);
       if (local) {
         const missing = localBikeMissingFields(local);
+        const expiryIssues = localBikeExpiryIssues(local);
         if (local.make) setNbMake(local.make);
         if (local.model) setNbModel(local.model);
         if (local.year) setNbYear(String(local.year));
@@ -125,15 +126,14 @@ function NewBooking() {
         if (local.vin) setNbVin(local.vin);
         if (local.wof_expiry) setNbWofExpiry(local.wof_expiry);
         if (local.rego_expiry) setNbRegoExpiry(local.rego_expiry);
-        if (missing.length === 0) {
+        // Complete record with WOF/rego still valid — no Carjam lookup needed.
+        if (missing.length === 0 && expiryIssues.length === 0) {
           setNbFetched(true);
-          toast.success(
-            `Loaded from workshop records: ${[local.year, local.make, local.model].filter(Boolean).join(" ")}`,
-          );
+          toast.success(`Loaded from workshop records: ${[local.year, local.make, local.model].filter(Boolean).join(" ")}`);
           return;
         }
         const wantsUpdate = window.confirm(
-          `This bike is already in the workshop records, but missing: ${missing.join(", ")}.\n\nUpdate from CarJam now?`,
+          `This bike is already in the workshop records (${[...(missing.length ? [`missing: ${missing.join(", ")}`] : []), ...expiryIssues].join("; ")}).\n\nUpdate from CarJam now?`,
         );
         if (!wantsUpdate) {
           setNbFetched(true);
