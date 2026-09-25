@@ -174,20 +174,35 @@ export const lookupRego = createServerFn({ method: "POST" })
       cc: ccNum,
       fuel: get("fuel_type", "fueltype", "fuel"),
       wof_expiry: toISODate(
-        get("wof_expiry", "wofexpiry", "next_inspection", "nextinspection", "wof"),
+        get(
+          "expiry_date_of_last_successful_wof",
+          "expirydateoflastsuccessfulwof",
+          "wof_expiry",
+          "wofexpiry",
+          "next_inspection",
+          "nextinspection",
+          "wof",
+        ),
       ),
       rego_expiry: toISODate(
-        get("licence_expiry", "licenceexpiry", "rego_expiry", "regoexpiry", "expirydate"),
+        get(
+          "licence_expiry_date",
+          "licenceexpirydate",
+          "licence_expiry",
+          "licenceexpiry",
+          "rego_expiry",
+          "regoexpiry",
+          "expirydate",
+        ),
       ),
     };
 
     if (!result.make && !result.model) {
       throw new Error(`Carjam returned no vehicle details for ${plate}`);
     }
-    if (false) {
-      result._debugKeys = Object.keys(flat).slice(0, 80);
-      result._debugSample = JSON.stringify(flat).slice(0, 2000);
-    }
+    // TEMP DEBUG: inspect raw Carjam fields (disable after verification)
+    result._debugKeys = Object.keys(flat).slice(0, 120);
+    result._debugSample = JSON.stringify(flat).slice(0, 3000);
 
     return result;
   });
