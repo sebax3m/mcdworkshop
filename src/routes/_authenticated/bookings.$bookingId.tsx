@@ -24,6 +24,7 @@ import {
 } from "@/lib/google-calendar.functions";
 import { LoanBikeDialog } from "@/components/booking/LoanBikeDialog";
 import { TransportCard } from "@/components/booking/TransportCard";
+import { BookingPartsSection } from "@/components/parts/BookingPartsSection";
 import { changeBookingMotorcycle, fetchCustomerBikes } from "@/lib/bike-assign";
 import { toast } from "sonner";
 import { displayCustomerName } from "@/lib/display";
@@ -342,6 +343,8 @@ function BookingDetail() {
           </p>
         )}
       </div>
+
+      <BookingPartsSection booking={b} />
 
       <TransportCard
         bookingId={bookingId}
