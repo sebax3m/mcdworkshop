@@ -666,7 +666,9 @@ function CalendarPage() {
             qPickup || qDelivery ? qTransportAddress.trim() || null : null,
           transport_notes: qPickup || qDelivery ? qTransportNotes.trim() || null : null,
           status: "booked",
-          wof_expiry: qWofNeeded && qWofExpiry ? qWofExpiry : null,
+          wof_expiry: qWofExpiry || null,
+          vin: qVin.trim().toUpperCase() || null,
+          color: qBikeColor.trim() || null,
           notes:
             [qNotes.trim(), qWofNeeded ? "WOF required" : ""].filter(Boolean).join("\n") || null,
         })
