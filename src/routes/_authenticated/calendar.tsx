@@ -295,6 +295,10 @@ function CalendarPage() {
   const [qNotes, setQNotes] = useState<string>("");
   const [qWofNeeded, setQWofNeeded] = useState(false);
   const [qWofExpiry, setQWofExpiry] = useState<string>("");
+  const [qRegoExpiry, setQRegoExpiry] = useState<string>("");
+  const [qVin, setQVin] = useState<string>("");
+  const [qBikeColor, setQBikeColor] = useState<string>("");
+  const [qCarjamFetched, setQCarjamFetched] = useState(false);
   const [qLoanBike, setQLoanBike] = useState(false);
   const [qParts, setQParts] = useState(false);
   const [qPartRows, setQPartRows] = useState<{ description: string; part_number: string; qty: string; supplier: string }[]>([]);
@@ -339,12 +343,14 @@ function CalendarPage() {
     setLookingUpRego(true);
     try {
       const r = await lookupRego({ data: { rego: plate } });
-      console.log("[carjam] response:", r);
-      if (r._debugKeys) console.log("[carjam] flat keys:", r._debugKeys, "sample:", r._debugSample);
       if (r.make) setQBikeMake(r.make);
       if (r.model) setQBikeModel(r.model);
       if (r.year) setQBikeYear(String(r.year));
       if (r.wof_expiry) setQWofExpiry(r.wof_expiry);
+      if (r.rego_expiry) setQRegoExpiry(r.rego_expiry);
+      if (r.vin) setQVin(r.vin);
+      if (r.color) setQBikeColor(r.color);
+      setQCarjamFetched(true);
       toast.success(`Found ${[r.year, r.make, r.model].filter(Boolean).join(" ") || plate}`);
     } catch (e: any) {
       toast.error(e?.message || "Lookup failed");
