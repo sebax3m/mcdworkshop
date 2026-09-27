@@ -17,7 +17,11 @@ import {
   CheckCircle,
   RotateCcw,
   Mail,
+  Search,
+  ShieldCheck,
 } from "lucide-react";
+import { lookupRego } from "@/lib/rego-lookup.functions";
+import { saveCarjamDataToBike } from "@/lib/rego-local-lookup";
 import {
   sendBookingCalendarInvite,
   cancelBookingCalendarEvent,
@@ -47,6 +51,42 @@ function BookingDetail() {
   const [loanOpen, setLoanOpen] = useState(false);
   const [sendingInvite, setSendingInvite] = useState(false);
   const [cancellingInvite, setCancellingInvite] = useState(false);
+  const [fetchingRego, setFetchingRego] = useState(false);
+
+  async function fetchRegoFromCarjam() {
+    const plate = b?.motorcycles?.rego;
+    if (!plate) {
+      toast.error("This bike has no rego plate on file.");
+      return;
+    }
+    setFetchingRego(true);
+    try {
+      const r = await lookupRego({ data: { rego: plate } });
+      if (b.motorcycle_id) {
+        await saveCarjamDataToBike(b.motorcycle_id, r, b.motorcycles);
+      }
+      const bookingPatch: Record<string, unknown> = {};
+      if (r.wof_expiry) bookingPatch.wof_expiry = r.wof_expiry;
+      if (r.vin && !b.vin) bookingPatch.vin = r.vin;
+      if (r.color && !b.color) bookingPatch.color = r.color;
+      if (Object.keys(bookingPatch).length) {
+        await (supabase as any).from("bookings").update(bookingPatch).eq("id", b.id);
+      }
+      qc.invalidateQueries({ queryKey: ["booking", bookingId] });
+      qc.invalidateQueries({ queryKey: ["calendar-bookings"] });
+      const via = r.source === "cache" ? "saved CarJam record — no new credit used" : "CarJam — 1 lookup credit used";
+      toast.success(`Updated from ${via}`, {
+        description: [
+          r.wof_expiry ? `WOF ${r.wof_expiry.split("-").reverse().join("/")}` : null,
+          r.rego_expiry ? `Rego ${r.rego_expiry.split("-").reverse().join("/")}` : null,
+        ].filter(Boolean).join(" · ") || "No expiry dates returned",
+      });
+    } catch (err: any) {
+      toast.error(err?.message ?? "CarJam lookup failed");
+    } finally {
+      setFetchingRego(false);
+    }
+  }
 
   async function sendGoogleInvite() {
     if (!b) return;
