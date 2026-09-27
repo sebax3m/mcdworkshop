@@ -290,23 +290,6 @@ function NewBooking() {
         .select("id")
         .single();
       if (error) throw error;
-      if (partsRequired) {
-        const rows = partRows
-          .filter((r) => r.description.trim())
-          .map((r, i) => ({
-            booking_id: data.id,
-            description: r.description.trim(),
-            part_number: r.part_number.trim() || null,
-            qty_required: Number(r.qty) || 1,
-            supplier: r.supplier || null,
-            notes: r.notes.trim() || null,
-            sort_order: i,
-          }));
-        if (rows.length) {
-          const { error: pe } = await supabase.from("booking_parts").insert(rows);
-          if (pe) toast.error(`Parts not saved: ${pe.message}`);
-        }
-      }
       await refreshContacts(qc);
       setCustomerId(data.id);
       setShowNewCustomer(false);
@@ -443,6 +426,26 @@ function NewBooking() {
         .select("id")
         .single();
       if (error) throw error;
+      if (partsRequired) {
+        const rows = partRows
+          .filter((r) => r.description.trim() || r.part_number.trim())
+          .map((r, i) => ({
+            booking_id: data.id,
+            description: r.description.trim(),
+            part_number: r.part_number.trim() || null,
+            qty_required: Number(r.qty) || 1,
+            supplier: r.supplier || null,
+            notes: r.notes.trim() || null,
+            sort_order: i,
+          }));
+        if (rows.length) {
+          const { error: pe } = await supabase.from("booking_parts").insert(rows);
+          if (pe) toast.error(`Parts not saved: ${pe.message}`);
+        }
+        qc.invalidateQueries({ queryKey: ["booking-parts-index"] });
+        qc.invalidateQueries({ queryKey: ["parts-orders"] });
+        qc.invalidateQueries({ queryKey: ["parts-order-reminders"] });
+      }
       if (mileage)
         await supabase
           .from("motorcycles")
