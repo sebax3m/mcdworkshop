@@ -17,7 +17,11 @@ import {
   CheckCircle,
   RotateCcw,
   Mail,
+  Search,
+  ShieldCheck,
 } from "lucide-react";
+import { lookupRego } from "@/lib/rego-lookup.functions";
+import { saveCarjamDataToBike } from "@/lib/rego-local-lookup";
 import {
   sendBookingCalendarInvite,
   cancelBookingCalendarEvent,
@@ -47,6 +51,42 @@ function BookingDetail() {
   const [loanOpen, setLoanOpen] = useState(false);
   const [sendingInvite, setSendingInvite] = useState(false);
   const [cancellingInvite, setCancellingInvite] = useState(false);
+  const [fetchingRego, setFetchingRego] = useState(false);
+
+  async function fetchRegoFromCarjam() {
+    const plate = b?.motorcycles?.rego;
+    if (!plate) {
+      toast.error("This bike has no rego plate on file.");
+      return;
+    }
+    setFetchingRego(true);
+    try {
+      const r = await lookupRego({ data: { rego: plate } });
+      if (b.motorcycle_id) {
+        await saveCarjamDataToBike(b.motorcycle_id, r, b.motorcycles);
+      }
+      const bookingPatch: Record<string, unknown> = {};
+      if (r.wof_expiry) bookingPatch.wof_expiry = r.wof_expiry;
+      if (r.vin && !b.vin) bookingPatch.vin = r.vin;
+      if (r.color && !b.color) bookingPatch.color = r.color;
+      if (Object.keys(bookingPatch).length) {
+        await (supabase as any).from("bookings").update(bookingPatch).eq("id", b.id);
+      }
+      qc.invalidateQueries({ queryKey: ["booking", bookingId] });
+      qc.invalidateQueries({ queryKey: ["calendar-bookings"] });
+      const via = r.source === "cache" ? "saved CarJam record — no new credit used" : "CarJam — 1 lookup credit used";
+      toast.success(`Updated from ${via}`, {
+        description: [
+          r.wof_expiry ? `WOF ${r.wof_expiry.split("-").reverse().join("/")}` : null,
+          r.rego_expiry ? `Rego ${r.rego_expiry.split("-").reverse().join("/")}` : null,
+        ].filter(Boolean).join(" · ") || "No expiry dates returned",
+      });
+    } catch (err: any) {
+      toast.error(err?.message ?? "CarJam lookup failed");
+    } finally {
+      setFetchingRego(false);
+    }
+  }
 
   async function sendGoogleInvite() {
     if (!b) return;
@@ -94,7 +134,7 @@ function BookingDetail() {
       const { data, error } = await supabase
         .from("bookings")
         .select(
-          "*, customers(first_name,last_name,phone,email), motorcycles(year,make,model,rego,vin,mileage), loan_bikes(name,rego)",
+          "*, customers(first_name,last_name,phone,email), motorcycles(year,make,model,rego,vin,color,mileage,wof_expiry,rego_expiry), loan_bikes(name,rego)",
         )
         .eq("id", bookingId)
         .single();
@@ -305,6 +345,43 @@ function BookingDetail() {
         />
         <InfoRow icon={Wrench} label="Est. hours" value={`${b.estimated_hours ?? "—"}h`} />
         <InfoRow icon={FileText} label="Status" value={b.status} />
+      </div>
+
+      <div className="card-surface p-4 flex items-center gap-3">
+        <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-muted">
+          <ShieldCheck className="h-4 w-4 text-primary" />
+        </span>
+        <div className="min-w-0 flex-1">
+          <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">
+            Number plate · WOF / Rego
+          </div>
+          <div className="text-sm font-semibold truncate">
+            {b.motorcycles?.rego || "No plate on file"}
+          </div>
+          <div className="text-xs text-muted-foreground truncate">
+            {(() => {
+              const fmtD = (iso?: string | null) =>
+                iso ? iso.split("-").reverse().join("/") : null;
+              const wof = fmtD(b.motorcycles?.wof_expiry ?? b.wof_expiry);
+              const rego = fmtD(b.motorcycles?.rego_expiry);
+              const parts = [
+                wof ? `WOF ${wof}` : "WOF —",
+                rego ? `Rego ${rego}` : "Rego —",
+              ];
+              return parts.join(" · ");
+            })()}
+          </div>
+        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={fetchRegoFromCarjam}
+          disabled={fetchingRego || !b.motorcycles?.rego}
+          title="Fetch WOF and rego expiry from CarJam and update this bike"
+        >
+          <Search className="h-4 w-4 mr-1.5" />
+          {fetchingRego ? "Fetching…" : "Fetch CarJam"}
+        </Button>
       </div>
 
       <div className="card-surface p-4 space-y-2">
