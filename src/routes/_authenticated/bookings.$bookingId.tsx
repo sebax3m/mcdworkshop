@@ -134,7 +134,7 @@ function BookingDetail() {
       const { data, error } = await supabase
         .from("bookings")
         .select(
-          "*, customers(first_name,last_name,phone,email), motorcycles(year,make,model,rego,vin,mileage), loan_bikes(name,rego)",
+          "*, customers(first_name,last_name,phone,email), motorcycles(year,make,model,rego,vin,color,mileage,wof_expiry,rego_expiry), loan_bikes(name,rego)",
         )
         .eq("id", bookingId)
         .single();
@@ -345,6 +345,43 @@ function BookingDetail() {
         />
         <InfoRow icon={Wrench} label="Est. hours" value={`${b.estimated_hours ?? "—"}h`} />
         <InfoRow icon={FileText} label="Status" value={b.status} />
+      </div>
+
+      <div className="card-surface p-4 flex items-center gap-3">
+        <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-muted">
+          <ShieldCheck className="h-4 w-4 text-primary" />
+        </span>
+        <div className="min-w-0 flex-1">
+          <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">
+            Number plate · WOF / Rego
+          </div>
+          <div className="text-sm font-semibold truncate">
+            {b.motorcycles?.rego || "No plate on file"}
+          </div>
+          <div className="text-xs text-muted-foreground truncate">
+            {(() => {
+              const fmtD = (iso?: string | null) =>
+                iso ? iso.split("-").reverse().join("/") : null;
+              const wof = fmtD(b.motorcycles?.wof_expiry ?? b.wof_expiry);
+              const rego = fmtD(b.motorcycles?.rego_expiry);
+              const parts = [
+                wof ? `WOF ${wof}` : "WOF —",
+                rego ? `Rego ${rego}` : "Rego —",
+              ];
+              return parts.join(" · ");
+            })()}
+          </div>
+        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={fetchRegoFromCarjam}
+          disabled={fetchingRego || !b.motorcycles?.rego}
+          title="Fetch WOF and rego expiry from CarJam and update this bike"
+        >
+          <Search className="h-4 w-4 mr-1.5" />
+          {fetchingRego ? "Fetching…" : "Fetch CarJam"}
+        </Button>
       </div>
 
       <div className="card-surface p-4 space-y-2">
