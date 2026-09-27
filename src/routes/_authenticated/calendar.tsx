@@ -53,7 +53,6 @@ import { lookupRego } from "@/lib/rego-lookup.functions";
 import { findLocalBikeByRego, localBikeExpiryIssues, localBikeMissingFields, saveCarjamDataToBike } from "@/lib/rego-local-lookup";
 import { useBookingTypes } from "@/hooks/useBookingTypes";
 import { useDailyNotesRange, useUpdateDailyNote, type DailyNote } from "@/hooks/useDailyNotes";
-import { PartsOrderReminders } from "@/components/booking/PartsOrderReminders";
 import { SUPPLIERS } from "@/lib/parts-orders";
 import { NoteDialog } from "@/components/booking/NoteDialog";
 import { BookInCard, CapacityBadge } from "@/components/booking/BookInCard";
@@ -742,7 +741,6 @@ function CalendarPage() {
         }
         qc.invalidateQueries({ queryKey: ["booking-parts-index"] });
         qc.invalidateQueries({ queryKey: ["parts-orders"] });
-        qc.invalidateQueries({ queryKey: ["parts-order-reminders"] });
       }
 
       toast.success("Booking created");
@@ -1087,9 +1085,6 @@ function CalendarPage() {
         <h1 className="font-display text-2xl font-bold leading-none">Book-ins</h1>
         <GlobalSearchButton />
       </div>
-
-      <PartsOrderReminders />
-
 
       {/* NAV + TOGGLE */}
       <div className="flex items-center justify-between">

@@ -96,6 +96,22 @@ export function useBookingPartsIndex() {
   });
 }
 
+/** Live sidebar count of parts whose orders still need tracking. */
+export function useOpenPartsOrdersCount() {
+  return useQuery({
+    queryKey: ["parts-orders", "pending-count"],
+    refetchInterval: 60_000,
+    queryFn: async () => {
+      const { count, error } = await supabase
+        .from("booking_parts")
+        .select("id", { count: "exact", head: true })
+        .in("status", ["needs_ordering", "ordered", "partially_received", "backordered"]);
+      if (error) throw error;
+      return count ?? 0;
+    },
+  });
+}
+
 export function useInvalidateParts() {
   const qc = useQueryClient();
   return () => {

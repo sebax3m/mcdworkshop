@@ -29,6 +29,7 @@ import { ActiveUserSwitcher } from "@/components/ActiveUserSwitcher";
 import { FloatingClockWidget } from "@/components/FloatingClockWidget";
 import { AutoClockOutGuard } from "@/components/AutoClockOutGuard";
 import { NotificationsBell } from "@/components/NotificationsBell";
+import { useOpenPartsOrdersCount } from "@/lib/parts-orders";
 
 // macOS-dock-like magnification based on cursor proximity to each item center
 // Keeps label text at its original size by scaling the inner text inversely.
@@ -75,6 +76,7 @@ export function AppShell() {
   const roleLabel = isAdmin ? "Admin" : isTechnician ? "Technician" : "No Role";
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const sidebarDock = useDockMagnify();
+  const { data: openPartsCount = 0 } = useOpenPartsOrdersCount();
 
   // Show floating back button everywhere on mobile except on the main landing pages
   const isRootPage = pathname === "/" || pathname === "/calendar";
@@ -276,6 +278,11 @@ export function AppShell() {
                     >
                       {t.label}
                     </span>
+                    {t.to === "/parts-orders" && openPartsCount > 0 && (
+                      <span className="ml-auto inline-flex min-w-5 h-5 shrink-0 items-center justify-center rounded-full bg-destructive px-1 text-[0.625rem] font-bold tabular-nums text-destructive-foreground" aria-label={`${openPartsCount} open parts orders`}>
+                        {openPartsCount}
+                      </span>
+                    )}
                   </Link>
                 )}
               </DockItem>
@@ -308,10 +315,17 @@ export function AppShell() {
                   active ? "text-primary" : "text-muted-foreground",
                 )}
               >
-                <Icon
-                  className="h-6 w-6"
-                  style={{ color: t.color, filter: `drop-shadow(0 0 6px ${t.color}66)` }}
-                />
+                <span className="relative">
+                  <Icon
+                    className="h-6 w-6"
+                    style={{ color: t.color, filter: `drop-shadow(0 0 6px ${t.color}66)` }}
+                  />
+                  {t.to === "/parts-orders" && openPartsCount > 0 && (
+                    <span className="absolute -right-3 -top-2 inline-flex min-w-5 h-5 items-center justify-center rounded-full bg-destructive px-1 text-[0.625rem] font-bold tabular-nums text-destructive-foreground" aria-label={`${openPartsCount} open parts orders`}>
+                      {openPartsCount}
+                    </span>
+                  )}
+                </span>
 
                 <span className="font-semibold whitespace-nowrap">{t.label}</span>
               </Link>
