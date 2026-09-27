@@ -10,3 +10,5 @@
 > the editor, so keep the branch in a working state.
 
 <!-- LOVABLE:END -->
+
+- Keep the Parts Orders pending count in the shared parts-orders query hook and invalidate it with parts mutations, so the main-menu badge stays consistent across pages.

@@ -53,7 +53,6 @@ import { lookupRego } from "@/lib/rego-lookup.functions";
 import { findLocalBikeByRego, localBikeExpiryIssues, localBikeMissingFields, saveCarjamDataToBike } from "@/lib/rego-local-lookup";
 import { useBookingTypes } from "@/hooks/useBookingTypes";
 import { useDailyNotesRange, useUpdateDailyNote, type DailyNote } from "@/hooks/useDailyNotes";
-import { PartsOrderReminders } from "@/components/booking/PartsOrderReminders";
 import { SUPPLIERS } from "@/lib/parts-orders";
 import { NoteDialog } from "@/components/booking/NoteDialog";
 import { BookInCard, CapacityBadge } from "@/components/booking/BookInCard";
@@ -141,6 +140,16 @@ const TIME_SLOTS: string[] = (() => {
 })();
 
 export const Route = createFileRoute("/_authenticated/calendar")({
+  head: () => ({
+    meta: [
+      { title: "Book-ins Calendar — Motorcycle Doctors" },
+      { name: "description", content: "Workshop book-ins, daily notes and motorcycle service schedule at Motorcycle Doctors." },
+      { property: "og:title", content: "Book-ins Calendar — Motorcycle Doctors" },
+      { property: "og:description", content: "Workshop book-ins, daily notes and motorcycle service schedule at Motorcycle Doctors." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+    ],
+  }),
   validateSearch: (s: Record<string, unknown>): { highlight?: string; date?: string } => ({
     highlight: typeof s.highlight === "string" ? s.highlight : undefined,
     date: typeof s.date === "string" ? s.date : undefined,
@@ -742,7 +751,6 @@ function CalendarPage() {
         }
         qc.invalidateQueries({ queryKey: ["booking-parts-index"] });
         qc.invalidateQueries({ queryKey: ["parts-orders"] });
-        qc.invalidateQueries({ queryKey: ["parts-order-reminders"] });
       }
 
       toast.success("Booking created");
@@ -1087,9 +1095,6 @@ function CalendarPage() {
         <h1 className="font-display text-2xl font-bold leading-none">Book-ins</h1>
         <GlobalSearchButton />
       </div>
-
-      <PartsOrderReminders />
-
 
       {/* NAV + TOGGLE */}
       <div className="flex items-center justify-between">
