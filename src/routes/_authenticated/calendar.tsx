@@ -140,6 +140,16 @@ const TIME_SLOTS: string[] = (() => {
 })();
 
 export const Route = createFileRoute("/_authenticated/calendar")({
+  head: () => ({
+    meta: [
+      { title: "Book-ins Calendar — Motorcycle Doctors" },
+      { name: "description", content: "Workshop book-ins, daily notes and motorcycle service schedule at Motorcycle Doctors." },
+      { property: "og:title", content: "Book-ins Calendar — Motorcycle Doctors" },
+      { property: "og:description", content: "Workshop book-ins, daily notes and motorcycle service schedule at Motorcycle Doctors." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+    ],
+  }),
   validateSearch: (s: Record<string, unknown>): { highlight?: string; date?: string } => ({
     highlight: typeof s.highlight === "string" ? s.highlight : undefined,
     date: typeof s.date === "string" ? s.date : undefined,
