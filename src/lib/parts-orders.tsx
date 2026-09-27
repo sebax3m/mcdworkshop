@@ -118,7 +118,6 @@ export function useInvalidateParts() {
     qc.invalidateQueries({ queryKey: ["booking-parts-index"] });
     qc.invalidateQueries({ queryKey: ["booking-parts"] });
     qc.invalidateQueries({ queryKey: ["parts-orders"] });
-    qc.invalidateQueries({ queryKey: ["parts-order-reminders"] });
   };
 }
 
