@@ -361,48 +361,7 @@ function InvoiceDetail() {
 
 
 
-  // Ensure every invoice carries a default $30 shop consumables line. Auto-insert
-  // once per job if missing, then it behaves like any other editable part line.
-  useEffect(() => {
-    const jobId = invoice.data?.job_id;
-    if (!jobId || !parts.data) return;
-    if ((invoice.data?.snapshot as any)?.consumables_removed) return;
-    const hasConsumables = parts.data.some((p: any) =>
-      (p.name ?? "").toLowerCase().includes("consumable"),
-    );
-    if (hasConsumables) return;
-    (async () => {
-      const { error } = await supabase.from("parts").insert({
-        job_id: jobId,
-        name: "Shop consumables",
-        supplier: "Washers, lubricants, cleaners, degreaser, rags & workshop supplies",
-        quantity: 1,
-        retail: 30,
-        on_invoice: true,
-      });
-      if (error) return;
-      const fresh = await supabase.from("parts").select("*").eq("job_id", jobId);
-      const partsSum = (fresh.data ?? []).reduce(
-        (s: number, p: any) =>
-          s +
-          Number(p.retail ?? 0) * Number(p.quantity ?? 1) * (1 - Number(p.discount_pct ?? 0) / 100),
-        0,
-      );
-      const m = invoiceMoney(
-        invoice.data!.snapshot as any,
-        Number(invoice.data!.labour_total),
-        partsSum,
-      );
-      const gst = m.gst;
-      const total = m.total;
-      await supabase
-        .from("invoices")
-        .update({ parts_total: partsSum, gst, total })
-        .eq("id", invoiceId);
-      qc.invalidateQueries({ queryKey: ["invoice-parts", invoiceId, jobId] });
-      qc.invalidateQueries({ queryKey: ["invoice", invoiceId] });
-    })();
-  }, [invoice.data?.job_id, (invoice.data?.snapshot as any)?.consumables_removed, parts.data, invoiceId, qc]);
+  // Shop consumables are NOT auto-added — staff add them manually when needed.
 
   // Prevents a double insert of the tuning line while the first insert is in flight.
   const dynoGuard = useRef<string | null>(null);
@@ -985,14 +944,12 @@ function InvoiceDetail() {
 
   async function deletePart(id: string) {
     const target = (parts.data ?? []).find((p: any) => p.id === id) as any;
-    const isConsumables = (target?.name ?? "").toLowerCase().includes("consumable");
     const isDyno = isDynoLine(target ?? {});
     const { error } = await supabase.from("parts").delete().eq("id", id);
     if (error) {
       toast.error(error.message);
       return;
     }
-    if (isConsumables) await saveSnapshotMeta({ consumables_removed: true });
     if (isDyno) {
       const job = (invoice.data as any)?.jobs ?? {};
       let performed = "";
@@ -1892,14 +1849,6 @@ function InvoiceDetail() {
                       >
                         <Plus className="h-3 w-3" /> Add line item
                       </button>
-                      {(inv.snapshot as any)?.consumables_removed && (
-                        <button
-                          onClick={() => saveSnapshotMeta({ consumables_removed: false })}
-                          className="ml-4 text-xs text-primary hover:underline inline-flex items-center gap-1"
-                        >
-                          <Plus className="h-3 w-3" /> Add shop consumables
-                        </button>
-                      )}
                       {(inv.snapshot as any)?.labour_hidden && (
                         <button
                           onClick={restoreLabourLine}
