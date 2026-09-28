@@ -153,7 +153,7 @@ export function ClaimPartsTracking({ claim }: { claim: any }) {
                   <td className="px-2 py-1.5">
                     {r.tracking_number || r.tracking_url ? link(r.tracking_url, r.tracking_number || "Open link") : ""}
                   </td>
-                  <td className="px-2 py-1.5 max-w-[10rem] truncate" title={r.notes ?? ""}>{r.notes}</td>
+                  <td className="px-2 py-1.5 max-w-[18rem] truncate" title={r.notes ?? ""}>{r.notes}</td>
                   <td className="px-2 py-1.5">
                     <div className="flex justify-end gap-1">
                       {r.status === "needs_ordering" && (
