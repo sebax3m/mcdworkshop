@@ -4,7 +4,7 @@ import { toast } from "sonner";
 import { Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { PART_STATUSES, SUPPLIERS, useInvalidateParts } from "@/lib/parts-orders";
+import { PART_STATUSES, SUPPLIERS, SUPPLIER_SUGGESTIONS, useInvalidateParts } from "@/lib/parts-orders";
 
 const inp = "w-full h-9 rounded-md border border-border bg-background px-2 text-sm";
 const lbl = "text-[0.625rem] font-bold uppercase tracking-wider text-muted-foreground";
@@ -13,12 +13,14 @@ export function PartEditDialog({
   open,
   onOpenChange,
   bookingId,
+  claimId,
   part,
   initialDescription,
 }: {
   open: boolean;
   onOpenChange: (v: boolean) => void;
-  bookingId: string;
+  bookingId?: string | null;
+  claimId?: string | null;
   part?: any | null;
   initialDescription?: string;
 }) {
@@ -41,6 +43,10 @@ export function PartEditDialog({
         received_at: "",
         status: "needs_ordering",
         notes: "",
+        cost: "",
+        sell_price: "",
+        tracking_number: "",
+        tracking_url: "",
       },
     );
   }, [open, part, initialDescription]);
@@ -62,6 +68,10 @@ export function PartEditDialog({
       received_at: f.received_at || null,
       status: f.status,
       notes: f.notes?.trim() || null,
+      cost: f.cost === "" || f.cost == null ? null : Number(f.cost),
+      sell_price: f.sell_price === "" || f.sell_price == null ? null : Number(f.sell_price),
+      tracking_number: f.tracking_number?.trim() || null,
+      tracking_url: f.tracking_url?.trim() || null,
     };
     // Keep status consistent with quantities.
     if (row.qty_received >= row.qty_required && row.qty_received > 0) row.status = "arrived";
@@ -71,8 +81,13 @@ export function PartEditDialog({
 
     const { error } = part?.id
       ? await supabase.from("booking_parts").update(row).eq("id", part.id)
-      : await supabase.from("booking_parts").insert({ ...row, booking_id: bookingId });
-    if (!error) await supabase.from("bookings").update({ parts_required: true }).eq("id", bookingId);
+      : await supabase.from("booking_parts").insert({
+          ...row,
+          booking_id: bookingId || null,
+          claim_id: claimId || null,
+          source: claimId && !bookingId ? "insurance" : "booking",
+        });
+    if (!error && bookingId) await supabase.from("bookings").update({ parts_required: true }).eq("id", bookingId);
     setSaving(false);
     if (error) return toast.error(error.message);
     toast.success(part?.id ? "Part updated" : "Part added");
@@ -131,6 +146,29 @@ export function PartEditDialog({
               ))}
             </div>
           </div>
+          <label className="col-span-2 space-y-1">
+            <span className={lbl}>Other supplier (type any)</span>
+            <input className={inp} list="supplier-suggestions" value={f.supplier ?? ""} onChange={(e) => set("supplier", e.target.value)} placeholder="eBay, Cyclespot, Partzilla, OEM dealer…" />
+            <datalist id="supplier-suggestions">
+              {SUPPLIER_SUGGESTIONS.map((s) => <option key={s} value={s} />)}
+            </datalist>
+          </label>
+          <label className="space-y-1">
+            <span className={lbl}>Cost (NZD)</span>
+            <input type="number" step="0.01" className={inp} value={f.cost ?? ""} onChange={(e) => set("cost", e.target.value)} />
+          </label>
+          <label className="space-y-1">
+            <span className={lbl}>Sell price (NZD)</span>
+            <input type="number" step="0.01" className={inp} value={f.sell_price ?? ""} onChange={(e) => set("sell_price", e.target.value)} />
+          </label>
+          <label className="space-y-1">
+            <span className={lbl}>Tracking number</span>
+            <input className={inp} value={f.tracking_number ?? ""} onChange={(e) => set("tracking_number", e.target.value)} />
+          </label>
+          <label className="space-y-1">
+            <span className={lbl}>Tracking / product link</span>
+            <input className={inp} value={f.tracking_url ?? ""} onChange={(e) => set("tracking_url", e.target.value)} placeholder="https://…" />
+          </label>
           <label className="space-y-1">
             <span className={lbl}>Order reference</span>
             <input className={inp} value={f.order_ref ?? ""} onChange={(e) => set("order_ref", e.target.value)} />
