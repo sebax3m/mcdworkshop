@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Check, Loader2, Plus, X } from "lucide-react";
+import { Check, Loader2, X } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
@@ -133,7 +133,7 @@ export function QuickPartPresets({ jobId, onAdded }: { jobId: string; onAdded: (
     let name = "";
     let item = "";
     if (active === "engine_oil") {
-      name = `${OIL_NAME} ${q === 1 ? "1L" : "1L"}`.trim();
+      name = `${OIL_NAME} 1L`;
       item = OIL_ITEM;
     } else {
       const num = hfNumber.trim().replace(/^hf/i, "");
@@ -281,9 +281,6 @@ export function QuickPartPresets({ jobId, onAdded }: { jobId: string; onAdded: (
           </p>
         </div>
       )}
-      <div className="sr-only">
-        <Plus className="h-3 w-3" />
-      </div>
     </div>
   );
 }
