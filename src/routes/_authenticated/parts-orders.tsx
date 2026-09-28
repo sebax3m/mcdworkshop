@@ -66,11 +66,17 @@ function PartsOrdersPage() {
       const { data, error } = await supabase
         .from("booking_parts")
         .select(
-          "*, bookings(id, scheduled_date, service_type, service_type_other, rego, parts_required, customers(first_name,last_name), motorcycles(year,make,model,rego))",
+          "*, insurance_claims(id, claim_number, insurer_name, customers(first_name,last_name), motorcycles(year,make,model,rego)), bookings(id, scheduled_date, service_type, service_type_other, rego, parts_required, customers(first_name,last_name), motorcycles(year,make,model,rego))",
         )
         .order("created_at", { ascending: false });
       if (error) throw error;
-      return (data ?? []) as any[];
+      // Insurance-only orders borrow customer/bike from the claim.
+      return ((data ?? []) as any[]).map((r) => ({
+        ...r,
+        bookings: r.bookings ?? (r.insurance_claims
+          ? { id: null, scheduled_date: null, customers: r.insurance_claims.customers, motorcycles: r.insurance_claims.motorcycles, service_type: "Insurance" }
+          : null),
+      }));
     },
   });
   // Book-ins flagged "parts required" that have no parts yet.
@@ -93,7 +99,7 @@ function PartsOrdersPage() {
 
   const byBooking = useMemo(() => {
     const m = new Map<string, any[]>();
-    for (const r of rows) m.set(r.booking_id, [...(m.get(r.booking_id) ?? []), r]);
+    for (const r of rows) if (r.booking_id) m.set(r.booking_id, [...(m.get(r.booking_id) ?? []), r]);
     return m;
   }, [rows]);
 
@@ -119,7 +125,7 @@ function PartsOrdersPage() {
           r.description, r.part_number, r.supplier, r.order_ref, r.notes,
           b.customers?.first_name, b.customers?.last_name,
           b.motorcycles?.make, b.motorcycles?.model, b.motorcycles?.rego, b.rego,
-          b.service_type, String(r.booking_id).slice(0, 8),
+          b.service_type, String(r.booking_id ?? "").slice(0, 8), r.insurance_claims?.claim_number, r.tracking_number,
         ].join(" ").toLowerCase();
         return hay.includes(t);
       })
@@ -148,12 +154,22 @@ function PartsOrdersPage() {
   const svc = (b: any) => (b?.service_type === "Other" ? b?.service_type_other || "Other" : b?.service_type) ?? "";
   const bookingFilter = search.bookingId ? rows.find((r) => r.booking_id === search.bookingId)?.bookings : null;
 
+  const SourceTag = ({ r }: { r: any }) =>
+    r.claim_id ? (
+      <div className="mt-0.5 flex flex-wrap items-center gap-1 text-[0.5625rem] font-bold uppercase tracking-wider">
+        <span className="rounded border border-violet-500/50 bg-violet-500/10 px-1 text-violet-300">Source: Insurance</span>
+        <Link to="/insurance/$claimId" params={{ claimId: r.claim_id }} className="text-violet-300 underline whitespace-nowrap">
+          View Insurance Job{r.insurance_claims?.claim_number ? ` · ${r.insurance_claims.claim_number}` : ""}
+        </Link>
+      </div>
+    ) : null;
+
   const Actions = ({ r }: { r: any }) => (
     <div className="flex gap-1 justify-end">
       {r.status === "needs_ordering" && (
         <button onClick={() => setEdit({ ...r, status: "ordered" })} className="rounded-md border border-sky-500/60 px-2 h-7 text-[0.625rem] font-bold uppercase text-sky-300 hover:bg-sky-500/15 whitespace-nowrap">Ordered</button>
       )}
-      {["ordered", "partially_received", "backordered"].includes(r.status) && (
+      {["ordered", "partially_shipped", "shipped", "ready_for_collection", "partially_received", "backordered"].includes(r.status) && (
         <button onClick={() => quick(r, "arrived")} className="rounded-md border border-emerald-500/60 px-2 h-7 text-[0.625rem] font-bold uppercase text-emerald-300 hover:bg-emerald-500/15">Arrived</button>
       )}
       <button onClick={() => setEdit(r)} className="grid h-7 w-7 place-items-center rounded-md border border-border hover:border-primary/50" aria-label="Edit">
@@ -261,9 +277,14 @@ function PartsOrdersPage() {
                 <div className="flex items-start gap-2">
                   <div className="flex-1 min-w-0">
                     <div className="font-semibold">{r.description} {r.part_number && <span className="text-muted-foreground font-normal">· {r.part_number}</span>}</div>
-                    <Link to="/bookings/$bookingId" params={{ bookingId: r.booking_id }} className="text-xs text-muted-foreground hover:underline">
-                      {fmtD(r.bookings?.scheduled_date)} · {who(r.bookings)} · {bike(r.bookings)} {rego(r.bookings)}
-                    </Link>
+                    {r.booking_id ? (
+                      <Link to="/bookings/$bookingId" params={{ bookingId: r.booking_id }} className="text-xs text-muted-foreground hover:underline">
+                        {fmtD(r.bookings?.scheduled_date)} · {who(r.bookings)} · {bike(r.bookings)} {rego(r.bookings)}
+                      </Link>
+                    ) : (
+                      <div className="text-xs text-muted-foreground">{who(r.bookings)} · {bike(r.bookings)} {rego(r.bookings)}</div>
+                    )}
+                    <SourceTag r={r} />
                   </div>
                   <StatusBadge status={r.status} />
                 </div>
@@ -292,9 +313,12 @@ function PartsOrdersPage() {
                 {filtered.map((r) => (
                   <tr key={r.id} className={cn("border-b border-border/60 hover:bg-muted/40", notReady(r) && "bg-red-500/5")}>
                     <td className="px-2 py-1.5">
-                      <button onClick={() => nav({ search: (s: Search) => ({ ...s, bookingId: r.booking_id }) })} className="font-mono text-primary hover:underline">
-                        {String(r.booking_id).slice(0, 6).toUpperCase()}
-                      </button>
+                      {r.booking_id ? (
+                        <button onClick={() => nav({ search: (s: Search) => ({ ...s, bookingId: r.booking_id }) })} className="font-mono text-primary hover:underline">
+                          {String(r.booking_id).slice(0, 6).toUpperCase()}
+                        </button>
+                      ) : null}
+                      <SourceTag r={r} />
                     </td>
                     <td className="px-2 py-1.5 whitespace-nowrap">
                       {fmtD(r.bookings?.scheduled_date)}
@@ -304,7 +328,14 @@ function PartsOrdersPage() {
                     <td className="px-2 py-1.5 whitespace-nowrap">{bike(r.bookings)}</td>
                     <td className="px-2 py-1.5 font-mono">{rego(r.bookings)}</td>
                     <td className="px-2 py-1.5 whitespace-nowrap">{svc(r.bookings)}</td>
-                    <td className="px-2 py-1.5 font-semibold">{r.description}</td>
+                    <td className="px-2 py-1.5 font-semibold">
+                      {r.description}
+                      {(r.tracking_number || r.tracking_url) && (
+                        <div className="text-[0.625rem] font-normal">
+                          {r.tracking_url ? <a href={r.tracking_url} target="_blank" rel="noreferrer" className="text-sky-300 underline">{r.tracking_number || "Tracking link"}</a> : r.tracking_number}
+                        </div>
+                      )}
+                    </td>
                     <td className="px-2 py-1.5 font-mono">{r.part_number}</td>
                     <td className="px-2 py-1.5 tabular-nums whitespace-nowrap">{r.qty_received}/{r.qty_required}</td>
                     <td className="px-2 py-1.5">{r.supplier}</td>
@@ -322,7 +353,7 @@ function PartsOrdersPage() {
         </>
       )}
 
-      <PartEditDialog open={!!edit} onOpenChange={(v) => !v && setEdit(null)} bookingId={edit?.booking_id ?? ""} part={edit} />
+      <PartEditDialog open={!!edit} onOpenChange={(v) => !v && setEdit(null)} bookingId={edit?.booking_id ?? null} claimId={edit?.claim_id ?? null} part={edit} />
       <PartEditDialog open={!!addFor} onOpenChange={(v) => !v && setAddFor(null)} bookingId={addFor ?? ""} />
     </div>
   );
