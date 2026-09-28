@@ -142,6 +142,17 @@ function PartsOrdersPage() {
     r.bookings.scheduled_date <= soon &&
     !["arrived", "cancelled"].includes(r.status);
 
+  // Insurance parts are grouped into one "job card" per claim.
+  const { insuranceGroups, regularRows } = useMemo(() => {
+    const groups = new Map<string, any[]>();
+    const regular: any[] = [];
+    for (const r of filtered) {
+      if (r.claim_id) groups.set(r.claim_id, [...(groups.get(r.claim_id) ?? []), r]);
+      else regular.push(r);
+    }
+    return { insuranceGroups: [...groups.entries()], regularRows: regular };
+  }, [filtered]);
+
   async function quick(p: any, status: PartStatus) {
     const { error } = await supabase.from("booking_parts").update(statusPatch(p, status)).eq("id", p.id);
     if (error) return toast.error(error.message);
