@@ -556,7 +556,7 @@ function JobDetail() {
   }
 
   return (
-    <div ref={jobRef} className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-5 items-start jobcard-print">
+    <div ref={jobRef} className="max-w-[1600px] mx-auto grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-5 items-start jobcard-print">
       <style>{`
         /* Slightly larger job card on screen. Zoom reflows the layout (unlike
            transform: scale, which overflowed and clipped the right sidebar). */
@@ -1039,15 +1039,7 @@ function JobDetail() {
         onChanged={() => qc.invalidateQueries({ queryKey: ["job", jobId] })}
       />
 
-      {/* Notes for the invoice (technician recommendations) */}
-      <CustomerNotesSection
-        jobId={jobId}
-        serviceData={(j.service_data as any) ?? {}}
-        canEdit={canEdit}
-        onChanged={() => qc.invalidateQueries({ queryKey: ["job", jobId] })}
-      />
-
-      {/* Parts used (service-kind aware) */}
+      {/* Parts used (service-kind aware) — kept above the invoice notes */}
       {(SERVICE_PARTS[kind].length > 0 || canEdit || (partsUsed.data ?? []).length > 0) && (
         <div data-print-section="parts">
           <div className="print:hidden">
@@ -1095,6 +1087,15 @@ function JobDetail() {
           )}
         </div>
       )}
+
+      {/* Notes for the invoice (technician recommendations) */}
+      <CustomerNotesSection
+        jobId={jobId}
+        serviceData={(j.service_data as any) ?? {}}
+        canEdit={canEdit}
+        onChanged={() => qc.invalidateQueries({ queryKey: ["job", jobId] })}
+      />
+
 
       {/* Valve clearance diagram for Full service — also prints as a worksheet page */}
       {kind === "full" && (
