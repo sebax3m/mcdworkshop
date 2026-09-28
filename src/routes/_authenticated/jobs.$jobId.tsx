@@ -558,7 +558,7 @@ function JobDetail() {
   }
 
   return (
-    <div ref={jobRef} className="max-w-[1600px] mx-auto grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-5 items-start jobcard-print">
+    <div ref={jobRef} className="max-w-[1600px] mx-auto px-2 sm:px-4 lg:px-8 grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-5 items-start jobcard-print">
       <style>{`
         /* Slightly larger job card on screen. Zoom reflows the layout (unlike
            transform: scale, which overflowed and clipped the right sidebar). */
