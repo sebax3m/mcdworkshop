@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 const GATEWAY_URL = "https://connector-gateway.lovable.dev/google_maps";
 
@@ -19,6 +20,7 @@ export type EtaResult = {
 
 /** Auckland-biased address autocomplete through the Google Maps gateway. */
 export const suggestAddresses = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((data: unknown) => inputSchema.parse(data))
   .handler(async ({ data }): Promise<AddressSuggestion[]> => {
     const lovableKey = process.env["LOVABLE_API_KEY"];
@@ -69,6 +71,7 @@ export const suggestAddresses = createServerFn({ method: "POST" })
 
 /** ETA from the workshop (94 Wairau Road) to a customer address via the Routes API. */
 export const getEta = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((data: unknown) => etaInputSchema.parse(data))
   .handler(async ({ data }): Promise<EtaResult | null> => {
     const lovableKey = process.env["LOVABLE_API_KEY"];

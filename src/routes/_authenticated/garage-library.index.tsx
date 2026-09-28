@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { ilikeValue } from "@/lib/postgrest-filter";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Library, Search, Plus, ChevronRight, History, Inbox, Upload } from "lucide-react";
@@ -69,7 +70,7 @@ function GarageLibraryIndex() {
     queryKey: ["garage-search", q],
     enabled: q.trim().length >= 2,
     queryFn: async () => {
-      const term = `%${q.trim()}%`;
+      const term = ilikeValue(q);
       const [parts, labour, torque] = await Promise.all([
         supabase.from("bike_library_parts").select("model_id, name, part_number, alt_part_number, brand").or(`name.ilike.${term},part_number.ilike.${term},alt_part_number.ilike.${term},brand.ilike.${term}`).limit(20),
         supabase.from("bike_library_labour").select("model_id, task, hours").ilike("task", term).limit(20),

@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { ilikeValue } from "@/lib/postgrest-filter";
 
 const inputSchema = z.object({ query: z.string().max(100) });
 
@@ -28,7 +29,7 @@ export const globalSearch = createServerFn({ method: "GET" })
     const q = data.query.trim();
     if (!q || q.length < 2) return [];
 
-    const pattern = `%${q}%`;
+    const pattern = ilikeValue(q);
     const supabase = context.supabase;
 
     const [{ data: customers }, { data: bikes }] = await Promise.all([

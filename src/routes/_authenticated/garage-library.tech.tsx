@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState } from "react";
+import { ilikeValue } from "@/lib/postgrest-filter";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { Loader2, Search } from "lucide-react";
@@ -30,7 +31,7 @@ export const Route = createFileRoute("/_authenticated/garage-library/tech")({
 });
 
 async function searchEverything(term: string) {
-  const like = `%${term}%`;
+  const like = ilikeValue(term);
   const [models, parts, labour, torque, docs, jobs, notes] = await Promise.all([
     supabase.from("bike_library_models").select("id, make, model, year_from, year_to").or(`make.ilike.${like},model.ilike.${like}`).eq("is_archived", false).limit(8),
     supabase.from("bike_library_parts").select("id, name, brand, part_number, model_id").ilike("name", like).eq("is_archived", false).limit(8),
