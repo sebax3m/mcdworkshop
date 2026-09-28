@@ -497,7 +497,9 @@ export type Database = {
       }
       booking_parts: {
         Row: {
-          booking_id: string
+          booking_id: string | null
+          claim_id: string | null
+          cost: number | null
           created_at: string
           created_by: string | null
           description: string
@@ -509,14 +511,21 @@ export type Database = {
           part_number: string | null
           qty_received: number
           qty_required: number
+          quote_item_id: string | null
           received_at: string | null
+          sell_price: number | null
           sort_order: number
+          source: string
           status: string
           supplier: string | null
+          tracking_number: string | null
+          tracking_url: string | null
           updated_at: string
         }
         Insert: {
-          booking_id: string
+          booking_id?: string | null
+          claim_id?: string | null
+          cost?: number | null
           created_at?: string
           created_by?: string | null
           description?: string
@@ -528,14 +537,21 @@ export type Database = {
           part_number?: string | null
           qty_received?: number
           qty_required?: number
+          quote_item_id?: string | null
           received_at?: string | null
+          sell_price?: number | null
           sort_order?: number
+          source?: string
           status?: string
           supplier?: string | null
+          tracking_number?: string | null
+          tracking_url?: string | null
           updated_at?: string
         }
         Update: {
-          booking_id?: string
+          booking_id?: string | null
+          claim_id?: string | null
+          cost?: number | null
           created_at?: string
           created_by?: string | null
           description?: string
@@ -547,10 +563,15 @@ export type Database = {
           part_number?: string | null
           qty_received?: number
           qty_required?: number
+          quote_item_id?: string | null
           received_at?: string | null
+          sell_price?: number | null
           sort_order?: number
+          source?: string
           status?: string
           supplier?: string | null
+          tracking_number?: string | null
+          tracking_url?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -559,6 +580,13 @@ export type Database = {
             columns: ["booking_id"]
             isOneToOne: false
             referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "booking_parts_claim_id_fkey"
+            columns: ["claim_id"]
+            isOneToOne: false
+            referencedRelation: "insurance_claims"
             referencedColumns: ["id"]
           },
         ]
