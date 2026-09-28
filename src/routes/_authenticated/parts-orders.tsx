@@ -3,7 +3,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { addDays, format } from "date-fns";
-import { Package, Search, AlertTriangle, Pencil, X, Plus } from "lucide-react";
+import { Package, Search, AlertTriangle, Pencil, X, Plus, ChevronDown } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -174,6 +174,52 @@ function PartsOrdersPage() {
         </Link>
       </div>
     ) : null;
+
+  // One collapsible "job card" per insurance claim, with its parts inside.
+  const InsuranceJobCard = ({ claimId, parts }: { claimId: string; parts: any[] }) => {
+    const [open, setOpen] = useState(true);
+    const claim = parts[0]?.insurance_claims;
+    const b = parts[0]?.bookings;
+    const overall = overallStatus(parts, true);
+    return (
+      <div className="card-surface overflow-hidden border-violet-500/40">
+        <button onClick={() => setOpen((v) => !v)} className="flex w-full flex-wrap items-center gap-2 px-3 py-2.5 text-left hover:bg-muted/30">
+          <span className="rounded border border-violet-500/50 bg-violet-500/10 px-1.5 py-0.5 text-[0.625rem] font-bold uppercase tracking-wider text-violet-300">Insurance job</span>
+          <span className="font-semibold">{claim?.claim_number ?? claimId.slice(0, 8)}</span>
+          <span className="text-sm text-muted-foreground">{who(b)} · {bike(b)} {rego(b)}</span>
+          {claim?.insurer_name && <span className="text-xs text-muted-foreground">· {claim.insurer_name}</span>}
+          <span className="text-xs text-muted-foreground">· {parts.length} part{parts.length === 1 ? "" : "s"}</span>
+          {overall && <OverallBadge status={overall} />}
+          <Link
+            to="/insurance/$claimId"
+            params={{ claimId }}
+            onClick={(e) => e.stopPropagation()}
+            className="ml-auto text-xs text-violet-300 underline whitespace-nowrap"
+          >
+            Open claim
+          </Link>
+          <ChevronDown className={cn("h-4 w-4 text-muted-foreground transition-transform", open && "rotate-180")} />
+        </button>
+        {open && (
+          <div className="divide-y divide-border/60 border-t border-border">
+            {parts.map((r) => (
+              <div key={r.id} className="flex flex-wrap items-center gap-2 px-3 py-2 text-sm">
+                <div className="min-w-0 flex-1">
+                  <span className="font-semibold">{r.description}</span>
+                  {r.part_number && <span className="text-muted-foreground"> · {r.part_number}</span>}
+                  <div className="text-xs text-muted-foreground">
+                    {[`Qty ${r.qty_received}/${r.qty_required}`, r.supplier, r.order_ref && `#${r.order_ref}`, r.eta && `ETA ${fmtD(r.eta)}`].filter(Boolean).join(" · ")}
+                  </div>
+                </div>
+                <StatusBadge status={r.status} />
+                <Actions r={r} />
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  };
 
   const Actions = ({ r }: { r: any }) => (
     <div className="flex gap-1 justify-end">
