@@ -2,6 +2,10 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Package } from "lucide-react";
+import { useNavigate } from "@tanstack/react-router";
+import { useState } from "react";
 
 export const SUPPLIERS = ["Darbi", "R2", "F & Davies", "Nationwide", "Eurobike", "Whites", "Others"];
 
@@ -96,7 +100,7 @@ export function useBookingPartsIndex() {
   });
 }
 
-/** Live sidebar count of parts whose orders still need tracking. */
+/** Live sidebar count of parts that still need to be ordered. */
 export function useOpenPartsOrdersCount() {
   return useQuery({
     queryKey: ["parts-orders", "pending-count"],
@@ -105,11 +109,136 @@ export function useOpenPartsOrdersCount() {
       const { count, error } = await supabase
         .from("booking_parts")
         .select("id", { count: "exact", head: true })
-        .in("status", ["needs_ordering", "ordered", "partially_received", "backordered"]);
+        .eq("status", "needs_ordering");
       if (error) throw error;
       return count ?? 0;
     },
   });
+}
+
+export type NeedsOrderingRow = {
+  id: string;
+  booking_id: string;
+  description: string | null;
+  part_number: string | null;
+  qty_required: number;
+  supplier: string | null;
+  booking: {
+    id: string;
+    scheduled_date: string | null;
+    customer_name: string | null;
+    bike: string | null;
+  } | null;
+};
+
+/** Parts with status "needs_ordering", joined to their booking for the popup. */
+export function useNeedsOrderingParts(enabled: boolean) {
+  return useQuery({
+    queryKey: ["parts-orders", "needs-ordering-list"],
+    enabled,
+    refetchInterval: 60_000,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("booking_parts")
+        .select(
+          "id, booking_id, description, part_number, qty_required, supplier, bookings(id, scheduled_date, customer_name, bike)",
+        )
+        .eq("status", "needs_ordering")
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return (data ?? []).map((r: any) => ({
+        id: r.id,
+        booking_id: r.booking_id,
+        description: r.description,
+        part_number: r.part_number,
+        qty_required: r.qty_required ?? 1,
+        supplier: r.supplier,
+        booking: r.bookings ?? null,
+      })) as NeedsOrderingRow[];
+    },
+  });
+}
+
+/** Clickable badge: opens a popup listing jobs whose parts still need ordering. */
+export function NeedsOrderingBadge({ count, className }: { count: number; className?: string }) {
+  const [open, setOpen] = useState(false);
+  const nav = useNavigate();
+  const listQ = useNeedsOrderingParts(open);
+  if (count <= 0) return null;
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <button
+          type="button"
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setOpen(true);
+          }}
+          className={cn(
+            "inline-flex min-w-5 h-5 shrink-0 items-center justify-center rounded-full bg-destructive px-1 text-[0.625rem] font-bold tabular-nums text-destructive-foreground hover:scale-110 transition-transform cursor-pointer",
+            className,
+          )}
+          aria-label={`${count} parts need ordering`}
+          title="Parts that need ordering"
+        >
+          {count}
+        </button>
+      </PopoverTrigger>
+      <PopoverContent
+        align="start"
+        side="right"
+        sideOffset={12}
+        className="w-[340px] p-0 overflow-hidden rounded-xl border-border bg-popover shadow-2xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center gap-2 px-3 py-2.5 border-b border-border/60 bg-muted/40">
+          <Package className="h-4 w-4 text-orange-400" />
+          <div className="font-semibold text-sm">Parts to order</div>
+          <span className="rounded-full bg-orange-500/15 border border-orange-500/40 px-1.5 py-0.5 text-[0.625rem] font-bold text-orange-300">
+            {count}
+          </span>
+        </div>
+        <div className="max-h-[60vh] overflow-y-auto">
+          {listQ.isLoading ? (
+            <div className="p-6 text-center text-xs text-muted-foreground">Loading…</div>
+          ) : (listQ.data ?? []).length === 0 ? (
+            <div className="p-6 text-center text-xs text-muted-foreground">Nothing to order</div>
+          ) : (
+            (listQ.data ?? []).map((p) => (
+              <button
+                key={p.id}
+                onClick={() => {
+                  setOpen(false);
+                  if (p.booking_id) nav({ to: "/bookings/$bookingId", params: { bookingId: p.booking_id } });
+                }}
+                className="w-full text-left px-3 py-2.5 border-b border-border/40 last:border-b-0 hover:bg-orange-500/5 transition-colors"
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-sm font-bold truncate">
+                    {p.description || p.part_number || "Part"}
+                  </span>
+                  <span className="text-[0.625rem] font-bold uppercase tracking-wider text-orange-300 shrink-0">
+                    ×{p.qty_required}
+                  </span>
+                </div>
+                <div className="text-[0.6875rem] text-muted-foreground truncate mt-0.5">
+                  {p.booking?.customer_name ?? "Unknown customer"}
+                  {p.booking?.bike ? ` · ${p.booking.bike}` : ""}
+                </div>
+                <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground/70 mt-1">
+                  {p.booking?.scheduled_date
+                    ? new Date(p.booking.scheduled_date + "T00:00:00").toLocaleDateString("en-GB")
+                    : "No date"}
+                  {p.supplier ? ` · ${p.supplier}` : ""}
+                </div>
+              </button>
+            ))
+          )}
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
 }
 
 export function useInvalidateParts() {
