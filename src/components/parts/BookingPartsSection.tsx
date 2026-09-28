@@ -109,6 +109,8 @@ export function BookingPartsSection({ booking }: { booking: any }) {
                     p.order_ref && `#${p.order_ref}`,
                     p.ordered_at && `Ordered ${fmtD(p.ordered_at)}`,
                     p.eta && `ETA ${fmtD(p.eta)}`,
+                    p.cost != null && `Cost $${Number(p.cost).toFixed(2)}`,
+                    p.sell_price != null && `Sell $${Number(p.sell_price).toFixed(2)}`,
                   ].filter(Boolean).join(" · ")}
                 </div>
                 {p.notes && <div className="text-xs text-muted-foreground italic">{p.notes}</div>}
