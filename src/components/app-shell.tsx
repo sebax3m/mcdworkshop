@@ -84,8 +84,8 @@ export function AppShell() {
 
   const tabs = isAdmin
     ? [
-        { to: "/dashboard", label: "Today", icon: LayoutDashboard, color: "#f87171" },
         { to: "/calendar", label: "Calendar", icon: CalendarDays, color: "#60a5fa" },
+
         { to: "/jobs", label: "Jobs", icon: Wrench, color: "#fb923c" },
         { to: "/parts-orders", label: "Parts Orders", icon: Package, color: "#38bdf8" },
         { to: "/post-bike", label: "Post Bikes", icon: Truck, color: "#38bdf8" },
