@@ -66,6 +66,8 @@ import { detectServiceKind, KIND_META, SERVICE_PARTS } from "@/lib/service-kinds
 import { fetchServiceTemplates, snapshotRows } from "@/lib/service-templates";
 import WorkPerformedSection, { readWorkPerformed } from "@/components/job/WorkPerformedSection";
 import CustomerNotesSection from "@/components/job/CustomerNotesSection";
+import QuickPartPresets from "@/components/job/QuickPartPresets";
+
 import { getValveSpec, formatRange, type ValveSpec } from "@/lib/valve-specs";
 import { valveSheetHtml } from "@/lib/valve-sheet-html";
 import { FrontArrow } from "@/components/job/FrontArrow";
