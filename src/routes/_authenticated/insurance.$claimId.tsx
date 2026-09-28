@@ -289,7 +289,7 @@ function ClaimDetail() {
   const next = nextStatus(c.status as ClaimStatus);
   const bikeText = c.motorcycles ? fullBike(c.motorcycles) : "—";
   return (
-    <div className="space-y-5 max-w-5xl mx-auto pb-12">
+    <div className="space-y-5 max-w-7xl mx-auto pb-12">
       <header className="flex items-center gap-3 flex-wrap">
         <Link
           to="/insurance"

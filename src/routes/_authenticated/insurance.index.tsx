@@ -66,7 +66,7 @@ function InsuranceList() {
   ];
 
   return (
-    <div className="space-y-5 max-w-5xl mx-auto">
+    <div className="space-y-5 max-w-7xl mx-auto">
       <header className="flex items-center gap-3 flex-wrap">
         <div className="grid h-12 w-12 place-items-center rounded-xl bg-primary/10 text-primary">
           <ShieldCheck className="h-6 w-6" />
