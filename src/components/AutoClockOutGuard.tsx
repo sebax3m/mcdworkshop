@@ -109,10 +109,16 @@ export function AutoClockOutGuard() {
         } else {
           didSomething = true;
           const dateStr = eventCutoff.toLocaleDateString("en-GB");
-          setWarning(
-            `Your clock-in from ${dateStr} was left active. You were automatically clocked out at 5:30 PM. Please let the office know if your hours need adjusting.`,
-          );
+          // Only warn once per user per day, so the dialog can't loop.
+          const seenKey = `auto-clockout-notified:${user.id}:${dateStr}`;
+          if (typeof window === "undefined" || !window.localStorage.getItem(seenKey)) {
+            if (typeof window !== "undefined") window.localStorage.setItem(seenKey, "1");
+            setWarning(
+              `Your clock-in from ${dateStr} was left active. You were automatically clocked out at 5:30 PM. Please let the office know if your hours need adjusting.`,
+            );
+          }
         }
+
       }
 
       if (didSomething) {
