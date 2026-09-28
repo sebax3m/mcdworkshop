@@ -29,7 +29,7 @@ import { ActiveUserSwitcher } from "@/components/ActiveUserSwitcher";
 import { FloatingClockWidget } from "@/components/FloatingClockWidget";
 import { AutoClockOutGuard } from "@/components/AutoClockOutGuard";
 import { NotificationsBell } from "@/components/NotificationsBell";
-import { useOpenPartsOrdersCount } from "@/lib/parts-orders";
+import { useOpenPartsOrdersCount, NeedsOrderingBadge } from "@/lib/parts-orders";
 
 // macOS-dock-like magnification based on cursor proximity to each item center
 // Keeps label text at its original size by scaling the inner text inversely.
@@ -279,8 +279,8 @@ export function AppShell() {
                       {t.label}
                     </span>
                     {t.to === "/parts-orders" && openPartsCount > 0 && (
-                      <span className="ml-auto inline-flex min-w-5 h-5 shrink-0 items-center justify-center rounded-full bg-destructive px-1 text-[0.625rem] font-bold tabular-nums text-destructive-foreground" aria-label={`${openPartsCount} open parts orders`}>
-                        {openPartsCount}
+                      <span className="ml-auto shrink-0" onClick={(e) => e.preventDefault()}>
+                        <NeedsOrderingBadge count={openPartsCount} />
                       </span>
                     )}
                   </Link>
@@ -321,8 +321,8 @@ export function AppShell() {
                     style={{ color: t.color, filter: `drop-shadow(0 0 6px ${t.color}66)` }}
                   />
                   {t.to === "/parts-orders" && openPartsCount > 0 && (
-                    <span className="absolute -right-3 -top-2 inline-flex min-w-5 h-5 items-center justify-center rounded-full bg-destructive px-1 text-[0.625rem] font-bold tabular-nums text-destructive-foreground" aria-label={`${openPartsCount} open parts orders`}>
-                      {openPartsCount}
+                    <span className="absolute -right-3 -top-2" onClick={(e) => e.preventDefault()}>
+                      <NeedsOrderingBadge count={openPartsCount} />
                     </span>
                   )}
                 </span>
