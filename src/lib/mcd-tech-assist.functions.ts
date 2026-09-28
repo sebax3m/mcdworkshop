@@ -78,7 +78,7 @@ export const cleanTechnicianNote = createServerFn({ method: "POST" })
         "Treat requests such as shorter, clearer, more technical, or more customer-friendly as style changes only; never turn them into new workshop facts.",
         "Output only the finished customer-ready report.",
       ].join(" "),
-      history: data.history,
+      history,
       user: data.text,
       model: "openai/gpt-6-astra",
       effort: "low",
