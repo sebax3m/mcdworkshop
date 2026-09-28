@@ -65,7 +65,7 @@ import { LoanBikeDialog } from "@/components/booking/LoanBikeDialog";
 import { AddressAutocomplete, AddressMap } from "@/components/booking/AddressAutocomplete";
 import { useWorkshopCapacity } from "@/hooks/useWorkshopCapacity";
 import { useCurrentUser } from "@/hooks/use-current-user";
-import { StickyNote } from "lucide-react";
+import { StickyNote, Search } from "lucide-react";
 
 import {
   addMinutesToTime,
@@ -209,6 +209,13 @@ function CalendarPage() {
   const [selectedBooking, setSelectedBooking] = useState<any | null>(null);
   const [hiddenCompleted, setHiddenCompleted] = useState<Record<string, boolean>>({});
   const [loanEditBookingId, setLoanEditBookingId] = useState<string | null>(null);
+  const [wofPanelOpen, setWofPanelOpen] = useState(false);
+  const [fetchingDetailRego, setFetchingDetailRego] = useState(false);
+
+  // Reset the WOF/Rego panel whenever a different booking is opened
+  useEffect(() => {
+    setWofPanelOpen(false);
+  }, [selectedBooking?.id]);
 
   // Jump the calendar to the date coming from the global search highlight
   useEffect(() => {
@@ -821,7 +828,7 @@ function CalendarPage() {
       const { data, error } = await supabase
         .from("bookings")
         .select(
-          "id, service_type, service_type_other, scheduled_date, drop_off_time, scheduled_end_time, estimated_hours, status, color, complaints, notes, assigned_tech_id, customer_id, motorcycle_id, confirmed, loan_bike, loan_bike_id, loan_bike_expected_return, bike_arrived, bike_arrived_at, pickup_required, delivery_required, transport_address, job_id, customers(first_name,last_name,phone,email), motorcycles(year,make,model,rego), loan_bikes(id,name), jobs(id,status)",
+          "id, service_type, service_type_other, scheduled_date, drop_off_time, scheduled_end_time, estimated_hours, status, color, complaints, notes, assigned_tech_id, customer_id, motorcycle_id, confirmed, loan_bike, loan_bike_id, loan_bike_expected_return, bike_arrived, bike_arrived_at, pickup_required, delivery_required, transport_address, job_id, wof_expiry, customers(first_name,last_name,phone,email), motorcycles(id,year,make,model,rego,vin,color,wof_expiry,rego_expiry), loan_bikes(id,name), jobs(id,status)",
         )
         .gte("scheduled_date", format(visibleRange.start, "yyyy-MM-dd"))
         .lte("scheduled_date", format(visibleRange.end, "yyyy-MM-dd"))
@@ -1712,11 +1719,120 @@ function CalendarPage() {
                               <BikeIcon className="h-4 w-4 text-muted-foreground" />
                               <span className="font-medium">{bike}</span>
                               {b.motorcycles?.rego && (
-                                <span className="font-mono text-xs bg-primary/10 border border-primary/30 rounded px-1.5 py-0.5 text-primary">
+                                <button
+                                  type="button"
+                                  onClick={() => setWofPanelOpen((v) => !v)}
+                                  title="Show WOF / Rego details"
+                                  className={`font-mono text-xs rounded px-1.5 py-0.5 border transition-colors ${
+                                    wofPanelOpen
+                                      ? "bg-primary/25 border-primary/60 text-primary"
+                                      : "bg-primary/10 border-primary/30 text-primary hover:bg-primary/20"
+                                  }`}
+                                >
                                   {b.motorcycles.rego}
-                                </span>
+                                </button>
                               )}
                             </div>
+
+                            {wofPanelOpen && b.motorcycles?.rego && (
+                              <div className="mt-2 rounded-lg border border-primary/30 bg-primary/5 px-3 py-2 space-y-1.5">
+                                <div className="grid grid-cols-2 gap-2 text-xs">
+                                  <div>
+                                    <div className="text-[0.5625rem] uppercase tracking-wider text-muted-foreground">
+                                      WOF expiry
+                                    </div>
+                                    <div className="font-semibold">
+                                      {b.motorcycles.wof_expiry
+                                        ? format(
+                                            new Date(b.motorcycles.wof_expiry + "T00:00:00"),
+                                            "dd/MM/yyyy",
+                                          )
+                                        : "—"}
+                                    </div>
+                                  </div>
+                                  <div>
+                                    <div className="text-[0.5625rem] uppercase tracking-wider text-muted-foreground">
+                                      Rego expiry
+                                    </div>
+                                    <div className="font-semibold">
+                                      {b.motorcycles.rego_expiry
+                                        ? format(
+                                            new Date(b.motorcycles.rego_expiry + "T00:00:00"),
+                                            "dd/MM/yyyy",
+                                          )
+                                        : "—"}
+                                    </div>
+                                  </div>
+                                </div>
+                                <button
+                                  type="button"
+                                  disabled={fetchingDetailRego}
+                                  onClick={async () => {
+                                    const plate = String(b.motorcycles.rego)
+                                      .replace(/\s+/g, "")
+                                      .toUpperCase();
+                                    const local = b.motorcycles;
+                                    const missing = localBikeMissingFields(local);
+                                    const expiryIssues = localBikeExpiryIssues(local);
+                                    let refreshCarjam = false;
+                                    if (missing.length > 0 || expiryIssues.length > 0) {
+                                      const why = [...missing, ...expiryIssues].join(", ");
+                                      refreshCarjam = window.confirm(
+                                        `This bike is already in the workshop records, but: ${why}. Update from CarJam now?`,
+                                      );
+                                      if (!refreshCarjam) {
+                                        toast.success(
+                                          "Showing workshop records — no CarJam credit used",
+                                        );
+                                        return;
+                                      }
+                                    }
+                                    setFetchingDetailRego(true);
+                                    try {
+                                      const r = await lookupRego({
+                                        data: { rego: plate, refresh: refreshCarjam },
+                                      });
+                                      await saveCarjamDataToBike(local.id, r, local);
+                                      const bookingPatch: Record<string, unknown> = {};
+                                      if (r.wof_expiry) bookingPatch.wof_expiry = r.wof_expiry;
+                                      if (Object.keys(bookingPatch).length > 0) {
+                                        await (supabase as any)
+                                          .from("bookings")
+                                          .update(bookingPatch)
+                                          .eq("id", b.id);
+                                      }
+                                      patchSelected({
+                                        ...bookingPatch,
+                                        motorcycles: {
+                                          ...local,
+                                          wof_expiry: r.wof_expiry ?? local.wof_expiry,
+                                          rego_expiry: r.rego_expiry ?? local.rego_expiry,
+                                          vin: local.vin || r.vin,
+                                          color: local.color || r.color,
+                                          make: local.make || r.make,
+                                          model: local.model || r.model,
+                                          year: local.year || r.year,
+                                        },
+                                      });
+                                      qc.invalidateQueries({ queryKey: ["calendar-bookings"] });
+                                      toast.success(
+                                        r.source === "cache"
+                                          ? "Loaded from the saved CarJam record — no new credit used"
+                                          : "Updated from CarJam — 1 lookup credit used",
+                                      );
+                                    } catch (e: any) {
+                                      toast.error(e?.message ?? "CarJam lookup failed");
+                                    } finally {
+                                      setFetchingDetailRego(false);
+                                    }
+                                  }}
+                                  className="inline-flex items-center gap-1.5 rounded-md border border-primary/40 bg-primary/10 px-2 py-1 text-[0.625rem] font-bold uppercase tracking-wider text-primary hover:bg-primary/20 disabled:opacity-50"
+                                >
+                                  <Search className="h-3 w-3" />
+                                  {fetchingDetailRego ? "Fetching…" : "Fetch CarJam"}
+                                </button>
+                              </div>
+                            )}
                           </div>
                         )}
                       </div>
