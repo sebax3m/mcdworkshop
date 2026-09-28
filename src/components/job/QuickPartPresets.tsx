@@ -102,7 +102,7 @@ const OILS: OilPreset[] = [
   {
     key: "5100-10w40",
     name: "Motul 5100 10W-40 4T",
-    short: "5100 10W-40",
+    short: "10W-40 5100",
     sub: "Motul · 1L",
     lookup: "motul 5100",
     accent: {
@@ -117,7 +117,7 @@ const OILS: OilPreset[] = [
   {
     key: "7100-10w40",
     name: "Motul 7100 10W-40 4T",
-    short: "7100 10W-40",
+    short: "10W-40 7100",
     sub: "Motul · 1L",
     lookup: "motul 7100 10w-40",
     accent: {
@@ -132,7 +132,7 @@ const OILS: OilPreset[] = [
   {
     key: "7100-15w50",
     name: "Motul 7100 15W-50 4T",
-    short: "7100 15W-50",
+    short: "15W-50 7100",
     sub: "Motul · 1L",
     lookup: "motul 7100 15w-50",
     accent: {
@@ -147,7 +147,7 @@ const OILS: OilPreset[] = [
   {
     key: "7100-20w50",
     name: "Motul 7100 20W-50 4T",
-    short: "7100 20W-50",
+    short: "20W-50 7100",
     sub: "Motul · 1L",
     lookup: "motul 7100 20w-50",
     accent: {
