@@ -33,6 +33,7 @@ import {
   Sparkles,
 } from "lucide-react";
 
+import { BookingPartsSection } from "@/components/parts/BookingPartsSection";
 import { supabase } from "@/integrations/supabase/client";
 import {
   AlertDialog,
@@ -1878,6 +1879,8 @@ function CalendarPage() {
                           </button>
                         </div>
                       </div>
+
+                      <BookingPartsSection booking={b} />
 
                       <div className="grid grid-cols-2 gap-2 pt-2 border-t border-border/60">
                         <button
