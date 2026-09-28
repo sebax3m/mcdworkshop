@@ -66,6 +66,7 @@ import { detectServiceKind, KIND_META, SERVICE_PARTS } from "@/lib/service-kinds
 import { fetchServiceTemplates, snapshotRows } from "@/lib/service-templates";
 import WorkPerformedSection, { readWorkPerformed } from "@/components/job/WorkPerformedSection";
 import QuickPartPresets from "@/components/job/QuickPartPresets";
+import CustomerNotesSection from "@/components/job/CustomerNotesSection";
 
 import { getValveSpec, formatRange, type ValveSpec } from "@/lib/valve-specs";
 import { valveSheetHtml } from "@/lib/valve-sheet-html";
@@ -125,23 +126,6 @@ function JobDetail() {
     queryFn: async () =>
       (await supabase.from("job_tasks").select("*").eq("job_id", jobId).order("sort_order")).data ??
       [],
-  });
-  const notes = useQuery({
-    queryKey: ["job-notes", jobId],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("job_notes")
-        .select("*")
-        .eq("job_id", jobId)
-        .order("created_at", { ascending: false });
-      const ids = [...new Set((data ?? []).map((n) => n.author_id))];
-      const { data: profs } = ids.length
-        ? await supabase.from("profiles").select("id, full_name").in("id", ids)
-        : { data: [] as any[] };
-      const map = new Map<string, string>();
-      (profs ?? []).forEach((p: any) => map.set(p.id, p.full_name));
-      return (data ?? []).map((n) => ({ ...n, author_name: map.get(n.author_id) ?? "Staff" }));
-    },
   });
   const time = useQuery({
     queryKey: ["job-time", jobId],
@@ -557,7 +541,7 @@ function JobDetail() {
   }
 
   return (
-    <div ref={jobRef} className="max-w-[1600px] mx-auto px-2 sm:px-4 lg:px-8 grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-5 items-start jobcard-print">
+    <div ref={jobRef} className="max-w-[1600px] mx-auto px-2 sm:px-4 lg:px-8 grid grid-cols-1 gap-5 items-start jobcard-print">
       <style>{`
         /* Slightly larger job card on screen. Zoom reflows the layout (unlike
            transform: scale, which overflowed and clipped the right sidebar). */
@@ -1245,9 +1229,8 @@ function JobDetail() {
         sections={[
           { id: "instructions", label: "Book-in instructions" },
           { id: "approvals", label: "Customer-approved work" },
-          { id: "notes", label: "Job notes" },
           { id: "parts", label: "Parts used" },
-          
+          { id: "customer-notes", label: "Notes for invoice" },
         ]}
       />
 
@@ -1261,34 +1244,8 @@ function JobDetail() {
         </button>
       </div>
 
-      <section className="hidden print:block card-surface p-4" data-print-section="notes">
-        <div className="flex items-center gap-2 mb-3">
-          <StickyNote className="h-4 w-4 text-service-banana" />
-          <h2 className="font-display text-base font-bold uppercase tracking-wider text-service-banana bg-service-banana/10 px-2 py-0.5 rounded-md">Notes</h2>
-        </div>
-        <NotesList notes={notes.data ?? []} />
-      </section>
     </div>
-
-    <aside className="no-print lg:sticky lg:top-20 lg:self-start space-y-4 max-h-[calc(100vh-6rem)] overflow-y-auto">
-      <section className="card-surface p-4">
-        <div className="flex items-center gap-2 mb-3">
-          <StickyNote className="h-4 w-4 text-service-banana" />
-          <h2 className="font-display text-base font-bold uppercase tracking-wider text-service-banana bg-service-banana/10 px-2 py-0.5 rounded-md">Notes</h2>
-        </div>
-        {canEdit && (
-          <AddNote
-            jobId={jobId}
-            onAdded={() => qc.invalidateQueries({ queryKey: ["job-notes", jobId] })}
-          />
-        )}
-        <div className="mt-3">
-          <NotesList notes={notes.data ?? []} />
-        </div>
-      </section>
-    </aside>
-  </div>
-);
+  );
 }
 
 function InfoRow({
@@ -1391,63 +1348,6 @@ function LiveTimerButton({ startedAt, onStop }: { startedAt: string; onStop: () 
   );
 }
 
-function AddNote({ jobId, onAdded }: { jobId: string; onAdded: () => void }) {
-  const [body, setBody] = useState("");
-  const [saving, setSaving] = useState(false);
-  const { user } = useCurrentUser();
-  async function save() {
-    if (!body.trim() || !user) return;
-    setSaving(true);
-    const { error } = await supabase
-      .from("job_notes")
-      .insert({ job_id: jobId, body, author_id: user.id });
-    setSaving(false);
-    if (error) return toast.error(error.message);
-    setBody("");
-    onAdded();
-  }
-  return (
-    <div className="space-y-2">
-      <Textarea
-        value={body}
-        onChange={(e) => setBody(e.target.value)}
-        rows={2}
-        placeholder="Add a note for the team…"
-      />
-      <Button
-        onClick={save}
-        disabled={saving || !body.trim()}
-        className="gold-surface w-full sm:w-auto"
-      >
-        Post note
-      </Button>
-    </div>
-  );
-}
-
-function NotesList({ notes }: { notes: any[] }) {
-  return (
-    <div className="space-y-2">
-      {(notes ?? []).map((n: any) => (
-        <div key={n.id} className="rounded-lg border border-border bg-background/40 p-3">
-          <div className="flex items-center gap-2 mb-1">
-            <span className="grid h-6 w-6 place-items-center rounded-full bg-muted text-[0.625rem] font-semibold">
-              {initials(n.author_name)}
-            </span>
-            <span className="text-xs font-semibold">{n.author_name}</span>
-            <span className="text-[0.625rem] text-muted-foreground">
-              {new Date(n.created_at).toLocaleString("en-GB")}
-            </span>
-          </div>
-          <p className="text-sm whitespace-pre-wrap">{n.body}</p>
-        </div>
-      ))}
-      {(!notes || notes.length === 0) && (
-        <p className="text-sm text-muted-foreground">No notes yet.</p>
-      )}
-    </div>
-  );
-}
 
 function TaskRow({
   task,
