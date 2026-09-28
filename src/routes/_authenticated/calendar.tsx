@@ -209,6 +209,13 @@ function CalendarPage() {
   const [selectedBooking, setSelectedBooking] = useState<any | null>(null);
   const [hiddenCompleted, setHiddenCompleted] = useState<Record<string, boolean>>({});
   const [loanEditBookingId, setLoanEditBookingId] = useState<string | null>(null);
+  const [wofPanelOpen, setWofPanelOpen] = useState(false);
+  const [fetchingDetailRego, setFetchingDetailRego] = useState(false);
+
+  // Reset the WOF/Rego panel whenever a different booking is opened
+  useEffect(() => {
+    setWofPanelOpen(false);
+  }, [selectedBooking?.id]);
 
   // Jump the calendar to the date coming from the global search highlight
   useEffect(() => {
@@ -821,7 +828,7 @@ function CalendarPage() {
       const { data, error } = await supabase
         .from("bookings")
         .select(
-          "id, service_type, service_type_other, scheduled_date, drop_off_time, scheduled_end_time, estimated_hours, status, color, complaints, notes, assigned_tech_id, customer_id, motorcycle_id, confirmed, loan_bike, loan_bike_id, loan_bike_expected_return, bike_arrived, bike_arrived_at, pickup_required, delivery_required, transport_address, job_id, customers(first_name,last_name,phone,email), motorcycles(year,make,model,rego), loan_bikes(id,name), jobs(id,status)",
+          "id, service_type, service_type_other, scheduled_date, drop_off_time, scheduled_end_time, estimated_hours, status, color, complaints, notes, assigned_tech_id, customer_id, motorcycle_id, confirmed, loan_bike, loan_bike_id, loan_bike_expected_return, bike_arrived, bike_arrived_at, pickup_required, delivery_required, transport_address, job_id, wof_expiry, customers(first_name,last_name,phone,email), motorcycles(id,year,make,model,rego,vin,color,wof_expiry,rego_expiry), loan_bikes(id,name), jobs(id,status)",
         )
         .gte("scheduled_date", format(visibleRange.start, "yyyy-MM-dd"))
         .lte("scheduled_date", format(visibleRange.end, "yyyy-MM-dd"))
