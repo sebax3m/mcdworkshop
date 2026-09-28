@@ -1922,7 +1922,10 @@ function PartsSection({
         })}
       </div>
 
+      {canEdit && <QuickPartPresets jobId={jobId} onAdded={onChanged} />}
+
       {canEdit && <AddCustomPart jobId={jobId} onAdded={onChanged} />}
+
 
       {parts.length > 0 && (
         <div className="mt-4 pt-3 border-t border-border">
