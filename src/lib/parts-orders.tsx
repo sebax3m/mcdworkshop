@@ -8,18 +8,28 @@ import { useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 
 export const SUPPLIERS = ["Darbi", "R2", "F & Davies", "Nationwide", "Eurobike", "Whites", "Others"];
+/** Extra suppliers offered as suggestions (supplier is free text). */
+export const SUPPLIER_SUGGESTIONS = [...SUPPLIERS, "eBay", "Cyclespot", "Partzilla", "Local supplier", "OEM dealer", "Other"];
 
 export type PartStatus =
   | "needs_ordering"
+  | "quote_requested"
   | "ordered"
+  | "partially_shipped"
+  | "shipped"
+  | "ready_for_collection"
   | "partially_received"
   | "arrived"
   | "backordered"
   | "cancelled";
 
 export const PART_STATUSES: { key: PartStatus; label: string; cls: string }[] = [
-  { key: "needs_ordering", label: "Needs ordering", cls: "border-orange-500/60 bg-orange-500/15 text-orange-300" },
+  { key: "needs_ordering", label: "Needs ordering / Not ordered", cls: "border-orange-500/60 bg-orange-500/15 text-orange-300" },
+  { key: "quote_requested", label: "Quote requested", cls: "border-orange-500/60 bg-orange-500/10 text-orange-200" },
   { key: "ordered", label: "Ordered", cls: "border-sky-500/60 bg-sky-500/15 text-sky-300" },
+  { key: "partially_shipped", label: "Partially shipped", cls: "border-sky-500/60 bg-sky-500/10 text-sky-200" },
+  { key: "shipped", label: "Shipped", cls: "border-sky-500/60 bg-sky-500/20 text-sky-200" },
+  { key: "ready_for_collection", label: "Ready for collection", cls: "border-emerald-500/60 bg-emerald-500/10 text-emerald-200" },
   { key: "partially_received", label: "Partially received", cls: "border-yellow-500/60 bg-yellow-500/15 text-yellow-300" },
   { key: "arrived", label: "Arrived", cls: "border-emerald-500/60 bg-emerald-500/15 text-emerald-300" },
   { key: "backordered", label: "Backordered", cls: "border-red-500/60 bg-red-500/15 text-red-300" },
@@ -43,7 +53,7 @@ export function overallStatus(parts: { status: string }[], flagged = false): Ove
   if (act.some((p) => p.status === "backordered")) return "issue";
   if (act.every((p) => p.status === "arrived")) return "arrived";
   if (act.some((p) => p.status === "arrived" || p.status === "partially_received")) return "partial";
-  if (act.every((p) => p.status === "ordered")) return "ordered";
+  if (act.every((p) => ["ordered", "partially_shipped", "shipped", "ready_for_collection"].includes(p.status))) return "ordered";
   return "required";
 }
 
@@ -87,10 +97,12 @@ export function useBookingPartsIndex() {
       const { data, error } = await supabase
         .from("booking_parts")
         .select("booking_id, status")
+        .not("booking_id", "is", null)
         .neq("status", "cancelled");
       if (error) throw error;
       const map = new Map<string, { status: string }[]>();
       for (const r of data ?? []) {
+        if (!r.booking_id) continue;
         const l = map.get(r.booking_id) ?? [];
         l.push(r);
         map.set(r.booking_id, l);
@@ -118,7 +130,8 @@ export function useOpenPartsOrdersCount() {
 
 export type NeedsOrderingRow = {
   id: string;
-  booking_id: string;
+  booking_id: string | null;
+  claim_id: string | null;
   description: string | null;
   part_number: string | null;
   qty_required: number;
@@ -141,13 +154,14 @@ export function useNeedsOrderingParts(enabled: boolean) {
       const { data, error } = await supabase
         .from("booking_parts")
         .select(
-          "id, booking_id, description, part_number, qty_required, supplier, bookings(id, scheduled_date, rego, customers(first_name, last_name), motorcycles(year, make, model, rego))",
+          "id, booking_id, claim_id, description, part_number, qty_required, supplier, insurance_claims(id, claim_number, customers(first_name, last_name), motorcycles(year, make, model, rego)), bookings(id, scheduled_date, rego, customers(first_name, last_name), motorcycles(year, make, model, rego))",
         )
         .eq("status", "needs_ordering")
         .order("created_at", { ascending: false });
       if (error) throw error;
       return (data ?? []).map((r: any) => {
-        const b = r.bookings;
+        const cl = r.insurance_claims;
+        const b = r.bookings ?? (cl ? { id: cl.id, scheduled_date: null, customers: cl.customers, motorcycles: cl.motorcycles } : null);
         const c = b?.customers;
         const m = b?.motorcycles;
         const name = c ? [c.first_name, c.last_name].filter(Boolean).join(" ") : null;
@@ -157,6 +171,7 @@ export function useNeedsOrderingParts(enabled: boolean) {
         return {
           id: r.id,
           booking_id: r.booking_id,
+          claim_id: r.claim_id,
           description: r.description,
           part_number: r.part_number,
           qty_required: r.qty_required ?? 1,
@@ -221,7 +236,8 @@ export function NeedsOrderingBadge({ count, className }: { count: number; classN
                 key={p.id}
                 onClick={() => {
                   setOpen(false);
-                  if (p.booking_id) nav({ to: "/bookings/$bookingId", params: { bookingId: p.booking_id } });
+                  if (!p.booking_id && p.claim_id) nav({ to: "/insurance/$claimId", params: { claimId: p.claim_id } });
+                  else if (p.booking_id) nav({ to: "/bookings/$bookingId", params: { bookingId: p.booking_id } });
                 }}
                 className="w-full text-left px-3 py-2.5 border-b border-border/40 last:border-b-0 hover:bg-orange-500/5 transition-colors"
               >
@@ -258,6 +274,7 @@ export function useInvalidateParts() {
     qc.invalidateQueries({ queryKey: ["booking-parts-index"] });
     qc.invalidateQueries({ queryKey: ["booking-parts"] });
     qc.invalidateQueries({ queryKey: ["parts-orders"] });
+    qc.invalidateQueries({ queryKey: ["claim-parts"] });
   };
 }
 
@@ -265,7 +282,7 @@ export function useInvalidateParts() {
 export function statusPatch(p: any, status: PartStatus) {
   const today = new Date().toISOString().slice(0, 10);
   const patch: any = { status };
-  if (status === "ordered" && !p.ordered_at) patch.ordered_at = today;
+  if (["ordered", "partially_shipped", "shipped", "ready_for_collection"].includes(status) && !p.ordered_at) patch.ordered_at = today;
   if (status === "arrived") {
     patch.qty_received = p.qty_required;
     patch.received_at = today;

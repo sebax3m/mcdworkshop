@@ -109,6 +109,8 @@ export function BookingPartsSection({ booking }: { booking: any }) {
                     p.order_ref && `#${p.order_ref}`,
                     p.ordered_at && `Ordered ${fmtD(p.ordered_at)}`,
                     p.eta && `ETA ${fmtD(p.eta)}`,
+                    p.cost != null && `Cost $${Number(p.cost).toFixed(2)}`,
+                    p.sell_price != null && `Sell $${Number(p.sell_price).toFixed(2)}`,
                   ].filter(Boolean).join(" · ")}
                 </div>
                 {p.notes && <div className="text-xs text-muted-foreground italic">{p.notes}</div>}
@@ -117,7 +119,7 @@ export function BookingPartsSection({ booking }: { booking: any }) {
               {p.status === "needs_ordering" && (
                 <button onClick={() => setEdit({ part: { ...p, status: "ordered" } })} className="rounded-md border border-sky-500/60 px-2 h-7 text-[0.6875rem] font-bold uppercase text-sky-300 hover:bg-sky-500/15">Mark ordered</button>
               )}
-              {["ordered", "partially_received", "backordered"].includes(p.status) && (
+              {["ordered", "partially_shipped", "shipped", "ready_for_collection", "partially_received", "backordered"].includes(p.status) && (
                 <button onClick={() => quick(p, "arrived")} className="rounded-md border border-emerald-500/60 px-2 h-7 text-[0.6875rem] font-bold uppercase text-emerald-300 hover:bg-emerald-500/15">Arrived</button>
               )}
               <button onClick={() => setEdit({ part: p })} className="grid h-7 w-7 place-items-center rounded-md border border-border hover:border-primary/50" aria-label="Edit part">

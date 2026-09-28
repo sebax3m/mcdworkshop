@@ -22,6 +22,48 @@ const REPLACEMENTS: [RegExp, string][] = [
   [/\brecomend\b/gi, "recommend"],
 ];
 
+/** Past-tense workshop actions — a run-on note is split before each one. */
+const ACTION_VERBS = [
+  "removed", "refitted", "reinstalled", "installed", "fitted", "replaced", "renewed", "checked", "inspected",
+  "adjusted", "cleaned", "lubed", "lubricated", "greased", "tightened", "torqued", "bled", "flushed",
+  "drained", "filled", "topped", "changed", "tested", "test rode", "road tested", "diagnosed", "reset",
+  "repaired", "serviced", "balanced", "aligned", "set", "synced", "synchronised", "updated", "programmed",
+  "measured", "found", "carried out", "performed", "scanned", "charged", "rebuilt", "sealed",
+];
+const VERB_RE = new RegExp(`\\s+(?:and\\s+|then\\s+|,\\s*)?(?=(?:${ACTION_VERBS.map((v) => v.replace(/ /g, "\\s+")).join("|")})\\b)`, "gi");
+
+/** Professional workshop terminology for common shorthand openings. */
+const TERMINOLOGY: [RegExp, string][] = [
+  [/^checked\s+(front and rear\s+)?brakes?\b/i, "Inspected $1braking system"],
+  [/^checked\b/i, "Inspected"],
+  [/^adjusted\s+chain\b(?!\s+tension)/i, "Adjusted chain tension to specification"],
+  [/^(?:lubed|lubricated|oiled)\s+(?:the\s+)?chain\b/i, "Cleaned and lubricated drive chain"],
+  [/^(?:test rode|road tested|tested)\s+(?:the\s+)?(?:motorcycle|bike)\b/i, "Carried out final inspection and road test"],
+  [/^test rode\b/i, "Road tested"],
+  [/^removed\s+fairings?\b(?!\s+to)/i, "Removed fairings to access required components"],
+  [/^changed\s+(?:the\s+)?oil\b/i, "Replaced engine oil"],
+  [/^bled\s+(?:the\s+)?brakes?\b/i, "Bled braking system"],
+];
+
+function splitActions(sentence: string): string[] {
+  return sentence
+    .replace(/[.]$/, "")
+    .split(VERB_RE)
+    .map((s) => s.replace(/^(?:and|then)\s+/i, "").replace(/[,;]\s*$/, "").trim())
+    .filter(Boolean);
+}
+
+function terminology(line: string): string {
+  let out = line;
+  for (const [re, v] of TERMINOLOGY) {
+    if (re.test(out)) {
+      out = out.replace(re, v);
+      break;
+    }
+  }
+  return out;
+}
+
 function tidySpacing(line: string): string {
   return line
     .replace(/\s+/g, " ")
@@ -43,8 +85,7 @@ function applyReplacements(line: string): string {
 }
 
 function polish(line: string): string {
-  let out = capitalise(applyReplacements(tidySpacing(line)));
-  if (out && !/[.!?:]$/.test(out)) out += ".";
+  const out = capitalise(applyReplacements(tidySpacing(line))).replace(/\.$/, "");
   return out;
 }
 
@@ -65,7 +106,8 @@ export function fixWording(raw: string): string {
       .split(/(?<=[.!?])\s+(?=[A-Za-z])/)
       .map((s) => s.trim())
       .filter(Boolean);
-    for (const sentence of sentences.length ? sentences : [line]) chunks.push(sentence);
+    for (const sentence of sentences.length ? sentences : [line])
+      for (const action of splitActions(sentence)) chunks.push(terminology(action));
   }
 
   const seen = new Set<string>();

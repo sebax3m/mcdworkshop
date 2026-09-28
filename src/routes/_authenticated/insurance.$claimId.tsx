@@ -44,6 +44,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
+import { ClaimPartsTracking } from "@/components/insurance/ClaimPartsTracking";
 import { format } from "date-fns";
 import { fullBike } from "@/lib/format";
 import { displayCustomerName } from "@/lib/display";
@@ -115,6 +116,17 @@ function ClaimDetail() {
   async function setStatus(s: ClaimStatus) {
     await updateClaim({ status: s });
     toast.success(`Status: ${CLAIM_STATUS_META[s].label}`);
+    if (s === "approved") {
+      // Approval trigger creates "Not ordered" parts orders (never duplicates).
+      const { count } = await supabase
+        .from("booking_parts")
+        .select("id", { count: "exact", head: true })
+        .eq("claim_id", claimId)
+        .eq("status", "needs_ordering");
+      qc.invalidateQueries({ queryKey: ["claim-parts", claimId] });
+      qc.invalidateQueries({ queryKey: ["parts-orders"] });
+      toast.success(`Insurance Approved – ${count ?? 0} part${count === 1 ? "" : "s"} ready to order`);
+    }
   }
 
   async function startQuote() {
@@ -357,6 +369,8 @@ function ClaimDetail() {
         onDecline={() => setStatus("declined")}
         onStartJob={startQuote}
       />
+
+      <ClaimPartsTracking claim={c} />
 
       {/* Notes */}
       <ClaimNotesCard c={c} onUpdate={updateClaim} />

@@ -1,4 +1,5 @@
 # Task roadmap
-- [x] Remove parts-order popup and top-of-calendar reminders.
-- [x] Show an open-parts count in desktop and mobile Parts Orders navigation.
-- [x] Verify calendar and navigation in the preview.
+- [x] Fix Wording: professional bullet per operation (offline, no credits).
+- [x] Parts ordering from existing bookings in calendar (cost/sell price, shared Parts Orders).
+- [x] Insurance Parts Order Tracking section linked to Parts Orders (source + View Insurance Job).
+- [x] Insurance approval auto-creates "Not ordered" parts without duplicates.
