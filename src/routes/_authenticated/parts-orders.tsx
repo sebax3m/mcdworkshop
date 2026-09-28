@@ -327,9 +327,18 @@ function PartsOrdersPage() {
         <div className="card-surface p-8 text-center text-sm text-muted-foreground">No parts match these filters.</div>
       ) : (
         <>
+          {/* Insurance claims grouped as job cards */}
+          {insuranceGroups.length > 0 && (
+            <div className="space-y-2">
+              {insuranceGroups.map(([claimId, parts]) => (
+                <InsuranceJobCard key={claimId} claimId={claimId} parts={parts} />
+              ))}
+            </div>
+          )}
+
           {/* Mobile / tablet cards */}
           <div className="space-y-2 lg:hidden">
-            {filtered.map((r) => (
+            {regularRows.map((r) => (
               <div key={r.id} className={cn("card-surface p-3 space-y-1.5", notReady(r) && "ring-1 ring-red-500/60")}>
                 <div className="flex items-start gap-2">
                   <div className="flex-1 min-w-0">
@@ -367,7 +376,7 @@ function PartsOrdersPage() {
                 </tr>
               </thead>
               <tbody>
-                {filtered.map((r) => (
+                {regularRows.map((r) => (
                   <tr key={r.id} className={cn("border-b border-border/60 hover:bg-muted/40", notReady(r) && "bg-red-500/5")}>
                     <td className="px-2 py-1.5">
                       {r.booking_id ? (
