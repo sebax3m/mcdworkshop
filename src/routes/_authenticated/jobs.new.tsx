@@ -169,7 +169,7 @@ function NewJob() {
   }
 
   return (
-    <div className="space-y-5 max-w-3xl mx-auto">
+    <div className="space-y-5 max-w-5xl mx-auto">
       <header className="flex items-center gap-3">
         <Link
           to="/jobs"
