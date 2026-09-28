@@ -65,7 +65,6 @@ import {
 import { detectServiceKind, KIND_META, SERVICE_PARTS } from "@/lib/service-kinds";
 import { fetchServiceTemplates, snapshotRows } from "@/lib/service-templates";
 import WorkPerformedSection, { readWorkPerformed } from "@/components/job/WorkPerformedSection";
-import CustomerNotesSection from "@/components/job/CustomerNotesSection";
 import QuickPartPresets from "@/components/job/QuickPartPresets";
 
 import { getValveSpec, formatRange, type ValveSpec } from "@/lib/valve-specs";
@@ -1090,13 +1089,6 @@ function JobDetail() {
         </div>
       )}
 
-      {/* Notes for the invoice (technician recommendations) */}
-      <CustomerNotesSection
-        jobId={jobId}
-        serviceData={(j.service_data as any) ?? {}}
-        canEdit={canEdit}
-        onChanged={() => qc.invalidateQueries({ queryKey: ["job", jobId] })}
-      />
 
 
       {/* Valve clearance diagram for Full service — also prints as a worksheet page */}
