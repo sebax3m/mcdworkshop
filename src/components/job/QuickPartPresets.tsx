@@ -72,24 +72,115 @@ function OilFilterIcon({ className = "" }: { className?: string }) {
   );
 }
 
-type PresetKey = "engine_oil" | "oil_filter";
+type OilPreset = {
+  key: string;
+  /** DESCRIPTION saved on the part (house rule: name = DESCRIPTION). */
+  name: string;
+  /** Short label shown on the card. */
+  short: string;
+  /** Small line under the label. */
+  sub: string;
+  /** Text used to find a price in the inventory library. */
+  lookup: string;
+  /** Tailwind accent classes for idle / active states. */
+  accent: {
+    idleBorder: string;
+    idleHover: string;
+    active: string;
+    chip: string;
+    glow: string;
+    panelBorder: string;
+  };
+};
 
-const OIL_NAME = "Motul 5100 10W-40 4T";
+/**
+ * Oil presets, ordered by grade. 5100 first (the semi-synthetic staple),
+ * then the 7100 full-synthetic range sorted by viscosity.
+ * House naming rule: part_number = ITEM ("Engine Oil"), name = DESCRIPTION.
+ */
+const OILS: OilPreset[] = [
+  {
+    key: "5100-10w40",
+    name: "Motul 5100 10W-40 4T",
+    short: "5100 10W-40",
+    sub: "Motul · 1L",
+    lookup: "motul 5100",
+    accent: {
+      idleBorder: "border-border",
+      idleHover: "hover:border-primary/50 hover:bg-primary/5",
+      active: "border-primary bg-primary/10",
+      chip: "bg-primary/10 text-primary",
+      glow: "shadow-[0_0_22px_-8px_oklch(0.81_0.13_82/0.8)]",
+      panelBorder: "border-primary/40",
+    },
+  },
+  {
+    key: "7100-10w40",
+    name: "Motul 7100 10W-40 4T",
+    short: "7100 10W-40",
+    sub: "Motul · 1L",
+    lookup: "motul 7100 10w-40",
+    accent: {
+      idleBorder: "border-border",
+      idleHover: "hover:border-red-400/50 hover:bg-red-400/5",
+      active: "border-red-400 bg-red-400/10",
+      chip: "bg-red-400/10 text-red-400",
+      glow: "shadow-[0_0_22px_-8px_oklch(0.63_0.2_25/0.8)]",
+      panelBorder: "border-red-400/40",
+    },
+  },
+  {
+    key: "7100-15w50",
+    name: "Motul 7100 15W-50 4T",
+    short: "7100 15W-50",
+    sub: "Motul · 1L",
+    lookup: "motul 7100 15w-50",
+    accent: {
+      idleBorder: "border-border",
+      idleHover: "hover:border-red-400/50 hover:bg-red-400/5",
+      active: "border-red-400 bg-red-400/10",
+      chip: "bg-red-400/10 text-red-400",
+      glow: "shadow-[0_0_22px_-8px_oklch(0.63_0.2_25/0.8)]",
+      panelBorder: "border-red-400/40",
+    },
+  },
+  {
+    key: "7100-20w50",
+    name: "Motul 7100 20W-50 4T",
+    short: "7100 20W-50",
+    sub: "Motul · 1L",
+    lookup: "motul 7100 20w-50",
+    accent: {
+      idleBorder: "border-border",
+      idleHover: "hover:border-red-400/50 hover:bg-red-400/5",
+      active: "border-red-400 bg-red-400/10",
+      chip: "bg-red-400/10 text-red-400",
+      glow: "shadow-[0_0_22px_-8px_oklch(0.63_0.2_25/0.8)]",
+      panelBorder: "border-red-400/40",
+    },
+  },
+];
+
+const FILTER_KEY = "oil_filter";
 const OIL_ITEM = "Engine Oil";
 const FILTER_ITEM = "Oil Filter";
 
 /**
- * One-tap shortcuts for the two consumables that go on almost every job card:
- * Motul 5100 10W-40 (litres) and a HiFlo HF oil filter (just type the number).
- * Follows the house naming rule: part_number = ITEM, name = DESCRIPTION.
+ * One-tap shortcuts for the consumables that go on almost every job card:
+ * the Motul oil range (choose the litres) and a HiFlo HF oil filter
+ * (just type the number). Prices come from the inventory library when the
+ * product is already in there.
  */
 export function QuickPartPresets({ jobId, onAdded }: { jobId: string; onAdded: () => void }) {
   const { user } = useCurrentUser();
-  const [active, setActive] = useState<PresetKey | null>(null);
+  const [active, setActive] = useState<string | null>(null);
   const [qty, setQty] = useState("1");
   const [hfNumber, setHfNumber] = useState("");
   const [price, setPrice] = useState("");
   const [saving, setSaving] = useState(false);
+
+  const activeOil = OILS.find((o) => o.key === active) ?? null;
+  const isFilter = active === FILTER_KEY;
 
   // Prices come from the inventory library when the item is already in there.
   const inventory = useQuery({
@@ -112,11 +203,12 @@ export function QuickPartPresets({ jobId, onAdded }: { jobId: string; onAdded: (
     return hit?.unit_price != null ? String(Number(hit.unit_price).toFixed(2)) : "";
   }
 
-  function open(key: PresetKey) {
+  function open(key: string) {
+    const oil = OILS.find((o) => o.key === key);
     setActive(key);
     setQty("1");
     setHfNumber("");
-    setPrice(key === "engine_oil" ? lookupPrice("motul 5100") : "");
+    setPrice(oil ? lookupPrice(oil.lookup) : "");
   }
 
   function close() {
@@ -132,14 +224,16 @@ export function QuickPartPresets({ jobId, onAdded }: { jobId: string; onAdded: (
 
     let name = "";
     let item = "";
-    if (active === "engine_oil") {
-      name = `${OIL_NAME} 1L`;
+    if (activeOil) {
+      name = `${activeOil.name} 1L`;
       item = OIL_ITEM;
-    } else {
+    } else if (isFilter) {
       const num = hfNumber.trim().replace(/^hf/i, "");
       if (!num) return toast.error("Type the HF filter number");
       name = `HiFlo HF${num} Oil Filter`;
       item = FILTER_ITEM;
+    } else {
+      return;
     }
 
     const p = price.trim() === "" ? 0 : Number(price);
@@ -165,32 +259,40 @@ export function QuickPartPresets({ jobId, onAdded }: { jobId: string; onAdded: (
       <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground font-semibold mb-2">
         Quick add
       </div>
-      <div className="grid grid-cols-2 gap-2.5">
-        <button
-          type="button"
-          onClick={() => (active === "engine_oil" ? close() : open("engine_oil"))}
-          className={`group relative overflow-hidden rounded-xl border p-3 text-left transition-all ${
-            active === "engine_oil"
-              ? "border-primary bg-primary/10 shadow-[0_0_22px_-8px_oklch(0.81_0.13_82/0.8)]"
-              : "border-border hover:border-primary/50 hover:bg-primary/5"
-          }`}
-        >
-          <div className="flex items-center gap-3">
-            <span className="grid h-11 w-11 shrink-0 place-items-center rounded-lg bg-primary/10 text-primary transition-transform group-hover:scale-105">
-              <OilBottleIcon className="h-7 w-7" />
-            </span>
-            <div className="min-w-0">
-              <div className="text-sm font-bold truncate">Motul 5100 10W-40</div>
-              <div className="text-[0.6875rem] text-muted-foreground">Engine oil · per litre</div>
-            </div>
-          </div>
-        </button>
+      <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-2.5">
+        {OILS.map((oil) => {
+          const on = active === oil.key;
+          return (
+            <button
+              key={oil.key}
+              type="button"
+              onClick={() => (on ? close() : open(oil.key))}
+              className={`group relative overflow-hidden rounded-xl border p-3 text-left transition-all ${
+                on
+                  ? `${oil.accent.active} ${oil.accent.glow}`
+                  : `${oil.accent.idleBorder} ${oil.accent.idleHover}`
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <span
+                  className={`grid h-11 w-11 shrink-0 place-items-center rounded-lg ${oil.accent.chip} transition-transform group-hover:scale-105`}
+                >
+                  <OilBottleIcon className="h-7 w-7" />
+                </span>
+                <div className="min-w-0">
+                  <div className="text-sm font-bold truncate">{oil.short}</div>
+                  <div className="text-[0.6875rem] text-muted-foreground">{oil.sub}</div>
+                </div>
+              </div>
+            </button>
+          );
+        })}
 
         <button
           type="button"
-          onClick={() => (active === "oil_filter" ? close() : open("oil_filter"))}
+          onClick={() => (isFilter ? close() : open(FILTER_KEY))}
           className={`group relative overflow-hidden rounded-xl border p-3 text-left transition-all ${
-            active === "oil_filter"
+            isFilter
               ? "border-sky-400 bg-sky-400/10 shadow-[0_0_22px_-8px_oklch(0.7_0.15_230/0.8)]"
               : "border-border hover:border-sky-400/50 hover:bg-sky-400/5"
           }`}
@@ -208,9 +310,9 @@ export function QuickPartPresets({ jobId, onAdded }: { jobId: string; onAdded: (
       </div>
 
       {active && (
-        <div className="mt-2.5 rounded-xl border border-primary/40 bg-primary/5 p-3">
+        <div className={`mt-2.5 rounded-xl border bg-primary/5 p-3 ${activeOil ? activeOil.accent.panelBorder : "border-sky-400/40"}`}>
           <div className="flex flex-wrap items-end gap-2">
-            {active === "oil_filter" && (
+            {isFilter && (
               <label className="space-y-1">
                 <span className="block text-[0.625rem] uppercase tracking-wider text-muted-foreground font-semibold">
                   HF number
@@ -234,10 +336,10 @@ export function QuickPartPresets({ jobId, onAdded }: { jobId: string; onAdded: (
             )}
             <label className="space-y-1">
               <span className="block text-[0.625rem] uppercase tracking-wider text-muted-foreground font-semibold">
-                {active === "engine_oil" ? "Litres" : "Qty"}
+                {activeOil ? "Litres" : "Qty"}
               </span>
               <Input
-                autoFocus={active === "engine_oil"}
+                autoFocus={!!activeOil}
                 type="number"
                 step="0.1"
                 min="0"
@@ -275,8 +377,8 @@ export function QuickPartPresets({ jobId, onAdded }: { jobId: string; onAdded: (
             </div>
           </div>
           <p className="mt-2 text-[0.625rem] text-muted-foreground">
-            {active === "engine_oil"
-              ? "Saves as Engine Oil · Motul 5100 10W-40 4T 1L"
+            {activeOil
+              ? `Saves as Engine Oil · ${activeOil.name} 1L`
               : "Saves as Oil Filter · HiFlo HF… Oil Filter"}
           </p>
         </div>
