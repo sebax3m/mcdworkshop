@@ -176,6 +176,23 @@ export const syncBookingCalendarEvent = createServerFn({ method: "POST" })
 
     const row = b as any;
     const customer = row.customers;
+    // Only send to addresses on file for this booking/customer; a custom
+    // address requires an admin (prevents sending invites to arbitrary people).
+    const onFile = [row.google_invite_email, customer?.email]
+      .filter(Boolean)
+      .map((e: string) => e.toLowerCase());
+    if (data.email && !onFile.includes(data.email.toLowerCase())) {
+      const { data: adminRow } = await context.supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", context.userId)
+        .eq("role", "admin")
+        .maybeSingle();
+      const isAdmin = !!adminRow;
+      if (!isAdmin) {
+        throw new Error("Only the customer's email on file can receive the invite. Update the customer's email first.");
+      }
+    }
     const email: string | null = data.email ?? row.google_invite_email ?? customer?.email ?? null;
     if (!email) throw new Error("This customer has no email address on file.");
 
