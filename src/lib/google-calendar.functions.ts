@@ -182,10 +182,13 @@ export const syncBookingCalendarEvent = createServerFn({ method: "POST" })
       .filter(Boolean)
       .map((e: string) => e.toLowerCase());
     if (data.email && !onFile.includes(data.email.toLowerCase())) {
-      const { data: isAdmin } = await context.supabase.rpc("has_role", {
-        _user_id: context.userId,
-        _role: "admin",
-      });
+      const { data: adminRow } = await context.supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", context.userId)
+        .eq("role", "admin")
+        .maybeSingle();
+      const isAdmin = !!adminRow;
       if (!isAdmin) {
         throw new Error("Only the customer's email on file can receive the invite. Update the customer's email first.");
       }
