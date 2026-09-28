@@ -116,13 +116,23 @@ export function AutoClockOutGuard() {
       }
 
       if (didSomething) {
-        await qc.invalidateQueries({ queryKey: ["clock-events-floating"] });
-        await qc.invalidateQueries({ queryKey: ["auto-clockout-last-event"] });
-        await qc.invalidateQueries({ queryKey: ["clock-events"] });
-        await qc.invalidateQueries({ queryKey: ["clock-floating-active-time-entry"] });
-        await qc.invalidateQueries({ queryKey: ["time-entries"] });
+        // Refetch every surface that shows a running clock, including inactive
+        // ones, so no screen keeps counting after the 5:30 PM cut-off.
+        await Promise.all(
+          [
+            ["clock-events-floating"],
+            ["auto-clockout-last-event"],
+            ["clock-events"],
+            ["clock-floating-active-time-entry"],
+            ["clock-floating-job"],
+            ["time-entries"],
+            ["job-time"],
+            ["team-clock-board"],
+          ].map((key) => qc.invalidateQueries({ queryKey: key, refetchType: "all" })),
+        );
         await lastEvent.refetch();
       }
+
       processingRef.current = false;
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
