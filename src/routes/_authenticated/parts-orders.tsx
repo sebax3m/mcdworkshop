@@ -177,7 +177,7 @@ function PartsOrdersPage() {
 
   // One collapsible "job card" per insurance claim, with its parts inside.
   const InsuranceJobCard = ({ claimId, parts }: { claimId: string; parts: any[] }) => {
-    const [open, setOpen] = useState(true);
+    const [open, setOpen] = useState(false);
     const claim = parts[0]?.insurance_claims;
     const b = parts[0]?.bookings;
     const overall = overallStatus(parts, true);
