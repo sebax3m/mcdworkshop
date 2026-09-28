@@ -65,7 +65,7 @@ import { LoanBikeDialog } from "@/components/booking/LoanBikeDialog";
 import { AddressAutocomplete, AddressMap } from "@/components/booking/AddressAutocomplete";
 import { useWorkshopCapacity } from "@/hooks/useWorkshopCapacity";
 import { useCurrentUser } from "@/hooks/use-current-user";
-import { StickyNote } from "lucide-react";
+import { StickyNote, Search } from "lucide-react";
 
 import {
   addMinutesToTime,
@@ -1796,7 +1796,7 @@ function CalendarPage() {
                                       const bookingPatch: Record<string, unknown> = {};
                                       if (r.wof_expiry) bookingPatch.wof_expiry = r.wof_expiry;
                                       if (Object.keys(bookingPatch).length > 0) {
-                                        await supabase
+                                        await (supabase as any)
                                           .from("bookings")
                                           .update(bookingPatch)
                                           .eq("id", b.id);
