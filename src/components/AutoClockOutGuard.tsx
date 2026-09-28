@@ -109,20 +109,36 @@ export function AutoClockOutGuard() {
         } else {
           didSomething = true;
           const dateStr = eventCutoff.toLocaleDateString("en-GB");
-          setWarning(
-            `Your clock-in from ${dateStr} was left active. You were automatically clocked out at 5:30 PM. Please let the office know if your hours need adjusting.`,
-          );
+          // Only warn once per user per day, so the dialog can't loop.
+          const seenKey = `auto-clockout-notified:${user.id}:${dateStr}`;
+          if (typeof window === "undefined" || !window.localStorage.getItem(seenKey)) {
+            if (typeof window !== "undefined") window.localStorage.setItem(seenKey, "1");
+            setWarning(
+              `Your clock-in from ${dateStr} was left active. You were automatically clocked out at 5:30 PM. Please let the office know if your hours need adjusting.`,
+            );
+          }
         }
+
       }
 
       if (didSomething) {
-        await qc.invalidateQueries({ queryKey: ["clock-events-floating"] });
-        await qc.invalidateQueries({ queryKey: ["auto-clockout-last-event"] });
-        await qc.invalidateQueries({ queryKey: ["clock-events"] });
-        await qc.invalidateQueries({ queryKey: ["clock-floating-active-time-entry"] });
-        await qc.invalidateQueries({ queryKey: ["time-entries"] });
+        // Refetch every surface that shows a running clock, including inactive
+        // ones, so no screen keeps counting after the 5:30 PM cut-off.
+        await Promise.all(
+          [
+            ["clock-events-floating"],
+            ["auto-clockout-last-event"],
+            ["clock-events"],
+            ["clock-floating-active-time-entry"],
+            ["clock-floating-job"],
+            ["time-entries"],
+            ["job-time"],
+            ["team-clock-board"],
+          ].map((key) => qc.invalidateQueries({ queryKey: key, refetchType: "all" })),
+        );
         await lastEvent.refetch();
       }
+
       processingRef.current = false;
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
