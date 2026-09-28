@@ -1075,6 +1075,13 @@ function JobDetail() {
 
 
 
+      <CustomerNotesSection
+        jobId={jobId}
+        serviceData={(j.service_data as any) ?? {}}
+        canEdit={canEdit}
+        onChanged={() => qc.invalidateQueries({ queryKey: ["job", jobId] })}
+      />
+
       {/* Valve clearance diagram for Full service — also prints as a worksheet page */}
       {kind === "full" && (
         <ValveClearanceSection
@@ -1243,7 +1250,7 @@ function JobDetail() {
           Print Job Card
         </button>
       </div>
-
+      </div>
     </div>
   );
 }
