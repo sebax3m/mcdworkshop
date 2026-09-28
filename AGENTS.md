@@ -12,3 +12,4 @@
 <!-- LOVABLE:END -->
 
 - Keep the Parts Orders pending count in the shared parts-orders query hook and invalidate it with parts mutations, so the main-menu badge stays consistent across pages.
+- Parts orders for bookings AND insurance claims live in one table (booking_parts, with nullable booking_id + claim_id); insurance approval creates "needs_ordering" rows via DB trigger deduped by (claim_id, quote_item_id) — one record shown in every area.
