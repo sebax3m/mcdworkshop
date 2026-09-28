@@ -141,20 +141,31 @@ export function useNeedsOrderingParts(enabled: boolean) {
       const { data, error } = await supabase
         .from("booking_parts")
         .select(
-          "id, booking_id, description, part_number, qty_required, supplier, bookings(id, scheduled_date, customer_name, bike)",
+          "id, booking_id, description, part_number, qty_required, supplier, bookings(id, scheduled_date, rego, customers(first_name, last_name), motorcycles(year, make, model, rego))",
         )
         .eq("status", "needs_ordering")
         .order("created_at", { ascending: false });
       if (error) throw error;
-      return (data ?? []).map((r: any) => ({
-        id: r.id,
-        booking_id: r.booking_id,
-        description: r.description,
-        part_number: r.part_number,
-        qty_required: r.qty_required ?? 1,
-        supplier: r.supplier,
-        booking: r.bookings ?? null,
-      })) as NeedsOrderingRow[];
+      return (data ?? []).map((r: any) => {
+        const b = r.bookings;
+        const c = b?.customers;
+        const m = b?.motorcycles;
+        const name = c ? [c.first_name, c.last_name].filter(Boolean).join(" ") : null;
+        const bike = m
+          ? [m.year, m.make, m.model].filter(Boolean).join(" ")
+          : (b?.rego ?? null);
+        return {
+          id: r.id,
+          booking_id: r.booking_id,
+          description: r.description,
+          part_number: r.part_number,
+          qty_required: r.qty_required ?? 1,
+          supplier: r.supplier,
+          booking: b
+            ? { id: b.id, scheduled_date: b.scheduled_date, customer_name: name, bike }
+            : null,
+        };
+      }) as NeedsOrderingRow[];
     },
   });
 }
