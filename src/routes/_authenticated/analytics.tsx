@@ -388,6 +388,65 @@ function AnalyticsPage() {
         </div>
       </header>
 
+      {/* Date range filter */}
+      <div className="card-surface p-3 flex flex-wrap items-center gap-2">
+        <span className="flex items-center gap-2 text-xs uppercase tracking-[0.25em] text-muted-foreground mr-1">
+          <CalendarRange className="h-4 w-4 text-primary" /> Period
+        </span>
+        {(
+          [
+            ["all", "All time"],
+            ["this-week", "This week"],
+            ["last-week", "Last week"],
+            ["last-30", "Last 30 days"],
+            ["this-month", "This month"],
+            ["last-month", "Last month"],
+            ["custom", "Custom dates"],
+          ] as const
+        ).map(([value, label]) => (
+          <button
+            key={value}
+            type="button"
+            onClick={() => setRangePreset(value)}
+            className={`rounded-full px-3 py-1.5 text-xs font-semibold transition-colors ${
+              rangePreset === value
+                ? "red-surface text-white"
+                : "border border-border text-muted-foreground hover:text-foreground hover:border-primary/50"
+            }`}
+          >
+            {label}
+          </button>
+        ))}
+        {rangePreset === "custom" && (
+          <span className="flex items-center gap-2 ml-2">
+            <input
+              type="date"
+              value={customFrom}
+              max={customTo || undefined}
+              onChange={(e) => setCustomFrom(e.target.value)}
+              className="rounded-md border border-border bg-background px-3 py-1.5 text-sm"
+            />
+            <span className="text-xs text-muted-foreground">to</span>
+            <input
+              type="date"
+              value={customTo}
+              min={customFrom || undefined}
+              onChange={(e) => setCustomTo(e.target.value)}
+              className="rounded-md border border-border bg-background px-3 py-1.5 text-sm"
+            />
+          </span>
+        )}
+        {rangeActive && (
+          <span className="ml-auto text-xs text-muted-foreground">
+            {range.from && format(range.from, "d MMM yyyy")}
+            {range.from && range.to ? " – " : ""}
+            {range.to && format(range.to, "d MMM yyyy")}
+            {" · "}
+            {totals ? scoped.length : 0} invoices
+          </span>
+        )}
+      </div>
+
       {/* Monthly stacked bar chart */}
       <div className="card-surface p-5">
         <div className="flex items-center justify-between mb-3">
