@@ -807,7 +807,7 @@ function NewBooking() {
                         size="sm"
                         className="h-9 px-2.5 text-xs shrink-0"
                         disabled={nbNoRego || nbLookingUp || !nbRego.trim()}
-                        onClick={fetchBikeFromRego}
+                        onClick={() => fetchBikeFromRego()}
                         title="Look up make, model and year from the rego"
                       >
                         <Search className="h-3.5 w-3.5" />
