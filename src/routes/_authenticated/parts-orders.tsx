@@ -12,10 +12,12 @@ import {
   StatusBadge,
   OverallBadge,
   overallStatus,
+  setPartsRequired,
   statusPatch,
   useInvalidateParts,
   type PartStatus,
 } from "@/lib/parts-orders";
+
 import { PartEditDialog } from "@/components/parts/PartEditDialog";
 import { fmtD } from "@/components/parts/fmt";
 import { cn } from "@/lib/utils";
