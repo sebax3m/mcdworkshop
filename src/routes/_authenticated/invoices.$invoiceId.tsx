@@ -910,6 +910,12 @@ function InvoiceDetail() {
     await refreshPartsTotals();
   }
 
+  /* The DESCRIPTION cell is the product description (parts.name). We also keep
+     the legacy `supplier` text in sync so naming/price learning keeps working. */
+  async function updatePartDescription(id: string, value: string) {
+    await updatePart(id, { name: value, supplier: value });
+  }
+
   async function refreshPartsTotals() {
     await qc.invalidateQueries({ queryKey: ["invoice-parts", invoiceId, inv.job_id] });
     const fresh = await supabase.from("parts").select("*").eq("job_id", inv.job_id!);
@@ -1772,9 +1778,16 @@ function InvoiceDetail() {
                       const derived = partDisplay(p, { invent: false });
                       // Anything typed by hand wins over the derived label, so
                       // edits to ITEM / DESCRIPTION always show exactly as saved.
+                      // "New item" is the placeholder a fresh line starts with:
+                      // never let it hide a description typed into the row.
+                      const typedName = (p.name ?? "").trim();
+                      const nameIsPlaceholder = /^new item$/i.test(typedName);
                       const display = {
                         item: (p.part_number ?? "").trim() || derived.item,
-                        description: (p.name ?? "").trim() || derived.description,
+                        description:
+                          (nameIsPlaceholder ? "" : typedName) ||
+                          (p.supplier ?? "").trim() ||
+                          derived.description,
                       };
                       return (
                         <tr key={p.id} {...rowDragProps(p.id, onReorder)}>
@@ -1802,7 +1815,7 @@ function InvoiceDetail() {
                           <td className="py-1 pr-1.5 align-top">
                             <EditableText
                               value={display.description}
-                              onCommit={(v) => updatePart(p.id, { supplier: v })}
+                              onCommit={(v) => updatePartDescription(p.id, v)}
                               multiline={isConsumable}
                               placeholder={
                                 isConsumable
