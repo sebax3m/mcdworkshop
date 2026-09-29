@@ -445,6 +445,40 @@ function CalendarPage() {
     }
   }, [selectedBooking?.id]);
 
+  // Autosave Instructions: debounce while typing, flush on blur and on close.
+  const pendingNotesRef = useRef<{ id: string; text: string } | null>(null);
+  async function flushSummaryNotes() {
+    const p = pendingNotesRef.current;
+    if (!p) return;
+    pendingNotesRef.current = null;
+    const value = p.text.trim() || null;
+    setSavingSummaryNotes(true);
+    const { error } = await supabase.from("bookings").update({ notes: value }).eq("id", p.id);
+    setSavingSummaryNotes(false);
+    if (error) return toast.error(error.message);
+    setSelectedBooking((prev: any) =>
+      prev && prev.id === p.id ? { ...prev, notes: p.text } : prev,
+    );
+    qc.invalidateQueries({ queryKey: ["calendar-bookings"] });
+  }
+  useEffect(() => {
+    if (!selectedBooking) return;
+    if (summaryNotes === (selectedBooking.notes ?? "")) {
+      pendingNotesRef.current = null;
+      return;
+    }
+    pendingNotesRef.current = { id: selectedBooking.id, text: summaryNotes };
+    const t = setTimeout(() => flushSummaryNotes(), 800);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [summaryNotes]);
+  useEffect(() => {
+    return () => {
+      flushSummaryNotes();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedBooking?.id]);
+
   useEffect(() => {
     const el = bodyRef.current;
     if (!el) return;
@@ -1735,7 +1769,7 @@ function CalendarPage() {
                               )}
                             </div>
 
-                            {wofPanelOpen && b.motorcycles?.rego && (
+                            {b.motorcycles?.rego && (
                               <div className="mt-2 rounded-lg border border-primary/30 bg-primary/5 px-3 py-2 space-y-1.5">
                                 <div className="grid grid-cols-2 gap-2 text-xs">
                                   <div>
@@ -1854,29 +1888,16 @@ function CalendarPage() {
                         <textarea
                           value={summaryNotes}
                           onChange={(e) => setSummaryNotes(e.target.value)}
+                          onBlur={() => flushSummaryNotes()}
                           placeholder="Add instructions for this booking..."
                           className="mt-1 w-full min-h-[90px] rounded-lg border border-border bg-background/60 px-3 py-2 text-sm focus:border-primary/60 focus:outline-none resize-y"
                         />
-                        <div className="mt-2 flex justify-end">
-                          <button
-                            type="button"
-                            disabled={savingSummaryNotes || summaryNotes === (b.notes ?? "")}
-                            onClick={async () => {
-                              setSavingSummaryNotes(true);
-                              const { error } = await supabase
-                                .from("bookings")
-                                .update({ notes: summaryNotes.trim() || null })
-                                .eq("id", b.id);
-                              setSavingSummaryNotes(false);
-                              if (error) return toast.error(error.message);
-                              patchSelected({ notes: summaryNotes.trim() || null });
-                              qc.invalidateQueries({ queryKey: ["calendar-bookings"] });
-                              toast.success("Instructions saved");
-                            }}
-                            className="rounded-lg border border-border px-3 py-1.5 text-xs font-semibold hover:border-primary/50 hover:bg-primary/5 disabled:opacity-50"
-                          >
-                            {savingSummaryNotes ? "Saving…" : "Save instructions"}
-                          </button>
+                        <div className="mt-1 text-right text-[0.625rem] text-muted-foreground h-3">
+                          {savingSummaryNotes
+                            ? "Saving…"
+                            : summaryNotes !== (b.notes ?? "")
+                              ? "Unsaved…"
+                              : "Saved ✓"}
                         </div>
                       </div>
 
