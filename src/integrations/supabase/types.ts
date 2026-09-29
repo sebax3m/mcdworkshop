@@ -3527,6 +3527,7 @@ export type Database = {
       parts: {
         Row: {
           added_by: string | null
+          booking_part_id: string | null
           cost: number | null
           created_at: string
           discount_pct: number
@@ -3542,6 +3543,7 @@ export type Database = {
         }
         Insert: {
           added_by?: string | null
+          booking_part_id?: string | null
           cost?: number | null
           created_at?: string
           discount_pct?: number
@@ -3557,6 +3559,7 @@ export type Database = {
         }
         Update: {
           added_by?: string | null
+          booking_part_id?: string | null
           cost?: number | null
           created_at?: string
           discount_pct?: number
@@ -3571,6 +3574,13 @@ export type Database = {
           supplier?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "parts_booking_part_id_fkey"
+            columns: ["booking_part_id"]
+            isOneToOne: false
+            referencedRelation: "booking_parts"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "parts_job_id_fkey"
             columns: ["job_id"]
@@ -4080,6 +4090,10 @@ export type Database = {
       part_item_of: {
         Args: { p_code: string; p_name: string; p_supp: string }
         Returns: string
+      }
+      sync_booking_part_to_job: {
+        Args: { p_bp_id: string }
+        Returns: undefined
       }
     }
     Enums: {
