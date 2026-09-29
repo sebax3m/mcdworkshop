@@ -164,6 +164,11 @@ function PartsOrdersPage() {
   const rego = (b: any) => b?.motorcycles?.rego || b?.rego || "";
   const svc = (b: any) => (b?.service_type === "Other" ? b?.service_type_other || "Other" : b?.service_type) ?? "";
   const bookingFilter = search.bookingId ? rows.find((r) => r.booking_id === search.bookingId)?.bookings : null;
+  const addForBooking = addFor
+    ? (flagged.data ?? []).find((b: any) => b.id === addFor) ??
+      rows.find((r) => r.booking_id === addFor)?.bookings
+    : null;
+
 
   const SourceTag = ({ r }: { r: any }) =>
     r.claim_id ? (
