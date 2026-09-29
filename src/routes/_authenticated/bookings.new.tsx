@@ -138,9 +138,13 @@ function NewBooking() {
           toast.success(`Loaded from workshop records: ${[local.year, local.make, local.model].filter(Boolean).join(" ")} — no CarJam credit used`);
           return;
         }
-        const wantsUpdate = window.confirm(
-          `This bike is already in the workshop records (${[...(missing.length ? [`missing: ${missing.join(", ")}`] : []), ...expiryIssues].join("; ")}).\n\nUpdate from CarJam now?`,
-        );
+        // Auto mode: refresh silently without asking — the user wants the
+        // latest CarJam data filled in as they type the rego.
+        const wantsUpdate =
+          auto ||
+          window.confirm(
+            `This bike is already in the workshop records (${[...(missing.length ? [`missing: ${missing.join(", ")}`] : []), ...expiryIssues].join("; ")}).\n\nUpdate from CarJam now?`,
+          );
         if (!wantsUpdate) {
           setNbFetched(true);
           toast.success("Loaded from workshop records — no CarJam credit used");
