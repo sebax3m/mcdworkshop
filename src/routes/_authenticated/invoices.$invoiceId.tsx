@@ -2115,6 +2115,10 @@ function InvoiceDetail() {
               <b className="text-foreground">WOF:</b> issued{" "}
               {issuedAt.toLocaleDateString("en-GB")} — valid for 12 months, until{" "}
               {wofValidUntil}. Indicative only, not legal advice.
+              <span className="block mt-0.5">
+                WOF/rego dates not verified with VTNZ — please confirm before
+                relying on them.
+              </span>
             </div>
           )}
 
