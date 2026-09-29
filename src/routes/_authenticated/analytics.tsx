@@ -187,6 +187,7 @@ function AnalyticsPage() {
 
     return {
       week: { total: sum(week, "total"), count: week.length, gst: sum(week, "gst") },
+      lastWeek: { total: sum(lastWeek, "total"), count: lastWeek.length },
       month: { total: sum(month, "total"), count: month.length, gst: sum(month, "gst") },
       year: {
         total: sum(yearRows, "total"),
@@ -210,7 +211,7 @@ function AnalyticsPage() {
       ),
       ytdRange: { from: yA, to: yB },
     };
-  }, [invoices, scoped, isAll, fyStart, now]);
+  }, [invoices, scoped, isAll, fyStart, now, rangeActive]);
 
   // When viewing a single year: show 12 months Jan–Dec of that year.
   // When viewing All years: show one bar per year.
