@@ -12,7 +12,9 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { ArrowLeft, Plus, Search, Bike as BikeIcon, Camera, X } from "lucide-react";
 import { toast } from "sonner";
-import { SUPPLIERS } from "@/lib/parts-orders";
+import { PartsReminderSection } from "@/components/booking/PartsReminderSection";
+import type { ReminderItem } from "@/lib/parts-reminder";
+
 import { hasPhone } from "@/lib/data-quality";
 import { fullBike, initials } from "@/lib/format";
 import { fetchAllRows } from "@/lib/fetch-all";
@@ -74,10 +76,8 @@ function NewBooking() {
   const [mileage, setMileage] = useState<string>("");
   const [wof, setWof] = useState<string>("");
   const [instructions, setInstructions] = useState<string>("");
-  const [partsRequired, setPartsRequired] = useState(false);
-  const [partRows, setPartRows] = useState<
-    { description: string; part_number: string; qty: string; supplier: string; notes: string }[]
-  >([]);
+  const [reminderItems, setReminderItems] = useState<ReminderItem[]>([]);
+
   const [loanBike, setLoanBike] = useState<boolean>(false);
   const [loanBikeId, setLoanBikeId] = useState<string | null>(null);
   const [loanBikeReturn, setLoanBikeReturn] = useState<string>("");
@@ -414,7 +414,10 @@ function NewBooking() {
         setSaving(false);
         return;
       }
+      const remItems = reminderItems.filter((r) => r.selected && r.description.trim());
+      const partsRequired = remItems.some((r) => r.status !== "in_stock");
       const { data, error } = await supabase
+
         .from("bookings")
         .insert({
           customer_id: customer.id,
@@ -449,26 +452,41 @@ function NewBooking() {
         .select("id")
         .single();
       if (error) throw error;
-      if (partsRequired) {
-        const rows = partRows
-          .filter((r) => r.description.trim() || r.part_number.trim())
-          .map((r, i) => ({
+      if (remItems.length) {
+        // Items marked "To order" go straight into Parts Orders (booking_parts).
+        const toOrder = remItems.filter((r) => r.status === "to_order");
+        const partIds = new Map<string, string>();
+        if (toOrder.length) {
+          const rows = toOrder.map((r, i) => ({
             booking_id: data.id,
             description: r.description.trim(),
-            part_number: r.part_number.trim() || null,
-            qty_required: Number(r.qty) || 1,
-            supplier: r.supplier || null,
-            notes: r.notes.trim() || null,
+            qty_required: 1,
+            status: "needs_ordering",
             sort_order: i,
           }));
-        if (rows.length) {
-          const { error: pe } = await supabase.from("booking_parts").insert(rows);
+          const { data: inserted, error: pe } = await (supabase as any)
+            .from("booking_parts")
+            .insert(rows)
+            .select("id, description");
           if (pe) toast.error(`Parts not saved: ${pe.message}`);
+          else for (const row of inserted ?? []) partIds.set(String(row.description).toLowerCase(), row.id);
         }
+        // Every selected reminder is stored for traceability (Booking → Reminder → Order → …).
+        const reqRows = remItems.map((r) => ({
+          booking_id: data.id,
+          description: r.description.trim(),
+          qty_required: 1,
+          status: r.status,
+          source: r.source,
+          booking_part_id: r.status === "to_order" ? partIds.get(r.description.trim().toLowerCase()) ?? null : null,
+        }));
+        const { error: rErr } = await (supabase as any).from("booking_part_requirements").insert(reqRows);
+        if (rErr) toast.error(`Parts reminder not saved: ${rErr.message}`);
         qc.invalidateQueries({ queryKey: ["booking-parts-index"] });
         qc.invalidateQueries({ queryKey: ["parts-orders"] });
         qc.invalidateQueries({ queryKey: ["parts-order-reminders"] });
       }
+
       if (mileage)
         await supabase
           .from("motorcycles")
@@ -1212,53 +1230,14 @@ function NewBooking() {
               </span>
             </label>
 
-            <div className="rounded-xl border border-orange-500/40 p-3 space-y-2">
-              <label className="flex items-center gap-3 text-sm cursor-pointer">
-                <input
-                  type="checkbox"
-                  className="h-5 w-5 accent-orange-500"
-                  checked={partsRequired}
-                  onChange={(e) => {
-                    setPartsRequired(e.target.checked);
-                    if (e.target.checked && partRows.length === 0)
-                      setPartRows([{ description: "", part_number: "", qty: "1", supplier: "", notes: "" }]);
-                  }}
-                />
-                <span className="flex-1">
-                  <span className="block text-sm font-semibold">📦 Order parts</span>
-                  <span className="block text-xs text-muted-foreground">
-                    Flags the book-in as PARTS REQUIRED and adds it to Parts Orders
-                  </span>
-                </span>
-              </label>
-              {partsRequired && (
-                <div className="space-y-2 pt-1">
-                  <p className="text-xs text-muted-foreground">
-                    Optional — leave blank if you don't know the exact parts yet.
-                  </p>
-                  {partRows.map((r, i) => {
-                    const upd = (k: string, v: string) =>
-                      setPartRows((rs) => rs.map((x, j) => (j === i ? { ...x, [k]: v } : x)));
-                    return (
-                      <div key={i} className="grid grid-cols-12 gap-1.5">
-                        <input className="col-span-12 sm:col-span-4 h-9 rounded-md border border-border bg-background px-2 text-sm" placeholder="Part description" value={r.description} onChange={(e) => upd("description", e.target.value)} />
-                        <input className="col-span-5 sm:col-span-2 h-9 rounded-md border border-border bg-background px-2 text-sm" placeholder="Part #" value={r.part_number} onChange={(e) => upd("part_number", e.target.value)} />
-                        <input type="number" min={1} className="col-span-2 sm:col-span-1 h-9 rounded-md border border-border bg-background px-2 text-sm" value={r.qty} onChange={(e) => upd("qty", e.target.value)} />
-                        <select className="col-span-5 sm:col-span-2 h-9 rounded-md border border-border bg-background px-1 text-sm" value={r.supplier} onChange={(e) => upd("supplier", e.target.value)}>
-                          <option value="">Supplier</option>
-                          {SUPPLIERS.map((s) => <option key={s}>{s}</option>)}
-                        </select>
-                        <input className="col-span-10 sm:col-span-2 h-9 rounded-md border border-border bg-background px-2 text-sm" placeholder="Notes" value={r.notes} onChange={(e) => upd("notes", e.target.value)} />
-                        <button type="button" onClick={() => setPartRows((rs) => rs.filter((_, j) => j !== i))} className="col-span-2 sm:col-span-1 h-9 rounded-md border border-border text-xs hover:border-red-500/60">✕</button>
-                      </div>
-                    );
-                  })}
-                  <button type="button" onClick={() => setPartRows((rs) => [...rs, { description: "", part_number: "", qty: "1", supplier: "", notes: "" }])} className="rounded-md border border-border px-3 h-8 text-xs font-semibold hover:border-primary/50">
-                    + Add part
-                  </button>
-                </div>
-              )}
-            </div>
+            <PartsReminderSection
+              serviceType={serviceType}
+              serviceTypeOther={serviceType === "Other" ? serviceTypeOther : ""}
+              instructions={instructions}
+              items={reminderItems}
+              onChange={setReminderItems}
+            />
+
 
             {loanBike && (
               <div className="space-y-3 rounded-xl border border-amber-400/40 bg-amber-400/5 p-3">

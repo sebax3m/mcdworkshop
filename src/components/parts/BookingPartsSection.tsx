@@ -2,7 +2,9 @@
 import { useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Package, Plus, Pencil, ExternalLink, Flag } from "lucide-react";
+import { Package, Plus, Pencil, ExternalLink, Flag, Sparkles, X } from "lucide-react";
+import { reminderStatusMeta } from "@/lib/parts-reminder";
+
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -35,6 +37,21 @@ export function BookingPartsSection({ booking }: { booking: any }) {
     },
   });
   const parts = (q.data ?? []) as any[];
+  // Reminder items still pending (no booking_parts row linked yet).
+  const rq = useQuery({
+    queryKey: ["booking-part-requirements", bookingId],
+    queryFn: async () => {
+      const { data, error } = await (supabase as any)
+        .from("booking_part_requirements")
+        .select("id, description, status, source")
+        .eq("booking_id", bookingId)
+        .is("booking_part_id", null)
+        .order("created_at");
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
   const [edit, setEdit] = useState<{ part?: any; desc?: string } | null>(null);
   const overall = overallStatus(parts, !!booking.parts_required);
   const suggestions = suggestedParts(booking).filter(
@@ -55,6 +72,26 @@ export function BookingPartsSection({ booking }: { booking: any }) {
   }
 
   const flagged = !!booking.parts_required;
+  async function toOrder(r: any) {
+    const { data, error } = await (supabase as any)
+      .from("booking_parts")
+      .insert({ booking_id: bookingId, description: r.description, qty_required: 1, status: "needs_ordering" })
+      .select("id")
+      .single();
+    if (error) return toast.error(error.message);
+    const { error: uErr } = await (supabase as any)
+      .from("booking_part_requirements")
+      .update({ status: "to_order", booking_part_id: data.id })
+      .eq("id", r.id);
+    if (uErr) return toast.error(uErr.message);
+    invalidate();
+  }
+  async function dismissReminder(r: any) {
+    const { error } = await (supabase as any).from("booking_part_requirements").delete().eq("id", r.id);
+    if (error) return toast.error(error.message);
+    invalidate();
+  }
+
   async function toggleRequired() {
     if (flagged && parts.length > 0) {
       toast.error("Remove or cancel the listed parts first");
@@ -162,7 +199,48 @@ export function BookingPartsSection({ booking }: { booking: any }) {
         </div>
       )}
 
+      {(rq.data ?? []).length > 0 && (
+        <div className="space-y-1.5">
+          <div className="flex items-center gap-1.5 text-[0.625rem] font-bold uppercase tracking-wider text-muted-foreground">
+            <Sparkles className="h-3.5 w-3.5 text-orange-300" /> Parts reminder — not ordered yet
+          </div>
+          {(rq.data ?? []).map((r: any) => {
+            const st = reminderStatusMeta(r.status);
+            return (
+              <div
+                key={r.id}
+                className="flex items-center gap-2 rounded-lg border border-border/70 bg-background/40 px-2.5 py-1.5"
+              >
+                <span className="flex-1 text-sm font-semibold truncate">{r.description}</span>
+                <span
+                  className={
+                    "shrink-0 inline-flex items-center rounded-full border px-2 py-0.5 text-[0.625rem] font-bold uppercase tracking-wider " +
+                    st.cls
+                  }
+                >
+                  {st.label}
+                </span>
+                <button
+                  onClick={() => toOrder(r)}
+                  className="shrink-0 rounded-md border border-orange-500/60 px-2 h-7 text-[0.6875rem] font-bold uppercase text-orange-300 hover:bg-orange-500/15"
+                >
+                  To order
+                </button>
+                <button
+                  onClick={() => dismissReminder(r)}
+                  className="grid h-7 w-7 shrink-0 place-items-center rounded-md text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                  aria-label={`Remove reminder ${r.description}`}
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
       <PartEditDialog
+
         open={!!edit}
         onOpenChange={(v) => !v && setEdit(null)}
         bookingId={bookingId}

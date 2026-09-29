@@ -54,7 +54,9 @@ import { lookupRego } from "@/lib/rego-lookup.functions";
 import { findLocalBikeByRego, localBikeExpiryIssues, localBikeMissingFields, saveCarjamDataToBike } from "@/lib/rego-local-lookup";
 import { useBookingTypes } from "@/hooks/useBookingTypes";
 import { useDailyNotesRange, useUpdateDailyNote, type DailyNote } from "@/hooks/useDailyNotes";
-import { SUPPLIERS } from "@/lib/parts-orders";
+import { PartsReminderSection } from "@/components/booking/PartsReminderSection";
+import type { ReminderItem } from "@/lib/parts-reminder";
+
 import { NoteDialog } from "@/components/booking/NoteDialog";
 import { BookInCard, CapacityBadge } from "@/components/booking/BookInCard";
 import { CalendarDayHeader } from "@/components/booking/CalendarDayHeader";
@@ -318,8 +320,8 @@ function CalendarPage() {
   const [qBikeColor, setQBikeColor] = useState<string>("");
   const [qCarjamFetched, setQCarjamFetched] = useState(false);
   const [qLoanBike, setQLoanBike] = useState(false);
-  const [qParts, setQParts] = useState(false);
-  const [qPartRows, setQPartRows] = useState<{ description: string; part_number: string; qty: string; supplier: string }[]>([]);
+  const [qReminders, setQReminders] = useState<ReminderItem[]>([]);
+
   const [qLoanBikeId, setQLoanBikeId] = useState<string | null>(null);
   const [qLoanBikeReturn, setQLoanBikeReturn] = useState<string>("");
   const [qPickup, setQPickup] = useState(false);
@@ -667,8 +669,8 @@ function CalendarPage() {
     setQBikeColor("");
     setQCarjamFetched(false);
     setQLoanBike(false);
-    setQParts(false);
-    setQPartRows([]);
+    setQReminders([]);
+
     setQLoanBikeId(null);
     setQLoanBikeReturn("");
     setQPickup(false);
@@ -741,6 +743,9 @@ function CalendarPage() {
         }
       }
 
+      const remItems = qReminders.filter((r) => r.selected && r.description.trim());
+      const remFlag = remItems.some((r) => r.status !== "in_stock");
+
       const { data: created, error: bkErr } = await supabase
         .from("bookings")
         .insert({
@@ -753,7 +758,8 @@ function CalendarPage() {
           scheduled_end_time: `${endTime}:00`,
           estimated_hours: Number(qEstHours) || 1,
           rego: qBikeRego.trim().toUpperCase() || null,
-          parts_required: qParts,
+          parts_required: remFlag,
+
           loan_bike: qLoanBike,
           loan_bike_id: qLoanBike ? qLoanBikeId : null,
           loan_bike_expected_return: qLoanBike && qLoanBikeReturn ? qLoanBikeReturn : null,
@@ -775,25 +781,45 @@ function CalendarPage() {
         .single();
       if (bkErr) throw bkErr;
 
-      if (qParts) {
-        const rows = qPartRows
-          .filter((r) => r.description.trim() || r.part_number.trim())
-          .map((r, i) => ({
+      if (remItems.length) {
+        // Items marked "To order" go straight into Parts Orders (booking_parts).
+        const toOrder = remItems.filter((r) => r.status === "to_order");
+        const partIds = new Map<string, string>();
+        if (toOrder.length) {
+          const rows = toOrder.map((r, i) => ({
             booking_id: created.id,
-            description: r.description.trim() || r.part_number.trim(),
-            part_number: r.part_number.trim() || null,
-            qty_required: Number(r.qty) || 1,
-            supplier: r.supplier || null,
+            description: r.description.trim(),
+            qty_required: 1,
             status: "needs_ordering",
             sort_order: i,
           }));
-        if (rows.length) {
-          const { error: pErr } = await (supabase as any).from("booking_parts").insert(rows);
-          if (pErr) toast.error(`Parts not saved: ${pErr.message}`);
+          const { data: inserted, error: pErr } = await (supabase as any)
+            .from("booking_parts")
+            .insert(rows)
+            .select("id, description");
+          if (pErr) {
+            toast.error(`Parts not saved: ${pErr.message}`);
+          } else {
+            for (const row of inserted ?? []) partIds.set(String(row.description).toLowerCase(), row.id);
+          }
         }
+        // Every selected reminder is stored for traceability (Booking → Reminder → Order → …).
+        const reqRows = remItems.map((r) => ({
+          booking_id: created.id,
+          description: r.description.trim(),
+          qty_required: 1,
+          status: r.status,
+          source: r.source,
+          booking_part_id: r.status === "to_order" ? partIds.get(r.description.trim().toLowerCase()) ?? null : null,
+        }));
+        const { error: rErr } = await (supabase as any)
+          .from("booking_part_requirements")
+          .insert(reqRows);
+        if (rErr) toast.error(`Parts reminder not saved: ${rErr.message}`);
         qc.invalidateQueries({ queryKey: ["booking-parts-index"] });
         qc.invalidateQueries({ queryKey: ["parts-orders"] });
       }
+
 
       toast.success("Booking created");
 
@@ -2941,18 +2967,19 @@ function CalendarPage() {
                   </div>
                   </div>
 
-                  <div className="grid gap-4 sm:grid-cols-2">
-                  <div>
-                    <label className="flex items-center gap-2 cursor-pointer">
+                  <div className="grid gap-3 sm:grid-cols-2">
+                  <div className="rounded-xl border border-border bg-card/40 p-3">
+                    <label className="flex items-center gap-2.5 cursor-pointer">
                       <input
                         type="checkbox"
                         className="h-4 w-4 accent-primary"
                         checked={qWofNeeded}
                         onChange={(e) => setQWofNeeded(e.target.checked)}
                       />
-                      <ShieldCheck size={16} className="text-primary" />
+                      <ShieldCheck size={15} className="text-primary shrink-0" />
                       <span className="text-sm font-semibold">Needs WOF</span>
                     </label>
+
                     {qWofNeeded && (
                       <div className="mt-2 rounded-xl border border-primary/40 bg-primary/5 p-3">
                         <label className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">
@@ -2968,11 +2995,11 @@ function CalendarPage() {
                     )}
                   </div>
 
-                  <div>
-                    <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground mb-1">
+                  <div className="rounded-xl border border-border bg-card/40 p-3">
+                    <div className="text-[0.625rem] font-bold uppercase tracking-wider text-muted-foreground mb-1.5">
                       Bike transport
                     </div>
-                    <label className="flex items-center gap-2 cursor-pointer">
+                    <label className="flex items-center gap-2.5 cursor-pointer">
                       <input
                         type="checkbox"
                         className="h-4 w-4 accent-primary"
@@ -2981,6 +3008,7 @@ function CalendarPage() {
                       />
                       <span className="text-sm font-semibold">🚚 Pick up the bike</span>
                     </label>
+
                     <label className="mt-1 flex items-center gap-2 cursor-pointer">
                       <input
                         type="checkbox"
@@ -3007,12 +3035,13 @@ function CalendarPage() {
                     )}
                   </div>
 
-                  <div>
-                    <label className="flex items-center gap-2 cursor-pointer">
+                  <div className="rounded-xl border border-border bg-card/40 p-3">
+                    <label className="flex items-center gap-2.5 cursor-pointer">
                       <input
                         type="checkbox"
                         className="h-4 w-4 accent-primary"
                         checked={qGInvite}
+
                         onChange={(e) => {
                           setQGInvite(e.target.checked);
                           if (e.target.checked && !qGEmail) {
@@ -3054,12 +3083,13 @@ function CalendarPage() {
 
 
 
-                  <div>
-                    <label className="flex items-center gap-2 cursor-pointer">
+                  <div className="rounded-xl border border-amber-400/30 bg-card/40 p-3">
+                    <label className="flex items-center gap-2.5 cursor-pointer">
                       <input
                         type="checkbox"
                         className="h-4 w-4 accent-amber-500"
                         checked={qLoanBike}
+
                         onChange={(e) => setQLoanBike(e.target.checked)}
                       />
                       <span className="text-sm font-semibold">🏍️ Customer needs a loan bike</span>
@@ -3130,49 +3160,16 @@ function CalendarPage() {
                     )}
                   </div>
 
-                  <div className="rounded-xl border border-orange-400/40 bg-orange-400/5 p-3 space-y-2 sm:col-span-2">
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        className="h-4 w-4 accent-orange-500"
-                        checked={qParts}
-                        onChange={(e) => {
-                          setQParts(e.target.checked);
-                          if (e.target.checked && qPartRows.length === 0)
-                            setQPartRows([{ description: "", part_number: "", qty: "1", supplier: "" }]);
-                        }}
-                      />
-                      <span className="flex-1">
-                        <span className="block text-sm font-semibold">📦 Order parts</span>
-                        <span className="block text-[0.6875rem] text-muted-foreground">
-                          Adds this book-in to Parts Orders (details optional)
-                        </span>
-                      </span>
-                    </label>
-                    {qParts && (
-                      <div className="space-y-1.5">
-                        {qPartRows.map((r, i) => {
-                          const upd = (k: string, v: string) =>
-                            setQPartRows((rs) => rs.map((x, j) => (j === i ? { ...x, [k]: v } : x)));
-                          return (
-                            <div key={i} className="grid grid-cols-12 gap-1.5">
-                              <input className="col-span-12 h-9 rounded-md border border-border bg-background px-2 text-sm" placeholder="Part description" value={r.description} onChange={(e) => upd("description", e.target.value)} />
-                              <input className="col-span-4 h-9 rounded-md border border-border bg-background px-2 text-sm" placeholder="Part #" value={r.part_number} onChange={(e) => upd("part_number", e.target.value)} />
-                              <input type="number" min={1} className="col-span-2 h-9 rounded-md border border-border bg-background px-2 text-sm" value={r.qty} onChange={(e) => upd("qty", e.target.value)} />
-                              <select className="col-span-4 h-9 rounded-md border border-border bg-background px-1 text-sm" value={r.supplier} onChange={(e) => upd("supplier", e.target.value)}>
-                                <option value="">Supplier</option>
-                                {SUPPLIERS.map((x) => <option key={x}>{x}</option>)}
-                              </select>
-                              <button type="button" onClick={() => setQPartRows((rs) => rs.filter((_, j) => j !== i))} className="col-span-2 h-9 rounded-md border border-border text-xs">✕</button>
-                            </div>
-                          );
-                        })}
-                        <button type="button" onClick={() => setQPartRows((rs) => [...rs, { description: "", part_number: "", qty: "1", supplier: "" }])} className="rounded-md border border-border px-3 h-8 text-xs font-semibold">
-                          + Add part
-                        </button>
-                      </div>
-                    )}
+                  <div className="sm:col-span-2">
+                    <PartsReminderSection
+                      serviceType={qService}
+                      serviceTypeOther={qServiceOther}
+                      instructions={qNotes}
+                      items={qReminders}
+                      onChange={setQReminders}
+                    />
                   </div>
+
                   </div>
 
                   <div className="flex gap-2 pt-2 border-t border-border/60">

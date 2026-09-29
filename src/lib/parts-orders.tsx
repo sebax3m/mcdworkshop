@@ -346,6 +346,8 @@ export function useInvalidateParts() {
   return () => {
     qc.invalidateQueries({ queryKey: ["booking-parts-index"] });
     qc.invalidateQueries({ queryKey: ["booking-parts"] });
+    qc.invalidateQueries({ queryKey: ["booking-part-requirements"] });
+
     qc.invalidateQueries({ queryKey: ["parts-orders"] });
     qc.invalidateQueries({ queryKey: ["claim-parts"] });
     // Main-menu badge + "parts to identify" list.
