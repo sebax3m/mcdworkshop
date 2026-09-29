@@ -1778,9 +1778,16 @@ function InvoiceDetail() {
                       const derived = partDisplay(p, { invent: false });
                       // Anything typed by hand wins over the derived label, so
                       // edits to ITEM / DESCRIPTION always show exactly as saved.
+                      // "New item" is the placeholder a fresh line starts with:
+                      // never let it hide a description typed into the row.
+                      const typedName = (p.name ?? "").trim();
+                      const nameIsPlaceholder = /^new item$/i.test(typedName);
                       const display = {
                         item: (p.part_number ?? "").trim() || derived.item,
-                        description: (p.name ?? "").trim() || derived.description,
+                        description:
+                          (nameIsPlaceholder ? "" : typedName) ||
+                          (p.supplier ?? "").trim() ||
+                          derived.description,
                       };
                       return (
                         <tr key={p.id} {...rowDragProps(p.id, onReorder)}>
