@@ -348,7 +348,9 @@ function AnalyticsPage() {
           <div className="text-xs uppercase tracking-[0.25em] text-muted-foreground">Workshop</div>
           <h1 className="font-display text-2xl sm:text-3xl font-bold">
             Analytics & Tax{" "}
-            {isAll ? (
+            {rangeActive ? (
+              <span className="text-primary">· {range.label}</span>
+            ) : isAll ? (
               <span className="text-muted-foreground">· All years</span>
             ) : (
               <span className="text-primary">· {selectedYear}</span>
