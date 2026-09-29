@@ -50,6 +50,27 @@
       "when": 1790719272291,
       "tag": "0006_clamp_supplier_lead_days",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1790720998999,
+      "tag": "0007_lov_database_migration",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1790721028262,
+      "tag": "0008_lov_database_migration",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1790721051043,
+      "tag": "0009_lov_database_migration",
+      "breakpoints": true
     }
   ]
 }
