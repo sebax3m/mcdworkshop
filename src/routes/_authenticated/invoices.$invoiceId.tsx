@@ -2107,6 +2107,17 @@ function InvoiceDetail() {
             />
           </div>
 
+          {wofDone && (
+            <div
+              data-print-section="wof-note"
+              className="pt-2 text-[0.7rem] leading-snug text-muted-foreground"
+            >
+              <b className="text-foreground">WOF:</b> issued{" "}
+              {issuedAt.toLocaleDateString("en-GB")} — valid for 12 months, until{" "}
+              {wofValidUntil}. Indicative only, not legal advice.
+            </div>
+          )}
+
           {/* Payment details + totals — anchored to the bottom of the A4 sheet.
               Both blocks share the same top edge: the "Payment Details" header
               aligns with "Labour (incl GST)" and each following row lines up. */}
