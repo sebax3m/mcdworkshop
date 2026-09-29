@@ -1815,7 +1815,7 @@ function InvoiceDetail() {
                           <td className="py-1 pr-1.5 align-top">
                             <EditableText
                               value={display.description}
-                              onCommit={(v) => updatePart(p.id, { supplier: v })}
+                              onCommit={(v) => updatePartDescription(p.id, v)}
                               multiline={isConsumable}
                               placeholder={
                                 isConsumable
