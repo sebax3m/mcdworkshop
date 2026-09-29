@@ -29,6 +29,13 @@
       "when": 1790569108928,
       "tag": "0003_parts_orders_insurance_link",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1790649579552,
+      "tag": "0004_sync_arrived_booking_parts_to_job",
+      "breakpoints": true
     }
   ]
 }

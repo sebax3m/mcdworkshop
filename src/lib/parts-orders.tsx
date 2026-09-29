@@ -275,6 +275,10 @@ export function useInvalidateParts() {
     qc.invalidateQueries({ queryKey: ["booking-parts"] });
     qc.invalidateQueries({ queryKey: ["parts-orders"] });
     qc.invalidateQueries({ queryKey: ["claim-parts"] });
+    // Arrived book-in parts are copied to the job's parts (DB trigger) → refresh job card & invoice.
+    qc.invalidateQueries({ queryKey: ["job-parts"] });
+    qc.invalidateQueries({ queryKey: ["job"] });
+    qc.invalidateQueries({ queryKey: ["invoice-parts"] });
   };
 }
 
