@@ -68,8 +68,13 @@ export function suggestFromInstructions(text: string): Suggestion[] {
       : /brake\s*pads?\b|\bpads\b/.test(t)
         ? "Brake Pads"
         : null;
-  if (pads) push(pads);
+  if (pads) {
+    push(pads);
+    // Pad replacement almost always pairs with a fluid check/bleed — remind it too.
+    push("Brake Fluid");
+  }
   if (/brake\s+fluid|\bbleed\b/.test(t)) push("Brake Fluid");
+
   if (/brake\s*(rotor|disc)/.test(t)) push("Brake Rotors");
   if (/\bchain\b/.test(t)) push("Chain");
   if (/sprockets?/.test(t)) {
