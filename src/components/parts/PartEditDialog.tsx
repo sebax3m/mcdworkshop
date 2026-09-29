@@ -217,10 +217,6 @@ export function PartEditDialog({
             <input className={inp} value={f.brand ?? ""} onChange={(e) => set("brand", e.target.value)} placeholder="HiFlo, Motul, NGK…" />
           </label>
 
-          <label className="space-y-1">
-            <span className={lbl}>Part number</span>
-            <input className={inp} value={f.part_number ?? ""} onChange={(e) => set("part_number", e.target.value)} />
-          </label>
           <div className="grid grid-cols-2 gap-2">
             <label className="space-y-1">
               <span className={lbl}>Qty req.</span>
