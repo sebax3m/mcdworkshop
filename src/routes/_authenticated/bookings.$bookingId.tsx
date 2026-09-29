@@ -166,7 +166,20 @@ function BookingDetail() {
     if (!missing) return;
     if (autoCarjamDone.current === b.id) return;
     autoCarjamDone.current = b.id;
-    fetchRegoFromCarjam();
+    let cancelled = false;
+    (async () => {
+      // Wait for the auth session to be ready — otherwise the server call
+      // is rejected on first paint and the dates never load until a click.
+      for (let i = 0; i < 10; i++) {
+        const { data } = await supabase.auth.getSession();
+        if (data.session) break;
+        await new Promise((r) => setTimeout(r, 500));
+      }
+      if (!cancelled) fetchRegoFromCarjam();
+    })();
+    return () => {
+      cancelled = true;
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [b?.id, b?.motorcycles?.rego, b?.motorcycles?.wof_expiry, b?.motorcycles?.rego_expiry, b?.motorcycles?.vin]);
 
