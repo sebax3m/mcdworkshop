@@ -110,10 +110,52 @@ function AnalyticsPage() {
   const isAll = yearFilter === "all";
   const selectedYear = isAll ? null : Number(yearFilter);
 
+  // Optional date range filter — narrows every chart, KPI and the export.
+  const range = useMemo<{ from: Date | null; to: Date | null; label: string | null }>(() => {
+    const wkA = startOfWeek(now, { weekStartsOn: 1 });
+    const wkB = endOfWeek(now, { weekStartsOn: 1 });
+    const mA = startOfMonth(now);
+    switch (rangePreset) {
+      case "this-week":
+        return { from: wkA, to: wkB, label: "This week" };
+      case "last-week":
+        return { from: subDays(wkA, 7), to: subDays(wkB, 7), label: "Last week" };
+      case "last-30":
+        return { from: subDays(now, 30), to: now, label: "Last 30 days" };
+      case "this-month":
+        return { from: mA, to: endOfMonth(now), label: "This month" };
+      case "last-month": {
+        const prev = subDays(mA, 1);
+        return { from: startOfMonth(prev), to: endOfMonth(prev), label: "Last month" };
+      }
+      case "custom": {
+        const f = customFrom ? parseISO(customFrom) : null;
+        const t = customTo ? parseISO(customTo) : null;
+        if (!f && !t) return { from: null, to: null, label: null };
+        return { from: f, to: t, label: "Custom range" };
+      }
+      default:
+        return { from: null, to: null, label: null };
+    }
+  }, [rangePreset, customFrom, customTo, now]);
+
+  const rangeActive = !!(range.from || range.to);
+
   const scoped = useMemo(() => {
-    if (isAll) return invoices;
-    return invoices.filter((i) => parseISO(i.invoice_date).getFullYear() === selectedYear);
-  }, [invoices, isAll, selectedYear]);
+    let rows = isAll ? invoices : invoices.filter((i) => parseISO(i.invoice_date).getFullYear() === selectedYear);
+    if (range.from || range.to) {
+      const end = range.to
+        ? new Date(range.to.getFullYear(), range.to.getMonth(), range.to.getDate(), 23, 59, 59, 999)
+        : null;
+      rows = rows.filter((i) => {
+        const d = parseISO(i.invoice_date);
+        if (range.from && d < range.from) return false;
+        if (end && d > end) return false;
+        return true;
+      });
+    }
+    return rows;
+  }, [invoices, isAll, selectedYear, range]);
 
   const totals = useMemo(() => {
     const sum = (rows: Inv[], key: keyof Inv) => rows.reduce((a, r) => a + Number(r[key] || 0), 0);
