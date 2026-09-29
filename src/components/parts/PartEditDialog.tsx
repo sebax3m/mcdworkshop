@@ -1,13 +1,22 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Trash2 } from "lucide-react";
+import { Trash2, History, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { PART_STATUSES, SUPPLIERS, SUPPLIER_SUGGESTIONS, useInvalidateParts } from "@/lib/parts-orders";
+import {
+  PART_STATUSES,
+  SUPPLIERS,
+  SUPPLIER_SUGGESTIONS,
+  useInvalidateParts,
+  usePartsCatalogSuggest,
+  useSupplierStats,
+  type CatalogSuggestion,
+} from "@/lib/parts-orders";
 
 const inp = "w-full h-9 rounded-md border border-border bg-background px-2 text-sm";
 const lbl = "text-[0.625rem] font-bold uppercase tracking-wider text-muted-foreground";
+
 
 export function PartEditDialog({
   open,
@@ -16,6 +25,8 @@ export function PartEditDialog({
   claimId,
   part,
   initialDescription,
+  bikeMake,
+  bikeModel,
 }: {
   open: boolean;
   onOpenChange: (v: boolean) => void;
@@ -23,20 +34,27 @@ export function PartEditDialog({
   claimId?: string | null;
   part?: any | null;
   initialDescription?: string;
+  bikeMake?: string | null;
+  bikeModel?: string | null;
 }) {
   const invalidate = useInvalidateParts();
   const [f, setF] = useState<any>({});
   const [saving, setSaving] = useState(false);
+  const [usedFromHistory, setUsedFromHistory] = useState<string | null>(null);
 
   useEffect(() => {
     if (!open) return;
+    setUsedFromHistory(null);
     setF(
       part ?? {
         description: initialDescription ?? "",
         part_number: "",
+        brand: "",
         qty_required: 1,
         qty_received: 0,
         supplier: "",
+        supplier_sku: "",
+        supplier_url: "",
         order_ref: "",
         ordered_at: "",
         eta: "",
@@ -45,6 +63,7 @@ export function PartEditDialog({
         notes: "",
         cost: "",
         sell_price: "",
+        freight: "",
         tracking_number: "",
         tracking_url: "",
       },
@@ -53,15 +72,38 @@ export function PartEditDialog({
 
   const set = (k: string, v: any) => setF((x: any) => ({ ...x, [k]: v }));
 
+  const searchTerm = String(f.part_number || f.description || "");
+  const suggestions = usePartsCatalogSuggest(searchTerm, bikeMake, bikeModel, open && !part?.id);
+  const supplierStats = useSupplierStats(open);
+
+  function usePrevious(s: CatalogSuggestion) {
+    setF((x: any) => ({
+      ...x,
+      description: s.description ?? x.description,
+      part_number: s.part_number ?? x.part_number,
+      brand: s.brand ?? x.brand,
+      supplier: s.last_supplier ?? x.supplier,
+      supplier_sku: s.supplier_sku ?? x.supplier_sku,
+      supplier_url: s.supplier_url ?? x.supplier_url,
+      cost: s.last_cost ?? x.cost,
+      sell_price: s.last_sell ?? x.sell_price,
+    }));
+    setUsedFromHistory(s.id);
+    toast.success("Filled from previous order");
+  }
+
   async function save() {
     if (!String(f.description ?? "").trim()) return toast.error("Enter a part description");
     setSaving(true);
-    const row = {
+    const row: any = {
       description: String(f.description).trim(),
       part_number: f.part_number?.trim() || null,
+      brand: f.brand?.trim() || null,
       qty_required: Number(f.qty_required) || 1,
       qty_received: Number(f.qty_received) || 0,
       supplier: f.supplier || null,
+      supplier_sku: f.supplier_sku?.trim() || null,
+      supplier_url: f.supplier_url?.trim() || null,
       order_ref: f.order_ref?.trim() || null,
       ordered_at: f.ordered_at || null,
       eta: f.eta || null,
@@ -70,6 +112,7 @@ export function PartEditDialog({
       notes: f.notes?.trim() || null,
       cost: f.cost === "" || f.cost == null ? null : Number(f.cost),
       sell_price: f.sell_price === "" || f.sell_price == null ? null : Number(f.sell_price),
+      freight: f.freight === "" || f.freight == null ? null : Number(f.freight),
       tracking_number: f.tracking_number?.trim() || null,
       tracking_url: f.tracking_url?.trim() || null,
     };
@@ -87,7 +130,7 @@ export function PartEditDialog({
           claim_id: claimId || null,
           source: claimId && !bookingId ? "insurance" : "booking",
         });
-    if (!error && bookingId) await supabase.from("bookings").update({ parts_required: true }).eq("id", bookingId);
+    if (!error && bookingId) await supabase.from("bookings").update({ parts_required: true } as any).eq("id", bookingId);
     setSaving(false);
     if (error) return toast.error(error.message);
     toast.success(part?.id ? "Part updated" : "Part added");
@@ -103,9 +146,11 @@ export function PartEditDialog({
     onOpenChange(false);
   }
 
+  const hits = suggestions.data ?? [];
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg max-h-[90vh] overflow-auto">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-auto">
         <DialogHeader>
           <DialogTitle>{part?.id ? "Edit part" : "Add part"}</DialogTitle>
         </DialogHeader>
@@ -114,10 +159,64 @@ export function PartEditDialog({
             <span className={lbl}>Part description</span>
             <input className={inp} value={f.description ?? ""} onChange={(e) => set("description", e.target.value)} autoFocus />
           </label>
+
+          {hits.length > 0 && (
+            <div className="col-span-2 rounded-lg border border-sky-500/40 bg-sky-500/5">
+              <div className="flex items-center gap-1.5 px-2.5 py-1.5 border-b border-sky-500/20">
+                <History className="h-3.5 w-3.5 text-sky-300" />
+                <span className="text-[0.625rem] font-bold uppercase tracking-wider text-sky-300">
+                  Used before in the workshop
+                </span>
+              </div>
+              <div className="max-h-52 overflow-y-auto divide-y divide-border/40">
+                {hits.map((s) => (
+                  <div key={s.id} className="flex items-start gap-2 px-2.5 py-2">
+                    <div className="min-w-0 flex-1">
+                      <div className="text-sm font-semibold truncate">
+                        {s.description}
+                        {s.part_number && <span className="text-muted-foreground font-normal"> · {s.part_number}</span>}
+                      </div>
+                      <div className="text-[0.6875rem] text-muted-foreground truncate">
+                        {[
+                          s.last_supplier && `Last supplier ${s.last_supplier}`,
+                          s.last_cost != null && `Cost $${Number(s.last_cost).toFixed(2)}`,
+                          s.last_sell != null && `Sell $${Number(s.last_sell).toFixed(2)}`,
+                          `${s.times_purchased}× bought`,
+                        ].filter(Boolean).join(" · ")}
+                      </div>
+                      {(s.bikes?.length ?? 0) > 0 && (
+                        <div className="text-[0.625rem] text-muted-foreground/70 truncate">
+                          Fitted to: {(s.bikes ?? []).join(", ")}
+                        </div>
+                      )}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => usePrevious(s)}
+                      className="shrink-0 inline-flex items-center gap-1 rounded-md border border-sky-500/60 px-2 h-7 text-[0.625rem] font-bold uppercase text-sky-300 hover:bg-sky-500/15"
+                    >
+                      <Sparkles className="h-3 w-3" /> Use
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+          {usedFromHistory && (
+            <p className="col-span-2 -mt-1 text-[0.6875rem] text-sky-300">
+              Filled from stored workshop history — check the price before ordering.
+            </p>
+          )}
+
           <label className="space-y-1">
             <span className={lbl}>Part number</span>
             <input className={inp} value={f.part_number ?? ""} onChange={(e) => set("part_number", e.target.value)} />
           </label>
+          <label className="space-y-1">
+            <span className={lbl}>Brand</span>
+            <input className={inp} value={f.brand ?? ""} onChange={(e) => set("brand", e.target.value)} placeholder="HiFlo, Motul, NGK…" />
+          </label>
+
           <div className="grid grid-cols-2 gap-2">
             <label className="space-y-1">
               <span className={lbl}>Qty req.</span>
@@ -151,7 +250,29 @@ export function PartEditDialog({
             <input className={inp} list="supplier-suggestions" value={f.supplier ?? ""} onChange={(e) => set("supplier", e.target.value)} placeholder="eBay, Cyclespot, Partzilla, OEM dealer…" />
             <datalist id="supplier-suggestions">
               {SUPPLIER_SUGGESTIONS.map((s) => <option key={s} value={s} />)}
+              {(supplierStats.data ?? []).map((s) => <option key={`h-${s.supplier}`} value={s.supplier} />)}
             </datalist>
+          </label>
+          {(() => {
+            const st = (supplierStats.data ?? []).find(
+              (s) => s.supplier.toLowerCase() === String(f.supplier ?? "").trim().toLowerCase(),
+            );
+            if (!st) return null;
+            return (
+              <p className="col-span-2 -mt-1.5 text-[0.6875rem] text-muted-foreground">
+                {st.supplier}: {st.orders} previous order{st.orders === 1 ? "" : "s"}
+                {st.avg_lead_days != null ? ` · usually arrives in ~${st.avg_lead_days} days` : ""}
+                {st.last_order ? ` · last order ${new Date(st.last_order + "T00:00:00").toLocaleDateString("en-GB")}` : ""}
+              </p>
+            );
+          })()}
+          <label className="space-y-1">
+            <span className={lbl}>Supplier part no. / SKU</span>
+            <input className={inp} value={f.supplier_sku ?? ""} onChange={(e) => set("supplier_sku", e.target.value)} />
+          </label>
+          <label className="space-y-1">
+            <span className={lbl}>Supplier product link</span>
+            <input className={inp} value={f.supplier_url ?? ""} onChange={(e) => set("supplier_url", e.target.value)} placeholder="https://…" />
           </label>
           <label className="space-y-1">
             <span className={lbl}>Cost (NZD)</span>
@@ -161,6 +282,11 @@ export function PartEditDialog({
             <span className={lbl}>Sell price (NZD)</span>
             <input type="number" step="0.01" className={inp} value={f.sell_price ?? ""} onChange={(e) => set("sell_price", e.target.value)} />
           </label>
+          <label className="space-y-1">
+            <span className={lbl}>Freight (NZD)</span>
+            <input type="number" step="0.01" className={inp} value={f.freight ?? ""} onChange={(e) => set("freight", e.target.value)} />
+          </label>
+
           <label className="space-y-1">
             <span className={lbl}>Tracking number</span>
             <input className={inp} value={f.tracking_number ?? ""} onChange={(e) => set("tracking_number", e.target.value)} />

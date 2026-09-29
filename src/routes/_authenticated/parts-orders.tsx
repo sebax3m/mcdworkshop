@@ -12,10 +12,12 @@ import {
   StatusBadge,
   OverallBadge,
   overallStatus,
+  setPartsRequired,
   statusPatch,
   useInvalidateParts,
   type PartStatus,
 } from "@/lib/parts-orders";
+
 import { PartEditDialog } from "@/components/parts/PartEditDialog";
 import { fmtD } from "@/components/parts/fmt";
 import { cn } from "@/lib/utils";
@@ -79,19 +81,20 @@ function PartsOrdersPage() {
       }));
     },
   });
-  // Book-ins flagged "parts required" that have no parts yet.
+  // Book-ins flagged "parts required" that have no parts yet ("Parts to identify").
   const flagged = useQuery({
     queryKey: ["parts-orders", "flagged"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("bookings")
-        .select("id, scheduled_date, service_type, rego, customers(first_name,last_name), motorcycles(year,make,model,rego), booking_parts(id)")
+        .select("id, scheduled_date, service_type, service_type_other, rego, customers(first_name,last_name), motorcycles(year,make,model,rego), booking_parts(id)")
         .eq("parts_required", true)
-        .gte("scheduled_date", format(addDays(new Date(), -30), "yyyy-MM-dd"));
+        .order("scheduled_date", { ascending: true });
       if (error) throw error;
       return ((data ?? []) as any[]).filter((b) => !(b.booking_parts ?? []).length);
     },
   });
+
 
   const rows = data.data ?? [];
   const soon = format(addDays(new Date(), 3), "yyyy-MM-dd");
@@ -164,6 +167,11 @@ function PartsOrdersPage() {
   const rego = (b: any) => b?.motorcycles?.rego || b?.rego || "";
   const svc = (b: any) => (b?.service_type === "Other" ? b?.service_type_other || "Other" : b?.service_type) ?? "";
   const bookingFilter = search.bookingId ? rows.find((r) => r.booking_id === search.bookingId)?.bookings : null;
+  const addForBooking = addFor
+    ? (flagged.data ?? []).find((b: any) => b.id === addFor) ??
+      rows.find((r) => r.booking_id === addFor)?.bookings
+    : null;
+
 
   const SourceTag = ({ r }: { r: any }) =>
     r.claim_id ? (
@@ -261,19 +269,49 @@ function PartsOrdersPage() {
 
       {(flagged.data ?? []).length > 0 && !search.bookingId && (
         <div className="space-y-1.5">
+          <h2 className="flex items-center gap-1.5 text-[0.6875rem] font-bold uppercase tracking-wider text-orange-300">
+            <AlertTriangle className="h-3.5 w-3.5" /> Parts to identify
+          </h2>
           {(flagged.data ?? []).map((b) => (
             <div key={b.id} className="flex flex-wrap items-center gap-2 rounded-lg border border-orange-500/50 bg-orange-500/10 px-3 py-2 text-sm">
               <OverallBadge status="required" />
               <span className="font-semibold">{who(b)}</span>
-              <span className="text-muted-foreground">{bike(b)} · {fmtD(b.scheduled_date)}</span>
-              <span className="text-xs text-muted-foreground">No parts listed yet</span>
-              <button onClick={() => setAddFor(b.id)} className="ml-auto inline-flex items-center gap-1 rounded-md border border-orange-500/60 px-2 h-7 text-[0.625rem] font-bold uppercase text-orange-300">
-                <Plus className="h-3 w-3" /> Add parts
-              </button>
+              <span className="text-muted-foreground">
+                {bike(b)} {rego(b) && <span className="font-mono">{rego(b)}</span>} · {fmtD(b.scheduled_date)}
+              </span>
+              {svc(b) && <span className="text-xs text-muted-foreground">· {svc(b)}</span>}
+              <span className="text-xs text-muted-foreground">· Book-in {String(b.id).slice(0, 6).toUpperCase()}</span>
+              <Link
+                to="/bookings/$bookingId"
+                params={{ bookingId: b.id }}
+                className="text-xs text-orange-200 underline whitespace-nowrap"
+              >
+                Open book-in
+              </Link>
+              <div className="ml-auto flex gap-1.5">
+                <button
+                  onClick={async () => {
+                    try {
+                      await setPartsRequired(b.id, false);
+                      toast.success("Parts reminder cleared");
+                      invalidate();
+                    } catch (e: any) {
+                      toast.error(e.message ?? "Could not update");
+                    }
+                  }}
+                  className="inline-flex items-center gap-1 rounded-md border border-border px-2 h-7 text-[0.625rem] font-bold uppercase text-muted-foreground hover:border-foreground/40"
+                >
+                  <X className="h-3 w-3" /> No parts needed
+                </button>
+                <button onClick={() => setAddFor(b.id)} className="inline-flex items-center gap-1 rounded-md border border-orange-500/60 px-2 h-7 text-[0.625rem] font-bold uppercase text-orange-300">
+                  <Plus className="h-3 w-3" /> Identify part
+                </button>
+              </div>
             </div>
           ))}
         </div>
       )}
+
 
       <div className="flex flex-wrap items-center gap-2">
         <div className="relative flex-1 min-w-[14rem]">
@@ -419,8 +457,23 @@ function PartsOrdersPage() {
         </>
       )}
 
-      <PartEditDialog open={!!edit} onOpenChange={(v) => !v && setEdit(null)} bookingId={edit?.booking_id ?? null} claimId={edit?.claim_id ?? null} part={edit} />
-      <PartEditDialog open={!!addFor} onOpenChange={(v) => !v && setAddFor(null)} bookingId={addFor ?? ""} />
+      <PartEditDialog
+        open={!!edit}
+        onOpenChange={(v) => !v && setEdit(null)}
+        bookingId={edit?.booking_id ?? null}
+        claimId={edit?.claim_id ?? null}
+        part={edit}
+        bikeMake={edit?.bookings?.motorcycles?.make ?? null}
+        bikeModel={edit?.bookings?.motorcycles?.model ?? null}
+      />
+      <PartEditDialog
+        open={!!addFor}
+        onOpenChange={(v) => !v && setAddFor(null)}
+        bookingId={addFor ?? ""}
+        bikeMake={addForBooking?.motorcycles?.make ?? null}
+        bikeModel={addForBooking?.motorcycles?.model ?? null}
+      />
+
     </div>
   );
 }

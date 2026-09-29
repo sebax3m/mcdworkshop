@@ -112,7 +112,7 @@ export function useBookingPartsIndex() {
   });
 }
 
-/** Live sidebar count of parts that still need to be ordered. */
+/** Live sidebar count: parts still to order + book-ins flagged "parts required" with nothing listed yet. */
 export function useOpenPartsOrdersCount() {
   return useQuery({
     queryKey: ["parts-orders", "pending-count"],
@@ -123,10 +123,83 @@ export function useOpenPartsOrdersCount() {
         .select("id", { count: "exact", head: true })
         .eq("status", "needs_ordering");
       if (error) throw error;
-      return count ?? 0;
+      const { data: flagged, error: fe } = await supabase
+        .from("bookings")
+        .select("id, booking_parts(id)")
+        .eq("parts_required", true);
+      if (fe) throw fe;
+      const toIdentify = ((flagged ?? []) as any[]).filter((b) => !(b.booking_parts ?? []).length).length;
+      return (count ?? 0) + toIdentify;
     },
   });
 }
+
+/** Flip the "parts required / order parts" reminder on a book-in. */
+export async function setPartsRequired(bookingId: string, value: boolean) {
+  const { error } = await supabase.from("bookings").update({ parts_required: value } as any).eq("id", bookingId);
+  if (error) throw error;
+}
+
+export type CatalogSuggestion = {
+  id: string;
+  part_number: string | null;
+  description: string;
+  brand: string | null;
+  item: string | null;
+  last_supplier: string | null;
+  supplier_sku: string | null;
+  supplier_url: string | null;
+  last_cost: number | null;
+  last_sell: number | null;
+  avg_cost: number | null;
+  times_purchased: number;
+  bikes: string[] | null;
+  suppliers: string[] | null;
+  last_purchased_at: string | null;
+  score: number;
+};
+
+/** Search the workshop's own parts history for previously used parts. */
+export function usePartsCatalogSuggest(query: string, make?: string | null, model?: string | null, enabled = true) {
+  const term = query.trim();
+  return useQuery({
+    queryKey: ["parts-catalog", "suggest", term, make ?? "", model ?? ""],
+    enabled: enabled && term.length >= 2,
+    staleTime: 30_000,
+    queryFn: async () => {
+      const { data, error } = await (supabase as any).rpc("parts_catalog_suggest", {
+        p_query: term,
+        p_make: make || null,
+        p_model: model || null,
+        p_limit: 8,
+      });
+      if (error) throw error;
+      return (data ?? []) as CatalogSuggestion[];
+    },
+  });
+}
+
+/** Suppliers the workshop has actually bought from, with learned lead times. */
+export function useSupplierStats(enabled = true) {
+  return useQuery({
+    queryKey: ["parts-catalog", "supplier-stats"],
+    enabled,
+    staleTime: 5 * 60_000,
+    queryFn: async () => {
+      const { data, error } = await (supabase as any).rpc("parts_supplier_stats");
+      if (error) throw error;
+      return (data ?? []) as {
+        supplier: string;
+        orders: number;
+        parts: number;
+        last_order: string | null;
+        avg_lead_days: number | null;
+        avg_cost: number | null;
+      }[];
+    },
+  });
+}
+
 
 export type NeedsOrderingRow = {
   id: string;
@@ -275,12 +348,20 @@ export function useInvalidateParts() {
     qc.invalidateQueries({ queryKey: ["booking-parts"] });
     qc.invalidateQueries({ queryKey: ["parts-orders"] });
     qc.invalidateQueries({ queryKey: ["claim-parts"] });
+    // Main-menu badge + "parts to identify" list.
+    qc.invalidateQueries({ queryKey: ["parts-orders", "pending-count"], refetchType: "all" });
+    qc.invalidateQueries({ queryKey: ["parts-orders", "flagged"] });
+    qc.invalidateQueries({ queryKey: ["parts-orders", "needs-ordering-list"] });
+    // The catalogue learns from every order, so suggestions must refresh too.
+    qc.invalidateQueries({ queryKey: ["parts-catalog"] });
+    qc.invalidateQueries({ queryKey: ["calendar-bookings"] });
     // Arrived book-in parts are copied to the job's parts (DB trigger) → refresh job card & invoice.
     qc.invalidateQueries({ queryKey: ["job-parts"] });
     qc.invalidateQueries({ queryKey: ["job"] });
     qc.invalidateQueries({ queryKey: ["invoice-parts"] });
   };
 }
+
 
 /** Patch applied when moving a part to a status (stamps dates / qty). */
 export function statusPatch(p: any, status: PartStatus) {

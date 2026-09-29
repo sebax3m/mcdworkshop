@@ -2,17 +2,19 @@
 import { useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Package, Plus, Pencil, ExternalLink } from "lucide-react";
+import { Package, Plus, Pencil, ExternalLink, Flag } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import {
   OverallBadge,
   StatusBadge,
   overallStatus,
+  setPartsRequired,
   statusPatch,
   suggestedParts,
   useInvalidateParts,
 } from "@/lib/parts-orders";
+
 import { PartEditDialog } from "./PartEditDialog";
 import { fmtD } from "./fmt";
 
@@ -48,8 +50,23 @@ export function BookingPartsSection({ booking }: { booking: any }) {
   async function addSuggested(desc: string) {
     const { error } = await supabase.from("booking_parts").insert({ booking_id: bookingId, description: desc });
     if (error) return toast.error(error.message);
-    await supabase.from("bookings").update({ parts_required: true }).eq("id", bookingId);
+    await supabase.from("bookings").update({ parts_required: true } as any).eq("id", bookingId);
     invalidate();
+  }
+
+  const flagged = !!booking.parts_required;
+  async function toggleRequired() {
+    if (flagged && parts.length > 0) {
+      toast.error("Remove or cancel the listed parts first");
+      return;
+    }
+    try {
+      await setPartsRequired(bookingId, !flagged);
+      toast.success(!flagged ? "Sent to Parts Orders to identify" : "Parts reminder removed");
+      invalidate();
+    } catch (e: any) {
+      toast.error(e.message ?? "Could not update");
+    }
   }
 
   return (
@@ -63,6 +80,18 @@ export function BookingPartsSection({ booking }: { booking: any }) {
           </Link>
         )}
         <div className="ml-auto flex gap-2">
+          <button
+            onClick={toggleRequired}
+            title="Flag this book-in so it shows in Parts Orders, even before you know the exact part"
+            className={
+              "inline-flex items-center gap-1 rounded-md border px-2.5 h-8 text-xs font-bold uppercase transition " +
+              (flagged
+                ? "border-orange-500 bg-orange-500/20 text-orange-300"
+                : "border-orange-500/50 text-orange-300 hover:bg-orange-500/10")
+            }
+          >
+            <Flag className="h-3.5 w-3.5" /> {flagged ? "Parts required" : "Order parts"}
+          </button>
           <Link
             to="/parts-orders"
             search={{ bookingId } as never}
@@ -92,9 +121,12 @@ export function BookingPartsSection({ booking }: { booking: any }) {
 
       {parts.length === 0 ? (
         <p className="text-sm text-muted-foreground">
-          {booking.parts_required ? "Flagged as needing parts — add them when known." : "No parts linked to this book-in."}
+          {flagged
+            ? "Waiting in Parts Orders to be identified — add the part here or from Parts Orders."
+            : 'No parts linked to this book-in. Tap "Order parts" to flag it for Parts Orders.'}
         </p>
       ) : (
+
         <div className="divide-y divide-border rounded-lg border border-border">
           {parts.map((p) => (
             <div key={p.id} className="flex flex-wrap items-center gap-2 p-2.5">
@@ -136,7 +168,10 @@ export function BookingPartsSection({ booking }: { booking: any }) {
         bookingId={bookingId}
         part={edit?.part}
         initialDescription={edit?.desc}
+        bikeMake={booking.motorcycles?.make ?? null}
+        bikeModel={booking.motorcycles?.model ?? null}
       />
+
     </div>
   );
 }

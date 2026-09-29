@@ -498,12 +498,15 @@ export type Database = {
       booking_parts: {
         Row: {
           booking_id: string | null
+          brand: string | null
+          catalog_id: string | null
           claim_id: string | null
           cost: number | null
           created_at: string
           created_by: string | null
           description: string
           eta: string | null
+          freight: number | null
           id: string
           notes: string | null
           order_ref: string | null
@@ -518,18 +521,23 @@ export type Database = {
           source: string
           status: string
           supplier: string | null
+          supplier_sku: string | null
+          supplier_url: string | null
           tracking_number: string | null
           tracking_url: string | null
           updated_at: string
         }
         Insert: {
           booking_id?: string | null
+          brand?: string | null
+          catalog_id?: string | null
           claim_id?: string | null
           cost?: number | null
           created_at?: string
           created_by?: string | null
           description?: string
           eta?: string | null
+          freight?: number | null
           id?: string
           notes?: string | null
           order_ref?: string | null
@@ -544,18 +552,23 @@ export type Database = {
           source?: string
           status?: string
           supplier?: string | null
+          supplier_sku?: string | null
+          supplier_url?: string | null
           tracking_number?: string | null
           tracking_url?: string | null
           updated_at?: string
         }
         Update: {
           booking_id?: string | null
+          brand?: string | null
+          catalog_id?: string | null
           claim_id?: string | null
           cost?: number | null
           created_at?: string
           created_by?: string | null
           description?: string
           eta?: string | null
+          freight?: number | null
           id?: string
           notes?: string | null
           order_ref?: string | null
@@ -570,6 +583,8 @@ export type Database = {
           source?: string
           status?: string
           supplier?: string | null
+          supplier_sku?: string | null
+          supplier_url?: string | null
           tracking_number?: string | null
           tracking_url?: string | null
           updated_at?: string
@@ -580,6 +595,13 @@ export type Database = {
             columns: ["booking_id"]
             isOneToOne: false
             referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "booking_parts_catalog_fk"
+            columns: ["catalog_id"]
+            isOneToOne: false
+            referencedRelation: "parts_catalog"
             referencedColumns: ["id"]
           },
           {
@@ -3590,6 +3612,168 @@ export type Database = {
           },
         ]
       }
+      parts_catalog: {
+        Row: {
+          avg_cost: number | null
+          bikes: Json
+          brand: string | null
+          created_at: string
+          description: string
+          first_seen_at: string
+          id: string
+          item: string | null
+          key_norm: string
+          last_cost: number | null
+          last_purchased_at: string | null
+          last_sell: number | null
+          last_supplier: string | null
+          part_number: string | null
+          supplier_sku: string | null
+          supplier_url: string | null
+          suppliers: Json
+          times_purchased: number
+          updated_at: string
+        }
+        Insert: {
+          avg_cost?: number | null
+          bikes?: Json
+          brand?: string | null
+          created_at?: string
+          description: string
+          first_seen_at?: string
+          id?: string
+          item?: string | null
+          key_norm: string
+          last_cost?: number | null
+          last_purchased_at?: string | null
+          last_sell?: number | null
+          last_supplier?: string | null
+          part_number?: string | null
+          supplier_sku?: string | null
+          supplier_url?: string | null
+          suppliers?: Json
+          times_purchased?: number
+          updated_at?: string
+        }
+        Update: {
+          avg_cost?: number | null
+          bikes?: Json
+          brand?: string | null
+          created_at?: string
+          description?: string
+          first_seen_at?: string
+          id?: string
+          item?: string | null
+          key_norm?: string
+          last_cost?: number | null
+          last_purchased_at?: string | null
+          last_sell?: number | null
+          last_supplier?: string | null
+          part_number?: string | null
+          supplier_sku?: string | null
+          supplier_url?: string | null
+          suppliers?: Json
+          times_purchased?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      parts_purchase_history: {
+        Row: {
+          bike_make: string | null
+          bike_model: string | null
+          bike_year: number | null
+          booking_id: string | null
+          booking_part_id: string | null
+          brand: string | null
+          catalog_id: string | null
+          claim_id: string | null
+          cost: number | null
+          created_at: string
+          description: string | null
+          freight: number | null
+          id: string
+          job_id: string | null
+          lead_days: number | null
+          ordered_at: string | null
+          part_number: string | null
+          qty: number | null
+          received_at: string | null
+          rego: string | null
+          sell_price: number | null
+          supplier: string | null
+          supplier_sku: string | null
+          supplier_url: string | null
+        }
+        Insert: {
+          bike_make?: string | null
+          bike_model?: string | null
+          bike_year?: number | null
+          booking_id?: string | null
+          booking_part_id?: string | null
+          brand?: string | null
+          catalog_id?: string | null
+          claim_id?: string | null
+          cost?: number | null
+          created_at?: string
+          description?: string | null
+          freight?: number | null
+          id?: string
+          job_id?: string | null
+          lead_days?: number | null
+          ordered_at?: string | null
+          part_number?: string | null
+          qty?: number | null
+          received_at?: string | null
+          rego?: string | null
+          sell_price?: number | null
+          supplier?: string | null
+          supplier_sku?: string | null
+          supplier_url?: string | null
+        }
+        Update: {
+          bike_make?: string | null
+          bike_model?: string | null
+          bike_year?: number | null
+          booking_id?: string | null
+          booking_part_id?: string | null
+          brand?: string | null
+          catalog_id?: string | null
+          claim_id?: string | null
+          cost?: number | null
+          created_at?: string
+          description?: string | null
+          freight?: number | null
+          id?: string
+          job_id?: string | null
+          lead_days?: number | null
+          ordered_at?: string | null
+          part_number?: string | null
+          qty?: number | null
+          received_at?: string | null
+          rego?: string | null
+          sell_price?: number | null
+          supplier?: string | null
+          supplier_sku?: string | null
+          supplier_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "parts_purchase_history_booking_part_id_fkey"
+            columns: ["booking_part_id"]
+            isOneToOne: false
+            referencedRelation: "booking_parts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "parts_purchase_history_catalog_id_fkey"
+            columns: ["catalog_id"]
+            isOneToOne: false
+            referencedRelation: "parts_catalog"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       post_bike_branches: {
         Row: {
           created_at: string
@@ -4090,6 +4274,44 @@ export type Database = {
       part_item_of: {
         Args: { p_code: string; p_name: string; p_supp: string }
         Returns: string
+      }
+      parts_catalog_learn: { Args: { p_bp_id: string }; Returns: string }
+      parts_catalog_suggest: {
+        Args: {
+          p_limit?: number
+          p_make?: string
+          p_model?: string
+          p_query: string
+        }
+        Returns: {
+          avg_cost: number
+          bikes: Json
+          brand: string
+          description: string
+          id: string
+          item: string
+          last_cost: number
+          last_purchased_at: string
+          last_sell: number
+          last_supplier: string
+          part_number: string
+          score: number
+          supplier_sku: string
+          supplier_url: string
+          suppliers: Json
+          times_purchased: number
+        }[]
+      }
+      parts_supplier_stats: {
+        Args: never
+        Returns: {
+          avg_cost: number
+          avg_lead_days: number
+          last_order: string
+          orders: number
+          parts: number
+          supplier: string
+        }[]
       }
       sync_booking_part_to_job: {
         Args: { p_bp_id: string }
