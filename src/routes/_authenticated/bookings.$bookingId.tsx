@@ -28,6 +28,7 @@ import {
 } from "@/lib/google-calendar.functions";
 import { LoanBikeDialog } from "@/components/booking/LoanBikeDialog";
 import { TransportCard } from "@/components/booking/TransportCard";
+import { ChangeCustomerCard } from "@/components/booking/ChangeCustomerCard";
 import { BookingPartsSection } from "@/components/parts/BookingPartsSection";
 import { changeBookingMotorcycle, fetchCustomerBikes } from "@/lib/bike-assign";
 import { toast } from "sonner";
@@ -411,6 +412,8 @@ function BookingDetail() {
           {fetchingRego ? "Fetching…" : "Fetch CarJam"}
         </Button>
       </div>
+
+      <ChangeCustomerCard booking={b} />
 
       <div className="card-surface p-4 space-y-2">
         <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
