@@ -501,12 +501,18 @@ function AnalyticsPage() {
       </div>
 
       {/* KPI cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
         <Kpi
           icon={<TrendingUp className="h-4 w-4" />}
           label="This week"
           value={fmt(totals.week.total)}
           sub={`${totals.week.count} invoices`}
+        />
+        <Kpi
+          icon={<TrendingUp className="h-4 w-4" />}
+          label="Last week"
+          value={fmt(totals.lastWeek.total)}
+          sub={`${totals.lastWeek.count} invoices`}
         />
         <Kpi
           icon={<TrendingUp className="h-4 w-4" />}
@@ -516,13 +522,13 @@ function AnalyticsPage() {
         />
         <Kpi
           icon={<DollarSign className="h-4 w-4" />}
-          label={isAll ? "FY revenue" : `${selectedYear} revenue`}
+          label={rangeActive ? `${range.label} revenue` : isAll ? "FY revenue" : `${selectedYear} revenue`}
           value={fmt(totals.year.total)}
           sub={`Excl GST ${fmt(totals.year.subtotal)}`}
         />
         <Kpi
           icon={<Receipt className="h-4 w-4" />}
-          label={isAll ? "GST collected (FY)" : `GST collected ${selectedYear}`}
+          label={rangeActive ? `${range.label} GST` : isAll ? "GST collected (FY)" : `GST collected ${selectedYear}`}
           value={fmt(totals.year.gst)}
           sub="To remit to IRD"
         />
