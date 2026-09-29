@@ -442,7 +442,7 @@ function AnalyticsPage() {
             {range.from && range.to ? " – " : ""}
             {range.to && format(range.to, "d MMM yyyy")}
             {" · "}
-            {totals ? scoped.length : 0} invoices
+            {scoped.length} invoices
           </span>
         )}
       </div>
