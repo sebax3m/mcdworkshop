@@ -910,6 +910,12 @@ function InvoiceDetail() {
     await refreshPartsTotals();
   }
 
+  /* The DESCRIPTION cell is the product description (parts.name). We also keep
+     the legacy `supplier` text in sync so naming/price learning keeps working. */
+  async function updatePartDescription(id: string, value: string) {
+    await updatePart(id, { name: value, supplier: value });
+  }
+
   async function refreshPartsTotals() {
     await qc.invalidateQueries({ queryKey: ["invoice-parts", invoiceId, inv.job_id] });
     const fresh = await supabase.from("parts").select("*").eq("job_id", inv.job_id!);
