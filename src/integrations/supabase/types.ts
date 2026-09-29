@@ -495,6 +495,83 @@ export type Database = {
           },
         ]
       }
+      booking_part_requirements: {
+        Row: {
+          booking_id: string
+          booking_part_id: string | null
+          created_at: string
+          customer_id: string | null
+          description: string
+          id: string
+          motorcycle_id: string | null
+          notes: string | null
+          part_number: string | null
+          qty_required: number
+          source: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          booking_id: string
+          booking_part_id?: string | null
+          created_at?: string
+          customer_id?: string | null
+          description: string
+          id?: string
+          motorcycle_id?: string | null
+          notes?: string | null
+          part_number?: string | null
+          qty_required?: number
+          source?: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          booking_id?: string
+          booking_part_id?: string | null
+          created_at?: string
+          customer_id?: string | null
+          description?: string
+          id?: string
+          motorcycle_id?: string | null
+          notes?: string | null
+          part_number?: string | null
+          qty_required?: number
+          source?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "booking_part_requirements_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "booking_part_requirements_booking_part_id_fkey"
+            columns: ["booking_part_id"]
+            isOneToOne: false
+            referencedRelation: "booking_parts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "booking_part_requirements_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "booking_part_requirements_motorcycle_id_fkey"
+            columns: ["motorcycle_id"]
+            isOneToOne: false
+            referencedRelation: "motorcycles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       booking_parts: {
         Row: {
           booking_id: string | null

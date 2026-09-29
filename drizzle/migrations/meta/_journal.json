@@ -71,6 +71,13 @@
       "when": 1790721051043,
       "tag": "0009_lov_database_migration",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1790722046982,
+      "tag": "0010_booking_part_requirements",
+      "breakpoints": true
     }
   ]
 }
