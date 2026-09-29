@@ -1774,7 +1774,7 @@ function InvoiceDetail() {
                       // edits to ITEM / DESCRIPTION always show exactly as saved.
                       const display = {
                         item: (p.part_number ?? "").trim() || derived.item,
-                        description: (p.supplier ?? "").trim() || derived.description,
+                        description: (p.name ?? "").trim() || derived.description,
                       };
                       return (
                         <tr key={p.id} {...rowDragProps(p.id, onReorder)}>
