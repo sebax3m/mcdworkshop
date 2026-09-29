@@ -419,8 +419,23 @@ function PartsOrdersPage() {
         </>
       )}
 
-      <PartEditDialog open={!!edit} onOpenChange={(v) => !v && setEdit(null)} bookingId={edit?.booking_id ?? null} claimId={edit?.claim_id ?? null} part={edit} />
-      <PartEditDialog open={!!addFor} onOpenChange={(v) => !v && setAddFor(null)} bookingId={addFor ?? ""} />
+      <PartEditDialog
+        open={!!edit}
+        onOpenChange={(v) => !v && setEdit(null)}
+        bookingId={edit?.booking_id ?? null}
+        claimId={edit?.claim_id ?? null}
+        part={edit}
+        bikeMake={edit?.bookings?.motorcycles?.make ?? null}
+        bikeModel={edit?.bookings?.motorcycles?.model ?? null}
+      />
+      <PartEditDialog
+        open={!!addFor}
+        onOpenChange={(v) => !v && setAddFor(null)}
+        bookingId={addFor ?? ""}
+        bikeMake={addForBooking?.motorcycles?.make ?? null}
+        bikeModel={addForBooking?.motorcycles?.model ?? null}
+      />
+
     </div>
   );
 }
