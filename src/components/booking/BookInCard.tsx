@@ -144,15 +144,11 @@ export function BookInCard({
     work,
     status.label,
     techName ? `Tech: ${techName}` : "",
-    b.bike_arrived_at ? `Arrived ${String(b.bike_arrived_at).slice(11, 16)}` : "",
     b.customers?.phone ?? "",
     b.transport_address ?? "",
   ]
     .filter(Boolean)
     .join(" · ");
-
-  const arrivedAt = b.bike_arrived_at ? String(b.bike_arrived_at).slice(11, 16) : null;
-  const detail = arrivedAt ? `Arrived ${arrivedAt}` : null;
 
   return (
     <div
@@ -284,14 +280,9 @@ export function BookInCard({
           )}
         </div>
 
-        {/* ROW 4 — workflow detail + status badge (bottom-right aligned) */}
+        {/* ROW 4 — technician + status badge (bottom-right aligned) */}
         <div className="flex items-center justify-between gap-1.5">
           <div className="flex items-center gap-1.5 min-w-0 pl-[1.4rem]">
-            {detail && (
-              <span className="truncate text-[0.5625rem] uppercase tracking-wider text-muted-foreground/70">
-                {detail}
-              </span>
-            )}
             <TechnicianIndicator name={techName} showName={false} />
           </div>
           <StatusBadge meta={status} compact={dense} className="shrink-0" />
