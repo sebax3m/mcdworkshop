@@ -184,6 +184,20 @@ function NewBooking() {
   const [nbWofExpiry, setNbWofExpiry] = useState("");
   const [nbRegoExpiry, setNbRegoExpiry] = useState("");
   const [nbFetched, setNbFetched] = useState(false);
+
+  // Automatic CarJam lookup: as soon as a plausible rego is typed in the
+  // new-bike form, fetch the vehicle data without waiting for a click.
+  useEffect(() => {
+    if (!showNewBike || nbNoRego) return;
+    const plate = nbRego.trim().toUpperCase();
+    if (plate.length < 3 || plate === lastAutoPlate.current) return;
+    const t = setTimeout(() => {
+      lastAutoPlate.current = plate;
+      fetchBikeFromRego(true);
+    }, 900);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [nbRego, showNewBike, nbNoRego]);
   const [creatingBike, setCreatingBike] = useState(false);
 
   const customers = useQuery({
