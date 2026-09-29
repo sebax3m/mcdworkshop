@@ -278,11 +278,6 @@ export function AppShell() {
                     >
                       {t.label}
                     </span>
-                    {t.to === "/parts-orders" && openPartsCount > 0 && (
-                      <span className="ml-auto shrink-0" onClick={(e) => e.preventDefault()}>
-                        <NeedsOrderingBadge count={openPartsCount} />
-                      </span>
-                    )}
                   </Link>
                 )}
               </DockItem>
@@ -320,11 +315,6 @@ export function AppShell() {
                     className="h-6 w-6"
                     style={{ color: t.color, filter: `drop-shadow(0 0 6px ${t.color}66)` }}
                   />
-                  {t.to === "/parts-orders" && openPartsCount > 0 && (
-                    <span className="absolute -right-3 -top-2" onClick={(e) => e.preventDefault()}>
-                      <NeedsOrderingBadge count={openPartsCount} />
-                    </span>
-                  )}
                 </span>
 
                 <span className="font-semibold whitespace-nowrap">{t.label}</span>
