@@ -29,6 +29,18 @@ const CONTACT_KEYS = [
   "booking-customer-bikes",
   "unlinked-motorcycles",
   "loan-bike-customer-search",
+  // Book-ins / jobs / invoices embed the customer name — refresh them too.
+  "calendar-bookings",
+  "day-bookings",
+  "today-bookings",
+  "my-bookings",
+  "booking",
+  "bookings",
+  "job",
+  "jobs",
+  "my-jobs",
+  "invoice",
+  "invoices",
 ];
 
 export async function refreshContacts(qc: QueryClient) {
