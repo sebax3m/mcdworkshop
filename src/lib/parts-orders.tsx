@@ -348,12 +348,20 @@ export function useInvalidateParts() {
     qc.invalidateQueries({ queryKey: ["booking-parts"] });
     qc.invalidateQueries({ queryKey: ["parts-orders"] });
     qc.invalidateQueries({ queryKey: ["claim-parts"] });
+    // Main-menu badge + "parts to identify" list.
+    qc.invalidateQueries({ queryKey: ["parts-orders", "pending-count"], refetchType: "all" });
+    qc.invalidateQueries({ queryKey: ["parts-orders", "flagged"] });
+    qc.invalidateQueries({ queryKey: ["parts-orders", "needs-ordering-list"] });
+    // The catalogue learns from every order, so suggestions must refresh too.
+    qc.invalidateQueries({ queryKey: ["parts-catalog"] });
+    qc.invalidateQueries({ queryKey: ["calendar-bookings"] });
     // Arrived book-in parts are copied to the job's parts (DB trigger) → refresh job card & invoice.
     qc.invalidateQueries({ queryKey: ["job-parts"] });
     qc.invalidateQueries({ queryKey: ["job"] });
     qc.invalidateQueries({ queryKey: ["invoice-parts"] });
   };
 }
+
 
 /** Patch applied when moving a part to a status (stamps dates / qty). */
 export function statusPatch(p: any, status: PartStatus) {
