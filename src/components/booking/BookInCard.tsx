@@ -265,6 +265,11 @@ export function BookInCard({
         {/* ROW 4 — technician + status badge (bottom-right aligned) */}
         <div className="flex items-center justify-between gap-1.5">
           <div className="flex items-center gap-1.5 min-w-0 pl-[1.4rem]">
+            {rego && (
+              <span className="rounded-[4px] bg-white/[0.07] px-1 py-[1px] font-mono text-[0.5625rem] font-bold uppercase tracking-wide tabular-nums text-foreground/70">
+                {rego}
+              </span>
+            )}
             <TechnicianIndicator name={techName} showName={false} />
           </div>
           <StatusBadge meta={status} compact={dense} className="shrink-0" />
