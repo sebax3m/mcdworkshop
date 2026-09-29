@@ -1037,6 +1037,40 @@ function InvoiceDetail() {
   );
   const subtotalEx = Number(inv.total) / (1 + GST_RATE);
 
+  /* --- WOF / Rego on the invoice -------------------------------------------
+     The compliance dates recorded on the bike are printed under "Motorcycle",
+     and when this job actually included a WOF we add an indicative note about
+     the 12-month validity (informational only, never a legal statement). */
+  const fmtDate = (d?: string | null) =>
+    d ? new Date(d).toLocaleDateString("en-GB") : null;
+  const wofExpiryStr = fmtDate((bike as any)?.wof_expiry);
+  const regoExpiryStr = fmtDate((bike as any)?.rego_expiry);
+  const wofHaystack = [
+    (inv.jobs as any)?.title,
+    (inv.jobs as any)?.description,
+    ...readWorkPerformed((inv.jobs as any)?.service_data).map(
+      (w) => `${w.title} ${w.detail ?? ""}`,
+    ),
+    ...((parts.data ?? []) as any[]).map(
+      (p) => `${p.part_number ?? ""} ${p.name ?? ""}`,
+    ),
+    ...(Array.isArray((inv.snapshot as any)?.line_items)
+      ? (inv.snapshot as any).line_items.map(
+          (l: any) => `${l.item_name ?? ""} ${l.description ?? ""}`,
+        )
+      : []),
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
+  const wofDone =
+    /\bwof\b/.test(wofHaystack) || wofHaystack.includes("warrant of fitness");
+  const wofValidUntil = (() => {
+    const base = new Date(issuedAt);
+    base.setFullYear(base.getFullYear() + 1);
+    return base.toLocaleDateString("en-GB");
+  })();
+
   function emailInvoice() {
     const to = isInsurance ? "" : (customer?.email ?? "");
     const name = isInsurance
@@ -1427,6 +1461,16 @@ function InvoiceDetail() {
                   .filter(Boolean)
                   .join(" · ") || "—"}
               </div>
+              {(wofExpiryStr || regoExpiryStr) && (
+                <div className="text-muted-foreground mt-0.5 truncate">
+                  {[
+                    wofExpiryStr ? `WOF exp ${wofExpiryStr}` : null,
+                    regoExpiryStr ? `Rego exp ${regoExpiryStr}` : null,
+                  ]
+                    .filter(Boolean)
+                    .join(" · ")}
+                </div>
+              )}
             </div>
             <div className="sm:col-span-2 grid grid-cols-2 sm:grid-cols-4 gap-x-6 gap-y-2 pt-3 border-t border-border text-[0.78rem]">
               <span className="flex flex-col">
@@ -2062,6 +2106,17 @@ function InvoiceDetail() {
               onSaved={() => qc.invalidateQueries({ queryKey: ["invoice", invoiceId] })}
             />
           </div>
+
+          {wofDone && (
+            <div
+              data-print-section="wof-note"
+              className="pt-2 text-[0.7rem] leading-snug text-muted-foreground"
+            >
+              <b className="text-foreground">WOF:</b> issued{" "}
+              {issuedAt.toLocaleDateString("en-GB")} — valid for 12 months, until{" "}
+              {wofValidUntil}. Indicative only, not legal advice.
+            </div>
+          )}
 
           {/* Payment details + totals — anchored to the bottom of the A4 sheet.
               Both blocks share the same top edge: the "Payment Details" header
