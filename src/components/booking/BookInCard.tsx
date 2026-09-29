@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { displayBike, displayCustomerName, displayServiceType } from "@/lib/display";
 import { resolveBookInStatus, isBookInCompleted, statusStyle } from "@/lib/book-in-status";
-import { serviceColor, isHighlightedService } from "@/lib/service-colors";
+import { serviceColor } from "@/lib/service-colors";
 import { cn } from "@/lib/utils";
 import { useTechnicianNames } from "@/hooks/use-technician-names";
 import { StatusBadge, BookInStatusIcon } from "@/components/booking/StatusBadge";
@@ -45,7 +45,6 @@ export function BookInCard({
   const customer = displayCustomerName(b.customers);
   const work = displayServiceType(b.service_type, b.service_type_other);
   const svc = serviceColor(b.service_type);
-  const highlighted = isHighlightedService(b.service_type);
 
   const techNames = useTechnicianNames();
   const techName = b.assigned_tech_id
@@ -269,15 +268,6 @@ export function BookInCard({
           >
             {work}
           </span>
-          {highlighted && (
-            <span
-              className={cn(
-                "ml-auto h-2 w-3 shrink-0 rounded-[3px] border border-white/25 shadow-sm",
-                svc.bg,
-              )}
-              title={b.service_type}
-            />
-          )}
         </div>
 
         {/* ROW 4 — technician + status badge (bottom-right aligned) */}
