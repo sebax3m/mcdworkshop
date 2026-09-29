@@ -144,15 +144,11 @@ export function BookInCard({
     work,
     status.label,
     techName ? `Tech: ${techName}` : "",
-    b.bike_arrived_at ? `Arrived ${String(b.bike_arrived_at).slice(11, 16)}` : "",
     b.customers?.phone ?? "",
     b.transport_address ?? "",
   ]
     .filter(Boolean)
     .join(" · ");
-
-  const arrivedAt = b.bike_arrived_at ? String(b.bike_arrived_at).slice(11, 16) : null;
-  const detail = arrivedAt ? `Arrived ${arrivedAt}` : null;
 
   return (
     <div
