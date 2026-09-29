@@ -81,19 +81,20 @@ function PartsOrdersPage() {
       }));
     },
   });
-  // Book-ins flagged "parts required" that have no parts yet.
+  // Book-ins flagged "parts required" that have no parts yet ("Parts to identify").
   const flagged = useQuery({
     queryKey: ["parts-orders", "flagged"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("bookings")
-        .select("id, scheduled_date, service_type, rego, customers(first_name,last_name), motorcycles(year,make,model,rego), booking_parts(id)")
+        .select("id, scheduled_date, service_type, service_type_other, rego, customers(first_name,last_name), motorcycles(year,make,model,rego), booking_parts(id)")
         .eq("parts_required", true)
-        .gte("scheduled_date", format(addDays(new Date(), -30), "yyyy-MM-dd"));
+        .order("scheduled_date", { ascending: true });
       if (error) throw error;
       return ((data ?? []) as any[]).filter((b) => !(b.booking_parts ?? []).length);
     },
   });
+
 
   const rows = data.data ?? [];
   const soon = format(addDays(new Date(), 3), "yyyy-MM-dd");
