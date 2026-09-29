@@ -1380,6 +1380,14 @@ function NewBooking() {
             )}
           </section>
 
+          {conflictError && (
+            <div
+              role="alert"
+              className="rounded-md border border-destructive/50 bg-destructive/10 px-3 py-2 text-sm text-destructive"
+            >
+              Can't create the book-in: {conflictError}. Change the date or time slot above.
+            </div>
+          )}
           <div className="grid sm:grid-cols-2 gap-3">
             <Button
               onClick={() => save(false)}
