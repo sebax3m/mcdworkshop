@@ -30,10 +30,27 @@ import {
   Cell,
 } from "recharts";
 import { Button } from "@/components/ui/button";
-import { Download, TrendingUp, DollarSign, Receipt, AlertCircle } from "lucide-react";
+import { CalendarRange, Download, TrendingUp, DollarSign, Receipt, AlertCircle } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/analytics")({
   component: AnalyticsPage,
+  head: () => ({
+    meta: [
+      { title: "Analytics & Tax — Motorcycle Doctors" },
+      {
+        name: "description",
+        content:
+          "Revenue, GST and outstanding balances by week, month or custom date range — formatted for Xero import.",
+      },
+      { property: "og:title", content: "Analytics & Tax — Motorcycle Doctors" },
+      {
+        property: "og:description",
+        content: "Workshop revenue, GST and outstanding balances with date range filters.",
+      },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+    ],
+  }),
 });
 
 type Inv = {
@@ -62,6 +79,9 @@ const fmt = (n: number) =>
 function AnalyticsPage() {
   const [fyStart, setFyStart] = useState<"apr" | "jan">("apr"); // NZ FY = Apr–Mar
   const [yearFilter, setYearFilter] = useState<string>(String(new Date().getFullYear())); // default to current year so monthly chart shows
+  const [rangePreset, setRangePreset] = useState<string>("all");
+  const [customFrom, setCustomFrom] = useState<string>("");
+  const [customTo, setCustomTo] = useState<string>("");
 
   const { data: invoices = [] } = useQuery<Inv[]>({
     queryKey: ["analytics-invoices"],
@@ -90,10 +110,52 @@ function AnalyticsPage() {
   const isAll = yearFilter === "all";
   const selectedYear = isAll ? null : Number(yearFilter);
 
+  // Optional date range filter — narrows every chart, KPI and the export.
+  const range = useMemo<{ from: Date | null; to: Date | null; label: string | null }>(() => {
+    const wkA = startOfWeek(now, { weekStartsOn: 1 });
+    const wkB = endOfWeek(now, { weekStartsOn: 1 });
+    const mA = startOfMonth(now);
+    switch (rangePreset) {
+      case "this-week":
+        return { from: wkA, to: wkB, label: "This week" };
+      case "last-week":
+        return { from: subDays(wkA, 7), to: subDays(wkB, 7), label: "Last week" };
+      case "last-30":
+        return { from: subDays(now, 30), to: now, label: "Last 30 days" };
+      case "this-month":
+        return { from: mA, to: endOfMonth(now), label: "This month" };
+      case "last-month": {
+        const prev = subDays(mA, 1);
+        return { from: startOfMonth(prev), to: endOfMonth(prev), label: "Last month" };
+      }
+      case "custom": {
+        const f = customFrom ? parseISO(customFrom) : null;
+        const t = customTo ? parseISO(customTo) : null;
+        if (!f && !t) return { from: null, to: null, label: null };
+        return { from: f, to: t, label: "Custom range" };
+      }
+      default:
+        return { from: null, to: null, label: null };
+    }
+  }, [rangePreset, customFrom, customTo, now]);
+
+  const rangeActive = !!(range.from || range.to);
+
   const scoped = useMemo(() => {
-    if (isAll) return invoices;
-    return invoices.filter((i) => parseISO(i.invoice_date).getFullYear() === selectedYear);
-  }, [invoices, isAll, selectedYear]);
+    let rows = isAll ? invoices : invoices.filter((i) => parseISO(i.invoice_date).getFullYear() === selectedYear);
+    if (range.from || range.to) {
+      const end = range.to
+        ? new Date(range.to.getFullYear(), range.to.getMonth(), range.to.getDate(), 23, 59, 59, 999)
+        : null;
+      rows = rows.filter((i) => {
+        const d = parseISO(i.invoice_date);
+        if (range.from && d < range.from) return false;
+        if (end && d > end) return false;
+        return true;
+      });
+    }
+    return rows;
+  }, [invoices, isAll, selectedYear, range]);
 
   const totals = useMemo(() => {
     const sum = (rows: Inv[], key: keyof Inv) => rows.reduce((a, r) => a + Number(r[key] || 0), 0);
@@ -109,17 +171,23 @@ function AnalyticsPage() {
     const yB = fyStart === "apr" ? new Date(yA.getFullYear() + 1, 2, 31) : endOfYear(now);
 
     const week = invoices.filter((i) => inRange(parseISO(i.invoice_date), wkA, wkB));
+    const lastWeek = invoices.filter(
+      (i) => inRange(parseISO(i.invoice_date), subDays(wkA, 7), subDays(wkB, 7)),
+    );
     const month = invoices.filter((i) => inRange(parseISO(i.invoice_date), mA, mB));
     const last30 = invoices.filter((i) => parseISO(i.invoice_date) >= subDays(now, 30));
 
-    // "Year" KPIs follow the year selector when a specific year is chosen,
-    // otherwise fall back to the FY range.
-    const yearRows = isAll
-      ? invoices.filter((i) => inRange(parseISO(i.invoice_date), yA, yB))
-      : scoped;
+    // When a date range is active the main revenue KPI follows the range,
+    // otherwise it follows the year selector / FY as before.
+    const yearRows = rangeActive
+      ? scoped
+      : isAll
+        ? invoices.filter((i) => inRange(parseISO(i.invoice_date), yA, yB))
+        : scoped;
 
     return {
       week: { total: sum(week, "total"), count: week.length, gst: sum(week, "gst") },
+      lastWeek: { total: sum(lastWeek, "total"), count: lastWeek.length },
       month: { total: sum(month, "total"), count: month.length, gst: sum(month, "gst") },
       year: {
         total: sum(yearRows, "total"),
@@ -143,7 +211,7 @@ function AnalyticsPage() {
       ),
       ytdRange: { from: yA, to: yB },
     };
-  }, [invoices, scoped, isAll, fyStart, now]);
+  }, [invoices, scoped, isAll, fyStart, now, rangeActive]);
 
   // When viewing a single year: show 12 months Jan–Dec of that year.
   // When viewing All years: show one bar per year.
@@ -266,9 +334,16 @@ function AnalyticsPage() {
       .join("\n");
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
     const url = URL.createObjectURL(blob);
+    const rangeTag = rangeActive
+      ? rangePreset === "custom"
+        ? `${customFrom || "start"}_to_${customTo || "today"}`
+        : rangePreset
+      : isAll
+        ? "all-years"
+        : String(selectedYear);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `xero-sales-invoices-${isAll ? "all-years" : selectedYear}-${format(now, "yyyy-MM-dd")}.csv`;
+    a.download = `xero-sales-invoices-${rangeTag}-${format(now, "yyyy-MM-dd")}.csv`;
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -280,7 +355,9 @@ function AnalyticsPage() {
           <div className="text-xs uppercase tracking-[0.25em] text-muted-foreground">Workshop</div>
           <h1 className="font-display text-2xl sm:text-3xl font-bold">
             Analytics & Tax{" "}
-            {isAll ? (
+            {rangeActive ? (
+              <span className="text-primary">· {range.label}</span>
+            ) : isAll ? (
               <span className="text-muted-foreground">· All years</span>
             ) : (
               <span className="text-primary">· {selectedYear}</span>
@@ -317,6 +394,65 @@ function AnalyticsPage() {
           </Button>
         </div>
       </header>
+
+      {/* Date range filter */}
+      <div className="card-surface p-3 flex flex-wrap items-center gap-2">
+        <span className="flex items-center gap-2 text-xs uppercase tracking-[0.25em] text-muted-foreground mr-1">
+          <CalendarRange className="h-4 w-4 text-primary" /> Period
+        </span>
+        {(
+          [
+            ["all", "All time"],
+            ["this-week", "This week"],
+            ["last-week", "Last week"],
+            ["last-30", "Last 30 days"],
+            ["this-month", "This month"],
+            ["last-month", "Last month"],
+            ["custom", "Custom dates"],
+          ] as const
+        ).map(([value, label]) => (
+          <button
+            key={value}
+            type="button"
+            onClick={() => setRangePreset(value)}
+            className={`rounded-full px-3 py-1.5 text-xs font-semibold transition-colors ${
+              rangePreset === value
+                ? "red-surface text-white"
+                : "border border-border text-muted-foreground hover:text-foreground hover:border-primary/50"
+            }`}
+          >
+            {label}
+          </button>
+        ))}
+        {rangePreset === "custom" && (
+          <span className="flex items-center gap-2 ml-2">
+            <input
+              type="date"
+              value={customFrom}
+              max={customTo || undefined}
+              onChange={(e) => setCustomFrom(e.target.value)}
+              className="rounded-md border border-border bg-background px-3 py-1.5 text-sm"
+            />
+            <span className="text-xs text-muted-foreground">to</span>
+            <input
+              type="date"
+              value={customTo}
+              min={customFrom || undefined}
+              onChange={(e) => setCustomTo(e.target.value)}
+              className="rounded-md border border-border bg-background px-3 py-1.5 text-sm"
+            />
+          </span>
+        )}
+        {rangeActive && (
+          <span className="ml-auto text-xs text-muted-foreground">
+            {range.from && format(range.from, "d MMM yyyy")}
+            {range.from && range.to ? " – " : ""}
+            {range.to && format(range.to, "d MMM yyyy")}
+            {" · "}
+            {scoped.length} invoices
+          </span>
+        )}
+      </div>
 
       {/* Monthly stacked bar chart */}
       <div className="card-surface p-5">
@@ -372,12 +508,18 @@ function AnalyticsPage() {
       </div>
 
       {/* KPI cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
         <Kpi
           icon={<TrendingUp className="h-4 w-4" />}
           label="This week"
           value={fmt(totals.week.total)}
           sub={`${totals.week.count} invoices`}
+        />
+        <Kpi
+          icon={<TrendingUp className="h-4 w-4" />}
+          label="Last week"
+          value={fmt(totals.lastWeek.total)}
+          sub={`${totals.lastWeek.count} invoices`}
         />
         <Kpi
           icon={<TrendingUp className="h-4 w-4" />}
@@ -387,13 +529,13 @@ function AnalyticsPage() {
         />
         <Kpi
           icon={<DollarSign className="h-4 w-4" />}
-          label={isAll ? "FY revenue" : `${selectedYear} revenue`}
+          label={rangeActive ? `${range.label} revenue` : isAll ? "FY revenue" : `${selectedYear} revenue`}
           value={fmt(totals.year.total)}
           sub={`Excl GST ${fmt(totals.year.subtotal)}`}
         />
         <Kpi
           icon={<Receipt className="h-4 w-4" />}
-          label={isAll ? "GST collected (FY)" : `GST collected ${selectedYear}`}
+          label={rangeActive ? `${range.label} GST` : isAll ? "GST collected (FY)" : `GST collected ${selectedYear}`}
           value={fmt(totals.year.gst)}
           sub="To remit to IRD"
         />
