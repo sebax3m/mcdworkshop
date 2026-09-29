@@ -168,7 +168,10 @@ export function BookingPartsSection({ booking }: { booking: any }) {
         bookingId={bookingId}
         part={edit?.part}
         initialDescription={edit?.desc}
+        bikeMake={booking.motorcycles?.make ?? null}
+        bikeModel={booking.motorcycles?.model ?? null}
       />
+
     </div>
   );
 }
