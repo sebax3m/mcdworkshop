@@ -334,9 +334,16 @@ function AnalyticsPage() {
       .join("\n");
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
     const url = URL.createObjectURL(blob);
+    const rangeTag = rangeActive
+      ? rangePreset === "custom"
+        ? `${customFrom || "start"}_to_${customTo || "today"}`
+        : rangePreset
+      : isAll
+        ? "all-years"
+        : String(selectedYear);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `xero-sales-invoices-${isAll ? "all-years" : selectedYear}-${format(now, "yyyy-MM-dd")}.csv`;
+    a.download = `xero-sales-invoices-${rangeTag}-${format(now, "yyyy-MM-dd")}.csv`;
     a.click();
     URL.revokeObjectURL(url);
   };
