@@ -30,10 +30,27 @@ import {
   Cell,
 } from "recharts";
 import { Button } from "@/components/ui/button";
-import { Download, TrendingUp, DollarSign, Receipt, AlertCircle } from "lucide-react";
+import { CalendarRange, Download, TrendingUp, DollarSign, Receipt, AlertCircle } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/analytics")({
   component: AnalyticsPage,
+  head: () => ({
+    meta: [
+      { title: "Analytics & Tax — Motorcycle Doctors" },
+      {
+        name: "description",
+        content:
+          "Revenue, GST and outstanding balances by week, month or custom date range — formatted for Xero import.",
+      },
+      { property: "og:title", content: "Analytics & Tax — Motorcycle Doctors" },
+      {
+        property: "og:description",
+        content: "Workshop revenue, GST and outstanding balances with date range filters.",
+      },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+    ],
+  }),
 });
 
 type Inv = {
