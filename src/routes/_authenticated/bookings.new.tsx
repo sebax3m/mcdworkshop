@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { z } from "zod";
 
@@ -109,9 +109,14 @@ function NewBooking() {
   const [nbNoRego, setNbNoRego] = useState(false);
   const [nbLookingUp, setNbLookingUp] = useState(false);
 
-  async function fetchBikeFromRego() {
+  const lastAutoPlate = useRef<string>("");
+
+  async function fetchBikeFromRego(auto = false) {
     const plate = nbRego.trim();
-    if (!plate) return toast.error("Enter a rego first");
+    if (!plate) {
+      if (!auto) toast.error("Enter a rego first");
+      return;
+    }
     setNbLookingUp(true);
     try {
       let refreshCarjam = false;
