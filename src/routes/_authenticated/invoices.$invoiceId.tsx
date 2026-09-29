@@ -1037,6 +1037,40 @@ function InvoiceDetail() {
   );
   const subtotalEx = Number(inv.total) / (1 + GST_RATE);
 
+  /* --- WOF / Rego on the invoice -------------------------------------------
+     The compliance dates recorded on the bike are printed under "Motorcycle",
+     and when this job actually included a WOF we add an indicative note about
+     the 12-month validity (informational only, never a legal statement). */
+  const fmtDate = (d?: string | null) =>
+    d ? new Date(d).toLocaleDateString("en-GB") : null;
+  const wofExpiryStr = fmtDate((bike as any)?.wof_expiry);
+  const regoExpiryStr = fmtDate((bike as any)?.rego_expiry);
+  const wofHaystack = [
+    (inv.jobs as any)?.title,
+    (inv.jobs as any)?.description,
+    ...readWorkPerformed((inv.jobs as any)?.service_data).map(
+      (w) => `${w.title} ${w.detail ?? ""}`,
+    ),
+    ...((parts.data ?? []) as any[]).map(
+      (p) => `${p.part_number ?? ""} ${p.name ?? ""}`,
+    ),
+    ...(Array.isArray((inv.snapshot as any)?.line_items)
+      ? (inv.snapshot as any).line_items.map(
+          (l: any) => `${l.item_name ?? ""} ${l.description ?? ""}`,
+        )
+      : []),
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
+  const wofDone =
+    /\bwof\b/.test(wofHaystack) || wofHaystack.includes("warrant of fitness");
+  const wofValidUntil = (() => {
+    const base = new Date(issuedAt);
+    base.setFullYear(base.getFullYear() + 1);
+    return base.toLocaleDateString("en-GB");
+  })();
+
   function emailInvoice() {
     const to = isInsurance ? "" : (customer?.email ?? "");
     const name = isInsurance
