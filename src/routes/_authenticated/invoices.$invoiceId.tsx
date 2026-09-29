@@ -1565,21 +1565,6 @@ function InvoiceDetail() {
             );
           })()}
 
-          {wofDone && (
-            <div
-              data-print-section="wof-note"
-              className="mt-3 rounded-md border border-border bg-muted/40 px-3 py-2 text-[0.7rem] leading-snug text-muted-foreground"
-            >
-              <b className="text-foreground">WOF:</b> issued{" "}
-              {issuedAt.toLocaleDateString("en-GB")} — valid for 12 months, until{" "}
-              {wofValidUntil}. Indicative only, not legal advice.
-              <span className="block mt-0.5">
-                WOF/rego dates not verified with VTNZ — please confirm before
-                relying on them.
-              </span>
-            </div>
-          )}
-
           {/* Line items */}
           <div className="pt-4 border-t border-border">
             <table className="w-full align-top">
