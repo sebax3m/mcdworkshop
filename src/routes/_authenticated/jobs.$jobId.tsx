@@ -2950,34 +2950,51 @@ function InstructionsSection({
   canEdit: boolean;
   onSaved: () => void;
 }) {
-  const [editing, setEditing] = useState(false);
   const [ins, setIns] = useState(instructions);
   const [nts, setNts] = useState(notes);
-  const [saving, setSaving] = useState(false);
+  const [saveState, setSaveState] = useState<"idle" | "saving" | "saved">("idle");
+  const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const dirty = useRef(false);
 
   useEffect(() => {
-    setIns(instructions);
-    setNts(notes);
+    if (!dirty.current) {
+      setIns(instructions);
+      setNts(notes);
+    }
   }, [instructions, notes]);
 
-  async function save() {
+  async function saveNow(nextIns: string, nextNts: string) {
     if (!bookingId) return;
-    setSaving(true);
+    setSaveState("saving");
     try {
       const { error } = await supabase
         .from("bookings")
-        .update({ instructions: ins || null, notes: nts || null })
+        .update({ instructions: nextIns || null, notes: nextNts || null })
         .eq("id", bookingId);
       if (error) throw error;
-      toast.success("Instructions saved");
-      setEditing(false);
+      setSaveState("saved");
+      dirty.current = false;
       onSaved();
+      setTimeout(() => setSaveState("idle"), 2000);
     } catch (e: any) {
       toast.error(e?.message ?? "Failed to save");
-    } finally {
-      setSaving(false);
+      setSaveState("idle");
     }
   }
+
+  function scheduleSave(nextIns: string, nextNts: string) {
+    dirty.current = true;
+    if (saveTimer.current) clearTimeout(saveTimer.current);
+    saveTimer.current = setTimeout(() => saveNow(nextIns, nextNts), 800);
+  }
+
+  useEffect(() => {
+    return () => {
+      if (saveTimer.current) clearTimeout(saveTimer.current);
+    };
+  }, []);
+
+  const editable = canEdit && !!bookingId;
 
   return (
     <section
@@ -2990,57 +3007,37 @@ function InstructionsSection({
         <span className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">
           from book-in
         </span>
-        {canEdit && bookingId && !editing && (
-          <Button
-            variant="outline"
-            size="sm"
-            className="ml-auto print:hidden"
-            onClick={() => setEditing(true)}
-          >
-            <Pencil className="h-3.5 w-3.5 mr-1" /> Edit
-          </Button>
+        {editable && saveState !== "idle" && (
+          <span className="ml-auto text-[0.625rem] uppercase tracking-wider text-muted-foreground print:hidden">
+            {saveState === "saving" ? "Saving…" : "Saved ✓"}
+          </span>
         )}
       </div>
 
-      {editing ? (
+      {editable ? (
         <div className="space-y-3 print:hidden">
-          <div>
-            <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground mb-1">
-              Instructions
-            </div>
-            <Textarea
-              value={ins}
-              onChange={(e) => setIns(e.target.value)}
-              rows={4}
-              placeholder="What the customer asked for…"
-            />
-          </div>
+          <Textarea
+            value={ins}
+            onChange={(e) => {
+              setIns(e.target.value);
+              scheduleSave(e.target.value, nts);
+            }}
+            rows={4}
+            placeholder="What the customer asked for…"
+          />
           <div>
             <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground mb-1">
               Internal notes
             </div>
             <Textarea
               value={nts}
-              onChange={(e) => setNts(e.target.value)}
+              onChange={(e) => {
+                setNts(e.target.value);
+                scheduleSave(ins, e.target.value);
+              }}
               rows={3}
               placeholder="Internal notes…"
             />
-          </div>
-          <div className="flex gap-2">
-            <Button size="sm" onClick={save} disabled={saving}>
-              {saving ? "Saving…" : "Save"}
-            </Button>
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={() => {
-                setIns(instructions);
-                setNts(notes);
-                setEditing(false);
-              }}
-            >
-              Cancel
-            </Button>
           </div>
         </div>
       ) : (
@@ -3055,6 +3052,20 @@ function InstructionsSection({
             </div>
           )}
         </>
+      )}
+      {/* Printed version always shows the saved text */}
+      {editable && (
+        <div className="hidden print:block">
+          {ins && <p className="text-sm whitespace-pre-wrap">{ins}</p>}
+          {nts && (
+            <div className="mt-2 pt-2 border-t border-border/40">
+              <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground mb-0.5">
+                Internal notes
+              </div>
+              <p className="text-sm whitespace-pre-wrap">{nts}</p>
+            </div>
+          )}
+        </div>
       )}
     </section>
   );
