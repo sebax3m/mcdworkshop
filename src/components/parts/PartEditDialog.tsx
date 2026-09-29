@@ -1,13 +1,22 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Trash2 } from "lucide-react";
+import { Trash2, History, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { PART_STATUSES, SUPPLIERS, SUPPLIER_SUGGESTIONS, useInvalidateParts } from "@/lib/parts-orders";
+import {
+  PART_STATUSES,
+  SUPPLIERS,
+  SUPPLIER_SUGGESTIONS,
+  useInvalidateParts,
+  usePartsCatalogSuggest,
+  useSupplierStats,
+  type CatalogSuggestion,
+} from "@/lib/parts-orders";
 
 const inp = "w-full h-9 rounded-md border border-border bg-background px-2 text-sm";
 const lbl = "text-[0.625rem] font-bold uppercase tracking-wider text-muted-foreground";
+
 
 export function PartEditDialog({
   open,
