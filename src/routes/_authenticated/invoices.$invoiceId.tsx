@@ -1461,6 +1461,16 @@ function InvoiceDetail() {
                   .filter(Boolean)
                   .join(" · ") || "—"}
               </div>
+              {(wofExpiryStr || regoExpiryStr) && (
+                <div className="text-muted-foreground mt-0.5 truncate">
+                  {[
+                    wofExpiryStr ? `WOF exp ${wofExpiryStr}` : null,
+                    regoExpiryStr ? `Rego exp ${regoExpiryStr}` : null,
+                  ]
+                    .filter(Boolean)
+                    .join(" · ")}
+                </div>
+              )}
             </div>
             <div className="sm:col-span-2 grid grid-cols-2 sm:grid-cols-4 gap-x-6 gap-y-2 pt-3 border-t border-border text-[0.78rem]">
               <span className="flex flex-col">
