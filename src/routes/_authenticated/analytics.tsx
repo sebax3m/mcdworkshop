@@ -171,14 +171,19 @@ function AnalyticsPage() {
     const yB = fyStart === "apr" ? new Date(yA.getFullYear() + 1, 2, 31) : endOfYear(now);
 
     const week = invoices.filter((i) => inRange(parseISO(i.invoice_date), wkA, wkB));
+    const lastWeek = invoices.filter(
+      (i) => inRange(parseISO(i.invoice_date), subDays(wkA, 7), subDays(wkB, 7)),
+    );
     const month = invoices.filter((i) => inRange(parseISO(i.invoice_date), mA, mB));
     const last30 = invoices.filter((i) => parseISO(i.invoice_date) >= subDays(now, 30));
 
-    // "Year" KPIs follow the year selector when a specific year is chosen,
-    // otherwise fall back to the FY range.
-    const yearRows = isAll
-      ? invoices.filter((i) => inRange(parseISO(i.invoice_date), yA, yB))
-      : scoped;
+    // When a date range is active the main revenue KPI follows the range,
+    // otherwise it follows the year selector / FY as before.
+    const yearRows = rangeActive
+      ? scoped
+      : isAll
+        ? invoices.filter((i) => inRange(parseISO(i.invoice_date), yA, yB))
+        : scoped;
 
     return {
       week: { total: sum(week, "total"), count: week.length, gst: sum(week, "gst") },
