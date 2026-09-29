@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -154,6 +154,21 @@ function BookingDetail() {
     if (photos?.length) getSignedUrls(photos).then(setPhotoUrls);
     else setPhotoUrls([]);
   }, [b?.arrival_photos]);
+
+  // Automatic CarJam lookup: when the booking is opened and the bike has a
+  // rego but is missing WOF/rego expiry or VIN, fetch it once without
+  // waiting for the "Fetch CarJam" click.
+  const autoCarjamDone = useRef<string | null>(null);
+  useEffect(() => {
+    const m = b?.motorcycles;
+    if (!b || !m?.rego) return;
+    const missing = !m.wof_expiry || !m.rego_expiry || !m.vin;
+    if (!missing) return;
+    if (autoCarjamDone.current === b.id) return;
+    autoCarjamDone.current = b.id;
+    fetchRegoFromCarjam();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [b?.id, b?.motorcycles?.rego, b?.motorcycles?.wof_expiry, b?.motorcycles?.rego_expiry, b?.motorcycles?.vin]);
 
   async function createJob() {
     if (!b) return;

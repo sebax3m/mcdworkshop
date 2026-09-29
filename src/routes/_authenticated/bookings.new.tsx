@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { z } from "zod";
 
@@ -109,9 +109,14 @@ function NewBooking() {
   const [nbNoRego, setNbNoRego] = useState(false);
   const [nbLookingUp, setNbLookingUp] = useState(false);
 
-  async function fetchBikeFromRego() {
+  const lastAutoPlate = useRef<string>("");
+
+  async function fetchBikeFromRego(auto = false) {
     const plate = nbRego.trim();
-    if (!plate) return toast.error("Enter a rego first");
+    if (!plate) {
+      if (!auto) toast.error("Enter a rego first");
+      return;
+    }
     setNbLookingUp(true);
     try {
       let refreshCarjam = false;
@@ -133,9 +138,13 @@ function NewBooking() {
           toast.success(`Loaded from workshop records: ${[local.year, local.make, local.model].filter(Boolean).join(" ")} — no CarJam credit used`);
           return;
         }
-        const wantsUpdate = window.confirm(
-          `This bike is already in the workshop records (${[...(missing.length ? [`missing: ${missing.join(", ")}`] : []), ...expiryIssues].join("; ")}).\n\nUpdate from CarJam now?`,
-        );
+        // Auto mode: refresh silently without asking — the user wants the
+        // latest CarJam data filled in as they type the rego.
+        const wantsUpdate =
+          auto ||
+          window.confirm(
+            `This bike is already in the workshop records (${[...(missing.length ? [`missing: ${missing.join(", ")}`] : []), ...expiryIssues].join("; ")}).\n\nUpdate from CarJam now?`,
+          );
         if (!wantsUpdate) {
           setNbFetched(true);
           toast.success("Loaded from workshop records — no CarJam credit used");
@@ -175,6 +184,20 @@ function NewBooking() {
   const [nbWofExpiry, setNbWofExpiry] = useState("");
   const [nbRegoExpiry, setNbRegoExpiry] = useState("");
   const [nbFetched, setNbFetched] = useState(false);
+
+  // Automatic CarJam lookup: as soon as a plausible rego is typed in the
+  // new-bike form, fetch the vehicle data without waiting for a click.
+  useEffect(() => {
+    if (!showNewBike || nbNoRego) return;
+    const plate = nbRego.trim().toUpperCase();
+    if (plate.length < 3 || plate === lastAutoPlate.current) return;
+    const t = setTimeout(() => {
+      lastAutoPlate.current = plate;
+      fetchBikeFromRego(true);
+    }, 900);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [nbRego, showNewBike, nbNoRego]);
   const [creatingBike, setCreatingBike] = useState(false);
 
   const customers = useQuery({
@@ -784,7 +807,7 @@ function NewBooking() {
                         size="sm"
                         className="h-9 px-2.5 text-xs shrink-0"
                         disabled={nbNoRego || nbLookingUp || !nbRego.trim()}
-                        onClick={fetchBikeFromRego}
+                        onClick={() => fetchBikeFromRego()}
                         title="Look up make, model and year from the rego"
                       >
                         <Search className="h-3.5 w-3.5" />
