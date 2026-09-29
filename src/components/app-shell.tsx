@@ -29,7 +29,6 @@ import { ActiveUserSwitcher } from "@/components/ActiveUserSwitcher";
 import { FloatingClockWidget } from "@/components/FloatingClockWidget";
 import { AutoClockOutGuard } from "@/components/AutoClockOutGuard";
 import { NotificationsBell } from "@/components/NotificationsBell";
-import { useOpenPartsOrdersCount, NeedsOrderingBadge } from "@/lib/parts-orders";
 
 // macOS-dock-like magnification based on cursor proximity to each item center
 // Keeps label text at its original size by scaling the inner text inversely.
@@ -76,7 +75,6 @@ export function AppShell() {
   const roleLabel = isAdmin ? "Admin" : isTechnician ? "Technician" : "No Role";
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const sidebarDock = useDockMagnify();
-  const { data: openPartsCount = 0 } = useOpenPartsOrdersCount();
 
   // Show floating back button everywhere on mobile except on the main landing pages
   const isRootPage = pathname === "/" || pathname === "/calendar";
@@ -278,11 +276,6 @@ export function AppShell() {
                     >
                       {t.label}
                     </span>
-                    {t.to === "/parts-orders" && openPartsCount > 0 && (
-                      <span className="ml-auto shrink-0" onClick={(e) => e.preventDefault()}>
-                        <NeedsOrderingBadge count={openPartsCount} />
-                      </span>
-                    )}
                   </Link>
                 )}
               </DockItem>
@@ -320,11 +313,6 @@ export function AppShell() {
                     className="h-6 w-6"
                     style={{ color: t.color, filter: `drop-shadow(0 0 6px ${t.color}66)` }}
                   />
-                  {t.to === "/parts-orders" && openPartsCount > 0 && (
-                    <span className="absolute -right-3 -top-2" onClick={(e) => e.preventDefault()}>
-                      <NeedsOrderingBadge count={openPartsCount} />
-                    </span>
-                  )}
                 </span>
 
                 <span className="font-semibold whitespace-nowrap">{t.label}</span>
