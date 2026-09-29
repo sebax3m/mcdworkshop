@@ -266,19 +266,49 @@ function PartsOrdersPage() {
 
       {(flagged.data ?? []).length > 0 && !search.bookingId && (
         <div className="space-y-1.5">
+          <h2 className="flex items-center gap-1.5 text-[0.6875rem] font-bold uppercase tracking-wider text-orange-300">
+            <AlertTriangle className="h-3.5 w-3.5" /> Parts to identify
+          </h2>
           {(flagged.data ?? []).map((b) => (
             <div key={b.id} className="flex flex-wrap items-center gap-2 rounded-lg border border-orange-500/50 bg-orange-500/10 px-3 py-2 text-sm">
               <OverallBadge status="required" />
               <span className="font-semibold">{who(b)}</span>
-              <span className="text-muted-foreground">{bike(b)} · {fmtD(b.scheduled_date)}</span>
-              <span className="text-xs text-muted-foreground">No parts listed yet</span>
-              <button onClick={() => setAddFor(b.id)} className="ml-auto inline-flex items-center gap-1 rounded-md border border-orange-500/60 px-2 h-7 text-[0.625rem] font-bold uppercase text-orange-300">
-                <Plus className="h-3 w-3" /> Add parts
-              </button>
+              <span className="text-muted-foreground">
+                {bike(b)} {rego(b) && <span className="font-mono">{rego(b)}</span>} · {fmtD(b.scheduled_date)}
+              </span>
+              {svc(b) && <span className="text-xs text-muted-foreground">· {svc(b)}</span>}
+              <span className="text-xs text-muted-foreground">· Book-in {String(b.id).slice(0, 6).toUpperCase()}</span>
+              <Link
+                to="/bookings/$bookingId"
+                params={{ bookingId: b.id }}
+                className="text-xs text-orange-200 underline whitespace-nowrap"
+              >
+                Open book-in
+              </Link>
+              <div className="ml-auto flex gap-1.5">
+                <button
+                  onClick={async () => {
+                    try {
+                      await setPartsRequired(b.id, false);
+                      toast.success("Parts reminder cleared");
+                      invalidate();
+                    } catch (e: any) {
+                      toast.error(e.message ?? "Could not update");
+                    }
+                  }}
+                  className="inline-flex items-center gap-1 rounded-md border border-border px-2 h-7 text-[0.625rem] font-bold uppercase text-muted-foreground hover:border-foreground/40"
+                >
+                  <X className="h-3 w-3" /> No parts needed
+                </button>
+                <button onClick={() => setAddFor(b.id)} className="inline-flex items-center gap-1 rounded-md border border-orange-500/60 px-2 h-7 text-[0.625rem] font-bold uppercase text-orange-300">
+                  <Plus className="h-3 w-3" /> Identify part
+                </button>
+              </div>
             </div>
           ))}
         </div>
       )}
+
 
       <div className="flex flex-wrap items-center gap-2">
         <div className="relative flex-1 min-w-[14rem]">
