@@ -57,6 +57,13 @@
       "when": 1790720998999,
       "tag": "0007_lov_database_migration",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1790721028262,
+      "tag": "0008_lov_database_migration",
+      "breakpoints": true
     }
   ]
 }
