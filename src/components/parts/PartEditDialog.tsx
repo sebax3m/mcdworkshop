@@ -250,7 +250,29 @@ export function PartEditDialog({
             <input className={inp} list="supplier-suggestions" value={f.supplier ?? ""} onChange={(e) => set("supplier", e.target.value)} placeholder="eBay, Cyclespot, Partzilla, OEM dealer…" />
             <datalist id="supplier-suggestions">
               {SUPPLIER_SUGGESTIONS.map((s) => <option key={s} value={s} />)}
+              {(supplierStats.data ?? []).map((s) => <option key={`h-${s.supplier}`} value={s.supplier} />)}
             </datalist>
+          </label>
+          {(() => {
+            const st = (supplierStats.data ?? []).find(
+              (s) => s.supplier.toLowerCase() === String(f.supplier ?? "").trim().toLowerCase(),
+            );
+            if (!st) return null;
+            return (
+              <p className="col-span-2 -mt-1.5 text-[0.6875rem] text-muted-foreground">
+                {st.supplier}: {st.orders} previous order{st.orders === 1 ? "" : "s"}
+                {st.avg_lead_days != null ? ` · usually arrives in ~${st.avg_lead_days} days` : ""}
+                {st.last_order ? ` · last order ${new Date(st.last_order + "T00:00:00").toLocaleDateString("en-GB")}` : ""}
+              </p>
+            );
+          })()}
+          <label className="space-y-1">
+            <span className={lbl}>Supplier part no. / SKU</span>
+            <input className={inp} value={f.supplier_sku ?? ""} onChange={(e) => set("supplier_sku", e.target.value)} />
+          </label>
+          <label className="space-y-1">
+            <span className={lbl}>Supplier product link</span>
+            <input className={inp} value={f.supplier_url ?? ""} onChange={(e) => set("supplier_url", e.target.value)} placeholder="https://…" />
           </label>
           <label className="space-y-1">
             <span className={lbl}>Cost (NZD)</span>
@@ -260,6 +282,11 @@ export function PartEditDialog({
             <span className={lbl}>Sell price (NZD)</span>
             <input type="number" step="0.01" className={inp} value={f.sell_price ?? ""} onChange={(e) => set("sell_price", e.target.value)} />
           </label>
+          <label className="space-y-1">
+            <span className={lbl}>Freight (NZD)</span>
+            <input type="number" step="0.01" className={inp} value={f.freight ?? ""} onChange={(e) => set("freight", e.target.value)} />
+          </label>
+
           <label className="space-y-1">
             <span className={lbl}>Tracking number</span>
             <input className={inp} value={f.tracking_number ?? ""} onChange={(e) => set("tracking_number", e.target.value)} />
