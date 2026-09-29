@@ -233,9 +233,6 @@ export function BookInCard({
                 <BikeIcon className="h-3 w-3" />
               </span>
             )}
-            {b.notes && (
-              <span className="h-1.5 w-1.5 rounded-full bg-muted-foreground/70" title="Has notes" />
-            )}
             {rego && (
               <span className="rounded-[4px] bg-white/[0.07] px-1 py-[1px] font-mono text-[0.5625rem] font-bold uppercase tracking-wide tabular-nums text-foreground/70">
                 {rego}
