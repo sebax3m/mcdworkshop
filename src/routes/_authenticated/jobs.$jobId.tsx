@@ -1204,6 +1204,20 @@ function JobDetail() {
         </AlertDialogContent>
       </AlertDialog>
 
+      <ClockOutReminderDialog
+        job={
+          clockOutReminder
+            ? {
+                id: jobId,
+                job_number: j.job_number,
+                complaint: j.complaint,
+                motorcycles: (j as any).motorcycles ?? null,
+              }
+            : null
+        }
+        onClose={() => setClockOutReminder(false)}
+      />
+
       <PrintPreview
         open={previewOpen}
         onOpenChange={setPreviewOpen}
