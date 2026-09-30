@@ -3,6 +3,8 @@ import {
   FileStack,
   Users,
   Package,
+  Boxes,
+
   Bike,
   ChevronRight,
   ShieldCheck,
@@ -73,6 +75,14 @@ const sections = [
     title: "Inventory",
     desc: "Manage oils, filters, brake fluid, coolant and parts stock.",
   },
+  {
+    to: "/settings/parts-suppliers",
+    icon: Boxes,
+    title: "Parts & Suppliers",
+    desc: "See and edit every part and supplier learned from past orders.",
+    staff: true,
+  },
+
   {
     to: "/motorcycles",
     icon: Bike,

@@ -38,6 +38,7 @@ import { Route as AuthenticatedCustomersIndexRouteImport } from './routes/_authe
 import { Route as AuthenticatedBookingsIndexRouteImport } from './routes/_authenticated/bookings.index'
 import { Route as OauthGoogleCalendarReturnRouteImport } from './routes/oauth/google-calendar/return'
 import { Route as AuthenticatedSettingsThemesRouteImport } from './routes/_authenticated/settings_.themes'
+import { Route as AuthenticatedSettingsPartsSuppliersRouteImport } from './routes/_authenticated/settings_.parts-suppliers'
 import { Route as AuthenticatedSettingsMcdTechRouteImport } from './routes/_authenticated/settings_.mcd-tech'
 import { Route as AuthenticatedSettingsGoogleCalendarRouteImport } from './routes/_authenticated/settings_.google-calendar'
 import { Route as AuthenticatedSettingsCapacityRouteImport } from './routes/_authenticated/settings_.capacity'
@@ -216,6 +217,12 @@ const AuthenticatedSettingsThemesRoute =
   AuthenticatedSettingsThemesRouteImport.update({
     id: '/settings_/themes',
     path: '/settings/themes',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedSettingsPartsSuppliersRoute =
+  AuthenticatedSettingsPartsSuppliersRouteImport.update({
+    id: '/settings_/parts-suppliers',
+    path: '/settings/parts-suppliers',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedSettingsMcdTechRoute =
@@ -410,6 +417,7 @@ export interface FileRoutesByFullPath {
   '/settings/capacity': typeof AuthenticatedSettingsCapacityRoute
   '/settings/google-calendar': typeof AuthenticatedSettingsGoogleCalendarRoute
   '/settings/mcd-tech': typeof AuthenticatedSettingsMcdTechRoute
+  '/settings/parts-suppliers': typeof AuthenticatedSettingsPartsSuppliersRoute
   '/settings/themes': typeof AuthenticatedSettingsThemesRoute
   '/oauth/google-calendar/return': typeof OauthGoogleCalendarReturnRoute
   '/bookings/': typeof AuthenticatedBookingsIndexRoute
@@ -462,6 +470,7 @@ export interface FileRoutesByTo {
   '/settings/capacity': typeof AuthenticatedSettingsCapacityRoute
   '/settings/google-calendar': typeof AuthenticatedSettingsGoogleCalendarRoute
   '/settings/mcd-tech': typeof AuthenticatedSettingsMcdTechRoute
+  '/settings/parts-suppliers': typeof AuthenticatedSettingsPartsSuppliersRoute
   '/settings/themes': typeof AuthenticatedSettingsThemesRoute
   '/oauth/google-calendar/return': typeof OauthGoogleCalendarReturnRoute
   '/bookings': typeof AuthenticatedBookingsIndexRoute
@@ -519,6 +528,7 @@ export interface FileRoutesById {
   '/_authenticated/settings_/capacity': typeof AuthenticatedSettingsCapacityRoute
   '/_authenticated/settings_/google-calendar': typeof AuthenticatedSettingsGoogleCalendarRoute
   '/_authenticated/settings_/mcd-tech': typeof AuthenticatedSettingsMcdTechRoute
+  '/_authenticated/settings_/parts-suppliers': typeof AuthenticatedSettingsPartsSuppliersRoute
   '/_authenticated/settings_/themes': typeof AuthenticatedSettingsThemesRoute
   '/oauth/google-calendar/return': typeof OauthGoogleCalendarReturnRoute
   '/_authenticated/bookings/': typeof AuthenticatedBookingsIndexRoute
@@ -576,6 +586,7 @@ export interface FileRouteTypes {
     | '/settings/capacity'
     | '/settings/google-calendar'
     | '/settings/mcd-tech'
+    | '/settings/parts-suppliers'
     | '/settings/themes'
     | '/oauth/google-calendar/return'
     | '/bookings/'
@@ -628,6 +639,7 @@ export interface FileRouteTypes {
     | '/settings/capacity'
     | '/settings/google-calendar'
     | '/settings/mcd-tech'
+    | '/settings/parts-suppliers'
     | '/settings/themes'
     | '/oauth/google-calendar/return'
     | '/bookings'
@@ -684,6 +696,7 @@ export interface FileRouteTypes {
     | '/_authenticated/settings_/capacity'
     | '/_authenticated/settings_/google-calendar'
     | '/_authenticated/settings_/mcd-tech'
+    | '/_authenticated/settings_/parts-suppliers'
     | '/_authenticated/settings_/themes'
     | '/oauth/google-calendar/return'
     | '/_authenticated/bookings/'
@@ -908,6 +921,13 @@ declare module '@tanstack/react-router' {
       path: '/settings/themes'
       fullPath: '/settings/themes'
       preLoaderRoute: typeof AuthenticatedSettingsThemesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/settings_/parts-suppliers': {
+      id: '/_authenticated/settings_/parts-suppliers'
+      path: '/settings/parts-suppliers'
+      fullPath: '/settings/parts-suppliers'
+      preLoaderRoute: typeof AuthenticatedSettingsPartsSuppliersRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/settings_/mcd-tech': {
@@ -1175,6 +1195,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedSettingsCapacityRoute: typeof AuthenticatedSettingsCapacityRoute
   AuthenticatedSettingsGoogleCalendarRoute: typeof AuthenticatedSettingsGoogleCalendarRoute
   AuthenticatedSettingsMcdTechRoute: typeof AuthenticatedSettingsMcdTechRoute
+  AuthenticatedSettingsPartsSuppliersRoute: typeof AuthenticatedSettingsPartsSuppliersRoute
   AuthenticatedSettingsThemesRoute: typeof AuthenticatedSettingsThemesRoute
   AuthenticatedBookingsIndexRoute: typeof AuthenticatedBookingsIndexRoute
   AuthenticatedGarageLibraryIndexRoute: typeof AuthenticatedGarageLibraryIndexRoute
@@ -1226,6 +1247,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedSettingsGoogleCalendarRoute:
     AuthenticatedSettingsGoogleCalendarRoute,
   AuthenticatedSettingsMcdTechRoute: AuthenticatedSettingsMcdTechRoute,
+  AuthenticatedSettingsPartsSuppliersRoute:
+    AuthenticatedSettingsPartsSuppliersRoute,
   AuthenticatedSettingsThemesRoute: AuthenticatedSettingsThemesRoute,
   AuthenticatedBookingsIndexRoute: AuthenticatedBookingsIndexRoute,
   AuthenticatedGarageLibraryIndexRoute: AuthenticatedGarageLibraryIndexRoute,
