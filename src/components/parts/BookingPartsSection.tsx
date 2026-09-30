@@ -37,6 +37,32 @@ export function BookingPartsSection({ booking }: { booking: any }) {
     },
   });
   const parts = (q.data ?? []) as any[];
+  // Open parts ordered for the SAME bike on another book-in (so they're never "lost").
+  const motorcycleId = (booking.motorcycle_id ?? booking.motorcycles?.id ?? null) as string | null;
+  const oq = useQuery({
+    queryKey: ["booking-parts", "same-bike", motorcycleId, bookingId],
+    enabled: !!motorcycleId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("booking_parts")
+        .select("*, bookings!inner(id, scheduled_date, motorcycle_id, status)")
+        .eq("bookings.motorcycle_id", motorcycleId!)
+        .neq("booking_id", bookingId)
+        .not("status", "in", "(cancelled)")
+        .order("created_at");
+      if (error) throw error;
+      return (data ?? []).filter((p: any) => !["completed", "cancelled", "invoiced"].includes(p.bookings?.status));
+    },
+  });
+  const otherParts = (oq.data ?? []) as any[];
+  async function moveHere(p: any) {
+    const { error } = await supabase.from("booking_parts").update({ booking_id: bookingId }).eq("id", p.id);
+    if (error) return toast.error(error.message);
+    toast.success("Part linked to this book-in");
+    invalidate();
+    q.refetch();
+    oq.refetch();
+  }
   // Reminder items still pending (no booking_parts row linked yet).
   const rq = useQuery({
     queryKey: ["booking-part-requirements", bookingId],
@@ -193,6 +219,28 @@ export function BookingPartsSection({ booking }: { booking: any }) {
               )}
               <button onClick={() => setEdit({ part: p })} className="grid h-7 w-7 place-items-center rounded-md border border-border hover:border-primary/50" aria-label="Edit part">
                 <Pencil className="h-3.5 w-3.5" />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {otherParts.length > 0 && (
+        <div className="space-y-1.5">
+          <div className="text-[0.625rem] font-bold uppercase tracking-wider text-muted-foreground">
+            Parts for this bike on another book-in
+          </div>
+          {otherParts.map((p) => (
+            <div key={p.id} className="flex flex-wrap items-center gap-2 rounded-lg border border-border/70 bg-background/40 px-2.5 py-1.5">
+              <div className="flex-1 min-w-[10rem]">
+                <div className="text-sm font-semibold">{p.description}</div>
+                <div className="text-xs text-muted-foreground">
+                  {[p.bookings?.scheduled_date && `Book-in ${fmtD(p.bookings.scheduled_date)}`, p.supplier, p.eta && `ETA ${fmtD(p.eta)}`].filter(Boolean).join(" · ")}
+                </div>
+              </div>
+              <StatusBadge status={p.status} />
+              <button onClick={() => moveHere(p)} className="rounded-md border border-sky-500/60 px-2 h-7 text-[0.6875rem] font-bold uppercase text-sky-300 hover:bg-sky-500/15">
+                Move here
               </button>
             </div>
           ))}
