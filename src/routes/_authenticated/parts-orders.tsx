@@ -238,11 +238,79 @@ function PartsOrdersPage() {
       {["ordered", "partially_shipped", "shipped", "ready_for_collection", "partially_received", "backordered"].includes(r.status) && (
         <button onClick={() => quick(r, "arrived")} className="rounded-md border border-emerald-500/60 px-2 h-7 text-[0.625rem] font-bold uppercase text-emerald-300 hover:bg-emerald-500/15">Arrived</button>
       )}
+      {r.booking_id && !r.claim_id && (
+        <button onClick={() => setMoveFor(r)} className="grid h-7 w-7 place-items-center rounded-md border border-border hover:border-primary/50" aria-label="Move to another book-in" title="Move to another book-in">
+          <ArrowLeftRight className="h-3.5 w-3.5" />
+        </button>
+      )}
       <button onClick={() => setEdit(r)} className="grid h-7 w-7 place-items-center rounded-md border border-border hover:border-primary/50" aria-label="Edit">
         <Pencil className="h-3.5 w-3.5" />
       </button>
     </div>
   );
+
+  // One-click reassign of a part to another book-in (same bike first, then any recent).
+  const MovePartDialog = ({ part }: { part: any }) => {
+    const motorcycleId = part.bookings?.motorcycle_id ?? null;
+    const targets = useQuery({
+      queryKey: ["parts-orders", "move-targets", motorcycleId],
+      queryFn: async () => {
+        let qy = supabase
+          .from("bookings")
+          .select("id, scheduled_date, service_type, service_type_other, rego, status, customers(first_name,last_name), motorcycles(year,make,model,rego)")
+          .neq("status", "cancelled")
+          .order("scheduled_date", { ascending: false })
+          .limit(60);
+        if (motorcycleId) qy = qy.eq("motorcycle_id", motorcycleId);
+        const { data, error } = await qy;
+        if (error) throw error;
+        return (data ?? []) as any[];
+      },
+    });
+    const list = (targets.data ?? []).filter((b) => b.id !== part.booking_id);
+    async function moveTo(bookingId: string) {
+      const { error } = await supabase.from("booking_parts").update({ booking_id: bookingId }).eq("id", part.id);
+      if (error) return toast.error(error.message);
+      toast.success("Part moved to the selected book-in");
+      setMoveFor(null);
+      invalidate();
+    }
+    return (
+      <div className="fixed inset-0 z-50 grid place-items-center bg-black/60 p-4" onClick={() => setMoveFor(null)}>
+        <div className="card-surface w-full max-w-md p-4 space-y-3" onClick={(e) => e.stopPropagation()}>
+          <div className="flex items-center gap-2">
+            <ArrowLeftRight className="h-4 w-4 text-primary" />
+            <h3 className="font-display text-lg font-bold">Move part to another book-in</h3>
+            <button onClick={() => setMoveFor(null)} className="ml-auto text-muted-foreground hover:text-foreground"><X className="h-4 w-4" /></button>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            <span className="font-semibold text-foreground">{part.description}</span> is currently on the book-in of {fmtD(part.bookings?.scheduled_date)}.
+            {motorcycleId ? " Showing other book-ins for the same bike." : " Showing recent book-ins."}
+          </p>
+          <div className="max-h-72 space-y-1 overflow-y-auto">
+            {targets.isLoading ? (
+              <div className="py-4 text-center text-xs text-muted-foreground">Loading book-ins…</div>
+            ) : list.length === 0 ? (
+              <div className="py-4 text-center text-xs text-muted-foreground">No other book-ins found for this bike.</div>
+            ) : (
+              list.map((b) => (
+                <button
+                  key={b.id}
+                  onClick={() => moveTo(b.id)}
+                  className="flex w-full flex-wrap items-center gap-2 rounded-md border border-border px-2.5 py-2 text-left text-sm hover:border-primary/60 hover:bg-muted/40"
+                >
+                  <span className="font-semibold whitespace-nowrap">{fmtD(b.scheduled_date)}</span>
+                  <span className="text-muted-foreground">{who(b)}</span>
+                  <span className="text-xs text-muted-foreground">· {svc(b)}</span>
+                  <span className="ml-auto font-mono text-xs">{rego(b)}</span>
+                </button>
+              ))
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div className="space-y-4 pt-5">
