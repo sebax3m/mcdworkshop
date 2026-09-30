@@ -61,7 +61,7 @@ function NewBooking() {
   const today = new Date().toISOString().slice(0, 10);
   const [customerId, setCustomerId] = useState<string | null>(null);
   const [bikeId, setBikeId] = useState<string | null>(null);
-  const [serviceType, setServiceType] = useState<string>("Standard Service");
+  const [serviceType, setServiceType] = useState<string>("Diagnostic");
   const [serviceTypeOther, setServiceTypeOther] = useState<string>("");
   const [priority, setPriority] = useState<string>("normal");
   const [scheduledDate, setScheduledDate] = useState<string>(search.date || today);

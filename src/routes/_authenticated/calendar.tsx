@@ -309,7 +309,7 @@ function CalendarPage() {
   const [qBikeYear, setQBikeYear] = useState("");
   const [qBikeRego, setQBikeRego] = useState("");
   const [qNoRego, setQNoRego] = useState(false);
-  const [qService, setQService] = useState<string>("Standard Service");
+  const [qService, setQService] = useState<string>("Diagnostic");
   const [qServiceOther, setQServiceOther] = useState<string>("");
   const [qEstHours, setQEstHours] = useState<string>("1");
   const [qNotes, setQNotes] = useState<string>("");
@@ -658,7 +658,7 @@ function CalendarPage() {
     setQBikeYear("");
     setQBikeRego("");
     setQNoRego(false);
-    setQService("Standard Service");
+    setQService("Diagnostic");
     setQServiceOther("");
     setQEstHours("1");
     setQNotes("");
