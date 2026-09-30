@@ -218,6 +218,23 @@ function Bikes() {
     refresh();
   }
 
+  async function deleteBike(b: any) {
+    if (!isAdmin) return toast.error("Admin only");
+    if (
+      !confirm(
+        `Delete ${fullBike(b)}?\n\nOnly bikes with no bookings, jobs, invoices, dyno results or claims can be deleted. If it has history, archive it instead.`,
+      )
+    )
+      return;
+    try {
+      await adminDeleteMotorcycle({ data: { motorcycleId: b.id } });
+      toast.success("Bike deleted");
+      refresh();
+    } catch (err: any) {
+      toast.error(err.message ?? "Could not delete — it has linked history. Archive it instead.");
+    }
+  }
+
   async function handleBikePhotos(files: FileList | null) {
     if (!files?.length) return;
     setUploading(true);
