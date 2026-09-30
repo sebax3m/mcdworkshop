@@ -452,6 +452,8 @@ function BookingDetail() {
         )}
       </div>
 
+      <EditBikeCard booking={b} />
+
       <BookingPartsSection booking={b} />
 
       <TransportCard
@@ -603,6 +605,84 @@ function InfoRow({
         <div className="text-sm font-semibold truncate">{value || "—"}</div>
         {sub && <div className="text-xs text-muted-foreground truncate">{sub}</div>}
       </div>
+    </div>
+  );
+}
+
+// Editable bike details (year / make / model) — saves on blur, updates everywhere.
+function EditBikeCard({ booking }: { booking: any }) {
+  const qc = useQueryClient();
+  const m = booking.motorcycles;
+  const [year, setYear] = useState(m?.year ? String(m.year) : "");
+  const [make, setMake] = useState(m?.make ?? "");
+  const [model, setModel] = useState(m?.model ?? "");
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    setYear(m?.year ? String(m.year) : "");
+    setMake(m?.make ?? "");
+    setModel(m?.model ?? "");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [m?.id]);
+
+  if (!booking.motorcycle_id || !m) return null;
+
+  async function save(field: "year" | "make" | "model", value: string) {
+    const trimmed = value.trim();
+    const current =
+      field === "year" ? (m.year ? String(m.year) : "") : (m[field] ?? "");
+    if (trimmed === current) return;
+    setSaving(true);
+    const patch: any =
+      field === "year" ? { year: trimmed ? Number(trimmed) || null : null } : { [field]: trimmed || null };
+    const { error } = await supabase
+      .from("motorcycles")
+      .update(patch)
+      .eq("id", booking.motorcycle_id);
+    setSaving(false);
+    if (error) return toast.error(error.message);
+    qc.invalidateQueries({ queryKey: ["booking", booking.id] });
+    qc.invalidateQueries({ queryKey: ["calendar-bookings"] });
+    qc.invalidateQueries({ queryKey: ["booking-customer-bikes", booking.customer_id] });
+    toast.success("Bike details updated");
+  }
+
+  const inputCls =
+    "w-full rounded-md border border-border bg-background px-2 py-1.5 text-sm focus:border-primary/60 outline-none";
+
+  return (
+    <div className="card-surface p-4 space-y-2">
+      <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+        <BikeIcon className="h-3 w-3" /> Edit bike details
+        {saving && <span className="text-primary">saving…</span>}
+      </div>
+      <div className="grid grid-cols-[5rem_1fr_1fr] gap-2">
+        <input
+          value={year}
+          onChange={(e) => setYear(e.target.value)}
+          onBlur={() => save("year", year)}
+          placeholder="Year"
+          inputMode="numeric"
+          className={inputCls}
+        />
+        <input
+          value={make}
+          onChange={(e) => setMake(e.target.value)}
+          onBlur={() => save("make", make)}
+          placeholder="Make (e.g. Kawasaki)"
+          className={inputCls}
+        />
+        <input
+          value={model}
+          onChange={(e) => setModel(e.target.value)}
+          onBlur={() => save("model", model)}
+          placeholder="Model (e.g. ZR 1000)"
+          className={inputCls}
+        />
+      </div>
+      <p className="text-xs text-muted-foreground">
+        Fixes what CarJam brought in — saves automatically when you leave the field.
+      </p>
     </div>
   );
 }
