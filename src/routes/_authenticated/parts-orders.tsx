@@ -450,9 +450,9 @@ function PartsOrdersPage() {
                   <div className="flex-1 min-w-0">
                     <div className="font-semibold">{r.description} {r.part_number && <span className="text-muted-foreground font-normal">· {r.part_number}</span>}</div>
                     {r.booking_id ? (
-                      <Link to="/bookings/$bookingId" params={{ bookingId: r.booking_id }} className="text-xs text-muted-foreground hover:underline">
+                      <button onClick={() => setMoveFor(r)} title="Move this part to another book-in" className="text-xs text-muted-foreground hover:underline text-left">
                         {fmtD(r.bookings?.scheduled_date)} · {who(r.bookings)} · {bike(r.bookings)} {rego(r.bookings)}
-                      </Link>
+                      </button>
                     ) : (
                       <div className="text-xs text-muted-foreground">{who(r.bookings)} · {bike(r.bookings)} {rego(r.bookings)}</div>
                     )}
@@ -486,7 +486,7 @@ function PartsOrdersPage() {
                   <tr key={r.id} className={cn("border-b border-border/60 hover:bg-muted/40", notReady(r) && "bg-red-500/5")}>
                     <td className="px-2 py-1.5 whitespace-nowrap">
                       {r.booking_id ? (
-                        <button onClick={() => nav({ search: (s: Search) => ({ ...s, bookingId: r.booking_id }) })} className="text-primary hover:underline">
+                        <button onClick={() => setMoveFor(r)} title="Move this part to another book-in" className="text-primary hover:underline">
                           {fmtD(r.bookings?.scheduled_date)}
                         </button>
                       ) : null}
