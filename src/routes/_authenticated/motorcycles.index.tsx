@@ -218,6 +218,23 @@ function Bikes() {
     refresh();
   }
 
+  async function deleteBike(b: any) {
+    if (!isAdmin) return toast.error("Admin only");
+    if (
+      !confirm(
+        `Delete ${fullBike(b)}?\n\nOnly bikes with no bookings, jobs, invoices, dyno results or claims can be deleted. If it has history, archive it instead.`,
+      )
+    )
+      return;
+    try {
+      await adminDeleteMotorcycle({ data: { motorcycleId: b.id } });
+      toast.success("Bike deleted");
+      refresh();
+    } catch (err: any) {
+      toast.error(err.message ?? "Could not delete — it has linked history. Archive it instead.");
+    }
+  }
+
   async function handleBikePhotos(files: FileList | null) {
     if (!files?.length) return;
     setUploading(true);
@@ -685,14 +702,26 @@ function Bikes() {
             );
           }
           return (
-            <Link
-              key={b.id}
-              to="/motorcycles/$bikeId"
-              params={{ bikeId: b.id }}
-              className={rowClass}
-            >
-              {inner}
-            </Link>
+            <div key={b.id} className="flex items-stretch gap-1.5">
+              <Link
+                to="/motorcycles/$bikeId"
+                params={{ bikeId: b.id }}
+                className={`${rowClass} flex-1 min-w-0`}
+              >
+                {inner}
+              </Link>
+              {isAdmin && (
+                <button
+                  type="button"
+                  onClick={() => deleteBike(b)}
+                  aria-label={`Delete ${fullBike(b)}`}
+                  title="Delete bike"
+                  className="shrink-0 w-9 rounded-lg border border-border bg-card text-muted-foreground grid place-items-center hover:border-destructive/60 hover:text-destructive transition-colors"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
+              )}
+            </div>
           );
         })}
         {filtered.length === 0 && (
