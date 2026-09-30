@@ -541,6 +541,7 @@ function PartsOrdersPage() {
         bikeMake={addForBooking?.motorcycles?.make ?? null}
         bikeModel={addForBooking?.motorcycles?.model ?? null}
       />
+      {moveFor && <MovePartDialog part={moveFor} />}
 
     </div>
   );
