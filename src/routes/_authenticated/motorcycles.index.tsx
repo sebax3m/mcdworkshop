@@ -702,14 +702,26 @@ function Bikes() {
             );
           }
           return (
-            <Link
-              key={b.id}
-              to="/motorcycles/$bikeId"
-              params={{ bikeId: b.id }}
-              className={rowClass}
-            >
-              {inner}
-            </Link>
+            <div key={b.id} className="flex items-stretch gap-1.5">
+              <Link
+                to="/motorcycles/$bikeId"
+                params={{ bikeId: b.id }}
+                className={`${rowClass} flex-1 min-w-0`}
+              >
+                {inner}
+              </Link>
+              {isAdmin && (
+                <button
+                  type="button"
+                  onClick={() => deleteBike(b)}
+                  aria-label={`Delete ${fullBike(b)}`}
+                  title="Delete bike"
+                  className="shrink-0 w-9 rounded-lg border border-border bg-card text-muted-foreground grid place-items-center hover:border-destructive/60 hover:text-destructive transition-colors"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
+              )}
+            </div>
           );
         })}
         {filtered.length === 0 && (
