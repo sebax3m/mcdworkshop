@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Trash2, History, Sparkles } from "lucide-react";
+import { Trash2, History, Sparkles, CalendarDays } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
@@ -15,6 +15,27 @@ import {
 } from "@/lib/parts-orders";
 
 const inp = "w-full h-9 rounded-md border border-border bg-background px-2 text-sm";
+const localToday = () => {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+};
+const ORDERED_LIKE = ["ordered", "partially_shipped", "shipped", "ready_for_collection", "partially_received", "backordered", "arrived"];
+
+function DateField({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  return (
+    <div className="relative">
+      <input
+        type="date"
+        className={inp + " pr-9 cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:right-0 [&::-webkit-calendar-picker-indicator]:w-9 [&::-webkit-calendar-picker-indicator]:h-full"}
+        value={value ?? ""}
+        onChange={(e) => onChange(e.target.value)}
+        onClick={(e) => { try { (e.currentTarget as any).showPicker?.(); } catch { /* ignore */ } }}
+      />
+      <CalendarDays className="pointer-events-none absolute right-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-sky-300" />
+    </div>
+  );
+}
+
 const lbl = "text-[0.625rem] font-bold uppercase tracking-wider text-muted-foreground";
 
 
@@ -73,7 +94,7 @@ export function PartEditDialog({
   const set = (k: string, v: any) => setF((x: any) => ({ ...x, [k]: v }));
 
   const searchTerm = String(f.part_number || f.description || "");
-  const suggestions = usePartsCatalogSuggest(searchTerm, bikeMake, bikeModel, open && !part?.id);
+  const suggestions = usePartsCatalogSuggest(searchTerm, bikeMake, bikeModel, open && searchTerm.trim().length >= 2 && !usedFromHistory);
   const supplierStats = useSupplierStats(open);
 
   function usePrevious(s: CatalogSuggestion) {
@@ -119,8 +140,8 @@ export function PartEditDialog({
     // Keep status consistent with quantities.
     if (row.qty_received >= row.qty_required && row.qty_received > 0) row.status = "arrived";
     else if (row.qty_received > 0 && row.status !== "backordered") row.status = "partially_received";
-    if (row.status === "arrived" && !row.received_at) row.received_at = new Date().toISOString().slice(0, 10);
-    if (row.status === "ordered" && !row.ordered_at) row.ordered_at = new Date().toISOString().slice(0, 10);
+    if (row.status === "arrived" && !row.received_at) row.received_at = localToday();
+    if (ORDERED_LIKE.includes(row.status) && !row.ordered_at) row.ordered_at = localToday();
 
     const { error } = part?.id
       ? await supabase.from("booking_parts").update(row).eq("id", part.id)
@@ -210,7 +231,7 @@ export function PartEditDialog({
 
           <label className="space-y-1">
             <span className={lbl}>Part number</span>
-            <input className={inp} value={f.part_number ?? ""} onChange={(e) => set("part_number", e.target.value)} />
+            <input className={inp} value={f.part_number ?? ""} onChange={(e) => { setUsedFromHistory(null); set("part_number", e.target.value); }} placeholder="Type to search the library…" />
           </label>
           <label className="space-y-1">
             <span className={lbl}>Brand</span>
@@ -301,7 +322,10 @@ export function PartEditDialog({
           </label>
           <label className="space-y-1">
             <span className={lbl}>Status</span>
-            <select className={inp} value={f.status ?? "needs_ordering"} onChange={(e) => set("status", e.target.value)}>
+            <select className={inp} value={f.status ?? "needs_ordering"} onChange={(e) => {
+              const v = e.target.value;
+              setF((x: any) => ({ ...x, status: v, ordered_at: ORDERED_LIKE.includes(v) && !x.ordered_at ? localToday() : x.ordered_at }));
+            }}>
               {PART_STATUSES.map((s) => (
                 <option key={s.key} value={s.key}>{s.label}</option>
               ))}
@@ -309,15 +333,15 @@ export function PartEditDialog({
           </label>
           <label className="space-y-1">
             <span className={lbl}>Date ordered</span>
-            <input type="date" className={inp} value={f.ordered_at ?? ""} onChange={(e) => set("ordered_at", e.target.value)} />
+            <DateField value={f.ordered_at ?? ""} onChange={(v) => set("ordered_at", v)} />
           </label>
           <label className="space-y-1">
             <span className={lbl}>ETA</span>
-            <input type="date" className={inp} value={f.eta ?? ""} onChange={(e) => set("eta", e.target.value)} />
+            <DateField value={f.eta ?? ""} onChange={(v) => set("eta", v)} />
           </label>
           <label className="space-y-1">
             <span className={lbl}>Date received</span>
-            <input type="date" className={inp} value={f.received_at ?? ""} onChange={(e) => set("received_at", e.target.value)} />
+            <DateField value={f.received_at ?? ""} onChange={(v) => set("received_at", v)} />
           </label>
           <label className="col-span-2 space-y-1">
             <span className={lbl}>Notes</span>
