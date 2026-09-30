@@ -266,7 +266,10 @@ export function BookInCard({
         <div className="flex items-center justify-between gap-1.5">
           <div className="flex items-center gap-1.5 min-w-0 pl-[1.4rem]">
             {rego && (
-              <span className="rounded-[4px] bg-white/[0.07] px-1 py-[1px] font-mono text-[0.6875rem] font-bold uppercase tracking-wide tabular-nums text-foreground/80">
+              <span
+                title={rego}
+                className="inline-flex items-center rounded-[4px] border-2 border-black bg-gradient-to-b from-white to-[#e8e8e2] px-1.5 py-0 font-mono text-[0.6875rem] font-extrabold uppercase leading-[1.35] tracking-[0.06em] tabular-nums text-black shadow-[inset_0_0_0_1px_rgba(255,255,255,0.9),0_1px_2px_rgba(0,0,0,0.6)]"
+              >
                 {rego}
               </span>
             )}
