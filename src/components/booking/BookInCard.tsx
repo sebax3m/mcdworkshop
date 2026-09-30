@@ -266,7 +266,7 @@ export function BookInCard({
         <div className="flex items-center justify-between gap-1.5">
           <div className="flex items-center gap-1.5 min-w-0 pl-[1.4rem]">
             {rego && (
-              <span className="rounded-[4px] bg-white/[0.07] px-1 py-[1px] font-mono text-[0.5625rem] font-bold uppercase tracking-wide tabular-nums text-foreground/70">
+              <span className="rounded-[4px] bg-white/[0.07] px-1 py-[1px] font-mono text-[0.6875rem] font-bold uppercase tracking-wide tabular-nums text-foreground/80">
                 {rego}
               </span>
             )}
