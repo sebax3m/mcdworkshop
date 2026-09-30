@@ -368,8 +368,8 @@ function CalendarPage() {
       if (local) {
         const missing = localBikeMissingFields(local);
         const expiryIssues = localBikeExpiryIssues(local);
-        if (local.make) setQBikeMake(local.make);
-        if (local.model) setQBikeModel(local.model);
+        if (local.make) setQBikeMake(String(local.make));
+        if (local.model) setQBikeModel(String(local.model));
         if (local.year) setQBikeYear(String(local.year));
         if (local.wof_expiry) setQWofExpiry(local.wof_expiry);
         if (local.rego_expiry) setQRegoExpiry(local.rego_expiry);
@@ -398,8 +398,8 @@ function CalendarPage() {
       }
       // 2) Fall back to Carjam.
       const r = await lookupRego({ data: { rego: plate, refresh: refreshCarjam } });
-      if (r.make) setQBikeMake(r.make);
-      if (r.model) setQBikeModel(r.model);
+      if (r.make) setQBikeMake(String(r.make));
+      if (r.model) setQBikeModel(String(r.model));
       if (r.year) setQBikeYear(String(r.year));
       if (r.wof_expiry) setQWofExpiry(r.wof_expiry);
       if (r.rego_expiry) setQRegoExpiry(r.rego_expiry);
@@ -616,8 +616,8 @@ function CalendarPage() {
       setQSearch(`${c.first_name ?? ""} ${c.last_name ?? ""}`.trim() || m.rego);
     }
     setQBikeId(m.id);
-    setQBikeMake(m.make ?? "");
-    setQBikeModel(m.model ?? "");
+    setQBikeMake(String(m.make ?? ""));
+    setQBikeModel(String(m.model ?? ""));
     setQBikeYear(m.year ? String(m.year) : "");
     setQBikeRego(m.rego ?? "");
     setQNoRego(false);
@@ -625,8 +625,8 @@ function CalendarPage() {
 
   function pickBike(b: any) {
     setQBikeId(b.id);
-    setQBikeMake(b.make ?? "");
-    setQBikeModel(b.model ?? "");
+    setQBikeMake(String(b.make ?? ""));
+    setQBikeModel(String(b.model ?? ""));
     setQBikeYear(b.year ? String(b.year) : "");
     setQBikeRego(b.rego ?? "");
     setQNoRego(false);
@@ -687,7 +687,7 @@ function CalendarPage() {
     if (!quickSlot) return;
     if (!qFirst.trim()) return toast.error("First name required");
     if (!qCustomerId && !hasPhone(qPhone)) return toast.error("A valid phone number is required");
-    if (!qBikeMake.trim() || !qBikeModel.trim()) return toast.error("Bike make and model required");
+    if (!String(qBikeMake ?? "").trim() || !String(qBikeModel ?? "").trim()) return toast.error("Bike make and model required");
     // No time restrictions: book-ins are stacked in the day, not time-slotted.
     const startTime = (quickSlot.time || "08:00").slice(0, 5);
     const endTime = addMinutesToTime(
@@ -719,8 +719,8 @@ function CalendarPage() {
           .from("motorcycles")
           .insert({
             customer_id: customerId,
-            make: qBikeMake.trim(),
-            model: qBikeModel.trim(),
+            make: String(qBikeMake ?? "").trim(),
+            model: String(qBikeModel ?? "").trim(),
             year: qBikeYear ? Number(qBikeYear) : null,
             rego: qBikeRego.trim().toUpperCase() || null,
             vin: qVin.trim().toUpperCase() || null,
