@@ -170,6 +170,9 @@ function ClockPage() {
     const { error } = await supabase.from("clock_events").insert(payload);
     if (error) return toast.error(error.message);
     toast.success(type.replace("_", " "));
+    if (type === "clock_out" && activeJob.data) {
+      setClockOutReminderJob(activeJob.data as ClockOutReminderJob);
+    }
     qc.invalidateQueries({ queryKey: ["clock-events", user.id] });
     qc.invalidateQueries({ queryKey: ["clock-events-floating", user.id] });
     qc.invalidateQueries({ queryKey: ["clock-floating-active-time-entry", user.id] });
