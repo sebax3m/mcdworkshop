@@ -3417,3 +3417,65 @@ function CalendarPage() {
     </div>
   );
 }
+
+function CustomerSearchPicker({
+  customers,
+  onPick,
+}: {
+  customers: any[];
+  onPick: (c: any) => void;
+}) {
+  const [q, setQ] = useState("");
+  const needle = q.trim().toLowerCase();
+  const digits = needle.replace(/\D/g, "");
+  const matches =
+    needle.length < 2
+      ? []
+      : customers
+          .filter((c: any) => {
+            const name = `${c.first_name ?? ""} ${c.last_name ?? ""}`.toLowerCase();
+            const phone = String(c.phone ?? "").replace(/\D/g, "");
+            return (
+              name.includes(needle) ||
+              String(c.email ?? "").toLowerCase().includes(needle) ||
+              (digits.length >= 3 && phone.includes(digits))
+            );
+          })
+          .slice(0, 12);
+  return (
+    <div className="space-y-1">
+      <input
+        type="text"
+        value={q}
+        onChange={(e) => setQ(e.target.value)}
+        placeholder="Type name, phone or email…"
+        className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-sm focus:border-primary/60 outline-none"
+      />
+      {needle.length >= 2 && (
+        <div className="max-h-48 overflow-auto rounded-md border border-border divide-y divide-border">
+          {matches.length === 0 && (
+            <div className="px-2 py-1.5 text-xs text-muted-foreground">No customers found.</div>
+          )}
+          {matches.map((c: any) => (
+            <button
+              key={c.id}
+              type="button"
+              onClick={() => {
+                onPick(c);
+                setQ("");
+              }}
+              className="w-full text-left px-2 py-1.5 text-sm hover:bg-muted/50"
+            >
+              <div className="font-medium">
+                {`${c.first_name ?? ""} ${c.last_name ?? ""}`.trim() || "Unnamed"}
+              </div>
+              <div className="text-xs text-muted-foreground">
+                {[c.phone, c.email].filter(Boolean).join(" · ") || "—"}
+              </div>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
