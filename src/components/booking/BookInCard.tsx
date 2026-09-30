@@ -268,7 +268,7 @@ export function BookInCard({
             {rego && (
               <span
                 title={rego}
-                className="inline-flex items-center rounded-[4px] border-2 border-black bg-gradient-to-b from-white to-[#e8e8e2] px-1.5 py-0 font-mono text-[0.6875rem] font-extrabold uppercase leading-[1.35] tracking-[0.06em] tabular-nums text-black shadow-[inset_0_0_0_1px_rgba(255,255,255,0.9),0_1px_2px_rgba(0,0,0,0.6)]"
+                className="inline-flex items-center rounded-[3px] border border-black bg-gradient-to-b from-white to-[#e8e8e2] px-1 py-0 font-mono text-[0.625rem] font-extrabold uppercase leading-[1.3] tracking-[0.05em] tabular-nums text-black shadow-[inset_0_0_0_1px_rgba(255,255,255,0.9),0_1px_2px_rgba(0,0,0,0.6)]"
               >
                 {rego}
               </span>
