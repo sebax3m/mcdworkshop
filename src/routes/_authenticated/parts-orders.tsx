@@ -68,7 +68,7 @@ function PartsOrdersPage() {
       const { data, error } = await supabase
         .from("booking_parts")
         .select(
-          "*, insurance_claims(id, claim_number, insurer_name, customers(first_name,last_name), motorcycles(year,make,model,rego)), bookings(id, scheduled_date, service_type, service_type_other, rego, parts_required, customers(first_name,last_name), motorcycles(year,make,model,rego))",
+          "*, insurance_claims(id, claim_number, insurer_name, customers(first_name,last_name), motorcycles(year,make,model,rego)), bookings(id, motorcycle_id, scheduled_date, service_type, service_type_other, rego, parts_required, customers(first_name,last_name), motorcycles(year,make,model,rego))",
         )
         .order("created_at", { ascending: false });
       if (error) throw error;
@@ -280,7 +280,6 @@ function PartsOrdersPage() {
                 {bike(b)} {rego(b) && <span className="font-mono">{rego(b)}</span>} · {fmtD(b.scheduled_date)}
               </span>
               {svc(b) && <span className="text-xs text-muted-foreground">· {svc(b)}</span>}
-              <span className="text-xs text-muted-foreground">· Book-in {String(b.id).slice(0, 6).toUpperCase()}</span>
               <Link
                 to="/bookings/$bookingId"
                 params={{ bookingId: b.id }}
