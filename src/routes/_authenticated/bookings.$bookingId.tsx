@@ -452,6 +452,8 @@ function BookingDetail() {
         )}
       </div>
 
+      <EditBikeCard booking={b} />
+
       <BookingPartsSection booking={b} />
 
       <TransportCard
