@@ -415,10 +415,10 @@ function PartsOrdersPage() {
               <tbody>
                 {regularRows.map((r) => (
                   <tr key={r.id} className={cn("border-b border-border/60 hover:bg-muted/40", notReady(r) && "bg-red-500/5")}>
-                    <td className="px-2 py-1.5">
+                    <td className="px-2 py-1.5 whitespace-nowrap">
                       {r.booking_id ? (
-                        <button onClick={() => nav({ search: (s: Search) => ({ ...s, bookingId: r.booking_id }) })} className="font-mono text-primary hover:underline">
-                          {String(r.booking_id).slice(0, 6).toUpperCase()}
+                        <button onClick={() => nav({ search: (s: Search) => ({ ...s, bookingId: r.booking_id }) })} className="text-primary hover:underline">
+                          {fmtD(r.bookings?.scheduled_date)}
                         </button>
                       ) : null}
                       <SourceTag r={r} />
