@@ -3,6 +3,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { PrintPreview } from "@/components/PrintPreview";
+import { ClockOutReminderDialog } from "@/components/ClockOutReminderDialog";
 import { supabase } from "@/integrations/supabase/client";
 import {
   INVENTORY_CATEGORIES,
@@ -234,6 +235,7 @@ function JobDetail() {
   const [previewOpen, setPreviewOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [clockOutReminder, setClockOutReminder] = useState(false);
   const [completingAll, setCompletingAll] = useState(false);
   const [reversingAll, setReversingAll] = useState(false);
   const [showReference, setShowReference] = useState(false);
@@ -468,6 +470,9 @@ function JobDetail() {
     qc.invalidateQueries({ queryKey: ["clock-floating-job"] });
     qc.invalidateQueries({ queryKey: ["clock-events"] });
     toast.success(`Logged ${formatMinutes(minutes)}`);
+    if (j.status !== "ready_for_pickup" && j.status !== "completed") {
+      setClockOutReminder(true);
+    }
   }
 
   const completion =
@@ -1198,6 +1203,20 @@ function JobDetail() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <ClockOutReminderDialog
+        job={
+          clockOutReminder
+            ? {
+                id: jobId,
+                job_number: j.job_number,
+                complaint: j.complaint,
+                motorcycles: (j as any).motorcycles ?? null,
+              }
+            : null
+        }
+        onClose={() => setClockOutReminder(false)}
+      />
 
       <PrintPreview
         open={previewOpen}
