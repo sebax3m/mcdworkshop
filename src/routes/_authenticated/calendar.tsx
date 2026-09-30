@@ -2128,7 +2128,38 @@ function CalendarPage() {
                         <div className="text-[0.625rem] uppercase tracking-[0.25em] text-muted-foreground flex items-center gap-1.5">
                           <UserIcon className="h-3 w-3" /> Customer assigned
                         </div>
-                        <div className="text-sm font-semibold">{customer}</div>
+                        <div className="grid grid-cols-2 gap-2">
+                          {(["first_name", "last_name"] as const).map((field) => (
+                            <input
+                              key={`${field}-${b.customer_id}`}
+                              type="text"
+                              defaultValue={b.customers?.[field] ?? ""}
+                              placeholder={field === "first_name" ? "First name" : "Last name"}
+                              disabled={!b.customer_id}
+                              onBlur={async (e) => {
+                                const v = e.target.value.trim();
+                                if (!b.customer_id) return;
+                                if ((v || null) === (b.customers?.[field] ?? null)) return;
+                                if (field === "first_name" && !v) {
+                                  e.target.value = b.customers?.first_name ?? "";
+                                  return toast.error("First name can't be empty");
+                                }
+                                const { error } = await supabase
+                                  .from("customers")
+                                  .update({ [field]: v || null } as any)
+                                  .eq("id", b.customer_id);
+                                if (error) return toast.error(error.message);
+                                patchSelected({
+                                  customers: { ...(b.customers ?? {}), [field]: v || null },
+                                });
+                                void refreshContacts(qc);
+                                toast.success("Name updated");
+                              }}
+                              className="rounded-md border border-border bg-background px-2 py-1 text-sm font-semibold focus:border-primary/60 outline-none disabled:opacity-50"
+                            />
+                          ))}
+                        </div>
+                        {!b.customer_id && <div className="text-sm font-semibold">{customer}</div>}
                         <div className="flex items-center gap-2">
                           <Phone className="h-3 w-3 text-muted-foreground shrink-0" />
                           <input
@@ -2160,47 +2191,31 @@ function CalendarPage() {
                           <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground mb-1">
                             Change customer
                           </div>
-                          <select
-                            value={b.customer_id || ""}
-                            onChange={async (e) => {
-                              const newCustomerId = e.target.value || null;
+                          <CustomerSearchPicker
+                            customers={quickCustomers.data ?? []}
+                            onPick={async (pick: any) => {
+                              const newCustomerId = pick?.id;
                               if (!newCustomerId || newCustomerId === b.customer_id) return;
                               const { error } = await supabase
                                 .from("bookings")
                                 .update({ customer_id: newCustomerId, motorcycle_id: null })
                                 .eq("id", b.id);
                               if (error) return toast.error(error.message);
-                              const pick = (quickCustomers.data ?? []).find(
-                                (x: any) => x.id === newCustomerId,
-                              );
                               patchSelected({
                                 customer_id: newCustomerId,
                                 motorcycle_id: null,
-                                customers: pick
-                                  ? {
-                                      first_name: pick.first_name,
-                                      last_name: pick.last_name,
-                                      phone: pick.phone,
-                                      email: pick.email,
-                                    }
-                                  : null,
+                                customers: {
+                                  first_name: pick.first_name,
+                                  last_name: pick.last_name,
+                                  phone: pick.phone,
+                                  email: pick.email,
+                                },
                                 motorcycles: null,
                               });
                               qc.invalidateQueries({ queryKey: ["calendar-bookings"] });
                               toast.success("Customer updated");
                             }}
-                            className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-sm focus:border-primary/60 outline-none"
-                          >
-                            <option value="">— Select customer —</option>
-                            {(quickCustomers.data ?? []).map((c: any) => (
-                              <option key={c.id} value={c.id}>
-                                {`${c.first_name ?? ""} ${c.last_name ?? ""}`.trim() ||
-                                  c.email ||
-                                  c.phone ||
-                                  "Unnamed"}
-                              </option>
-                            ))}
-                          </select>
+                          />
                         </div>
                       </div>
 
