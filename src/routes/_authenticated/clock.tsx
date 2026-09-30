@@ -324,6 +324,11 @@ function ClockPage() {
         )}
       </div>
 
+      <ClockOutReminderDialog
+        job={clockOutReminderJob}
+        onClose={() => setClockOutReminderJob(null)}
+      />
+
       <div className="grid grid-cols-2 gap-3">
         <div className="card-surface p-4">
           <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">
