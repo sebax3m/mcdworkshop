@@ -1739,11 +1739,18 @@ function InvoiceDetail() {
                       // "New item" is the placeholder a fresh line starts with:
                       // never let it hide a description typed into the row.
                       const typedName = (p.name ?? "").trim();
-                      const nameIsPlaceholder = /^new item$/i.test(typedName);
+                      const itemLabel = (p.part_number ?? "").trim() || derived.item;
+                      // A name that is the placeholder or just repeats the ITEM
+                      // label carries no product detail — fall through to the
+                      // hand-typed text (supplier) or the derived description.
+                      const nameUsable =
+                        !!typedName &&
+                        !/^new item$/i.test(typedName) &&
+                        typedName.toLowerCase() !== itemLabel.toLowerCase();
                       const display = {
-                        item: (p.part_number ?? "").trim() || derived.item,
+                        item: itemLabel,
                         description:
-                          (nameIsPlaceholder ? "" : typedName) ||
+                          (nameUsable ? typedName : "") ||
                           (p.supplier ?? "").trim() ||
                           derived.description,
                       };

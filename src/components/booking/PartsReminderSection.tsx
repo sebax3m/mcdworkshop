@@ -28,11 +28,16 @@ const norm = (s: string) => s.trim().toLowerCase().replace(/\s+/g, " ");
  */
 export function PartsReminderSection({ serviceType, serviceTypeOther, instructions, items, onChange }: Props) {
   const [manual, setManual] = useState("");
+  // Descriptions the user explicitly removed — never re-suggested this session.
+  const [dismissed, setDismissed] = useState<Set<string>>(new Set());
 
   // Live recommendations: refresh when service or instructions change, without
   // removing manual / user-touched / selected items (deduped by name).
   useEffect(() => {
-    const next = mergeSuggestions(items, buildSuggestions(serviceType, serviceTypeOther ?? "", instructions));
+    const suggestions = buildSuggestions(serviceType, serviceTypeOther ?? "", instructions).filter(
+      (s) => !dismissed.has(norm(s.description)),
+    );
+    const next = mergeSuggestions(items, suggestions);
     if (
       next.length !== items.length ||
       next.some((n, i) => items[i]?.key !== n.key || items[i]?.status !== n.status || items[i]?.selected !== n.selected)
@@ -52,11 +57,23 @@ export function PartsReminderSection({ serviceType, serviceTypeOther, instructio
       setManual("");
       return;
     }
+    setDismissed((prev) => {
+      if (!prev.has(norm(desc))) return prev;
+      const next = new Set(prev);
+      next.delete(norm(desc));
+      return next;
+    });
     onChange([
       ...items,
       { key: reminderKey(), description: desc, status: "suggested", source: "manual", selected: true, touched: true },
     ]);
     setManual("");
+  };
+
+  const removeItem = (it: ReminderItem) => {
+    // Remember the dismissal so live suggestions don't bring it back.
+    setDismissed((prev) => new Set(prev).add(norm(it.description)));
+    onChange(items.filter((x) => x.key !== it.key));
   };
 
   const selectedCount = items.filter((it) => it.selected).length;
@@ -127,7 +144,7 @@ export function PartsReminderSection({ serviceType, serviceTypeOther, instructio
                 </select>
                 <button
                   type="button"
-                  onClick={() => onChange(items.filter((x) => x.key !== it.key))}
+                  onClick={() => removeItem(it)}
                   className="grid h-6 w-6 shrink-0 place-items-center rounded-md text-muted-foreground hover:text-destructive hover:bg-destructive/10"
                   aria-label={`Remove ${it.description}`}
                 >
