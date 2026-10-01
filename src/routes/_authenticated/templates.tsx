@@ -36,7 +36,7 @@ export const Route = createFileRoute("/_authenticated/templates")({
 });
 
 const META: Record<string, { icon: any; tagline: string }> = {
-  "Basic Service": { icon: Sparkles, tagline: "Essential maintenance" },
+  "Basic / Eco Service": { icon: Sparkles, tagline: "Essential maintenance" },
   "Annual Service": { icon: Wrench, tagline: "Yearly comprehensive service" },
   "Standard Service": { icon: ShieldCheck, tagline: "Recommended service" },
   "Full Service": { icon: Zap, tagline: "Complete performance care" },
