@@ -99,6 +99,13 @@
       "when": 1790827842872,
       "tag": "0013_restrict_selected_parts_tables_to_admins",
       "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1790886138742,
+      "tag": "0014_auth_user_fks_set_null",
+      "breakpoints": true
     }
   ]
 }
