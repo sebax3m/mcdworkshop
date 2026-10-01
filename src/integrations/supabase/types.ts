@@ -4390,6 +4390,10 @@ export type Database = {
           supplier: string
         }[]
       }
+      set_clock_event_note: {
+        Args: { p_event_id: string; p_note: string }
+        Returns: undefined
+      }
       sync_booking_part_to_job: {
         Args: { p_bp_id: string }
         Returns: undefined
