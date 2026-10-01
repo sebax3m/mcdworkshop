@@ -515,9 +515,22 @@ function PartsOrdersPage() {
             <table className="w-full text-xs">
               <thead className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">
                 <tr className="border-b border-border">
-                  {["Book-in", "Date", "Customer", "Motorcycle", "Rego", "Service", "Part", "Part #", "Qty", "Supplier", "Order ref", "Ordered", "ETA", "Status", "Notes", ""].map((h) => (
-                    <th key={h} className="px-2 py-2 text-left font-bold whitespace-nowrap">{h}</th>
-                  ))}
+                  <SortTh k="date">Book-in</SortTh>
+                  <SortTh k="date">Date</SortTh>
+                  <SortTh k="customer">Customer</SortTh>
+                  <SortTh k="bike">Motorcycle</SortTh>
+                  <SortTh k="rego">Rego</SortTh>
+                  <SortTh k="service">Service</SortTh>
+                  <SortTh k="part">Part</SortTh>
+                  <SortTh k="partNumber">Part #</SortTh>
+                  <SortTh k="qty">Qty</SortTh>
+                  <SortTh k="supplier">Supplier</SortTh>
+                  <SortTh k="orderRef">Order ref</SortTh>
+                  <SortTh k="ordered">Ordered</SortTh>
+                  <SortTh k="eta">ETA</SortTh>
+                  <SortTh k="status">Status</SortTh>
+                  <SortTh k="notes">Notes</SortTh>
+                  <th className="px-2 py-2 text-left font-bold whitespace-nowrap" />
                 </tr>
               </thead>
               <tbody>
