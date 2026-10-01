@@ -278,7 +278,7 @@ ${
              var bounds = row.getBoundingClientRect();
              var top = bounds.top - pageTop;
              var bottom = bounds.bottom - pageTop;
-             if (top < usable && bottom > usable - ITEM_FOOT_CLEARANCE) {
+             if (top < usable - ITEM_FOOT_CLEARANCE && bottom > usable - ITEM_FOOT_CLEARANCE) {
                var spacer = document.createElement('tr');
                spacer.setAttribute('data-page-spacer', '');
                var cell = document.createElement('td');
