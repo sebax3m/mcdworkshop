@@ -3582,6 +3582,17 @@ function TimeEntriesEditor({
                           <span className="text-status-progress">running…</span>
                         )}
                       </div>
+                      {editable ? (
+                        <TimeEntryNote
+                          entryId={e.id}
+                          initial={e.note ?? ""}
+                          onSaved={() => qc.invalidateQueries({ queryKey: ["job-time", jobId] })}
+                        />
+                      ) : (
+                        e.note && (
+                          <div className="text-[0.625rem] text-foreground/80 mt-0.5">{e.note}</div>
+                        )
+                      )}
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
                       <span className="font-mono font-bold">{formatMinutes(mins)}</span>
