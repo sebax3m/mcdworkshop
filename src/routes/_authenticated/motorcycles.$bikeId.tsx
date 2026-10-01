@@ -46,7 +46,7 @@ function BikeErrorComponent({ error, reset }: ErrorComponentProps) {
   return (
     <div className="card-surface p-6 space-y-3">
       <div className="font-semibold">Couldn't load bike</div>
-      <div className="text-sm text-muted-foreground">{error.message}</div>
+      <div className="text-sm text-muted-foreground">{(error as Error)?.message}</div>
       <button
         className="text-sm text-primary"
         onClick={() => {
