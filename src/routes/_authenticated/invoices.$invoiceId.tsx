@@ -967,8 +967,8 @@ function InvoiceDetail() {
         const { error } = await supabase.from("parts").insert({
           job_id: inv.job_id,
           part_number: "Consumables",
-          name: "Workshop consumables",
-          supplier: "Workshop consumables",
+          name: "Workshop consumables: Washers, lubricants, etc",
+          supplier: "Workshop consumables: Washers, lubricants, etc",
           quantity: 1,
           cost: 0,
           retail: 0,
@@ -981,7 +981,7 @@ function InvoiceDetail() {
       } else {
         await saveSnapshotLines([
           ...currentSnapshotLines(),
-          { item_name: "Consumables", description: "Workshop consumables", quantity: 1, unit: 0, discount_pct: 0 },
+          { item_name: "Consumables", description: "Workshop consumables: Washers, lubricants, etc", quantity: 1, unit: 0, discount_pct: 0 },
         ]);
       }
     } catch (error) {
