@@ -3490,8 +3490,6 @@ function TimeEntriesEditor({
     qc.invalidateQueries({ queryKey: ["job-time", jobId] });
   }
 
-  if (sorted.length === 0) return null;
-
   return (
     <div className="mt-4 pt-3 border-t border-border/50 no-print">
       <button
@@ -3506,7 +3504,12 @@ function TimeEntriesEditor({
           className={`h-3.5 w-3.5 transition-transform ${expanded ? "rotate-180" : ""}`}
         />
       </button>
-      {expanded && (
+      {expanded && sorted.length === 0 && (
+        <p className="mt-2 text-xs text-muted-foreground">
+          No time entries yet. Clock in on this job from the Clock page to start tracking time.
+        </p>
+      )}
+      {expanded && sorted.length > 0 && (
         <ul className="mt-2 space-y-1.5">
           {sorted.map((e) => {
             const editable = canEditEntry(e);
