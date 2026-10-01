@@ -471,11 +471,17 @@ export default function WorkPerformedSection({
                 type="button"
                 variant="ghost"
                 size="sm"
+                disabled={fixing !== null}
                 className="h-7 gap-1.5 text-xs text-primary"
                 onClick={() => runFixWording("draft")}
               >
-                <Wand2 className="h-3.5 w-3.5" />
-                Fix Wording
+                {fixing === "draft" ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <Wand2 className="h-3.5 w-3.5" />
+                )}
+                {fixing === "draft" ? "Writing report…" : "Fix Wording"}
+
               </Button>
             </div>
 
