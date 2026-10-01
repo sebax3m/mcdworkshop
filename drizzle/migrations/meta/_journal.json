@@ -92,6 +92,13 @@
       "when": 1790741742754,
       "tag": "0012_sync_ordered_booking_parts_to_job",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1790827842872,
+      "tag": "0013_restrict_selected_parts_tables_to_admins",
+      "breakpoints": true
     }
   ]
 }
