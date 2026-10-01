@@ -9,69 +9,65 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as IndexRouteImport } from './routes/index'
-import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
-import { Route as AuthRouteImport } from './routes/auth'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
-import { Route as AuthenticatedAccountRouteImport } from './routes/_authenticated/account'
-import { Route as AuthenticatedAnalyticsRouteImport } from './routes/_authenticated/analytics'
-import { Route as AuthenticatedCalendarRouteImport } from './routes/_authenticated/calendar'
-import { Route as AuthenticatedClockRouteImport } from './routes/_authenticated/clock'
-import { Route as AuthenticatedCustomersRouteImport } from './routes/_authenticated/customers'
-import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
-import { Route as AuthenticatedInsuranceRouteImport } from './routes/_authenticated/insurance'
-import { Route as AuthenticatedInventoryRouteImport } from './routes/_authenticated/inventory'
-import { Route as AuthenticatedInvoicesRouteImport } from './routes/_authenticated/invoices'
-import { Route as AuthenticatedMyWorkRouteImport } from './routes/_authenticated/my-work'
-import { Route as AuthenticatedPartsOrdersRouteImport } from './routes/_authenticated/parts-orders'
-import { Route as AuthenticatedPostBikeRouteImport } from './routes/_authenticated/post-bike'
-import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
-import { Route as AuthenticatedTemplatesRouteImport } from './routes/_authenticated/templates'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
+import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedUsersRouteImport } from './routes/_authenticated/users'
-import { Route as AuthenticatedBookInsDateRouteImport } from './routes/_authenticated/book-ins.$date'
-import { Route as AuthenticatedBookingsIndexRouteImport } from './routes/_authenticated/bookings.index'
-import { Route as AuthenticatedBookingsBookingIdRouteImport } from './routes/_authenticated/bookings.$bookingId'
-import { Route as AuthenticatedBookingsNewRouteImport } from './routes/_authenticated/bookings.new'
-import { Route as AuthenticatedCustomersIndexRouteImport } from './routes/_authenticated/customers.index'
-import { Route as AuthenticatedCustomersCustomerIdRouteImport } from './routes/_authenticated/customers.$customerId'
-import { Route as AuthenticatedGarageLibraryIndexRouteImport } from './routes/_authenticated/garage-library.index'
-import { Route as AuthenticatedGarageLibraryModelIdRouteImport } from './routes/_authenticated/garage-library.$modelId'
-import { Route as AuthenticatedGarageLibraryAnalyticsRouteImport } from './routes/_authenticated/garage-library.analytics'
-import { Route as AuthenticatedGarageLibraryDocumentsRouteImport } from './routes/_authenticated/garage-library.documents'
-import { Route as AuthenticatedGarageLibraryImportRouteImport } from './routes/_authenticated/garage-library.import'
-import { Route as AuthenticatedGarageLibraryResearchRouteImport } from './routes/_authenticated/garage-library.research'
-import { Route as AuthenticatedGarageLibraryReviewRouteImport } from './routes/_authenticated/garage-library.review'
-import { Route as AuthenticatedGarageLibraryTechRouteImport } from './routes/_authenticated/garage-library.tech'
-import { Route as AuthenticatedGarageLibraryUpdatesRouteImport } from './routes/_authenticated/garage-library.updates'
-import { Route as AuthenticatedInsuranceIndexRouteImport } from './routes/_authenticated/insurance.index'
-import { Route as AuthenticatedInsuranceClaimIdRouteImport } from './routes/_authenticated/insurance.$claimId'
-import { Route as AuthenticatedInsuranceNewRouteImport } from './routes/_authenticated/insurance.new'
-import { Route as AuthenticatedInvoicesIndexRouteImport } from './routes/_authenticated/invoices.index'
-import { Route as AuthenticatedInvoicesInvoiceIdRouteImport } from './routes/_authenticated/invoices.$invoiceId'
-import { Route as AuthenticatedInvoicesNewRouteImport } from './routes/_authenticated/invoices.new'
-import { Route as AuthenticatedJobsIndexRouteImport } from './routes/_authenticated/jobs.index'
-import { Route as AuthenticatedJobsJobIdRouteImport } from './routes/_authenticated/jobs.$jobId'
-import { Route as AuthenticatedJobsNewRouteImport } from './routes/_authenticated/jobs.new'
-import { Route as AuthenticatedLoanBikesIndexRouteImport } from './routes/_authenticated/loan-bikes.index'
-import { Route as AuthenticatedLoanBikesBikeIdRouteImport } from './routes/_authenticated/loan-bikes.$bikeId'
+import { Route as AuthenticatedTemplatesRouteImport } from './routes/_authenticated/templates'
+import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
+import { Route as AuthenticatedPostBikeRouteImport } from './routes/_authenticated/post-bike'
+import { Route as AuthenticatedPartsOrdersRouteImport } from './routes/_authenticated/parts-orders'
+import { Route as AuthenticatedMyWorkRouteImport } from './routes/_authenticated/my-work'
+import { Route as AuthenticatedInvoicesRouteImport } from './routes/_authenticated/invoices'
+import { Route as AuthenticatedInventoryRouteImport } from './routes/_authenticated/inventory'
+import { Route as AuthenticatedInsuranceRouteImport } from './routes/_authenticated/insurance'
+import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedCustomersRouteImport } from './routes/_authenticated/customers'
+import { Route as AuthenticatedClockRouteImport } from './routes/_authenticated/clock'
+import { Route as AuthenticatedCalendarRouteImport } from './routes/_authenticated/calendar'
+import { Route as AuthenticatedAnalyticsRouteImport } from './routes/_authenticated/analytics'
+import { Route as AuthenticatedAccountRouteImport } from './routes/_authenticated/account'
 import { Route as AuthenticatedMotorcyclesIndexRouteImport } from './routes/_authenticated/motorcycles.index'
-import { Route as AuthenticatedMotorcyclesBikeIdRouteImport } from './routes/_authenticated/motorcycles.$bikeId'
-import { Route as AuthenticatedSettingsBookingTypesRouteImport } from './routes/_authenticated/settings_.booking-types'
-import { Route as AuthenticatedSettingsCapacityRouteImport } from './routes/_authenticated/settings_.capacity'
-import { Route as AuthenticatedSettingsGoogleCalendarRouteImport } from './routes/_authenticated/settings_.google-calendar'
-import { Route as AuthenticatedSettingsMcdTechRouteImport } from './routes/_authenticated/settings_.mcd-tech'
-import { Route as AuthenticatedSettingsPartsSuppliersRouteImport } from './routes/_authenticated/settings_.parts-suppliers'
-import { Route as AuthenticatedSettingsThemesRouteImport } from './routes/_authenticated/settings_.themes'
+import { Route as AuthenticatedLoanBikesIndexRouteImport } from './routes/_authenticated/loan-bikes.index'
+import { Route as AuthenticatedJobsIndexRouteImport } from './routes/_authenticated/jobs.index'
+import { Route as AuthenticatedInvoicesIndexRouteImport } from './routes/_authenticated/invoices.index'
+import { Route as AuthenticatedInsuranceIndexRouteImport } from './routes/_authenticated/insurance.index'
+import { Route as AuthenticatedGarageLibraryIndexRouteImport } from './routes/_authenticated/garage-library.index'
+import { Route as AuthenticatedCustomersIndexRouteImport } from './routes/_authenticated/customers.index'
+import { Route as AuthenticatedBookingsIndexRouteImport } from './routes/_authenticated/bookings.index'
 import { Route as OauthGoogleCalendarReturnRouteImport } from './routes/oauth/google-calendar/return'
+import { Route as AuthenticatedSettingsThemesRouteImport } from './routes/_authenticated/settings_.themes'
+import { Route as AuthenticatedSettingsPartsSuppliersRouteImport } from './routes/_authenticated/settings_.parts-suppliers'
+import { Route as AuthenticatedSettingsMcdTechRouteImport } from './routes/_authenticated/settings_.mcd-tech'
+import { Route as AuthenticatedSettingsGoogleCalendarRouteImport } from './routes/_authenticated/settings_.google-calendar'
+import { Route as AuthenticatedSettingsCapacityRouteImport } from './routes/_authenticated/settings_.capacity'
+import { Route as AuthenticatedSettingsBookingTypesRouteImport } from './routes/_authenticated/settings_.booking-types'
+import { Route as AuthenticatedMotorcyclesBikeIdRouteImport } from './routes/_authenticated/motorcycles.$bikeId'
+import { Route as AuthenticatedLoanBikesBikeIdRouteImport } from './routes/_authenticated/loan-bikes.$bikeId'
+import { Route as AuthenticatedJobsNewRouteImport } from './routes/_authenticated/jobs.new'
+import { Route as AuthenticatedJobsJobIdRouteImport } from './routes/_authenticated/jobs.$jobId'
+import { Route as AuthenticatedInvoicesNewRouteImport } from './routes/_authenticated/invoices.new'
+import { Route as AuthenticatedInvoicesInvoiceIdRouteImport } from './routes/_authenticated/invoices.$invoiceId'
+import { Route as AuthenticatedInsuranceNewRouteImport } from './routes/_authenticated/insurance.new'
+import { Route as AuthenticatedInsuranceClaimIdRouteImport } from './routes/_authenticated/insurance.$claimId'
+import { Route as AuthenticatedGarageLibraryUpdatesRouteImport } from './routes/_authenticated/garage-library.updates'
+import { Route as AuthenticatedGarageLibraryTechRouteImport } from './routes/_authenticated/garage-library.tech'
+import { Route as AuthenticatedGarageLibraryReviewRouteImport } from './routes/_authenticated/garage-library.review'
+import { Route as AuthenticatedGarageLibraryResearchRouteImport } from './routes/_authenticated/garage-library.research'
+import { Route as AuthenticatedGarageLibraryImportRouteImport } from './routes/_authenticated/garage-library.import'
+import { Route as AuthenticatedGarageLibraryDocumentsRouteImport } from './routes/_authenticated/garage-library.documents'
+import { Route as AuthenticatedGarageLibraryAnalyticsRouteImport } from './routes/_authenticated/garage-library.analytics'
+import { Route as AuthenticatedGarageLibraryModelIdRouteImport } from './routes/_authenticated/garage-library.$modelId'
+import { Route as AuthenticatedCustomersCustomerIdRouteImport } from './routes/_authenticated/customers.$customerId'
+import { Route as AuthenticatedBookingsNewRouteImport } from './routes/_authenticated/bookings.new'
+import { Route as AuthenticatedBookingsBookingIdRouteImport } from './routes/_authenticated/bookings.$bookingId'
+import { Route as AuthenticatedBookInsDateRouteImport } from './routes/_authenticated/book-ins.$date'
 import { Route as AuthenticatedJobsJobIdInvoiceDraftRouteImport } from './routes/_authenticated/jobs_.$jobId.invoice-draft'
 
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
-  id: '/_authenticated',
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthRoute = AuthRouteImport.update({
@@ -79,59 +75,33 @@ const AuthRoute = AuthRouteImport.update({
   path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ResetPasswordRoute = ResetPasswordRouteImport.update({
-  id: '/reset-password',
-  path: '/reset-password',
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
+  id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedAccountRoute = AuthenticatedAccountRouteImport.update({
-  id: '/account',
-  path: '/account',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedUsersRoute = AuthenticatedUsersRouteImport.update({
+  id: '/users',
+  path: '/users',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedAnalyticsRoute = AuthenticatedAnalyticsRouteImport.update({
-  id: '/analytics',
-  path: '/analytics',
+const AuthenticatedTemplatesRoute = AuthenticatedTemplatesRouteImport.update({
+  id: '/templates',
+  path: '/templates',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedCalendarRoute = AuthenticatedCalendarRouteImport.update({
-  id: '/calendar',
-  path: '/calendar',
+const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedClockRoute = AuthenticatedClockRouteImport.update({
-  id: '/clock',
-  path: '/clock',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedCustomersRoute = AuthenticatedCustomersRouteImport.update({
-  id: '/customers',
-  path: '/customers',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
-  id: '/dashboard',
-  path: '/dashboard',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedInsuranceRoute = AuthenticatedInsuranceRouteImport.update({
-  id: '/insurance',
-  path: '/insurance',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedInventoryRoute = AuthenticatedInventoryRouteImport.update({
-  id: '/inventory',
-  path: '/inventory',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedInvoicesRoute = AuthenticatedInvoicesRouteImport.update({
-  id: '/invoices',
-  path: '/invoices',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedMyWorkRoute = AuthenticatedMyWorkRouteImport.update({
-  id: '/my-work',
-  path: '/my-work',
+const AuthenticatedPostBikeRoute = AuthenticatedPostBikeRouteImport.update({
+  id: '/post-bike',
+  path: '/post-bike',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedPartsOrdersRoute =
@@ -140,48 +110,89 @@ const AuthenticatedPartsOrdersRoute =
     path: '/parts-orders',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const AuthenticatedPostBikeRoute = AuthenticatedPostBikeRouteImport.update({
-  id: '/post-bike',
-  path: '/post-bike',
+const AuthenticatedMyWorkRoute = AuthenticatedMyWorkRouteImport.update({
+  id: '/my-work',
+  path: '/my-work',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
-  id: '/settings',
-  path: '/settings',
+const AuthenticatedInvoicesRoute = AuthenticatedInvoicesRouteImport.update({
+  id: '/invoices',
+  path: '/invoices',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedTemplatesRoute = AuthenticatedTemplatesRouteImport.update({
-  id: '/templates',
-  path: '/templates',
+const AuthenticatedInventoryRoute = AuthenticatedInventoryRouteImport.update({
+  id: '/inventory',
+  path: '/inventory',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedUsersRoute = AuthenticatedUsersRouteImport.update({
-  id: '/users',
-  path: '/users',
+const AuthenticatedInsuranceRoute = AuthenticatedInsuranceRouteImport.update({
+  id: '/insurance',
+  path: '/insurance',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedBookInsDateRoute =
-  AuthenticatedBookInsDateRouteImport.update({
-    id: '/book-ins/$date',
-    path: '/book-ins/$date',
+const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedCustomersRoute = AuthenticatedCustomersRouteImport.update({
+  id: '/customers',
+  path: '/customers',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedClockRoute = AuthenticatedClockRouteImport.update({
+  id: '/clock',
+  path: '/clock',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedCalendarRoute = AuthenticatedCalendarRouteImport.update({
+  id: '/calendar',
+  path: '/calendar',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedAnalyticsRoute = AuthenticatedAnalyticsRouteImport.update({
+  id: '/analytics',
+  path: '/analytics',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedAccountRoute = AuthenticatedAccountRouteImport.update({
+  id: '/account',
+  path: '/account',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedMotorcyclesIndexRoute =
+  AuthenticatedMotorcyclesIndexRouteImport.update({
+    id: '/motorcycles/',
+    path: '/motorcycles/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const AuthenticatedBookingsIndexRoute =
-  AuthenticatedBookingsIndexRouteImport.update({
-    id: '/bookings/',
-    path: '/bookings/',
+const AuthenticatedLoanBikesIndexRoute =
+  AuthenticatedLoanBikesIndexRouteImport.update({
+    id: '/loan-bikes/',
+    path: '/loan-bikes/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const AuthenticatedBookingsBookingIdRoute =
-  AuthenticatedBookingsBookingIdRouteImport.update({
-    id: '/bookings/$bookingId',
-    path: '/bookings/$bookingId',
-    getParentRoute: () => AuthenticatedRouteRoute,
+const AuthenticatedJobsIndexRoute = AuthenticatedJobsIndexRouteImport.update({
+  id: '/jobs/',
+  path: '/jobs/',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedInvoicesIndexRoute =
+  AuthenticatedInvoicesIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedInvoicesRoute,
   } as any)
-const AuthenticatedBookingsNewRoute =
-  AuthenticatedBookingsNewRouteImport.update({
-    id: '/bookings/new',
-    path: '/bookings/new',
+const AuthenticatedInsuranceIndexRoute =
+  AuthenticatedInsuranceIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedInsuranceRoute,
+  } as any)
+const AuthenticatedGarageLibraryIndexRoute =
+  AuthenticatedGarageLibraryIndexRouteImport.update({
+    id: '/garage-library/',
+    path: '/garage-library/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedCustomersIndexRoute =
@@ -190,163 +201,22 @@ const AuthenticatedCustomersIndexRoute =
     path: '/',
     getParentRoute: () => AuthenticatedCustomersRoute,
   } as any)
-const AuthenticatedCustomersCustomerIdRoute =
-  AuthenticatedCustomersCustomerIdRouteImport.update({
-    id: '/$customerId',
-    path: '/$customerId',
-    getParentRoute: () => AuthenticatedCustomersRoute,
-  } as any)
-const AuthenticatedGarageLibraryIndexRoute =
-  AuthenticatedGarageLibraryIndexRouteImport.update({
-    id: '/garage-library/',
-    path: '/garage-library/',
+const AuthenticatedBookingsIndexRoute =
+  AuthenticatedBookingsIndexRouteImport.update({
+    id: '/bookings/',
+    path: '/bookings/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const AuthenticatedGarageLibraryModelIdRoute =
-  AuthenticatedGarageLibraryModelIdRouteImport.update({
-    id: '/garage-library/$modelId',
-    path: '/garage-library/$modelId',
-    getParentRoute: () => AuthenticatedRouteRoute,
+const OauthGoogleCalendarReturnRoute =
+  OauthGoogleCalendarReturnRouteImport.update({
+    id: '/oauth/google-calendar/return',
+    path: '/oauth/google-calendar/return',
+    getParentRoute: () => rootRouteImport,
   } as any)
-const AuthenticatedGarageLibraryAnalyticsRoute =
-  AuthenticatedGarageLibraryAnalyticsRouteImport.update({
-    id: '/garage-library/analytics',
-    path: '/garage-library/analytics',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedGarageLibraryDocumentsRoute =
-  AuthenticatedGarageLibraryDocumentsRouteImport.update({
-    id: '/garage-library/documents',
-    path: '/garage-library/documents',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedGarageLibraryImportRoute =
-  AuthenticatedGarageLibraryImportRouteImport.update({
-    id: '/garage-library/import',
-    path: '/garage-library/import',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedGarageLibraryResearchRoute =
-  AuthenticatedGarageLibraryResearchRouteImport.update({
-    id: '/garage-library/research',
-    path: '/garage-library/research',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedGarageLibraryReviewRoute =
-  AuthenticatedGarageLibraryReviewRouteImport.update({
-    id: '/garage-library/review',
-    path: '/garage-library/review',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedGarageLibraryTechRoute =
-  AuthenticatedGarageLibraryTechRouteImport.update({
-    id: '/garage-library/tech',
-    path: '/garage-library/tech',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedGarageLibraryUpdatesRoute =
-  AuthenticatedGarageLibraryUpdatesRouteImport.update({
-    id: '/garage-library/updates',
-    path: '/garage-library/updates',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedInsuranceIndexRoute =
-  AuthenticatedInsuranceIndexRouteImport.update({
-    id: '/',
-    path: '/',
-    getParentRoute: () => AuthenticatedInsuranceRoute,
-  } as any)
-const AuthenticatedInsuranceClaimIdRoute =
-  AuthenticatedInsuranceClaimIdRouteImport.update({
-    id: '/$claimId',
-    path: '/$claimId',
-    getParentRoute: () => AuthenticatedInsuranceRoute,
-  } as any)
-const AuthenticatedInsuranceNewRoute =
-  AuthenticatedInsuranceNewRouteImport.update({
-    id: '/new',
-    path: '/new',
-    getParentRoute: () => AuthenticatedInsuranceRoute,
-  } as any)
-const AuthenticatedInvoicesIndexRoute =
-  AuthenticatedInvoicesIndexRouteImport.update({
-    id: '/',
-    path: '/',
-    getParentRoute: () => AuthenticatedInvoicesRoute,
-  } as any)
-const AuthenticatedInvoicesInvoiceIdRoute =
-  AuthenticatedInvoicesInvoiceIdRouteImport.update({
-    id: '/$invoiceId',
-    path: '/$invoiceId',
-    getParentRoute: () => AuthenticatedInvoicesRoute,
-  } as any)
-const AuthenticatedInvoicesNewRoute =
-  AuthenticatedInvoicesNewRouteImport.update({
-    id: '/new',
-    path: '/new',
-    getParentRoute: () => AuthenticatedInvoicesRoute,
-  } as any)
-const AuthenticatedJobsIndexRoute = AuthenticatedJobsIndexRouteImport.update({
-  id: '/jobs/',
-  path: '/jobs/',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedJobsJobIdRoute = AuthenticatedJobsJobIdRouteImport.update({
-  id: '/jobs/$jobId',
-  path: '/jobs/$jobId',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedJobsNewRoute = AuthenticatedJobsNewRouteImport.update({
-  id: '/jobs/new',
-  path: '/jobs/new',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedLoanBikesIndexRoute =
-  AuthenticatedLoanBikesIndexRouteImport.update({
-    id: '/loan-bikes/',
-    path: '/loan-bikes/',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedLoanBikesBikeIdRoute =
-  AuthenticatedLoanBikesBikeIdRouteImport.update({
-    id: '/loan-bikes/$bikeId',
-    path: '/loan-bikes/$bikeId',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedMotorcyclesIndexRoute =
-  AuthenticatedMotorcyclesIndexRouteImport.update({
-    id: '/motorcycles/',
-    path: '/motorcycles/',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedMotorcyclesBikeIdRoute =
-  AuthenticatedMotorcyclesBikeIdRouteImport.update({
-    id: '/motorcycles/$bikeId',
-    path: '/motorcycles/$bikeId',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedSettingsBookingTypesRoute =
-  AuthenticatedSettingsBookingTypesRouteImport.update({
-    id: '/settings_/booking-types',
-    path: '/settings/booking-types',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedSettingsCapacityRoute =
-  AuthenticatedSettingsCapacityRouteImport.update({
-    id: '/settings_/capacity',
-    path: '/settings/capacity',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedSettingsGoogleCalendarRoute =
-  AuthenticatedSettingsGoogleCalendarRouteImport.update({
-    id: '/settings_/google-calendar',
-    path: '/settings/google-calendar',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedSettingsMcdTechRoute =
-  AuthenticatedSettingsMcdTechRouteImport.update({
-    id: '/settings_/mcd-tech',
-    path: '/settings/mcd-tech',
+const AuthenticatedSettingsThemesRoute =
+  AuthenticatedSettingsThemesRouteImport.update({
+    id: '/settings_/themes',
+    path: '/settings/themes',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedSettingsPartsSuppliersRoute =
@@ -355,17 +225,147 @@ const AuthenticatedSettingsPartsSuppliersRoute =
     path: '/settings/parts-suppliers',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const AuthenticatedSettingsThemesRoute =
-  AuthenticatedSettingsThemesRouteImport.update({
-    id: '/settings_/themes',
-    path: '/settings/themes',
+const AuthenticatedSettingsMcdTechRoute =
+  AuthenticatedSettingsMcdTechRouteImport.update({
+    id: '/settings_/mcd-tech',
+    path: '/settings/mcd-tech',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const OauthGoogleCalendarReturnRoute =
-  OauthGoogleCalendarReturnRouteImport.update({
-    id: '/oauth/google-calendar/return',
-    path: '/oauth/google-calendar/return',
-    getParentRoute: () => rootRouteImport,
+const AuthenticatedSettingsGoogleCalendarRoute =
+  AuthenticatedSettingsGoogleCalendarRouteImport.update({
+    id: '/settings_/google-calendar',
+    path: '/settings/google-calendar',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedSettingsCapacityRoute =
+  AuthenticatedSettingsCapacityRouteImport.update({
+    id: '/settings_/capacity',
+    path: '/settings/capacity',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedSettingsBookingTypesRoute =
+  AuthenticatedSettingsBookingTypesRouteImport.update({
+    id: '/settings_/booking-types',
+    path: '/settings/booking-types',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedMotorcyclesBikeIdRoute =
+  AuthenticatedMotorcyclesBikeIdRouteImport.update({
+    id: '/motorcycles/$bikeId',
+    path: '/motorcycles/$bikeId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedLoanBikesBikeIdRoute =
+  AuthenticatedLoanBikesBikeIdRouteImport.update({
+    id: '/loan-bikes/$bikeId',
+    path: '/loan-bikes/$bikeId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedJobsNewRoute = AuthenticatedJobsNewRouteImport.update({
+  id: '/jobs/new',
+  path: '/jobs/new',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedJobsJobIdRoute = AuthenticatedJobsJobIdRouteImport.update({
+  id: '/jobs/$jobId',
+  path: '/jobs/$jobId',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedInvoicesNewRoute =
+  AuthenticatedInvoicesNewRouteImport.update({
+    id: '/new',
+    path: '/new',
+    getParentRoute: () => AuthenticatedInvoicesRoute,
+  } as any)
+const AuthenticatedInvoicesInvoiceIdRoute =
+  AuthenticatedInvoicesInvoiceIdRouteImport.update({
+    id: '/$invoiceId',
+    path: '/$invoiceId',
+    getParentRoute: () => AuthenticatedInvoicesRoute,
+  } as any)
+const AuthenticatedInsuranceNewRoute =
+  AuthenticatedInsuranceNewRouteImport.update({
+    id: '/new',
+    path: '/new',
+    getParentRoute: () => AuthenticatedInsuranceRoute,
+  } as any)
+const AuthenticatedInsuranceClaimIdRoute =
+  AuthenticatedInsuranceClaimIdRouteImport.update({
+    id: '/$claimId',
+    path: '/$claimId',
+    getParentRoute: () => AuthenticatedInsuranceRoute,
+  } as any)
+const AuthenticatedGarageLibraryUpdatesRoute =
+  AuthenticatedGarageLibraryUpdatesRouteImport.update({
+    id: '/garage-library/updates',
+    path: '/garage-library/updates',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedGarageLibraryTechRoute =
+  AuthenticatedGarageLibraryTechRouteImport.update({
+    id: '/garage-library/tech',
+    path: '/garage-library/tech',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedGarageLibraryReviewRoute =
+  AuthenticatedGarageLibraryReviewRouteImport.update({
+    id: '/garage-library/review',
+    path: '/garage-library/review',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedGarageLibraryResearchRoute =
+  AuthenticatedGarageLibraryResearchRouteImport.update({
+    id: '/garage-library/research',
+    path: '/garage-library/research',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedGarageLibraryImportRoute =
+  AuthenticatedGarageLibraryImportRouteImport.update({
+    id: '/garage-library/import',
+    path: '/garage-library/import',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedGarageLibraryDocumentsRoute =
+  AuthenticatedGarageLibraryDocumentsRouteImport.update({
+    id: '/garage-library/documents',
+    path: '/garage-library/documents',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedGarageLibraryAnalyticsRoute =
+  AuthenticatedGarageLibraryAnalyticsRouteImport.update({
+    id: '/garage-library/analytics',
+    path: '/garage-library/analytics',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedGarageLibraryModelIdRoute =
+  AuthenticatedGarageLibraryModelIdRouteImport.update({
+    id: '/garage-library/$modelId',
+    path: '/garage-library/$modelId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedCustomersCustomerIdRoute =
+  AuthenticatedCustomersCustomerIdRouteImport.update({
+    id: '/$customerId',
+    path: '/$customerId',
+    getParentRoute: () => AuthenticatedCustomersRoute,
+  } as any)
+const AuthenticatedBookingsNewRoute =
+  AuthenticatedBookingsNewRouteImport.update({
+    id: '/bookings/new',
+    path: '/bookings/new',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedBookingsBookingIdRoute =
+  AuthenticatedBookingsBookingIdRouteImport.update({
+    id: '/bookings/$bookingId',
+    path: '/bookings/$bookingId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedBookInsDateRoute =
+  AuthenticatedBookInsDateRouteImport.update({
+    id: '/book-ins/$date',
+    path: '/book-ins/$date',
+    getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedJobsJobIdInvoiceDraftRoute =
   AuthenticatedJobsJobIdInvoiceDraftRouteImport.update({
@@ -720,18 +720,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/_authenticated': {
-      id: '/_authenticated'
-      path: ''
-      fullPath: '/'
-      preLoaderRoute: typeof AuthenticatedRouteRouteImport
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth': {
@@ -741,102 +734,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/reset-password': {
-      id: '/reset-password'
-      path: '/reset-password'
-      fullPath: '/reset-password'
-      preLoaderRoute: typeof ResetPasswordRouteImport
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/account': {
-      id: '/_authenticated/account'
-      path: '/account'
-      fullPath: '/account'
-      preLoaderRoute: typeof AuthenticatedAccountRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/analytics': {
-      id: '/_authenticated/analytics'
-      path: '/analytics'
-      fullPath: '/analytics'
-      preLoaderRoute: typeof AuthenticatedAnalyticsRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/calendar': {
-      id: '/_authenticated/calendar'
-      path: '/calendar'
-      fullPath: '/calendar'
-      preLoaderRoute: typeof AuthenticatedCalendarRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/clock': {
-      id: '/_authenticated/clock'
-      path: '/clock'
-      fullPath: '/clock'
-      preLoaderRoute: typeof AuthenticatedClockRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/customers': {
-      id: '/_authenticated/customers'
-      path: '/customers'
-      fullPath: '/customers'
-      preLoaderRoute: typeof AuthenticatedCustomersRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/dashboard': {
-      id: '/_authenticated/dashboard'
-      path: '/dashboard'
-      fullPath: '/dashboard'
-      preLoaderRoute: typeof AuthenticatedDashboardRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/insurance': {
-      id: '/_authenticated/insurance'
-      path: '/insurance'
-      fullPath: '/insurance'
-      preLoaderRoute: typeof AuthenticatedInsuranceRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/inventory': {
-      id: '/_authenticated/inventory'
-      path: '/inventory'
-      fullPath: '/inventory'
-      preLoaderRoute: typeof AuthenticatedInventoryRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/invoices': {
-      id: '/_authenticated/invoices'
-      path: '/invoices'
-      fullPath: '/invoices'
-      preLoaderRoute: typeof AuthenticatedInvoicesRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/my-work': {
-      id: '/_authenticated/my-work'
-      path: '/my-work'
-      fullPath: '/my-work'
-      preLoaderRoute: typeof AuthenticatedMyWorkRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/parts-orders': {
-      id: '/_authenticated/parts-orders'
-      path: '/parts-orders'
-      fullPath: '/parts-orders'
-      preLoaderRoute: typeof AuthenticatedPartsOrdersRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/post-bike': {
-      id: '/_authenticated/post-bike'
-      path: '/post-bike'
-      fullPath: '/post-bike'
-      preLoaderRoute: typeof AuthenticatedPostBikeRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/settings': {
-      id: '/_authenticated/settings'
-      path: '/settings'
-      fullPath: '/settings'
-      preLoaderRoute: typeof AuthenticatedSettingsRouteImport
+    '/_authenticated/users': {
+      id: '/_authenticated/users'
+      path: '/users'
+      fullPath: '/users'
+      preLoaderRoute: typeof AuthenticatedUsersRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/templates': {
@@ -846,193 +762,95 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedTemplatesRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/users': {
-      id: '/_authenticated/users'
-      path: '/users'
-      fullPath: '/users'
-      preLoaderRoute: typeof AuthenticatedUsersRouteImport
+    '/_authenticated/settings': {
+      id: '/_authenticated/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof AuthenticatedSettingsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/book-ins/$date': {
-      id: '/_authenticated/book-ins/$date'
-      path: '/book-ins/$date'
-      fullPath: '/book-ins/$date'
-      preLoaderRoute: typeof AuthenticatedBookInsDateRouteImport
+    '/_authenticated/post-bike': {
+      id: '/_authenticated/post-bike'
+      path: '/post-bike'
+      fullPath: '/post-bike'
+      preLoaderRoute: typeof AuthenticatedPostBikeRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/bookings/': {
-      id: '/_authenticated/bookings/'
-      path: '/bookings'
-      fullPath: '/bookings/'
-      preLoaderRoute: typeof AuthenticatedBookingsIndexRouteImport
+    '/_authenticated/parts-orders': {
+      id: '/_authenticated/parts-orders'
+      path: '/parts-orders'
+      fullPath: '/parts-orders'
+      preLoaderRoute: typeof AuthenticatedPartsOrdersRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/bookings/$bookingId': {
-      id: '/_authenticated/bookings/$bookingId'
-      path: '/bookings/$bookingId'
-      fullPath: '/bookings/$bookingId'
-      preLoaderRoute: typeof AuthenticatedBookingsBookingIdRouteImport
+    '/_authenticated/my-work': {
+      id: '/_authenticated/my-work'
+      path: '/my-work'
+      fullPath: '/my-work'
+      preLoaderRoute: typeof AuthenticatedMyWorkRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/bookings/new': {
-      id: '/_authenticated/bookings/new'
-      path: '/bookings/new'
-      fullPath: '/bookings/new'
-      preLoaderRoute: typeof AuthenticatedBookingsNewRouteImport
+    '/_authenticated/invoices': {
+      id: '/_authenticated/invoices'
+      path: '/invoices'
+      fullPath: '/invoices'
+      preLoaderRoute: typeof AuthenticatedInvoicesRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/customers/': {
-      id: '/_authenticated/customers/'
-      path: '/'
-      fullPath: '/customers/'
-      preLoaderRoute: typeof AuthenticatedCustomersIndexRouteImport
-      parentRoute: typeof AuthenticatedCustomersRoute
-    }
-    '/_authenticated/customers/$customerId': {
-      id: '/_authenticated/customers/$customerId'
-      path: '/$customerId'
-      fullPath: '/customers/$customerId'
-      preLoaderRoute: typeof AuthenticatedCustomersCustomerIdRouteImport
-      parentRoute: typeof AuthenticatedCustomersRoute
-    }
-    '/_authenticated/garage-library/': {
-      id: '/_authenticated/garage-library/'
-      path: '/garage-library'
-      fullPath: '/garage-library/'
-      preLoaderRoute: typeof AuthenticatedGarageLibraryIndexRouteImport
+    '/_authenticated/inventory': {
+      id: '/_authenticated/inventory'
+      path: '/inventory'
+      fullPath: '/inventory'
+      preLoaderRoute: typeof AuthenticatedInventoryRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/garage-library/$modelId': {
-      id: '/_authenticated/garage-library/$modelId'
-      path: '/garage-library/$modelId'
-      fullPath: '/garage-library/$modelId'
-      preLoaderRoute: typeof AuthenticatedGarageLibraryModelIdRouteImport
+    '/_authenticated/insurance': {
+      id: '/_authenticated/insurance'
+      path: '/insurance'
+      fullPath: '/insurance'
+      preLoaderRoute: typeof AuthenticatedInsuranceRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/garage-library/analytics': {
-      id: '/_authenticated/garage-library/analytics'
-      path: '/garage-library/analytics'
-      fullPath: '/garage-library/analytics'
-      preLoaderRoute: typeof AuthenticatedGarageLibraryAnalyticsRouteImport
+    '/_authenticated/dashboard': {
+      id: '/_authenticated/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof AuthenticatedDashboardRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/garage-library/documents': {
-      id: '/_authenticated/garage-library/documents'
-      path: '/garage-library/documents'
-      fullPath: '/garage-library/documents'
-      preLoaderRoute: typeof AuthenticatedGarageLibraryDocumentsRouteImport
+    '/_authenticated/customers': {
+      id: '/_authenticated/customers'
+      path: '/customers'
+      fullPath: '/customers'
+      preLoaderRoute: typeof AuthenticatedCustomersRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/garage-library/import': {
-      id: '/_authenticated/garage-library/import'
-      path: '/garage-library/import'
-      fullPath: '/garage-library/import'
-      preLoaderRoute: typeof AuthenticatedGarageLibraryImportRouteImport
+    '/_authenticated/clock': {
+      id: '/_authenticated/clock'
+      path: '/clock'
+      fullPath: '/clock'
+      preLoaderRoute: typeof AuthenticatedClockRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/garage-library/research': {
-      id: '/_authenticated/garage-library/research'
-      path: '/garage-library/research'
-      fullPath: '/garage-library/research'
-      preLoaderRoute: typeof AuthenticatedGarageLibraryResearchRouteImport
+    '/_authenticated/calendar': {
+      id: '/_authenticated/calendar'
+      path: '/calendar'
+      fullPath: '/calendar'
+      preLoaderRoute: typeof AuthenticatedCalendarRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/garage-library/review': {
-      id: '/_authenticated/garage-library/review'
-      path: '/garage-library/review'
-      fullPath: '/garage-library/review'
-      preLoaderRoute: typeof AuthenticatedGarageLibraryReviewRouteImport
+    '/_authenticated/analytics': {
+      id: '/_authenticated/analytics'
+      path: '/analytics'
+      fullPath: '/analytics'
+      preLoaderRoute: typeof AuthenticatedAnalyticsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/garage-library/tech': {
-      id: '/_authenticated/garage-library/tech'
-      path: '/garage-library/tech'
-      fullPath: '/garage-library/tech'
-      preLoaderRoute: typeof AuthenticatedGarageLibraryTechRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/garage-library/updates': {
-      id: '/_authenticated/garage-library/updates'
-      path: '/garage-library/updates'
-      fullPath: '/garage-library/updates'
-      preLoaderRoute: typeof AuthenticatedGarageLibraryUpdatesRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/insurance/': {
-      id: '/_authenticated/insurance/'
-      path: '/'
-      fullPath: '/insurance/'
-      preLoaderRoute: typeof AuthenticatedInsuranceIndexRouteImport
-      parentRoute: typeof AuthenticatedInsuranceRoute
-    }
-    '/_authenticated/insurance/$claimId': {
-      id: '/_authenticated/insurance/$claimId'
-      path: '/$claimId'
-      fullPath: '/insurance/$claimId'
-      preLoaderRoute: typeof AuthenticatedInsuranceClaimIdRouteImport
-      parentRoute: typeof AuthenticatedInsuranceRoute
-    }
-    '/_authenticated/insurance/new': {
-      id: '/_authenticated/insurance/new'
-      path: '/new'
-      fullPath: '/insurance/new'
-      preLoaderRoute: typeof AuthenticatedInsuranceNewRouteImport
-      parentRoute: typeof AuthenticatedInsuranceRoute
-    }
-    '/_authenticated/invoices/': {
-      id: '/_authenticated/invoices/'
-      path: '/'
-      fullPath: '/invoices/'
-      preLoaderRoute: typeof AuthenticatedInvoicesIndexRouteImport
-      parentRoute: typeof AuthenticatedInvoicesRoute
-    }
-    '/_authenticated/invoices/$invoiceId': {
-      id: '/_authenticated/invoices/$invoiceId'
-      path: '/$invoiceId'
-      fullPath: '/invoices/$invoiceId'
-      preLoaderRoute: typeof AuthenticatedInvoicesInvoiceIdRouteImport
-      parentRoute: typeof AuthenticatedInvoicesRoute
-    }
-    '/_authenticated/invoices/new': {
-      id: '/_authenticated/invoices/new'
-      path: '/new'
-      fullPath: '/invoices/new'
-      preLoaderRoute: typeof AuthenticatedInvoicesNewRouteImport
-      parentRoute: typeof AuthenticatedInvoicesRoute
-    }
-    '/_authenticated/jobs/': {
-      id: '/_authenticated/jobs/'
-      path: '/jobs'
-      fullPath: '/jobs/'
-      preLoaderRoute: typeof AuthenticatedJobsIndexRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/jobs/$jobId': {
-      id: '/_authenticated/jobs/$jobId'
-      path: '/jobs/$jobId'
-      fullPath: '/jobs/$jobId'
-      preLoaderRoute: typeof AuthenticatedJobsJobIdRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/jobs/new': {
-      id: '/_authenticated/jobs/new'
-      path: '/jobs/new'
-      fullPath: '/jobs/new'
-      preLoaderRoute: typeof AuthenticatedJobsNewRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/loan-bikes/': {
-      id: '/_authenticated/loan-bikes/'
-      path: '/loan-bikes'
-      fullPath: '/loan-bikes/'
-      preLoaderRoute: typeof AuthenticatedLoanBikesIndexRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/loan-bikes/$bikeId': {
-      id: '/_authenticated/loan-bikes/$bikeId'
-      path: '/loan-bikes/$bikeId'
-      fullPath: '/loan-bikes/$bikeId'
-      preLoaderRoute: typeof AuthenticatedLoanBikesBikeIdRouteImport
+    '/_authenticated/account': {
+      id: '/_authenticated/account'
+      path: '/account'
+      fullPath: '/account'
+      preLoaderRoute: typeof AuthenticatedAccountRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/motorcycles/': {
@@ -1042,39 +860,67 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedMotorcyclesIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/motorcycles/$bikeId': {
-      id: '/_authenticated/motorcycles/$bikeId'
-      path: '/motorcycles/$bikeId'
-      fullPath: '/motorcycles/$bikeId'
-      preLoaderRoute: typeof AuthenticatedMotorcyclesBikeIdRouteImport
+    '/_authenticated/loan-bikes/': {
+      id: '/_authenticated/loan-bikes/'
+      path: '/loan-bikes'
+      fullPath: '/loan-bikes/'
+      preLoaderRoute: typeof AuthenticatedLoanBikesIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/settings_/booking-types': {
-      id: '/_authenticated/settings_/booking-types'
-      path: '/settings/booking-types'
-      fullPath: '/settings/booking-types'
-      preLoaderRoute: typeof AuthenticatedSettingsBookingTypesRouteImport
+    '/_authenticated/jobs/': {
+      id: '/_authenticated/jobs/'
+      path: '/jobs'
+      fullPath: '/jobs/'
+      preLoaderRoute: typeof AuthenticatedJobsIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/settings_/capacity': {
-      id: '/_authenticated/settings_/capacity'
-      path: '/settings/capacity'
-      fullPath: '/settings/capacity'
-      preLoaderRoute: typeof AuthenticatedSettingsCapacityRouteImport
+    '/_authenticated/invoices/': {
+      id: '/_authenticated/invoices/'
+      path: '/'
+      fullPath: '/invoices/'
+      preLoaderRoute: typeof AuthenticatedInvoicesIndexRouteImport
+      parentRoute: typeof AuthenticatedInvoicesRoute
+    }
+    '/_authenticated/insurance/': {
+      id: '/_authenticated/insurance/'
+      path: '/'
+      fullPath: '/insurance/'
+      preLoaderRoute: typeof AuthenticatedInsuranceIndexRouteImport
+      parentRoute: typeof AuthenticatedInsuranceRoute
+    }
+    '/_authenticated/garage-library/': {
+      id: '/_authenticated/garage-library/'
+      path: '/garage-library'
+      fullPath: '/garage-library/'
+      preLoaderRoute: typeof AuthenticatedGarageLibraryIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/settings_/google-calendar': {
-      id: '/_authenticated/settings_/google-calendar'
-      path: '/settings/google-calendar'
-      fullPath: '/settings/google-calendar'
-      preLoaderRoute: typeof AuthenticatedSettingsGoogleCalendarRouteImport
+    '/_authenticated/customers/': {
+      id: '/_authenticated/customers/'
+      path: '/'
+      fullPath: '/customers/'
+      preLoaderRoute: typeof AuthenticatedCustomersIndexRouteImport
+      parentRoute: typeof AuthenticatedCustomersRoute
+    }
+    '/_authenticated/bookings/': {
+      id: '/_authenticated/bookings/'
+      path: '/bookings'
+      fullPath: '/bookings/'
+      preLoaderRoute: typeof AuthenticatedBookingsIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/settings_/mcd-tech': {
-      id: '/_authenticated/settings_/mcd-tech'
-      path: '/settings/mcd-tech'
-      fullPath: '/settings/mcd-tech'
-      preLoaderRoute: typeof AuthenticatedSettingsMcdTechRouteImport
+    '/oauth/google-calendar/return': {
+      id: '/oauth/google-calendar/return'
+      path: '/oauth/google-calendar/return'
+      fullPath: '/oauth/google-calendar/return'
+      preLoaderRoute: typeof OauthGoogleCalendarReturnRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/settings_/themes': {
+      id: '/_authenticated/settings_/themes'
+      path: '/settings/themes'
+      fullPath: '/settings/themes'
+      preLoaderRoute: typeof AuthenticatedSettingsThemesRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/settings_/parts-suppliers': {
@@ -1084,19 +930,173 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSettingsPartsSuppliersRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/settings_/themes': {
-      id: '/_authenticated/settings_/themes'
-      path: '/settings/themes'
-      fullPath: '/settings/themes'
-      preLoaderRoute: typeof AuthenticatedSettingsThemesRouteImport
+    '/_authenticated/settings_/mcd-tech': {
+      id: '/_authenticated/settings_/mcd-tech'
+      path: '/settings/mcd-tech'
+      fullPath: '/settings/mcd-tech'
+      preLoaderRoute: typeof AuthenticatedSettingsMcdTechRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/oauth/google-calendar/return': {
-      id: '/oauth/google-calendar/return'
-      path: '/oauth/google-calendar/return'
-      fullPath: '/oauth/google-calendar/return'
-      preLoaderRoute: typeof OauthGoogleCalendarReturnRouteImport
-      parentRoute: typeof rootRouteImport
+    '/_authenticated/settings_/google-calendar': {
+      id: '/_authenticated/settings_/google-calendar'
+      path: '/settings/google-calendar'
+      fullPath: '/settings/google-calendar'
+      preLoaderRoute: typeof AuthenticatedSettingsGoogleCalendarRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/settings_/capacity': {
+      id: '/_authenticated/settings_/capacity'
+      path: '/settings/capacity'
+      fullPath: '/settings/capacity'
+      preLoaderRoute: typeof AuthenticatedSettingsCapacityRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/settings_/booking-types': {
+      id: '/_authenticated/settings_/booking-types'
+      path: '/settings/booking-types'
+      fullPath: '/settings/booking-types'
+      preLoaderRoute: typeof AuthenticatedSettingsBookingTypesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/motorcycles/$bikeId': {
+      id: '/_authenticated/motorcycles/$bikeId'
+      path: '/motorcycles/$bikeId'
+      fullPath: '/motorcycles/$bikeId'
+      preLoaderRoute: typeof AuthenticatedMotorcyclesBikeIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/loan-bikes/$bikeId': {
+      id: '/_authenticated/loan-bikes/$bikeId'
+      path: '/loan-bikes/$bikeId'
+      fullPath: '/loan-bikes/$bikeId'
+      preLoaderRoute: typeof AuthenticatedLoanBikesBikeIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/jobs/new': {
+      id: '/_authenticated/jobs/new'
+      path: '/jobs/new'
+      fullPath: '/jobs/new'
+      preLoaderRoute: typeof AuthenticatedJobsNewRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/jobs/$jobId': {
+      id: '/_authenticated/jobs/$jobId'
+      path: '/jobs/$jobId'
+      fullPath: '/jobs/$jobId'
+      preLoaderRoute: typeof AuthenticatedJobsJobIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/invoices/new': {
+      id: '/_authenticated/invoices/new'
+      path: '/new'
+      fullPath: '/invoices/new'
+      preLoaderRoute: typeof AuthenticatedInvoicesNewRouteImport
+      parentRoute: typeof AuthenticatedInvoicesRoute
+    }
+    '/_authenticated/invoices/$invoiceId': {
+      id: '/_authenticated/invoices/$invoiceId'
+      path: '/$invoiceId'
+      fullPath: '/invoices/$invoiceId'
+      preLoaderRoute: typeof AuthenticatedInvoicesInvoiceIdRouteImport
+      parentRoute: typeof AuthenticatedInvoicesRoute
+    }
+    '/_authenticated/insurance/new': {
+      id: '/_authenticated/insurance/new'
+      path: '/new'
+      fullPath: '/insurance/new'
+      preLoaderRoute: typeof AuthenticatedInsuranceNewRouteImport
+      parentRoute: typeof AuthenticatedInsuranceRoute
+    }
+    '/_authenticated/insurance/$claimId': {
+      id: '/_authenticated/insurance/$claimId'
+      path: '/$claimId'
+      fullPath: '/insurance/$claimId'
+      preLoaderRoute: typeof AuthenticatedInsuranceClaimIdRouteImport
+      parentRoute: typeof AuthenticatedInsuranceRoute
+    }
+    '/_authenticated/garage-library/updates': {
+      id: '/_authenticated/garage-library/updates'
+      path: '/garage-library/updates'
+      fullPath: '/garage-library/updates'
+      preLoaderRoute: typeof AuthenticatedGarageLibraryUpdatesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/garage-library/tech': {
+      id: '/_authenticated/garage-library/tech'
+      path: '/garage-library/tech'
+      fullPath: '/garage-library/tech'
+      preLoaderRoute: typeof AuthenticatedGarageLibraryTechRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/garage-library/review': {
+      id: '/_authenticated/garage-library/review'
+      path: '/garage-library/review'
+      fullPath: '/garage-library/review'
+      preLoaderRoute: typeof AuthenticatedGarageLibraryReviewRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/garage-library/research': {
+      id: '/_authenticated/garage-library/research'
+      path: '/garage-library/research'
+      fullPath: '/garage-library/research'
+      preLoaderRoute: typeof AuthenticatedGarageLibraryResearchRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/garage-library/import': {
+      id: '/_authenticated/garage-library/import'
+      path: '/garage-library/import'
+      fullPath: '/garage-library/import'
+      preLoaderRoute: typeof AuthenticatedGarageLibraryImportRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/garage-library/documents': {
+      id: '/_authenticated/garage-library/documents'
+      path: '/garage-library/documents'
+      fullPath: '/garage-library/documents'
+      preLoaderRoute: typeof AuthenticatedGarageLibraryDocumentsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/garage-library/analytics': {
+      id: '/_authenticated/garage-library/analytics'
+      path: '/garage-library/analytics'
+      fullPath: '/garage-library/analytics'
+      preLoaderRoute: typeof AuthenticatedGarageLibraryAnalyticsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/garage-library/$modelId': {
+      id: '/_authenticated/garage-library/$modelId'
+      path: '/garage-library/$modelId'
+      fullPath: '/garage-library/$modelId'
+      preLoaderRoute: typeof AuthenticatedGarageLibraryModelIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/customers/$customerId': {
+      id: '/_authenticated/customers/$customerId'
+      path: '/$customerId'
+      fullPath: '/customers/$customerId'
+      preLoaderRoute: typeof AuthenticatedCustomersCustomerIdRouteImport
+      parentRoute: typeof AuthenticatedCustomersRoute
+    }
+    '/_authenticated/bookings/new': {
+      id: '/_authenticated/bookings/new'
+      path: '/bookings/new'
+      fullPath: '/bookings/new'
+      preLoaderRoute: typeof AuthenticatedBookingsNewRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/bookings/$bookingId': {
+      id: '/_authenticated/bookings/$bookingId'
+      path: '/bookings/$bookingId'
+      fullPath: '/bookings/$bookingId'
+      preLoaderRoute: typeof AuthenticatedBookingsBookingIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/book-ins/$date': {
+      id: '/_authenticated/book-ins/$date'
+      path: '/book-ins/$date'
+      fullPath: '/book-ins/$date'
+      preLoaderRoute: typeof AuthenticatedBookInsDateRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/jobs_/$jobId/invoice-draft': {
       id: '/_authenticated/jobs_/$jobId/invoice-draft'
