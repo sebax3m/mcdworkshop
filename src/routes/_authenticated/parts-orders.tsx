@@ -3,7 +3,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { addDays, format } from "date-fns";
-import { Package, Search, AlertTriangle, Pencil, X, Plus, ChevronDown, ArrowLeftRight } from "lucide-react";
+import { Package, Search, AlertTriangle, Pencil, X, Plus, ChevronDown, ArrowLeftRight, ArrowUp, ArrowDown, ChevronsUpDown } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -62,6 +62,7 @@ function PartsOrdersPage() {
   const [edit, setEdit] = useState<any | null>(null);
   const [addFor, setAddFor] = useState<string | null>(null);
   const [moveFor, setMoveFor] = useState<any | null>(null);
+  const [sort, setSort] = useState<{ key: string; dir: 1 | -1 }>({ key: "date", dir: 1 });
 
   const data = useQuery({
     queryKey: ["parts-orders"],
