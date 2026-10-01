@@ -215,6 +215,25 @@ ${
       break-inside: avoid !important;
       page-break-inside: avoid !important;
     }
+    /* When the items table continues onto page 2, repeat its header row so
+       every column stays labelled on the second sheet. */
+    .invoice-page table[data-invoice-items] thead {
+      display: table-header-group !important;
+    }
+    /* The totals block (subtotal / GST / TOTAL) must stay together — it may
+       move to page 2 as one block, but never split across sheets. */
+    .invoice-page [data-invoice-totals] {
+      break-inside: avoid !important;
+      page-break-inside: avoid !important;
+    }
+    /* The invoice header (logo, invoice number, customer, bike) stays as one
+       block at the top of page 1. */
+    .invoice-page [data-invoice-header] {
+      break-inside: avoid !important;
+      page-break-inside: avoid !important;
+      break-after: avoid !important;
+      page-break-after: avoid !important;
+    }
     /* The sheet is a flex column exactly N pages tall so notes + payment +
        TOTAL stay pinned to the bottom of the last page. */
     .invoice-page .invoice-sheet {
