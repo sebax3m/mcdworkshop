@@ -23,16 +23,25 @@ export function InvoicePrintPreview({
   getHtml: () => string;
 }) {
   const frameRef = useRef<HTMLIFrameElement>(null);
-  const [zoom, setZoom] = useState(100);
-  const [paper, setPaper] = useState<"A4" | "Letter" | "Legal">("A4");
-  const [orientation, setOrientation] = useState<"portrait" | "landscape">("portrait");
-  /** Real print scale — affects the printed output, not just the on-screen preview. */
+  // Standard format for every invoice: A4 portrait, 10mm margins, 100% scale.
+  const zoom = 100;
+  const paper = "A4" as const;
+  const orientation = "portrait" as "portrait" | "landscape";
+  /** Only lowered automatically when an invoice would need a 3rd page. */
   const [printScale, setPrintScale] = useState(100);
-  const [margin, setMargin] = useState<"none" | "narrow" | "normal">("narrow");
+  const margin = "narrow" as const;
   /** Vertical density: 100 = normal spacing, lower = tighter gaps (no font rescaling). */
   const [density, setDensity] = useState(100);
-  const [showGuides, setShowGuides] = useState(true);
+  const showGuides = true;
   const [pages, setPages] = useState(1);
+
+  // Every time the preview opens, start from the standard format.
+  useEffect(() => {
+    if (open) {
+      setPrintScale(100);
+      setDensity(100);
+    }
+  }, [open]);
 
   const PAPER: Record<string, { w: string; h: string; css: string }> = {
     A4: { w: "210mm", h: "297mm", css: "A4" },
@@ -350,254 +359,36 @@ ${
             <div className="truncate text-sm font-semibold">{title}</div>
           </div>
 
-          <div className="space-y-2">
-            <div className="text-[0.6rem] uppercase tracking-[0.18em] text-muted-foreground">
-              Zoom
-            </div>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={() => setZoom((z) => Math.max(40, z - 10))}
-                title="Zoom out"
-              >
-                <ZoomOut className="h-4 w-4" />
-              </Button>
-              <span className="flex-1 text-center text-xs tabular-nums text-muted-foreground">
-                {zoom}%
-              </span>
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={() => setZoom((z) => Math.min(200, z + 10))}
-                title="Zoom in"
-              >
-                <ZoomIn className="h-4 w-4" />
-              </Button>
-            </div>
-            <input
-              type="range"
-              min={40}
-              max={200}
-              step={5}
-              value={zoom}
-              onChange={(e) => setZoom(Number(e.target.value))}
-              className="w-full accent-primary"
-            />
-            <div className="flex gap-1">
-              {[75, 100, 125].map((z) => (
-                <button
-                  key={z}
-                  onClick={() => setZoom(z)}
-                  className={`flex-1 rounded-md border px-1 py-1 text-[0.65rem] ${
-                    zoom === z
-                      ? "border-primary text-primary"
-                      : "border-border text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  {z}%
-                </button>
-              ))}
-            </div>
-            <button
-              onClick={() => {
-                const el = frameRef.current;
-                if (!el) return;
-                const pageWidthPx = (parseFloat(pageW) / 25.4) * 96 * (printScale / 100);
-                setZoom(
-                  Math.round(Math.min(200, Math.max(40, ((el.clientWidth - 32) / pageWidthPx) * 100))),
-                );
-              }}
-              className="w-full rounded-md border border-border px-2 py-1 text-[0.65rem] text-muted-foreground hover:text-foreground"
-            >
-              Fit to width
-            </button>
-            <p className="text-[0.6rem] leading-snug text-muted-foreground">
-              Screen only — does not change the printout.
-            </p>
-          </div>
-
-          {/* Real print scale */}
-          <div className="space-y-2">
+          <div className="rounded-md border border-border bg-background p-3 text-xs">
             <div className="flex items-center justify-between">
-              <div className="text-[0.6rem] uppercase tracking-[0.18em] text-muted-foreground">
-                Print scale
-              </div>
-              <span className="text-xs tabular-nums font-semibold">{printScale}%</span>
-            </div>
-            <input
-              type="range"
-              min={10}
-              max={130}
-              step={1}
-              value={printScale}
-              onChange={(e) => setPrintScale(Number(e.target.value))}
-              className="w-full accent-primary"
-            />
-            <div className="flex gap-1">
-              {[80, 90, 100].map((s) => (
-                <button
-                  key={s}
-                  onClick={() => setPrintScale(s)}
-                  className={`flex-1 rounded-md border px-1 py-1 text-[0.65rem] ${
-                    printScale === s
-                      ? "border-primary text-primary"
-                      : "border-border text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  {s}%
-                </button>
-              ))}
-            </div>
-            <div className="flex gap-1">
-              <button
-                 onClick={() => setPrintScale((s) => Math.max(10, s - 1))}
-                className="flex-1 rounded-md border border-border px-1 py-1 text-[0.65rem] text-muted-foreground hover:text-foreground"
-              >
-                −1%
-              </button>
-              <button
-                onClick={() => setPrintScale((s) => Math.min(130, s + 1))}
-                className="flex-1 rounded-md border border-border px-1 py-1 text-[0.65rem] text-muted-foreground hover:text-foreground"
-              >
-                +1%
-              </button>
-            </div>
-            <button
-              onClick={() => {
-                const contentPx = measureNaturalHeight();
-                if (!contentPx) return;
-                setPrintScale(
-                  Math.round(Math.min(130, Math.max(10, (usablePx / contentPx) * 100 * 0.985))),
-                );
-              }}
-              className="w-full rounded-md border border-border px-2 py-1 text-[0.65rem] text-muted-foreground hover:text-foreground"
-            >
-              Fit to one page (shrink type)
-            </button>
-          </div>
-
-          {/* Vertical density — fits by tightening spacing, not by rescaling */}
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <div className="text-[0.6rem] uppercase tracking-[0.18em] text-muted-foreground">
-                Spacing
-              </div>
-              <span className="text-xs tabular-nums font-semibold">{density}%</span>
-            </div>
-            <input
-              type="range"
-              min={30}
-              max={100}
-              step={2}
-              value={density}
-              onChange={(e) => setDensity(Number(e.target.value))}
-              className="w-full accent-primary"
-            />
-            <button
-              onClick={fitOnePageByDensity}
-              className="w-full rounded-md border border-primary/60 px-2 py-1 text-[0.65rem] font-semibold text-primary hover:bg-primary/10"
-            >
-              Fit to 1 page (tighten spacing)
-            </button>
-            <p className="text-[0.6rem] leading-snug text-muted-foreground">
-              Reduces the gaps between items only — font sizes stay the same.
-            </p>
-          </div>
-
-          {/* Page breaks */}
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <div className="text-[0.6rem] uppercase tracking-[0.18em] text-muted-foreground">
-                Page breaks
-              </div>
-              <span className="text-xs tabular-nums font-semibold">
+              <span className="text-muted-foreground">Standard A4</span>
+              <span className="font-semibold tabular-nums">
                 {pages} {pages === 1 ? "page" : "pages"}
               </span>
             </div>
-            <button
-              onClick={() => setShowGuides((v) => !v)}
-              className={`w-full rounded-md border px-2 py-1 text-[0.65rem] ${
-                showGuides
-                  ? "border-primary text-primary"
-                  : "border-border text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              {showGuides ? "Hide split lines" : "Show split lines"}
-            </button>
+            <p className="mt-1 text-[0.6rem] leading-snug text-muted-foreground">
+              Same size on every invoice. Long invoices continue onto a 2nd page — never more.
+            </p>
           </div>
 
+          {/* Setting 1: compact a slightly-too-long invoice onto one page */}
+          <button
+            onClick={fitOnePageByDensity}
+            disabled={pages === 1 && density === 100}
+            className="w-full rounded-md border border-primary/60 px-2 py-2 text-xs font-semibold text-primary hover:bg-primary/10 disabled:opacity-40"
+          >
+            Compact to 1 page
+          </button>
 
-          <div className="space-y-2">
-            <div className="text-[0.6rem] uppercase tracking-[0.18em] text-muted-foreground">
-              Paper size
-            </div>
-            <div className="flex gap-1">
-              {(["A4", "Letter", "Legal"] as const).map((p) => (
-                <button
-                  key={p}
-                  onClick={() => setPaper(p)}
-                  className={`flex-1 rounded-md border px-1 py-1 text-[0.65rem] ${
-                    paper === p
-                      ? "border-primary text-primary"
-                      : "border-border text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  {p}
-                </button>
-              ))}
-            </div>
-            <div className="flex gap-1">
-              {(["portrait", "landscape"] as const).map((o) => (
-                <button
-                  key={o}
-                  onClick={() => setOrientation(o)}
-                  className={`flex-1 rounded-md border px-1 py-1 text-[0.65rem] capitalize ${
-                    orientation === o
-                      ? "border-primary text-primary"
-                      : "border-border text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  {o}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <div className="text-[0.6rem] uppercase tracking-[0.18em] text-muted-foreground">
-              Margins
-            </div>
-            <div className="flex gap-1">
-              {(["none", "narrow", "normal"] as const).map((m) => (
-                <button
-                  key={m}
-                  onClick={() => setMargin(m)}
-                  className={`flex-1 rounded-md border px-1 py-1 text-[0.65rem] capitalize ${
-                    margin === m
-                      ? "border-primary text-primary"
-                      : "border-border text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  {m}
-                </button>
-              ))}
-            </div>
-          </div>
-
+          {/* Setting 2: back to the standard format */}
           <button
             onClick={() => {
-              setPrintScale(100);
-               setMargin("narrow");
-              setOrientation("portrait");
-              setPaper("A4");
-              setZoom(100);
               setDensity(100);
-
+              setPrintScale(100);
             }}
-            className="rounded-md border border-border px-2 py-1 text-[0.65rem] text-muted-foreground hover:text-foreground"
+            className="w-full rounded-md border border-border px-2 py-2 text-xs text-muted-foreground hover:text-foreground"
           >
-            Reset defaults
+            Reset to standard
           </button>
 
 
