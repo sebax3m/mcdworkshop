@@ -210,6 +210,11 @@ ${
       page-break-after:auto !important;
       page-break-inside:auto !important;
     }
+    /* An ITEM and its DESCRIPTION must never split across A4 sheets. */
+    .invoice-page tbody tr:not([data-page-spacer]) {
+      break-inside: avoid !important;
+      page-break-inside: avoid !important;
+    }
     /* The sheet is a flex column exactly N pages tall so notes + payment +
        TOTAL stay pinned to the bottom of the last page. */
     .invoice-page .invoice-sheet {
@@ -238,6 +243,7 @@ ${
       // comfortable gap so the totals never tip onto a third page.
       var SAFETY = 24;
       var MAX_PAGES = 2;
+       var ITEM_FOOT_CLEARANCE = 12 / 25.4 * 96;
 
       function naturalHeight(page, sheet) {
         var prevMin = sheet.style.getPropertyValue('--sheetmin');
@@ -255,16 +261,43 @@ ${
         var page = document.querySelector('.invoice-page');
         var sheet = document.querySelector('.invoice-sheet');
         if (!page || !sheet) return;
-        var h = naturalHeight(page, sheet);
-        if (!h) return;
         var scale = ${printScale} / 100;
         var usable = USABLE - SAFETY;
-        // Shrink only when the natural layout would need a third sheet.
-        if (h * scale > MAX_PAGES * usable) {
-          scale = (MAX_PAGES * usable) / h;
+         var h = 0;
+         // Measure at the actual print scale. Insert a blank table row before
+         // the first item that would land within 12mm of the A4 foot; both
+         // columns then start together on sheet two in preview and print.
+         for (var attempt = 0; attempt < 6; attempt++) {
+           sheet.style.setProperty('--sheetmin', '0px');
+           document.querySelectorAll('[data-page-spacer]').forEach(function (el) { el.remove(); });
           document.documentElement.style.setProperty('--pscale', String(scale));
+           var pageTop = page.getBoundingClientRect().top;
+           var rows = sheet.querySelectorAll('table tbody tr:not(.no-print)');
+           for (var i = 0; i < rows.length; i++) {
+             var row = rows[i];
+             var bounds = row.getBoundingClientRect();
+             var top = bounds.top - pageTop;
+             var bottom = bounds.bottom - pageTop;
+             if (top < usable && bottom > usable - ITEM_FOOT_CLEARANCE) {
+               var spacer = document.createElement('tr');
+               spacer.setAttribute('data-page-spacer', '');
+               var cell = document.createElement('td');
+               cell.colSpan = row.cells.length;
+               cell.style.height = Math.max(0, (USABLE - top - 8) / scale) + 'px';
+               cell.style.padding = '0';
+               spacer.appendChild(cell);
+               row.parentNode.insertBefore(spacer, row);
+               break;
+             }
+           }
+           h = naturalHeight(page, sheet);
+           if (!h || h * scale <= MAX_PAGES * usable) break;
+           scale = Math.max(0.1, scale * (MAX_PAGES * usable) / (h * scale) * 0.99);
         }
+         if (!h) return;
+         document.documentElement.style.setProperty('--pscale', String(scale));
         var pages = Math.max(1, Math.min(MAX_PAGES, Math.ceil((h * scale) / usable)));
+         window.__invoicePages = pages;
         // Unzoomed height of the printed page box, minus the safety gap, so the
         // sheet ends on a whole page boundary and the totals stay pinned to the
         // bottom of the last page. The content itself is one continuous flow —
@@ -285,17 +318,9 @@ ${
 
     frame.srcdoc = doc;
     const t = setTimeout(() => {
-      const naturalHeight = measureNaturalHeight();
-      if (!naturalHeight) return;
-      const count = Math.max(1, Math.ceil((naturalHeight * (printScale / 100) - 2) / usablePx));
-      // Rule: an invoice never prints on more than 2 pages — shrink the print
-      // scale only when its natural 100% layout would require a third sheet.
-      if (count > 2) {
-        const needed = Math.floor(((2 * usablePx) / naturalHeight) * 100 * 0.985);
-        setPrintScale(Math.max(1, Math.min(printScale - 1, needed)));
-        return;
-      }
-      setPages(count);
+      const w = frame.contentWindow as (Window & { __fitInvoice?: () => void; __invoicePages?: number }) | null;
+      w?.__fitInvoice?.();
+      if (w?.__invoicePages) setPages(w.__invoicePages);
     }, 300);
     return () => clearTimeout(t);
   }, [open, title, getHtml, paper, orientation, margin, printScale, density, showGuides, usablePx]);
