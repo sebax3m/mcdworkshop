@@ -112,18 +112,32 @@ export default function WorkPerformedSection({
     hours: 0,
   });
 
-  /** Tidies the notes locally (no AI, no credits used). */
-  function runFixWording(which: "draft" | "edit") {
+  /** Rewrites the rough notes into the workshop's standard mechanical report. */
+  async function runFixWording(which: "draft" | "edit") {
     const text = which === "draft" ? draft.detail : editDraft.detail;
+    const title = which === "draft" ? draft.title : editDraft.title;
     if (text.trim().length < 3) {
       toast.error("Write a few words first, then press Fix Wording.");
       return;
     }
-    const tidy = fixWording(text);
-    if (which === "draft") setDraft((d) => ({ ...d, detail: tidy }));
-    else setEditDraft((d) => ({ ...d, detail: tidy }));
-    toast.success("Wording tidied up.");
+    setFixing(which);
+    try {
+      const res = await formatReport({ data: { text, title: title || null } });
+      const tidy = (res?.suggestion ?? "").trim();
+      if (!tidy) {
+        toast.error("No report came back — try again.");
+        return;
+      }
+      if (which === "draft") setDraft((d) => ({ ...d, detail: tidy }));
+      else setEditDraft((d) => ({ ...d, detail: tidy }));
+      toast.success("Report rewritten in workshop style.");
+    } catch (e: any) {
+      toast.error(e?.message ?? "Could not rewrite the notes.");
+    } finally {
+      setFixing(null);
+    }
   }
+
 
 
 
