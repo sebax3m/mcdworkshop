@@ -1,7 +1,9 @@
 import { useState } from "react";
-import { Check, Pencil, Plus, Trash2, Wand2, Wrench, X } from "lucide-react";
+import { Check, Loader2, Pencil, Plus, Trash2, Wand2, Wrench, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { fixWording } from "@/lib/fix-wording";
+import { useServerFn } from "@tanstack/react-start";
+import { formatWorkPerformed } from "@/lib/mcd-tech-assist.functions";
+
 
 
 import { Button } from "@/components/ui/button";
