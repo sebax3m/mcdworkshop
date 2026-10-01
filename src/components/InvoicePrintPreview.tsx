@@ -273,12 +273,20 @@ ${
           document.documentElement.style.setProperty('--pscale', String(scale));
            var pageTop = page.getBoundingClientRect().top;
            var rows = sheet.querySelectorAll('table[data-invoice-items] tbody tr:not(.no-print)');
+           var firstRow = rows[0];
+           var itemTop = firstRow ? firstRow.getBoundingClientRect().top - pageTop : 0;
+           var itemHeight = rows.length ? rows[rows.length - 1].getBoundingClientRect().bottom - pageTop - itemTop : 0;
+           var natural = naturalHeight(page, sheet);
+           // The footer is bottom-anchored. Only insert an item-page break
+           // when its reserved space would otherwise overlap the line items.
+           var footerHeight = natural - itemTop - itemHeight;
+           var itemLimit = usable - Math.max(0, footerHeight);
            for (var i = 0; i < rows.length; i++) {
              var row = rows[i];
              var bounds = row.getBoundingClientRect();
              var top = bounds.top - pageTop;
              var bottom = bounds.bottom - pageTop;
-             if (top < usable - ITEM_FOOT_CLEARANCE && bottom > usable - ITEM_FOOT_CLEARANCE) {
+             if (top < itemLimit - ITEM_FOOT_CLEARANCE && bottom > itemLimit - ITEM_FOOT_CLEARANCE) {
                var spacer = document.createElement('tr');
                spacer.setAttribute('data-page-spacer', '');
                var cell = document.createElement('td');
