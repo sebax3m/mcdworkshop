@@ -3627,3 +3627,36 @@ function TimeEntriesEditor({
     </div>
   );
 }
+
+function TimeEntryNote({
+  entryId,
+  initial,
+  onSaved,
+}: {
+  entryId: string;
+  initial: string;
+  onSaved: () => void;
+}) {
+  const [val, setVal] = useState(initial);
+  useEffect(() => setVal(initial), [initial]);
+  async function save() {
+    if (val.trim() === initial.trim()) return;
+    const { error } = await supabase.from("time_entries").update({ note: val }).eq("id", entryId);
+    if (error) return toast.error(error.message);
+    toast.success("Description saved");
+    onSaved();
+  }
+  return (
+    <Input
+      value={val}
+      maxLength={500}
+      placeholder="Add description…"
+      onChange={(e) => setVal(e.target.value)}
+      onBlur={save}
+      onKeyDown={(e) => {
+        if (e.key === "Enter") (e.target as HTMLInputElement).blur();
+      }}
+      className="mt-1 h-7 text-[0.6875rem]"
+    />
+  );
+}
