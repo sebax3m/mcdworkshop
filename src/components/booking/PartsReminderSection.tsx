@@ -28,11 +28,16 @@ const norm = (s: string) => s.trim().toLowerCase().replace(/\s+/g, " ");
  */
 export function PartsReminderSection({ serviceType, serviceTypeOther, instructions, items, onChange }: Props) {
   const [manual, setManual] = useState("");
+  // Descriptions the user explicitly removed — never re-suggested this session.
+  const [dismissed, setDismissed] = useState<Set<string>>(new Set());
 
   // Live recommendations: refresh when service or instructions change, without
   // removing manual / user-touched / selected items (deduped by name).
   useEffect(() => {
-    const next = mergeSuggestions(items, buildSuggestions(serviceType, serviceTypeOther ?? "", instructions));
+    const suggestions = buildSuggestions(serviceType, serviceTypeOther ?? "", instructions).filter(
+      (s) => !dismissed.has(norm(s.description)),
+    );
+    const next = mergeSuggestions(items, suggestions);
     if (
       next.length !== items.length ||
       next.some((n, i) => items[i]?.key !== n.key || items[i]?.status !== n.status || items[i]?.selected !== n.selected)
