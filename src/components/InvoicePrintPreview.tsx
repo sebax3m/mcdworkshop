@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Printer, X, ZoomIn, ZoomOut } from "lucide-react";
+import { Printer, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 /**
