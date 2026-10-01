@@ -282,6 +282,14 @@ function EditableText({
 export const Route = createFileRoute("/_authenticated/invoices/$invoiceId")({
   validateSearch: (s: Record<string, unknown>): { action?: "print" | "email" } =>
     s.action === "print" || s.action === "email" ? { action: s.action } : {},
+  head: () => ({ meta: [
+    { title: "Invoice | Motorcycle Doctors" },
+    { name: "description", content: "View and edit a Motorcycle Doctors workshop invoice." },
+    { property: "og:title", content: "Invoice | Motorcycle Doctors" },
+    { property: "og:description", content: "View and edit a Motorcycle Doctors workshop invoice." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+  ] }),
   component: InvoiceDetail,
 });
 
@@ -292,6 +300,8 @@ function InvoiceDetail() {
   const qc = useQueryClient();
   const { isAdmin, user } = useCurrentUser();
   const { technicians } = useTechnicians();
+  const [addingConsumables, setAddingConsumables] = useState(false);
+  const consumablesPending = useRef(false);
 
   const invoice = useQuery({
     queryKey: ["invoice", invoiceId],
@@ -948,6 +958,40 @@ function InvoiceDetail() {
     await refreshPartsTotals();
   }
 
+  async function addConsumables() {
+    if (consumablesPending.current) return;
+    consumablesPending.current = true;
+    setAddingConsumables(true);
+    try {
+      if (inv.job_id) {
+        const { error } = await supabase.from("parts").insert({
+          job_id: inv.job_id,
+          part_number: "Consumables",
+          name: "Workshop consumables",
+          supplier: "Workshop consumables",
+          quantity: 1,
+          cost: 0,
+          retail: 0,
+          discount_pct: 0,
+          on_invoice: true,
+          added_by: user?.id,
+        } as any);
+        if (error) throw error;
+        await refreshPartsTotals();
+      } else {
+        await saveSnapshotLines([
+          ...currentSnapshotLines(),
+          { item_name: "Consumables", description: "Workshop consumables", quantity: 1, unit: 0, discount_pct: 0 },
+        ]);
+      }
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Could not add consumables");
+    } finally {
+      consumablesPending.current = false;
+      setAddingConsumables(false);
+    }
+  }
+
   async function deletePart(id: string) {
     const target = (parts.data ?? []).find((p: any) => p.id === id) as any;
     const isDyno = isDynoLine(target ?? {});
@@ -971,7 +1015,7 @@ function InvoiceDetail() {
   }
 
   async function saveSnapshotLines(
-    items: { kind?: "part" | "labour"; description: string; quantity: number; unit: number; discount_pct?: number }[],
+    items: { kind?: "part" | "labour"; item_name?: string; description: string; quantity: number; unit: number; discount_pct?: number }[],
   ) {
     const lineNet = (l: any) =>
       Number(l.unit || 0) * Number(l.quantity || 0) * (1 - Number(l.discount_pct ?? 0) / 100);
@@ -997,6 +1041,7 @@ function InvoiceDetail() {
   }
   function currentSnapshotLines(): {
     kind?: "part" | "labour";
+    item_name?: string;
     description: string;
     quantity: number;
     unit: number;
@@ -1885,6 +1930,16 @@ function InvoiceDetail() {
                       >
                         <Plus className="h-3 w-3" /> Add line item
                       </button>
+                      <Button
+                        type="button"
+                        variant="link"
+                        size="sm"
+                        disabled={addingConsumables}
+                        onClick={addConsumables}
+                        className="ml-3 h-auto p-0 text-xs gap-1 no-print"
+                      >
+                        <Plus className="h-3 w-3" /> Add consumables
+                      </Button>
                       {(inv.snapshot as any)?.labour_hidden && (
                         <button
                           onClick={restoreLabourLine}
@@ -2065,6 +2120,16 @@ function InvoiceDetail() {
                       >
                         <Plus className="h-3 w-3" /> Add line item
                       </button>
+                      <Button
+                        type="button"
+                        variant="link"
+                        size="sm"
+                        disabled={addingConsumables}
+                        onClick={addConsumables}
+                        className="ml-3 h-auto p-0 text-xs gap-1 no-print"
+                      >
+                        <Plus className="h-3 w-3" /> Add consumables
+                      </Button>
                     </td>
                   </tr>
                 )}
