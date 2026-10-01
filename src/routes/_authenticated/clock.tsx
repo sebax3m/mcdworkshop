@@ -352,21 +352,25 @@ function ClockPage() {
         <h2 className="font-display text-lg font-semibold mb-3">Recent activity</h2>
         <div className="space-y-1.5">
           {(events.data ?? []).slice(0, 10).map((e: any) => (
-            <div
-              key={e.id}
-              className="flex items-center justify-between text-sm border-b border-border/40 last:border-0 py-1.5"
-            >
-              <span className="capitalize font-medium">
-                {e.event_type.replace("_", " ")}
-                {e.jobs?.job_number ? (
-                  <span className="ml-1.5 text-muted-foreground font-normal">
-                    · Job #{e.jobs.job_number}
-                  </span>
-                ) : null}
-              </span>
-              <span className="text-muted-foreground text-xs">
-                {new Date(e.occurred_at).toLocaleString("en-GB")}
-              </span>
+            <div key={e.id} className="text-sm border-b border-border/40 last:border-0 py-1.5">
+              <div className="flex items-center justify-between">
+                <span className="capitalize font-medium">
+                  {e.event_type.replace("_", " ")}
+                  {e.jobs?.job_number ? (
+                    <span className="ml-1.5 text-muted-foreground font-normal">
+                      · Job #{e.jobs.job_number}
+                    </span>
+                  ) : null}
+                </span>
+                <span className="text-muted-foreground text-xs">
+                  {new Date(e.occurred_at).toLocaleString("en-GB")}
+                </span>
+              </div>
+              <ClockNoteInput
+                eventId={e.id}
+                initial={e.note ?? ""}
+                onSaved={() => qc.invalidateQueries({ queryKey: ["clock-events", user?.id] })}
+              />
             </div>
           ))}
           {(!events.data || events.data.length === 0) && (
@@ -446,6 +450,42 @@ function ClockPage() {
         </DialogContent>
       </Dialog>
     </div>
+  );
+}
+
+function ClockNoteInput({
+  eventId,
+  initial,
+  onSaved,
+}: {
+  eventId: string;
+  initial: string;
+  onSaved: () => void;
+}) {
+  const [val, setVal] = useState(initial);
+  useEffect(() => setVal(initial), [initial]);
+  async function save() {
+    if (val.trim() === initial.trim()) return;
+    const { error } = await (supabase.rpc as any)("set_clock_event_note", {
+      p_event_id: eventId,
+      p_note: val,
+    });
+    if (error) return toast.error(error.message);
+    toast.success("Description saved");
+    onSaved();
+  }
+  return (
+    <Input
+      value={val}
+      maxLength={500}
+      placeholder="Add description…"
+      onChange={(e) => setVal(e.target.value)}
+      onBlur={save}
+      onKeyDown={(e) => {
+        if (e.key === "Enter") (e.target as HTMLInputElement).blur();
+      }}
+      className="mt-1 h-8 text-xs"
+    />
   );
 }
 
