@@ -1,10 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { FileText, Search } from "lucide-react";
+import { Check, FileText, Search } from "lucide-react";
 import { useMemo, useState } from "react";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 import { invoiceStatusMeta } from "@/components/invoice/PaymentsCard";
 
 export const Route = createFileRoute("/_authenticated/invoices/")({
@@ -21,8 +23,53 @@ const FILTERS: { value: Filter; label: string }[] = [
 ];
 
 function InvoicesList() {
+  const qc = useQueryClient();
   const [filter, setFilter] = useState<Filter>("all");
   const [q, setQ] = useState("");
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [marking, setMarking] = useState(false);
+
+  function toggleSelect(id: string) {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  async function markSelectedPaid() {
+    const targets = (invoices.data ?? []).filter((inv: any) => {
+      if (!selected.has(inv.id)) return false;
+      return Number(inv.total ?? 0) - Number(inv.paid_amount ?? 0) > 0.005;
+    });
+    if (targets.length === 0) {
+      toast.error("Select at least one unpaid invoice");
+      return;
+    }
+    setMarking(true);
+    const { data: u } = await supabase.auth.getUser();
+    const today = new Date().toISOString().slice(0, 10);
+    const rows = targets.map((inv: any) => ({
+      invoice_id: inv.id,
+      amount: Number((Number(inv.total ?? 0) - Number(inv.paid_amount ?? 0)).toFixed(2)),
+      method: "other",
+      paid_on: today,
+      reference: "Bulk marked as paid",
+      created_by: u.user?.id ?? null,
+    }));
+    const { error } = await supabase.from("invoice_payments").insert(rows);
+    setMarking(false);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    toast.success(`${targets.length} invoice${targets.length === 1 ? "" : "s"} marked as paid`);
+    setSelected(new Set());
+    await qc.invalidateQueries({ queryKey: ["invoices"] });
+    await qc.invalidateQueries({ queryKey: ["invoice-payments"] });
+    await qc.invalidateQueries({ queryKey: ["analytics-invoices"] });
+  }
 
   const invoices = useQuery({
     queryKey: ["invoices"],
@@ -123,6 +170,24 @@ function InvoicesList() {
         </div>
       </div>
 
+      {selected.size > 0 && (
+        <div className="card-surface p-3 flex items-center justify-between gap-3 flex-wrap border-primary/40">
+          <div className="text-sm">
+            <span className="font-semibold">{selected.size}</span> invoice
+            {selected.size === 1 ? "" : "s"} selected
+          </div>
+          <div className="flex items-center gap-2">
+            <Button size="sm" variant="ghost" onClick={() => setSelected(new Set())}>
+              Clear
+            </Button>
+            <Button size="sm" onClick={markSelectedPaid} disabled={marking} className="gap-2">
+              <Check className="h-4 w-4" />
+              {marking ? "Marking…" : "Mark as paid"}
+            </Button>
+          </div>
+        </div>
+      )}
+
       {invoices.isLoading && (
         <div className="card-surface p-8 text-center text-sm text-muted-foreground">Loading…</div>
       )}
@@ -158,8 +223,22 @@ function InvoicesList() {
               key={inv.id}
               to="/invoices/$invoiceId"
               params={{ invoiceId: inv.id }}
-              className="card-surface p-4 flex items-center gap-4 hover:border-primary/50 transition-colors"
+              className={`card-surface p-4 flex items-center gap-4 hover:border-primary/50 transition-colors ${
+                selected.has(inv.id) ? "border-primary/60 bg-primary/5" : ""
+              }`}
             >
+              <input
+                type="checkbox"
+                checked={selected.has(inv.id)}
+                onChange={() => toggleSelect(inv.id)}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  toggleSelect(inv.id);
+                }}
+                className="h-4 w-4 shrink-0 accent-primary cursor-pointer"
+                aria-label="Select invoice"
+              />
               <div className="grid h-10 w-10 place-items-center rounded-lg bg-muted text-primary shrink-0">
                 <FileText className="h-4 w-4" />
               </div>
