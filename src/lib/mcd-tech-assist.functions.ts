@@ -154,3 +154,50 @@ export const triageFindings = createServerFn({ method: "POST" })
       .map((p) => ({ id: p[0]!, bucket: (p[1] as string).toUpperCase(), reason: p[2] ?? "" }));
     return { results };
   });
+
+/* ------------------------------------------------------------------ */
+
+const WorkPerformedInput = z.object({
+  text: z.string().min(3).max(4000),
+  title: z.string().max(200).nullable().optional(),
+  bike: z.string().max(200).nullable().optional(),
+});
+
+/**
+ * "Fix Wording" in the job card Work Performed section.
+ *
+ * Rewrites a technician's rough shorthand into the workshop's uniform
+ * mechanical report style: spelling and grammar corrected, workshop
+ * terminology, logical order, customer-ready tone. Facts are never invented.
+ */
+export const formatWorkPerformed = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => WorkPerformedInput.parse(d))
+  .handler(async ({ data, context }) => {
+    await guard(context as never, { customerText: true });
+    const { aiReason } = await import("./ai-gateway.server");
+    const suggestion = await aiReason({
+      system: [
+        "You are MCD TECH for Motorcycle Doctors (New Zealand).",
+        "You rewrite a motorcycle technician's rough shorthand notes into the workshop's standard Mechanical Report wording, used on the job card and the customer invoice.",
+        "Correct every spelling mistake, typo, workshop abbreviation and grammar error. Expand shorthand into correct technical terminology (e.g. 'plugs' -> 'spark plugs', 'rr' -> 'rear', 'adj' -> 'adjusted').",
+        "Write in professional New Zealand English, past tense, third person, calm and factual. Never address the customer as 'you'.",
+        "Structure the report as flowing prose in this order: the work carried out and procedure, then what was observed or measured, then the final verification or road test. Keep clearly unrelated jobs in separate paragraphs.",
+        "Write complete sentences in short paragraphs. Do not use bullet points, dashes, numbering, markdown, headings or labels.",
+        "Preserve EVERY fact from the input and never add findings, tests, measurements, torque figures, part names, brands, prices, diagnoses, recommendations or certainty that the input does not contain.",
+        "If the note is very short, keep the output short — do not pad it.",
+        "Output only the finished report text, with no preamble, quotes or commentary.",
+      ].join(" "),
+      user: [
+        data.bike ? `Motorcycle: ${data.bike}` : null,
+        data.title ? `Job item: ${data.title}` : null,
+        `Technician notes:\n${data.text}`,
+      ]
+        .filter(Boolean)
+        .join("\n"),
+      model: "openai/gpt-6-astra",
+      effort: "low",
+    });
+    return { suggestion: suggestion.trim(), original: data.text };
+  });
+
