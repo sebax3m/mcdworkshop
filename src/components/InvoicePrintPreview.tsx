@@ -219,6 +219,12 @@ ${
        every column stays labelled on the second sheet. */
     .invoice-page table[data-invoice-items] thead {
       display: table-header-group !important;
+      break-after: avoid !important;
+      page-break-after: avoid !important;
+    }
+    .invoice-page table[data-invoice-items] thead tr {
+      break-after: avoid !important;
+      page-break-after: avoid !important;
     }
     /* The totals block (subtotal / GST / TOTAL) must stay together — it may
        move to page 2 as one block, but never split across sheets. */
@@ -283,32 +289,12 @@ ${
         var scale = ${printScale} / 100;
         var usable = USABLE - SAFETY;
          var h = 0;
-         // Measure at the actual print scale. Insert a blank table row before
-         // the first item that would land within 12mm of the A4 foot; both
-         // columns then start together on sheet two in preview and print.
+         // No artificial spacer rows: page breaks are handled natively by CSS
+         // (rows never split, header never orphaned and repeated on page 2).
+         document.querySelectorAll('[data-page-spacer]').forEach(function (el) { el.remove(); });
          for (var attempt = 0; attempt < 6; attempt++) {
            sheet.style.setProperty('--sheetmin', '0px');
-           document.querySelectorAll('[data-page-spacer]').forEach(function (el) { el.remove(); });
-          document.documentElement.style.setProperty('--pscale', String(scale));
-           var pageTop = page.getBoundingClientRect().top;
-           var rows = sheet.querySelectorAll('table[data-invoice-items] tbody tr:not(.no-print)');
-           for (var i = 0; i < rows.length; i++) {
-             var row = rows[i];
-             var bounds = row.getBoundingClientRect();
-             var top = bounds.top - pageTop;
-             var bottom = bounds.bottom - pageTop;
-             if (top < USABLE && bottom > usable - ITEM_FOOT_CLEARANCE) {
-               var spacer = document.createElement('tr');
-               spacer.setAttribute('data-page-spacer', '');
-               var cell = document.createElement('td');
-               cell.colSpan = row.cells.length;
-               cell.style.height = Math.max(0, (USABLE - top + 8) / scale) + 'px';
-               cell.style.padding = '0';
-               spacer.appendChild(cell);
-               row.parentNode.insertBefore(spacer, row);
-               break;
-             }
-           }
+           document.documentElement.style.setProperty('--pscale', String(scale));
            h = naturalHeight(page, sheet);
            if (!h || h * scale <= MAX_PAGES * usable) break;
            scale = Math.max(0.1, scale * (MAX_PAGES * usable) / (h * scale) * 0.99);
