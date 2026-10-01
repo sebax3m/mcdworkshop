@@ -1385,7 +1385,7 @@ function InvoiceDetail() {
 
       <div ref={sheetRef} className="card-surface invoice-sheet overflow-hidden">
         {/* Letterhead — the logo is the strongest brand element, so it leads */}
-        <div className="bg-background border-b-2 border-border px-6 pt-3 pb-4 text-foreground">
+        <div data-invoice-header className="bg-background border-b-2 border-border px-6 pt-3 pb-4 text-foreground">
           <div className="flex items-start justify-between gap-6">
             <div className="flex items-center gap-5">
               <img
@@ -2167,7 +2167,7 @@ function InvoiceDetail() {
           {/* Payment details + totals — anchored to the bottom of the A4 sheet.
               Both blocks share the same top edge: the "Payment Details" header
               aligns with "Labour (incl GST)" and each following row lines up. */}
-          <div className="pt-3 mt-3 border-t border-border text-xs">
+          <div data-invoice-totals className="pt-3 mt-3 border-t border-border text-xs">
             <div className="flex flex-col sm:flex-row justify-between gap-1 sm:gap-6">
               <div data-print-section="payment" className="flex-1 font-display text-[0.7rem] font-semibold uppercase tracking-wider text-muted-foreground">
                 Payment Details
