@@ -41,7 +41,7 @@ export const Route = createFileRoute("/_authenticated/motorcycles/$bikeId")({
   ),
 });
 
-function BikeErrorComponent({ error, reset }: { error: Error; reset?: () => void }) {
+function BikeErrorComponent({ error, reset }: ErrorComponentProps) {
   const router = useRouter();
   return (
     <div className="card-surface p-6 space-y-3">
