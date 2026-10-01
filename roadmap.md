@@ -1,4 +1,5 @@
 # Task roadmap
+- [x] Update the four master service checklists from the supplied file, and remove obsolete duplicate service presets.
 - [x] Fix Wording: professional bullet per operation (offline, no credits).
 - [x] Parts ordering from existing bookings in calendar (cost/sell price, shared Parts Orders).
 - [x] Insurance Parts Order Tracking section linked to Parts Orders (source + View Insurance Job).
