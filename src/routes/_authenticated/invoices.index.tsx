@@ -260,6 +260,7 @@ function InvoicesList() {
                 </span>
               </div>
             </Link>
+            </div>
           );
         })}
       </div>
