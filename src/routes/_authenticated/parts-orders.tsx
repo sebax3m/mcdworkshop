@@ -3,7 +3,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { addDays, format } from "date-fns";
-import { Package, Search, AlertTriangle, Pencil, X, Plus, ChevronDown, ArrowLeftRight } from "lucide-react";
+import { Package, Search, AlertTriangle, Pencil, X, Plus, ChevronDown, ArrowLeftRight, ArrowUp, ArrowDown, ChevronsUpDown } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -62,6 +62,7 @@ function PartsOrdersPage() {
   const [edit, setEdit] = useState<any | null>(null);
   const [addFor, setAddFor] = useState<string | null>(null);
   const [moveFor, setMoveFor] = useState<any | null>(null);
+  const [sort, setSort] = useState<{ key: string; dir: 1 | -1 }>({ key: "date", dir: 1 });
 
   const data = useQuery({
     queryKey: ["parts-orders"],
@@ -114,6 +115,31 @@ function PartsOrdersPage() {
     return c;
   }, [rows, flagged.data]);
 
+  const whoS = (r: any) => [r.bookings?.customers?.first_name, r.bookings?.customers?.last_name].filter(Boolean).join(" ");
+  const bikeS = (r: any) => [r.bookings?.motorcycles?.year, r.bookings?.motorcycles?.make, r.bookings?.motorcycles?.model].filter(Boolean).join(" ");
+  const regoS = (r: any) => r.bookings?.motorcycles?.rego || r.bookings?.rego || "";
+  const svcS = (r: any) => (r.bookings?.service_type === "Other" ? r.bookings?.service_type_other || "Other" : r.bookings?.service_type) ?? "";
+  const sortVal = (r: any, key: string): string | number => {
+    switch (key) {
+      case "date": return r.bookings?.scheduled_date ?? "9999";
+      case "customer": return whoS(r).toLowerCase();
+      case "bike": return bikeS(r).toLowerCase();
+      case "rego": return regoS(r).toLowerCase();
+      case "service": return svcS(r).toLowerCase();
+      case "part": return (r.description ?? "").toLowerCase();
+      case "partNumber": return (r.part_number ?? "").toLowerCase();
+      case "qty": return (r.qty_required ?? 0) * 1000 + (r.qty_received ?? 0);
+      case "supplier": return (r.supplier ?? "").toLowerCase();
+      case "orderRef": return (r.order_ref ?? "").toLowerCase();
+      case "ordered": return r.ordered_at ?? "9999";
+      case "eta": return r.eta ?? "9999";
+      case "status": return r.status ?? "";
+      case "notes": return (r.notes ?? "").toLowerCase();
+      case "created": return r.created_at ?? "";
+      default: return "";
+    }
+  };
+
   const filtered = useMemo(() => {
     const t = q.trim().toLowerCase();
     return rows
@@ -134,11 +160,24 @@ function PartsOrdersPage() {
         return hay.includes(t);
       })
       .sort((a, b) => {
-        const da = a.bookings?.scheduled_date ?? "9999";
-        const db = b.bookings?.scheduled_date ?? "9999";
-        return da.localeCompare(db);
+        const va = sortVal(a, sort.key);
+        const vb = sortVal(b, sort.key);
+        const cmp = typeof va === "number" && typeof vb === "number" ? va - vb : String(va).localeCompare(String(vb));
+        return cmp * sort.dir;
       });
-  }, [rows, q, supplier, from, to, search.bookingId, search.status, showCancelled]);
+  }, [rows, q, supplier, from, to, search.bookingId, search.status, showCancelled, sort]);
+
+  const toggleSort = (key: string) =>
+    setSort((s) => (s.key === key ? { key, dir: s.dir === 1 ? -1 : 1 } : { key, dir: 1 }));
+
+  const SortTh = ({ k, children }: { k: string; children?: React.ReactNode }) => (
+    <th className="px-2 py-2 text-left font-bold whitespace-nowrap">
+      <button onClick={() => toggleSort(k)} className="inline-flex items-center gap-1 uppercase tracking-wider hover:text-foreground">
+        {children}
+        {sort.key === k ? (sort.dir === 1 ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />) : <ChevronsUpDown className="h-3 w-3 opacity-40" />}
+      </button>
+    </th>
+  );
 
   const notReady = (r: any) =>
     r.bookings?.scheduled_date &&
@@ -476,9 +515,22 @@ function PartsOrdersPage() {
             <table className="w-full text-xs">
               <thead className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">
                 <tr className="border-b border-border">
-                  {["Book-in", "Date", "Customer", "Motorcycle", "Rego", "Service", "Part", "Part #", "Qty", "Supplier", "Order ref", "Ordered", "ETA", "Status", "Notes", ""].map((h) => (
-                    <th key={h} className="px-2 py-2 text-left font-bold whitespace-nowrap">{h}</th>
-                  ))}
+                  <SortTh k="date">Book-in</SortTh>
+                  <SortTh k="date">Date</SortTh>
+                  <SortTh k="customer">Customer</SortTh>
+                  <SortTh k="bike">Motorcycle</SortTh>
+                  <SortTh k="rego">Rego</SortTh>
+                  <SortTh k="service">Service</SortTh>
+                  <SortTh k="part">Part</SortTh>
+                  <SortTh k="partNumber">Part #</SortTh>
+                  <SortTh k="qty">Qty</SortTh>
+                  <SortTh k="supplier">Supplier</SortTh>
+                  <SortTh k="orderRef">Order ref</SortTh>
+                  <SortTh k="ordered">Ordered</SortTh>
+                  <SortTh k="eta">ETA</SortTh>
+                  <SortTh k="status">Status</SortTh>
+                  <SortTh k="notes">Notes</SortTh>
+                  <th className="px-2 py-2 text-left font-bold whitespace-nowrap" />
                 </tr>
               </thead>
               <tbody>
