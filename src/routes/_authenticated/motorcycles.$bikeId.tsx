@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
+import type { ErrorComponentProps } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -40,12 +41,12 @@ export const Route = createFileRoute("/_authenticated/motorcycles/$bikeId")({
   ),
 });
 
-function BikeErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
+function BikeErrorComponent({ error, reset }: ErrorComponentProps) {
   const router = useRouter();
   return (
     <div className="card-surface p-6 space-y-3">
       <div className="font-semibold">Couldn't load bike</div>
-      <div className="text-sm text-muted-foreground">{error.message}</div>
+      <div className="text-sm text-muted-foreground">{(error as Error)?.message}</div>
       <button
         className="text-sm text-primary"
         onClick={() => {
