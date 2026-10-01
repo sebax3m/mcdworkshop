@@ -32,6 +32,16 @@ import { toast } from "sonner";
 import logoAsset from "@/assets/motorcycle-doctors-logo.png.asset.json";
 
 export const Route = createFileRoute("/_authenticated/templates")({
+  head: () => ({
+    meta: [
+      { title: "Service Templates | Motorcycle Doctors" },
+      { name: "description", content: "Workshop service checklists and templates at Motorcycle Doctors." },
+      { property: "og:title", content: "Service Templates | Motorcycle Doctors" },
+      { property: "og:description", content: "Workshop service checklists and templates at Motorcycle Doctors." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+    ],
+  }),
   component: Templates,
 });
 
