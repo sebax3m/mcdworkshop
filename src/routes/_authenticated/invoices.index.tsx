@@ -219,26 +219,25 @@ function InvoicesList() {
             Number(inv.total ?? 0),
           );
           return (
-            <Link
-              key={inv.id}
-              to="/invoices/$invoiceId"
-              params={{ invoiceId: inv.id }}
-              className={`card-surface p-4 flex items-center gap-4 hover:border-primary/50 transition-colors ${
-                selected.has(inv.id) ? "border-primary/60 bg-primary/5" : ""
-              }`}
+            <div key={inv.id} className="flex items-stretch gap-2">
+            <label
+              className="flex items-center justify-center px-2 cursor-pointer"
+              aria-label="Select invoice"
             >
               <input
                 type="checkbox"
                 checked={selected.has(inv.id)}
                 onChange={() => toggleSelect(inv.id)}
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  toggleSelect(inv.id);
-                }}
-                className="h-4 w-4 shrink-0 accent-primary cursor-pointer"
-                aria-label="Select invoice"
+                className="h-5 w-5 shrink-0 accent-primary cursor-pointer"
               />
+            </label>
+            <Link
+              to="/invoices/$invoiceId"
+              params={{ invoiceId: inv.id }}
+              className={`flex-1 min-w-0 card-surface p-4 flex items-center gap-4 hover:border-primary/50 transition-colors ${
+                selected.has(inv.id) ? "border-primary/60 bg-primary/5" : ""
+              }`}
+            >
               <div className="grid h-10 w-10 place-items-center rounded-lg bg-muted text-primary shrink-0">
                 <FileText className="h-4 w-4" />
               </div>
@@ -261,6 +260,7 @@ function InvoicesList() {
                 </span>
               </div>
             </Link>
+            </div>
           );
         })}
       </div>
