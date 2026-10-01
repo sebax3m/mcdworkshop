@@ -1015,7 +1015,7 @@ function InvoiceDetail() {
   }
 
   async function saveSnapshotLines(
-    items: { kind?: "part" | "labour"; description: string; quantity: number; unit: number; discount_pct?: number }[],
+    items: { kind?: "part" | "labour"; item_name?: string; description: string; quantity: number; unit: number; discount_pct?: number }[],
   ) {
     const lineNet = (l: any) =>
       Number(l.unit || 0) * Number(l.quantity || 0) * (1 - Number(l.discount_pct ?? 0) / 100);
@@ -1041,6 +1041,7 @@ function InvoiceDetail() {
   }
   function currentSnapshotLines(): {
     kind?: "part" | "labour";
+    item_name?: string;
     description: string;
     quantity: number;
     unit: number;
