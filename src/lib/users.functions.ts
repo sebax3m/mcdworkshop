@@ -33,6 +33,7 @@ export const listUsersWithLogins = createServerFn({ method: "GET" })
       email: string | null;
       last_sign_in_at: string | null;
       created_at: string | null;
+      deleted_at: string | null;
     }> = [];
     let page = 1;
     while (true) {
@@ -44,6 +45,7 @@ export const listUsersWithLogins = createServerFn({ method: "GET" })
           email: u.email ?? null,
           last_sign_in_at: u.last_sign_in_at ?? null,
           created_at: u.created_at ?? null,
+          deleted_at: u.deleted_at ?? null,
         });
       }
       if (data.users.length < 200) break;
@@ -51,7 +53,8 @@ export const listUsersWithLogins = createServerFn({ method: "GET" })
       if (page > 20) break;
     }
 
-    const ids = authUsers.map((u) => u.id);
+    const activeUsers = authUsers.filter((u) => !u.deleted_at);
+    const ids = activeUsers.map((u) => u.id);
     const [{ data: profiles }, { data: roles }] = await Promise.all([
       supabaseAdmin.from("profiles").select("id, full_name, email").in("id", ids),
       supabaseAdmin.from("user_roles").select("user_id, role").in("user_id", ids),
@@ -65,7 +68,7 @@ export const listUsersWithLogins = createServerFn({ method: "GET" })
       rolesById.set(r.user_id, cur);
     }
 
-    return authUsers
+    return activeUsers
       .map((u) => {
         const p = profById.get(u.id);
         const rs = rolesById.get(u.id) ?? [];
