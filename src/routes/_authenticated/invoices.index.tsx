@@ -170,6 +170,24 @@ function InvoicesList() {
         </div>
       </div>
 
+      {selected.size > 0 && (
+        <div className="card-surface p-3 flex items-center justify-between gap-3 flex-wrap border-primary/40">
+          <div className="text-sm">
+            <span className="font-semibold">{selected.size}</span> invoice
+            {selected.size === 1 ? "" : "s"} selected
+          </div>
+          <div className="flex items-center gap-2">
+            <Button size="sm" variant="ghost" onClick={() => setSelected(new Set())}>
+              Clear
+            </Button>
+            <Button size="sm" onClick={markSelectedPaid} disabled={marking} className="gap-2">
+              <Check className="h-4 w-4" />
+              {marking ? "Marking…" : "Mark as paid"}
+            </Button>
+          </div>
+        </div>
+      )}
+
       {invoices.isLoading && (
         <div className="card-surface p-8 text-center text-sm text-muted-foreground">Loading…</div>
       )}
