@@ -23,8 +23,53 @@ const FILTERS: { value: Filter; label: string }[] = [
 ];
 
 function InvoicesList() {
+  const qc = useQueryClient();
   const [filter, setFilter] = useState<Filter>("all");
   const [q, setQ] = useState("");
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [marking, setMarking] = useState(false);
+
+  function toggleSelect(id: string) {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  async function markSelectedPaid() {
+    const targets = (invoices.data ?? []).filter((inv: any) => {
+      if (!selected.has(inv.id)) return false;
+      return Number(inv.total ?? 0) - Number(inv.paid_amount ?? 0) > 0.005;
+    });
+    if (targets.length === 0) {
+      toast.error("Select at least one unpaid invoice");
+      return;
+    }
+    setMarking(true);
+    const { data: u } = await supabase.auth.getUser();
+    const today = new Date().toISOString().slice(0, 10);
+    const rows = targets.map((inv: any) => ({
+      invoice_id: inv.id,
+      amount: Number((Number(inv.total ?? 0) - Number(inv.paid_amount ?? 0)).toFixed(2)),
+      method: "other",
+      paid_on: today,
+      reference: "Bulk marked as paid",
+      created_by: u.user?.id ?? null,
+    }));
+    const { error } = await supabase.from("invoice_payments").insert(rows);
+    setMarking(false);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    toast.success(`${targets.length} invoice${targets.length === 1 ? "" : "s"} marked as paid`);
+    setSelected(new Set());
+    await qc.invalidateQueries({ queryKey: ["invoices"] });
+    await qc.invalidateQueries({ queryKey: ["invoice-payments"] });
+    await qc.invalidateQueries({ queryKey: ["analytics-invoices"] });
+  }
 
   const invoices = useQuery({
     queryKey: ["invoices"],
