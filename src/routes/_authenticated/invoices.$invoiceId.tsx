@@ -1270,6 +1270,11 @@ function InvoiceDetail() {
           .invoice-sheet table { page-break-inside: auto; }
           .invoice-sheet tr { page-break-inside: avoid; }
           .invoice-sheet [data-print-section] { page-break-inside: avoid; }
+          /* Repeat the items header on page 2 and keep header/totals intact,
+             so the direct printout matches the preview exactly. */
+          .invoice-sheet table[data-invoice-items] thead { display: table-header-group; }
+          .invoice-sheet [data-invoice-totals] { page-break-inside: avoid; }
+          .invoice-sheet [data-invoice-header] { page-break-inside: avoid; page-break-after: avoid; }
           .invoice-sheet .bg-background { background: #ffffff !important; }
           .invoice-sheet .border-border { border-color: #e5e7eb !important; }
           .no-print, .print\\:hidden { display: none !important; }
