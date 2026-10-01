@@ -211,7 +211,7 @@ ${
       page-break-inside:auto !important;
     }
     /* An ITEM and its DESCRIPTION must never split across A4 sheets. */
-    .invoice-page tbody tr:not([data-page-spacer]) {
+    .invoice-page table[data-invoice-items] tbody tr:not([data-page-spacer]) {
       break-inside: avoid !important;
       page-break-inside: avoid !important;
     }
@@ -272,7 +272,7 @@ ${
            document.querySelectorAll('[data-page-spacer]').forEach(function (el) { el.remove(); });
           document.documentElement.style.setProperty('--pscale', String(scale));
            var pageTop = page.getBoundingClientRect().top;
-           var rows = sheet.querySelectorAll('table tbody tr:not(.no-print)');
+           var rows = sheet.querySelectorAll('table[data-invoice-items] tbody tr:not(.no-print)');
            for (var i = 0; i < rows.length; i++) {
              var row = rows[i];
              var bounds = row.getBoundingClientRect();
