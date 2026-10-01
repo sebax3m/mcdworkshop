@@ -29,7 +29,7 @@ export function InvoicePrintPreview({
   const orientation = "portrait" as "portrait" | "landscape";
   /** Only lowered automatically when an invoice would need a 3rd page. */
   const [printScale, setPrintScale] = useState(100);
-  const margin = "narrow" as const;
+  const margin = "narrow" as "none" | "narrow" | "normal";
   /** Vertical density: 100 = normal spacing, lower = tighter gaps (no font rescaling). */
   const [density, setDensity] = useState(100);
   const showGuides = true;
