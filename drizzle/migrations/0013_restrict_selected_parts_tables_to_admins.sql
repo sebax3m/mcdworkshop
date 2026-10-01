@@ -1,0 +1,5 @@
+ALTER POLICY "staff read parts catalog" ON public.parts_catalog USING (private.has_role(auth.uid(), 'admin'::public.app_role));
+ALTER POLICY "staff write parts catalog" ON public.parts_catalog USING (private.has_role(auth.uid(), 'admin'::public.app_role)) WITH CHECK (private.has_role(auth.uid(), 'admin'::public.app_role));
+ALTER POLICY "staff read parts history" ON public.parts_purchase_history USING (private.has_role(auth.uid(), 'admin'::public.app_role));
+ALTER POLICY "staff write parts history" ON public.parts_purchase_history USING (private.has_role(auth.uid(), 'admin'::public.app_role)) WITH CHECK (private.has_role(auth.uid(), 'admin'::public.app_role));
+ALTER POLICY "Staff manage booking part requirements" ON public.booking_part_requirements USING (private.has_role(auth.uid(), 'admin'::public.app_role)) WITH CHECK (private.has_role(auth.uid(), 'admin'::public.app_role));
