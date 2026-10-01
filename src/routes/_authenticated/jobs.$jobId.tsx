@@ -3490,8 +3490,6 @@ function TimeEntriesEditor({
     qc.invalidateQueries({ queryKey: ["job-time", jobId] });
   }
 
-  if (sorted.length === 0) return null;
-
   return (
     <div className="mt-4 pt-3 border-t border-border/50 no-print">
       <button
@@ -3506,7 +3504,12 @@ function TimeEntriesEditor({
           className={`h-3.5 w-3.5 transition-transform ${expanded ? "rotate-180" : ""}`}
         />
       </button>
-      {expanded && (
+      {expanded && sorted.length === 0 && (
+        <p className="mt-2 text-xs text-muted-foreground">
+          No time entries yet. Clock in on this job from the Clock page to start tracking time.
+        </p>
+      )}
+      {expanded && sorted.length > 0 && (
         <ul className="mt-2 space-y-1.5">
           {sorted.map((e) => {
             const editable = canEditEntry(e);
@@ -3579,6 +3582,17 @@ function TimeEntriesEditor({
                           <span className="text-status-progress">running…</span>
                         )}
                       </div>
+                      {editable ? (
+                        <TimeEntryNote
+                          entryId={e.id}
+                          initial={e.note ?? ""}
+                          onSaved={() => qc.invalidateQueries({ queryKey: ["job-time", jobId] })}
+                        />
+                      ) : (
+                        e.note && (
+                          <div className="text-[0.625rem] text-foreground/80 mt-0.5">{e.note}</div>
+                        )
+                      )}
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
                       <span className="font-mono font-bold">{formatMinutes(mins)}</span>
@@ -3611,5 +3625,38 @@ function TimeEntriesEditor({
         </ul>
       )}
     </div>
+  );
+}
+
+function TimeEntryNote({
+  entryId,
+  initial,
+  onSaved,
+}: {
+  entryId: string;
+  initial: string;
+  onSaved: () => void;
+}) {
+  const [val, setVal] = useState(initial);
+  useEffect(() => setVal(initial), [initial]);
+  async function save() {
+    if (val.trim() === initial.trim()) return;
+    const { error } = await supabase.from("time_entries").update({ note: val }).eq("id", entryId);
+    if (error) return toast.error(error.message);
+    toast.success("Description saved");
+    onSaved();
+  }
+  return (
+    <Input
+      value={val}
+      maxLength={500}
+      placeholder="Add description…"
+      onChange={(e) => setVal(e.target.value)}
+      onBlur={save}
+      onKeyDown={(e) => {
+        if (e.key === "Enter") (e.target as HTMLInputElement).blur();
+      }}
+      className="mt-1 h-7 text-[0.6875rem]"
+    />
   );
 }
