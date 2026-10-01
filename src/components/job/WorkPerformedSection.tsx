@@ -111,6 +111,9 @@ export default function WorkPerformedSection({
     detail: "",
     hours: 0,
   });
+  const [fixing, setFixing] = useState<"draft" | "edit" | null>(null);
+  const formatReport = useServerFn(formatWorkPerformed);
+
 
   /** Rewrites the rough notes into the workshop's standard mechanical report. */
   async function runFixWording(which: "draft" | "edit") {
