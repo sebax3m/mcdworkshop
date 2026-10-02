@@ -113,6 +113,13 @@
       "when": 1790893731877,
       "tag": "0015_clock_event_note_rpc",
       "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1790899433157,
+      "tag": "0016_lock_time_entry_edits_to_admins",
+      "breakpoints": true
     }
   ]
 }

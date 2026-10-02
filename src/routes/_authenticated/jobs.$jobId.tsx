@@ -3447,6 +3447,7 @@ function TimeEntriesEditor({
   );
 
   function canEditEntry(e: any) {
+    // Note editing: admins and the entry owner. Time editing/deleting: admins only.
     return isAdmin || e.technician_id === currentUserId;
   }
 
@@ -3596,7 +3597,7 @@ function TimeEntriesEditor({
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
                       <span className="font-mono font-bold">{formatMinutes(mins)}</span>
-                      {editable && (
+                      {isAdmin && (
                         <>
                           <Button
                             size="sm"
