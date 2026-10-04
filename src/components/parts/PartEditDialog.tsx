@@ -142,6 +142,9 @@ export function PartEditDialog({
     else if (row.qty_received > 0 && row.status !== "backordered") row.status = "partially_received";
     if (row.status === "arrived" && !row.received_at) row.received_at = localToday();
     if (ORDERED_LIKE.includes(row.status) && !row.ordered_at) row.ordered_at = localToday();
+    // Reverse sync: a date ordered with nothing received means the part is ordered.
+    if (row.ordered_at && row.qty_received === 0 && !ORDERED_LIKE.includes(row.status))
+      row.status = "ordered";
 
     const { error } = part?.id
       ? await supabase.from("booking_parts").update(row).eq("id", part.id)
