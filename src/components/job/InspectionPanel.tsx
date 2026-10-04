@@ -293,7 +293,16 @@ export function InspectionPanel({
       )}
 
       {decided.length > 0 && (
-        <Section title={`Customer decisions (${decided.length})`}>
+        <Section
+          title={`Customer decisions (${decided.length})`}
+          action={
+            isAdmin && decidedRequest ? (
+              <Button size="sm" variant="outline" onClick={() => setEditDecisionOpen(true)}>
+                <Pencil className="h-3.5 w-3.5 mr-1" /> Edit decision
+              </Button>
+            ) : undefined
+          }
+        >
           {decided.map((f) => (
             <FindingRow
               key={f.id}
@@ -397,6 +406,19 @@ export function InspectionPanel({
           jobStartedAt={jobStartedAt}
           request={pendingRequest}
           findings={pending}
+          userId={userId}
+          onDone={refresh}
+        />
+      )}
+
+      {decidedRequest && isAdmin && (
+        <ApprovalDecisionDialog
+          open={editDecisionOpen}
+          onOpenChange={setEditDecisionOpen}
+          jobId={jobId}
+          jobStartedAt={jobStartedAt}
+          request={decidedRequest}
+          findings={decidedRequestFindings}
           userId={userId}
           onDone={refresh}
         />
