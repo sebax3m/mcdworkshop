@@ -3196,6 +3196,7 @@ function CalendarPage() {
                   </div>
 
                    </div>
+                   </div>
                   <div className="flex gap-2 pt-2 border-t border-border/60">
                     <button
                       onClick={() => !creatingQuick && closeQuickBooking()}
