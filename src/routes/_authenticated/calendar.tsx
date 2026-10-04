@@ -2585,7 +2585,18 @@ function CalendarPage() {
                     </div>
                   </div>
 
-                  <div className="grid gap-4 sm:grid-cols-2">
+                   <div className="grid min-w-0 gap-4 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)]">
+                     <div className="min-w-0 lg:col-start-1 lg:row-start-1 lg:max-h-[calc(100dvh-11rem)] lg:overflow-y-auto lg:pr-1">
+                       <PartsReminderSection
+                         serviceType={qService}
+                         serviceTypeOther={qServiceOther}
+                         instructions={qNotes}
+                         items={qReminders}
+                         onChange={setQReminders}
+                       />
+                     </div>
+                     <div className="min-w-0 space-y-4 lg:col-start-2 lg:row-start-1">
+                   <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
                   <div className="space-y-4 min-w-0">
                   <div>
                     <label className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">
@@ -3184,6 +3195,7 @@ function CalendarPage() {
 
                   </div>
 
+                   </div>
                   <div className="flex gap-2 pt-2 border-t border-border/60">
                     <button
                       onClick={() => !creatingQuick && closeQuickBooking()}
