@@ -41,6 +41,7 @@ export function InspectionPanel({
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<InspectionFinding | null>(null);
   const [decisionOpen, setDecisionOpen] = useState(false);
+  const [editDecisionOpen, setEditDecisionOpen] = useState(false);
   const [busy, setBusy] = useState(false);
 
   const findingsQ = useQuery({
@@ -76,6 +77,12 @@ export function InspectionPanel({
   const drafts = findings.filter((f) => f.status === "draft");
   const pending = findings.filter((f) => f.status === "pending_approval");
   const decided = findings.filter((f) => ["approved", "declined", "deferred"].includes(f.status));
+  const decidedRequest =
+    requests.find((r) => r.status === "resolved" && decided.some((f) => f.approval_request_id === r.id)) ??
+    null;
+  const decidedRequestFindings = decidedRequest
+    ? decided.filter((f) => f.approval_request_id === decidedRequest.id)
+    : [];
   const declinedCritical = decided.filter(
     (f) => f.status === "declined" && f.severity === "safety_critical",
   );
@@ -286,7 +293,16 @@ export function InspectionPanel({
       )}
 
       {decided.length > 0 && (
-        <Section title={`Customer decisions (${decided.length})`}>
+        <Section
+          title={`Customer decisions (${decided.length})`}
+          action={
+            isAdmin && decidedRequest ? (
+              <Button size="sm" variant="outline" onClick={() => setEditDecisionOpen(true)}>
+                <Pencil className="h-3.5 w-3.5 mr-1" /> Edit decision
+              </Button>
+            ) : undefined
+          }
+        >
           {decided.map((f) => (
             <FindingRow
               key={f.id}
@@ -394,6 +410,19 @@ export function InspectionPanel({
           onDone={refresh}
         />
       )}
+
+      {decidedRequest && isAdmin && (
+        <ApprovalDecisionDialog
+          open={editDecisionOpen}
+          onOpenChange={setEditDecisionOpen}
+          jobId={jobId}
+          jobStartedAt={jobStartedAt}
+          request={decidedRequest}
+          findings={decidedRequestFindings}
+          userId={userId}
+          onDone={refresh}
+        />
+      )}
     </div>
   );
 }
@@ -410,21 +439,26 @@ function Row({ label, value }: { label: string; value: number }) {
 function Section({
   title,
   summary,
+  action,
   children,
 }: {
   title: string;
   summary?: { hours: number; total: number };
+  action?: React.ReactNode;
   children: React.ReactNode;
 }) {
   return (
     <div>
       <div className="flex items-center justify-between text-[0.6875rem] uppercase tracking-wider text-muted-foreground mb-1.5">
         <span>{title}</span>
-        {summary && (summary.hours || summary.total) ? (
-          <span>
-            {summary.hours}h · ~${summary.total.toFixed(0)} incl GST
-          </span>
-        ) : null}
+        <span className="flex items-center gap-2">
+          {summary && (summary.hours || summary.total) ? (
+            <span>
+              {summary.hours}h · ~${summary.total.toFixed(0)} incl GST
+            </span>
+          ) : null}
+          {action}
+        </span>
       </div>
 
       <div className="space-y-2">{children}</div>
