@@ -439,21 +439,26 @@ function Row({ label, value }: { label: string; value: number }) {
 function Section({
   title,
   summary,
+  action,
   children,
 }: {
   title: string;
   summary?: { hours: number; total: number };
+  action?: React.ReactNode;
   children: React.ReactNode;
 }) {
   return (
     <div>
       <div className="flex items-center justify-between text-[0.6875rem] uppercase tracking-wider text-muted-foreground mb-1.5">
         <span>{title}</span>
-        {summary && (summary.hours || summary.total) ? (
-          <span>
-            {summary.hours}h · ~${summary.total.toFixed(0)} incl GST
-          </span>
-        ) : null}
+        <span className="flex items-center gap-2">
+          {summary && (summary.hours || summary.total) ? (
+            <span>
+              {summary.hours}h · ~${summary.total.toFixed(0)} incl GST
+            </span>
+          ) : null}
+          {action}
+        </span>
       </div>
 
       <div className="space-y-2">{children}</div>
