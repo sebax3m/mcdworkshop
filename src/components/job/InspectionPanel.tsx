@@ -41,6 +41,7 @@ export function InspectionPanel({
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<InspectionFinding | null>(null);
   const [decisionOpen, setDecisionOpen] = useState(false);
+  const [editDecisionOpen, setEditDecisionOpen] = useState(false);
   const [busy, setBusy] = useState(false);
 
   const findingsQ = useQuery({
@@ -76,6 +77,12 @@ export function InspectionPanel({
   const drafts = findings.filter((f) => f.status === "draft");
   const pending = findings.filter((f) => f.status === "pending_approval");
   const decided = findings.filter((f) => ["approved", "declined", "deferred"].includes(f.status));
+  const decidedRequest =
+    requests.find((r) => r.status === "resolved" && decided.some((f) => f.approval_request_id === r.id)) ??
+    null;
+  const decidedRequestFindings = decidedRequest
+    ? decided.filter((f) => f.approval_request_id === decidedRequest.id)
+    : [];
   const declinedCritical = decided.filter(
     (f) => f.status === "declined" && f.severity === "safety_critical",
   );
