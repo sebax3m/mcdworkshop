@@ -1598,7 +1598,7 @@ function CalendarPage() {
               exit={{ opacity: 0, scale: 0.95, y: 10 }}
               transition={{ duration: 0.15 }}
               onClick={(e) => e.stopPropagation()}
-              className="card-surface w-full max-w-md p-5 space-y-4 relative"
+              className={`card-surface w-full ${bookingView === "summary" ? "max-w-5xl" : "max-w-md"} max-h-[calc(100dvh-2rem)] overflow-y-auto p-5 space-y-4 relative`}
             >
               <div className="flex items-center justify-between gap-2">
                 <div className="text-[0.625rem] uppercase tracking-[0.25em] text-muted-foreground">
@@ -1650,7 +1650,8 @@ function CalendarPage() {
                 const customer = displayCustomerName(b.customers);
                 if (bookingView === "summary") {
                   return (
-                    <div className="space-y-4">
+                    <div className="grid min-w-0 gap-5 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
+                      <div className="min-w-0 lg:col-start-2 lg:row-start-1 space-y-4">
                       <div className="flex items-center gap-2 flex-wrap">
                         <StatusBadge booking={b} />
                         <span
@@ -1929,9 +1930,13 @@ function CalendarPage() {
                         </div>
                       </div>
 
-                      <BookingPartsSection booking={b} />
+                      </div>
 
-                      <div className="grid grid-cols-2 gap-2 pt-2 border-t border-border/60">
+                      <div className="min-w-0 lg:col-start-1 lg:row-start-1 lg:max-h-[calc(100dvh-10rem)] lg:overflow-y-auto lg:pr-1">
+                        <BookingPartsSection booking={b} />
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-2 pt-2 border-t border-border/60 lg:col-span-2">
                         <button
                           type="button"
                           onClick={() => setBookingView("edit")}
@@ -2580,7 +2585,18 @@ function CalendarPage() {
                     </div>
                   </div>
 
-                  <div className="grid gap-4 sm:grid-cols-2">
+                   <div className="grid min-w-0 gap-4 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)]">
+                     <div className="min-w-0 lg:col-start-1 lg:row-start-1 lg:max-h-[calc(100dvh-11rem)] lg:overflow-y-auto lg:pr-1">
+                       <PartsReminderSection
+                         serviceType={qService}
+                         serviceTypeOther={qServiceOther}
+                         instructions={qNotes}
+                         items={qReminders}
+                         onChange={setQReminders}
+                       />
+                     </div>
+                     <div className="min-w-0 space-y-4 lg:col-start-2 lg:row-start-1">
+                   <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
                   <div className="space-y-4 min-w-0">
                   <div>
                     <label className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">
@@ -3177,18 +3193,10 @@ function CalendarPage() {
                     )}
                   </div>
 
-                  <div className="sm:col-span-2">
-                    <PartsReminderSection
-                      serviceType={qService}
-                      serviceTypeOther={qServiceOther}
-                      instructions={qNotes}
-                      items={qReminders}
-                      onChange={setQReminders}
-                    />
                   </div>
 
-                  </div>
-
+                   </div>
+                   </div>
                   <div className="flex gap-2 pt-2 border-t border-border/60">
                     <button
                       onClick={() => !creatingQuick && closeQuickBooking()}
