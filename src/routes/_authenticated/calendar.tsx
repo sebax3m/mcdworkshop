@@ -68,6 +68,7 @@ import { LoanBikeDialog } from "@/components/booking/LoanBikeDialog";
 import { AddressAutocomplete, AddressMap } from "@/components/booking/AddressAutocomplete";
 import { useWorkshopCapacity } from "@/hooks/useWorkshopCapacity";
 import { useCurrentUser } from "@/hooks/use-current-user";
+import { UndoDeletedBookings } from "@/components/booking/UndoDeletedBookings";
 import { StickyNote, Search } from "lucide-react";
 
 import {
@@ -1162,6 +1163,7 @@ function CalendarPage() {
         <CalendarDays className="h-6 w-6 text-foreground" />
         <h1 className="font-display text-2xl font-bold leading-none">Book-ins</h1>
         <GlobalSearchButton />
+        {isAdmin && <UndoDeletedBookings />}
       </div>
 
       {/* NAV + TOGGLE */}

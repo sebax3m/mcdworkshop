@@ -120,6 +120,13 @@
       "when": 1790899433157,
       "tag": "0016_lock_time_entry_edits_to_admins",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1791149344429,
+      "tag": "0017_activity_log_and_restore",
+      "breakpoints": true
     }
   ]
 }

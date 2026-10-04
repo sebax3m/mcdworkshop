@@ -43,6 +43,7 @@ import { Route as AuthenticatedSettingsMcdTechRouteImport } from './routes/_auth
 import { Route as AuthenticatedSettingsGoogleCalendarRouteImport } from './routes/_authenticated/settings_.google-calendar'
 import { Route as AuthenticatedSettingsCapacityRouteImport } from './routes/_authenticated/settings_.capacity'
 import { Route as AuthenticatedSettingsBookingTypesRouteImport } from './routes/_authenticated/settings_.booking-types'
+import { Route as AuthenticatedSettingsActivityRouteImport } from './routes/_authenticated/settings_.activity'
 import { Route as AuthenticatedMotorcyclesBikeIdRouteImport } from './routes/_authenticated/motorcycles.$bikeId'
 import { Route as AuthenticatedLoanBikesBikeIdRouteImport } from './routes/_authenticated/loan-bikes.$bikeId'
 import { Route as AuthenticatedJobsNewRouteImport } from './routes/_authenticated/jobs.new'
@@ -249,6 +250,12 @@ const AuthenticatedSettingsBookingTypesRoute =
     path: '/settings/booking-types',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedSettingsActivityRoute =
+  AuthenticatedSettingsActivityRouteImport.update({
+    id: '/settings_/activity',
+    path: '/settings/activity',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedMotorcyclesBikeIdRoute =
   AuthenticatedMotorcyclesBikeIdRouteImport.update({
     id: '/motorcycles/$bikeId',
@@ -413,6 +420,7 @@ export interface FileRoutesByFullPath {
   '/jobs/new': typeof AuthenticatedJobsNewRoute
   '/loan-bikes/$bikeId': typeof AuthenticatedLoanBikesBikeIdRoute
   '/motorcycles/$bikeId': typeof AuthenticatedMotorcyclesBikeIdRoute
+  '/settings/activity': typeof AuthenticatedSettingsActivityRoute
   '/settings/booking-types': typeof AuthenticatedSettingsBookingTypesRoute
   '/settings/capacity': typeof AuthenticatedSettingsCapacityRoute
   '/settings/google-calendar': typeof AuthenticatedSettingsGoogleCalendarRoute
@@ -466,6 +474,7 @@ export interface FileRoutesByTo {
   '/jobs/new': typeof AuthenticatedJobsNewRoute
   '/loan-bikes/$bikeId': typeof AuthenticatedLoanBikesBikeIdRoute
   '/motorcycles/$bikeId': typeof AuthenticatedMotorcyclesBikeIdRoute
+  '/settings/activity': typeof AuthenticatedSettingsActivityRoute
   '/settings/booking-types': typeof AuthenticatedSettingsBookingTypesRoute
   '/settings/capacity': typeof AuthenticatedSettingsCapacityRoute
   '/settings/google-calendar': typeof AuthenticatedSettingsGoogleCalendarRoute
@@ -524,6 +533,7 @@ export interface FileRoutesById {
   '/_authenticated/jobs/new': typeof AuthenticatedJobsNewRoute
   '/_authenticated/loan-bikes/$bikeId': typeof AuthenticatedLoanBikesBikeIdRoute
   '/_authenticated/motorcycles/$bikeId': typeof AuthenticatedMotorcyclesBikeIdRoute
+  '/_authenticated/settings_/activity': typeof AuthenticatedSettingsActivityRoute
   '/_authenticated/settings_/booking-types': typeof AuthenticatedSettingsBookingTypesRoute
   '/_authenticated/settings_/capacity': typeof AuthenticatedSettingsCapacityRoute
   '/_authenticated/settings_/google-calendar': typeof AuthenticatedSettingsGoogleCalendarRoute
@@ -582,6 +592,7 @@ export interface FileRouteTypes {
     | '/jobs/new'
     | '/loan-bikes/$bikeId'
     | '/motorcycles/$bikeId'
+    | '/settings/activity'
     | '/settings/booking-types'
     | '/settings/capacity'
     | '/settings/google-calendar'
@@ -635,6 +646,7 @@ export interface FileRouteTypes {
     | '/jobs/new'
     | '/loan-bikes/$bikeId'
     | '/motorcycles/$bikeId'
+    | '/settings/activity'
     | '/settings/booking-types'
     | '/settings/capacity'
     | '/settings/google-calendar'
@@ -692,6 +704,7 @@ export interface FileRouteTypes {
     | '/_authenticated/jobs/new'
     | '/_authenticated/loan-bikes/$bikeId'
     | '/_authenticated/motorcycles/$bikeId'
+    | '/_authenticated/settings_/activity'
     | '/_authenticated/settings_/booking-types'
     | '/_authenticated/settings_/capacity'
     | '/_authenticated/settings_/google-calendar'
@@ -958,6 +971,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSettingsBookingTypesRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/settings_/activity': {
+      id: '/_authenticated/settings_/activity'
+      path: '/settings/activity'
+      fullPath: '/settings/activity'
+      preLoaderRoute: typeof AuthenticatedSettingsActivityRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/motorcycles/$bikeId': {
       id: '/_authenticated/motorcycles/$bikeId'
       path: '/motorcycles/$bikeId'
@@ -1191,6 +1211,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedJobsNewRoute: typeof AuthenticatedJobsNewRoute
   AuthenticatedLoanBikesBikeIdRoute: typeof AuthenticatedLoanBikesBikeIdRoute
   AuthenticatedMotorcyclesBikeIdRoute: typeof AuthenticatedMotorcyclesBikeIdRoute
+  AuthenticatedSettingsActivityRoute: typeof AuthenticatedSettingsActivityRoute
   AuthenticatedSettingsBookingTypesRoute: typeof AuthenticatedSettingsBookingTypesRoute
   AuthenticatedSettingsCapacityRoute: typeof AuthenticatedSettingsCapacityRoute
   AuthenticatedSettingsGoogleCalendarRoute: typeof AuthenticatedSettingsGoogleCalendarRoute
@@ -1241,6 +1262,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedJobsNewRoute: AuthenticatedJobsNewRoute,
   AuthenticatedLoanBikesBikeIdRoute: AuthenticatedLoanBikesBikeIdRoute,
   AuthenticatedMotorcyclesBikeIdRoute: AuthenticatedMotorcyclesBikeIdRoute,
+  AuthenticatedSettingsActivityRoute: AuthenticatedSettingsActivityRoute,
   AuthenticatedSettingsBookingTypesRoute:
     AuthenticatedSettingsBookingTypesRoute,
   AuthenticatedSettingsCapacityRoute: AuthenticatedSettingsCapacityRoute,

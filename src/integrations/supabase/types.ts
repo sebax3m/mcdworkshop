@@ -14,6 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
+      activity_log: {
+        Row: {
+          action: string
+          actor_id: string | null
+          created_at: string
+          id: string
+          new_data: Json | null
+          old_data: Json | null
+          record_id: string | null
+          restored_at: string | null
+          restored_by: string | null
+          table_name: string
+        }
+        Insert: {
+          action: string
+          actor_id?: string | null
+          created_at?: string
+          id?: string
+          new_data?: Json | null
+          old_data?: Json | null
+          record_id?: string | null
+          restored_at?: string | null
+          restored_by?: string | null
+          table_name: string
+        }
+        Update: {
+          action?: string
+          actor_id?: string | null
+          created_at?: string
+          id?: string
+          new_data?: Json | null
+          old_data?: Json | null
+          record_id?: string | null
+          restored_at?: string | null
+          restored_by?: string | null
+          table_name?: string
+        }
+        Relationships: []
+      }
       app_user_connections: {
         Row: {
           connection_key_ciphertext: string
@@ -4390,6 +4429,7 @@ export type Database = {
           supplier: string
         }[]
       }
+      restore_deleted_record: { Args: { p_log_id: string }; Returns: Json }
       set_clock_event_note: {
         Args: { p_event_id: string; p_note: string }
         Returns: undefined

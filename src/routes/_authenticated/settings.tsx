@@ -14,6 +14,7 @@ import {
   Gauge,
   Wrench,
   CalendarCheck,
+  History,
 } from "lucide-react";
 import { useCurrentUser } from "@/hooks/use-current-user";
 
@@ -95,6 +96,12 @@ const sections = [
     icon: ShieldCheck,
     title: "Insurance Claims",
     desc: "Track collision repair claims, quotes, insurer approvals and parts.",
+  },
+  {
+    to: "/settings/activity",
+    icon: History,
+    title: "Activity & Deleted Items",
+    desc: "30-day history of book-ins, invoices and every deletion — restore with one click.",
   },
   {
     to: "/users",

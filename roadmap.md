@@ -6,3 +6,4 @@
 - [x] Insurance approval auto-creates "Not ordered" parts without duplicates.
 - [x] Connected Parts Ordering workflow (spec 2026-09-30): book-in "Parts required" reminder -> Parts Orders workspace -> supplier/ETA -> job -> invoice.
 - [x] Reusable Parts Database (parts_catalog) + supplier history learning + "Use previous part" suggestions.
+- Activity log + restore (admin only), Settings → /settings/activity, Undo in calendar: done
