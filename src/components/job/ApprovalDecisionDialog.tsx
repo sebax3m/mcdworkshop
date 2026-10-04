@@ -62,10 +62,15 @@ export function ApprovalDecisionDialog({
   useEffect(() => {
     if (!open) return;
     const init: Record<string, Decision> = {};
-    findings.forEach((f) => (init[f.id] = "approved"));
+    findings.forEach((f) => {
+      init[f.id] = ["approved", "declined", "deferred"].includes(f.status)
+        ? (f.status as Decision)
+        : "approved";
+    });
     setDecisions(init);
-    setNote("");
-  }, [open, findings]);
+    setNote(request.resolution_note ?? "");
+    if (request.customer_contact_method) setContact(request.customer_contact_method);
+  }, [open, findings, request]);
 
   function setAll(d: Decision) {
     const next: Record<string, Decision> = {};
