@@ -475,7 +475,19 @@ function InvoiceDetail() {
           0,
         ) * 100,
       ) / 100;
-    if (Math.abs(partsSum - Number(invoice.data?.parts_total ?? 0)) < 0.005) return;
+    const partsChanged = Math.abs(partsSum - Number(invoice.data?.parts_total ?? 0)) >= 0.005;
+    // Self-heal: a draft whose stored total/GST no longer matches its own
+    // labour + parts (e.g. labour edited elsewhere) gets recalculated.
+    const expected = invoiceMoney(
+      invoice.data!.snapshot as any,
+      Number(invoice.data!.labour_total ?? 0),
+      partsSum,
+    );
+    const totalStale =
+      (invoice.data as any)?.status === "draft" &&
+      (Math.abs(expected.total - Number(invoice.data?.total ?? 0)) >= 0.005 ||
+        Math.abs(expected.gst - Number(invoice.data?.gst ?? 0)) >= 0.005);
+    if (!partsChanged && !totalStale) return;
     (async () => {
       const m = invoiceMoney(
         invoice.data!.snapshot as any,
@@ -490,7 +502,7 @@ function InvoiceDetail() {
         .eq("id", invoiceId);
       if (!error) qc.invalidateQueries({ queryKey: ["invoice", invoiceId] });
     })();
-  }, [parts.data, invoice.data?.job_id, invoice.data?.parts_total, invoice.data?.labour_total, invoiceId, qc]);
+  }, [parts.data, invoice.data?.job_id, invoice.data?.parts_total, invoice.data?.labour_total, invoice.data?.total, invoice.data?.gst, invoiceId, qc]);
 
 
   const [previewOpen, setPreviewOpen] = useState(false);
