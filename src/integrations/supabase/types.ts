@@ -4123,6 +4123,7 @@ export type Database = {
           note: string | null
           started_at: string
           technician_id: string
+          work_type: string
         }
         Insert: {
           created_at?: string
@@ -4133,6 +4134,7 @@ export type Database = {
           note?: string | null
           started_at?: string
           technician_id: string
+          work_type?: string
         }
         Update: {
           created_at?: string
@@ -4143,6 +4145,7 @@ export type Database = {
           note?: string | null
           started_at?: string
           technician_id?: string
+          work_type?: string
         }
         Relationships: [
           {

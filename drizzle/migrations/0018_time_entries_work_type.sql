@@ -1,0 +1,2 @@
+ALTER TABLE public.time_entries ADD COLUMN IF NOT EXISTS work_type text NOT NULL DEFAULT 'service';
+CREATE INDEX IF NOT EXISTS time_entries_work_type_started_idx ON public.time_entries (work_type, started_at);
