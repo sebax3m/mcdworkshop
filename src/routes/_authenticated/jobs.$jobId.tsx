@@ -41,6 +41,7 @@ import { toast } from "sonner";
 import {
   ArrowLeft,
   Play,
+  Zap,
   Square,
   User,
   Bike as BikeIcon,
