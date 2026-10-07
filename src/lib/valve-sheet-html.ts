@@ -9,15 +9,15 @@ export type ValveSheetArgs = {
   intakeOnTop?: boolean;
   /** Circle diameter in px — lets the user pick how big the diagram prints. */
   circle?: number;
-  layout?: "inline" | "v4";
+  layout?: "inline" | "v4" | "v2";
   order?: number[];
   frontDeg?: number;
   intakeInMiddle?: boolean;
 };
 
 /** Upper bank faces down into the valley; lower bank faces up into it. */
-export function valveIntakeOnTop(index: number, isV4: boolean, intakeInMiddle: boolean, intakeOnTop: boolean) {
-  return isV4 && intakeInMiddle ? index >= 2 : intakeOnTop;
+export function valveIntakeOnTop(index: number, isV: boolean, intakeInMiddle: boolean, intakeOnTop: boolean, bankWidth = 2) {
+  return isV && intakeInMiddle ? index >= bankWidth : intakeOnTop;
 }
 
 const esc = (s: unknown) =>
@@ -30,12 +30,14 @@ const esc = (s: unknown) =>
 export function valveSheetHtml({ cylinders, bike, values, spec, intakeOnTop = true, circle = 92, layout = "inline", order, frontDeg = 0, intakeInMiddle = false }: ValveSheetArgs) {
   const n = Math.max(1, Math.min(6, cylinders));
   const isV4 = layout === "v4" && n === 4;
+  const isV2 = layout === "v2" && n === 2;
+  const isV = isV4 || isV2;
   const cylinderOrder = Array.from(new Set((order ?? []).filter((c) => Number.isInteger(c) && c >= 1 && c <= n)));
   for (let c = 1; c <= n; c++) if (!cylinderOrder.includes(c)) cylinderOrder.push(c);
   const frontLabel = ["FRONT ↑", "FRONT →", "FRONT ↓", "FRONT ←"][Math.round(((frontDeg % 360) + 360) % 360 / 90) % 4];
   const cyls = cylinderOrder
     .map((cyl, index) => {
-      const intakeTop = valveIntakeOnTop(index, isV4, intakeInMiddle, intakeOnTop);
+      const intakeTop = valveIntakeOnTop(index, isV, intakeInMiddle, intakeOnTop, n / 2);
       const circles = (kind: "intake" | "exhaust") =>
         Array.from({ length: 2 })
           .map((_, i) => {
@@ -77,9 +79,9 @@ export function valveSheetHtml({ cylinders, bike, values, spec, intakeOnTop = tr
     </div>
     ${spec.note ? `<div style="font-size:11px;color:#374151;margin-bottom:8px;"><b>Note:</b> ${esc(spec.note)}</div>` : ""}
     <div style="font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:#4b5563;text-align:center;margin-bottom:10px;">
-      Top-down · ${isV4 && intakeInMiddle ? "INTAKE inside / EXHAUST outside" : intakeOnTop ? "INTAKE top / EXHAUST bottom" : "EXHAUST top / INTAKE bottom"} · ${frontLabel} · write measured mm inside each circle
+      Top-down · ${isV && intakeInMiddle ? "INTAKE inside / EXHAUST outside" : intakeOnTop ? "INTAKE top / EXHAUST bottom" : "EXHAUST top / INTAKE bottom"} · ${frontLabel} · write measured mm inside each circle
     </div>
-    <div data-valve-layout="${isV4 ? "v4" : "inline"}" style="display:${isV4 ? "grid;grid-template-columns:repeat(2,max-content);width:max-content;margin-left:auto;margin-right:auto" : "flex"};gap:16px;justify-content:center;align-items:stretch;margin-bottom:12px;">${cyls}</div>
+    <div data-valve-layout="${isV ? layout : "inline"}" style="display:${isV ? `grid;grid-template-columns:repeat(${n / 2},max-content);width:max-content;margin-left:auto;margin-right:auto` : "flex"};gap:16px;justify-content:center;align-items:stretch;margin-bottom:12px;">${cyls}</div>
     <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:11px;color:#374151;margin-top:14px;padding-top:6px;border-top:1px solid #d1d5db;">
       <span>New shim = Current + (Measured − Target). Target = mid-spec.</span>
       <span>Technician: ______________ Date: ___ / ___ / ______</span>
