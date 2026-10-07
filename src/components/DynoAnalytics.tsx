@@ -5,7 +5,6 @@ import { format, startOfWeek, subWeeks } from "date-fns";
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { Zap } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { fetchAllRows } from "@/lib/fetch-all";
 
 const fmt = (n: number) =>
   new Intl.NumberFormat("en-NZ", { style: "currency", currency: "NZD", maximumFractionDigits: 2 }).format(
@@ -62,7 +61,6 @@ export function DynoAnalytics({ from, to, label }: { from: Date | null; to: Date
       return { entries: entries ?? [], invoices: invoices ?? [], parts, profiles: profiles ?? [] };
     },
   });
-  void fetchAllRows;
 
   const view = useMemo(() => {
     const d = data.data;
