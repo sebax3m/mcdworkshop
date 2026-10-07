@@ -70,7 +70,7 @@ import QuickPartPresets from "@/components/job/QuickPartPresets";
 import CustomerNotesSection from "@/components/job/CustomerNotesSection";
 
 import { getValveSpec, formatRange, type ValveSpec } from "@/lib/valve-specs";
-import { valveSheetHtml } from "@/lib/valve-sheet-html";
+import { valveSheetHtml, valveIntakeOnTop } from "@/lib/valve-sheet-html";
 import { FrontArrow } from "@/components/job/FrontArrow";
 import {
   fetchSavedValveSpec,
@@ -1254,6 +1254,7 @@ function JobDetail() {
                 bike: j.motorcycles as any,
                 values: ((j.service_data as any) ?? {}).valves ?? {},
                 intakeOnTop: ((j.service_data as any) ?? {}).valves?._intakeOnTop !== false,
+                intakeInMiddle: ((j.service_data as any) ?? {}).valves?._intakeInMiddle === true,
                 layout: ((j.service_data as any) ?? {}).valves?._layout === "v4" ? "v4" : "inline",
                 order: ((j.service_data as any) ?? {}).valves?._order,
                 frontDeg: Number(((j.service_data as any) ?? {}).valves?._frontDeg ?? 0),
@@ -2484,6 +2485,7 @@ function ValveClearanceSection({
 
   const intakePerCyl = 2;
   const isV4 = cylCount === 4 && values._layout === "v4";
+  const intakeInMiddle = values._intakeInMiddle === true;
   const exhaustPerCyl = 2;
 
   // Editable spec form
@@ -2582,8 +2584,8 @@ function ValveClearanceSection({
       </div>
     );
   };
-  const topRow = rowFor(intakeOnTop ? "intake" : "exhaust");
-  const bottomRow = rowFor(intakeOnTop ? "exhaust" : "intake");
+  const topRow = (cyl: number, index: number) => rowFor(valveIntakeOnTop(index, isV4, intakeInMiddle, intakeOnTop) ? "intake" : "exhaust")(cyl);
+  const bottomRow = (cyl: number, index: number) => rowFor(valveIntakeOnTop(index, isV4, intakeInMiddle, intakeOnTop) ? "exhaust" : "intake")(cyl);
 
   // Orientation arrow + cylinder ordering (drag to rearrange)
   const frontDeg = Number(values._frontDeg ?? 0) || 0;
@@ -2640,10 +2642,16 @@ function ValveClearanceSection({
                 size="sm"
                 variant="outline"
                 className="h-7 text-xs"
-                onClick={() => setMeta({ _intakeOnTop: !intakeOnTop })}
+                onClick={() => setMeta({ _intakeOnTop: !intakeOnTop, _intakeInMiddle: false })}
               >
                 {intakeOnTop ? "Intake on top" : "Intake on bottom"}
               </Button>
+              {isV4 && (
+                <Button size="sm" variant={intakeInMiddle ? "default" : "outline"} className="h-7 text-xs"
+                  aria-pressed={intakeInMiddle} onClick={() => setMeta({ _intakeInMiddle: !intakeInMiddle })}>
+                  Intake in middle
+                </Button>
+              )}
               <div className="flex items-center gap-1" role="group" aria-label="Cylinder layout">
                 <Button size="sm" variant={!isV4 ? "default" : "outline"} className="h-7 text-xs"
                   aria-pressed={!isV4} onClick={() => setMeta({ _layout: "inline" })}>
@@ -2776,7 +2784,7 @@ function ValveClearanceSection({
         <div className="rounded-xl border border-border bg-background/40 p-4 overflow-x-auto">
           <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground text-center mb-3">
             Top-down view ·{" "}
-            {intakeOnTop ? "INTAKE (top) / EXHAUST (bottom)" : "EXHAUST (top) / INTAKE (bottom)"} ·
+            {isV4 && intakeInMiddle ? "INTAKE (inside) / EXHAUST (outside)" : intakeOnTop ? "INTAKE (top) / EXHAUST (bottom)" : "EXHAUST (top) / INTAKE (bottom)"} ·
             drag cylinders to reorder
           </div>
           <div className="flex gap-4 min-w-fit justify-center items-center">
@@ -2816,13 +2824,13 @@ function ValveClearanceSection({
                 <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground font-bold">
                   Cyl {cyl}
                 </div>
-                {topRow(cyl)}
+                {topRow(cyl, idx)}
                 {/* Spark plug center */}
                 <div
                   className="h-4 w-4 rounded-full bg-muted-foreground/30 border border-muted-foreground/50"
                   title="Spark plug"
                 />
-                {bottomRow(cyl)}
+                {bottomRow(cyl, idx)}
               </div>
             ))}
             </div>
@@ -2860,6 +2868,7 @@ function ValveClearanceSection({
         values={values}
         spec={spec}
         intakeOnTop={intakeOnTop}
+        intakeInMiddle={intakeInMiddle}
         order={order}
         frontDeg={frontDeg}
         layout={isV4 ? "v4" : "inline"}
@@ -2877,6 +2886,7 @@ function ValveClearancePrintSheet({
   order,
   frontDeg = 0,
   layout = "inline",
+  intakeInMiddle = false,
 }: {
   bike: any;
   cylinders: number;
@@ -2886,6 +2896,7 @@ function ValveClearancePrintSheet({
   order?: number[];
   frontDeg?: number;
   layout?: "inline" | "v4";
+  intakeInMiddle?: boolean;
 }) {
   const cyls =
     order && order.length === cylinders
@@ -2931,11 +2942,12 @@ function ValveClearancePrintSheet({
       )}
 
       <div className="text-[0.625rem] uppercase tracking-[0.2em] text-gray-600 text-center mb-2">
-        Top-down · {intakeOnTop ? "INTAKE top / EXHAUST bottom" : "EXHAUST top / INTAKE bottom"} ·{" "}
+        Top-down · {layout === "v4" && cylinders === 4 && intakeInMiddle ? "INTAKE inside / EXHAUST outside" : intakeOnTop ? "INTAKE top / EXHAUST bottom" : "EXHAUST top / INTAKE bottom"} ·{" "}
         {frontLabel} · write measured mm inside each circle
       </div>
       <div className={layout === "v4" && cylinders === 4 ? "grid grid-cols-2 gap-4 w-fit mx-auto mb-3" : "flex gap-4 justify-center items-stretch mb-3"}>
-        {cyls.map((cyl) => {
+        {cyls.map((cyl, index) => {
+          const intakeTop = valveIntakeOnTop(index, layout === "v4" && cylinders === 4, intakeInMiddle, intakeOnTop);
           return (
 
             <div
@@ -2948,7 +2960,7 @@ function ValveClearancePrintSheet({
               </div>
               <div className="flex gap-2">
                 {Array.from({ length: 2 }).map((_, i) => {
-                  const v = values?.[`c${cyl}_${intakeOnTop ? "intake" : "exhaust"}_${i}`] ?? "";
+                  const v = values?.[`c${cyl}_${intakeTop ? "intake" : "exhaust"}_${i}`] ?? "";
                   return (
                     <div
                       key={i}
@@ -2962,7 +2974,7 @@ function ValveClearancePrintSheet({
               <div className="h-3 w-3 rounded-full border border-gray-600 bg-gray-200" />
               <div className="flex gap-2">
                 {Array.from({ length: 2 }).map((_, i) => {
-                  const v = values?.[`c${cyl}_${intakeOnTop ? "exhaust" : "intake"}_${i}`] ?? "";
+                  const v = values?.[`c${cyl}_${intakeTop ? "exhaust" : "intake"}_${i}`] ?? "";
                   return (
                     <div
                       key={i}
