@@ -301,6 +301,7 @@ function InvoiceDetail() {
   const { isAdmin, user } = useCurrentUser();
   const { technicians } = useTechnicians();
   const [addingConsumables, setAddingConsumables] = useState(false);
+  const [converting, setConverting] = useState(false);
   const consumablesPending = useRef(false);
 
   const invoice = useQuery({
@@ -1087,6 +1088,7 @@ function InvoiceDetail() {
   }
   const customer = inv.customers;
   const isInsurance = !!inv.is_insurance;
+  const isQuote = String(inv.status ?? "").toLowerCase() === "quote";
   const insurerName = inv.insurer_name;
   const insurerRef = inv.insurer_claim_ref;
   const bike = inv.motorcycles;
