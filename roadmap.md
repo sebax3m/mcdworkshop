@@ -1,5 +1,5 @@
 # Task roadmap
-- [ ] Add and verify V4 valve diagram layout in job cards and printed worksheets.
+- [x] Add and verify V4 valve diagram layout in job cards and printed worksheets.
 - [x] Update the four master service checklists from the supplied file, and remove obsolete duplicate service presets.
 - [x] Fix Wording: professional bullet per operation (offline, no credits).
 - [x] Parts ordering from existing bookings in calendar (cost/sell price, shared Parts Orders).
