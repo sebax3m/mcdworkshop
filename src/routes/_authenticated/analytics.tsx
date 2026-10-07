@@ -30,6 +30,7 @@ import {
   Cell,
 } from "recharts";
 import { Button } from "@/components/ui/button";
+import { DynoAnalytics } from "@/components/DynoAnalytics";
 import { CalendarRange, Download, TrendingUp, DollarSign, Receipt, AlertCircle } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/analytics")({
@@ -608,6 +609,8 @@ function AnalyticsPage() {
           </ResponsiveContainer>
         </div>
       </div>
+
+      <DynoAnalytics from={range.from} to={range.to} label={range.label} />
 
       {/* Top customers with mini bars */}
       <div className="card-surface p-5">
