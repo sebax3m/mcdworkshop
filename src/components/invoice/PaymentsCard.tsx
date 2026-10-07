@@ -22,6 +22,8 @@ export function methodLabel(m: string) {
 
 export function invoiceStatusMeta(status: string, paid: number, total: number) {
   const s = (status || "").toLowerCase();
+  if (s === "quote")
+    return { label: "Quote", className: "bg-sky-500/15 text-sky-400 border-sky-500/30" };
   if (s === "paid" || (total > 0 && paid >= total))
     return { label: "Paid", className: "bg-emerald-500/15 text-emerald-400 border-emerald-500/30" };
   if (s === "part_paid" || (paid > 0 && paid < total))

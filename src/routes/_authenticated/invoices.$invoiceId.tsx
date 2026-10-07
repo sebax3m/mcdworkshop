@@ -301,6 +301,7 @@ function InvoiceDetail() {
   const { isAdmin, user } = useCurrentUser();
   const { technicians } = useTechnicians();
   const [addingConsumables, setAddingConsumables] = useState(false);
+  const [converting, setConverting] = useState(false);
   const consumablesPending = useRef(false);
 
   const invoice = useQuery({
@@ -484,7 +485,7 @@ function InvoiceDetail() {
       partsSum,
     );
     const totalStale =
-      (invoice.data as any)?.status === "draft" &&
+      ["draft", "quote"].includes((invoice.data as any)?.status) &&
       (Math.abs(expected.total - Number(invoice.data?.total ?? 0)) >= 0.005 ||
         Math.abs(expected.gst - Number(invoice.data?.gst ?? 0)) >= 0.005);
     if (!partsChanged && !totalStale) return;
@@ -1087,6 +1088,7 @@ function InvoiceDetail() {
   }
   const customer = inv.customers;
   const isInsurance = !!inv.is_insurance;
+  const isQuote = String(inv.status ?? "").toLowerCase() === "quote";
   const insurerName = inv.insurer_name;
   const insurerRef = inv.insurer_claim_ref;
   const bike = inv.motorcycles;
@@ -1148,7 +1150,29 @@ function InvoiceDetail() {
     window.location.href = `mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
   }
 
-  const canDelete = isAdmin && ["draft", "unpaid"].includes((inv.status ?? "").toLowerCase());
+  async function convertQuote() {
+    setConverting(true);
+    const yr = new Date().getFullYear();
+    const { data: last } = await supabase
+      .from("invoices")
+      .select("invoice_number")
+      .like("invoice_number", `MCD-${yr}-%`)
+      .order("invoice_number", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    const lastSeq = last?.invoice_number ? Number(last.invoice_number.split("-").pop()) : 0;
+    const invoice_number = `MCD-${yr}-${String(Math.max(lastSeq + 1, 1000)).padStart(5, "0")}`;
+    const { error } = await supabase
+      .from("invoices")
+      .update({ status: "draft", invoice_number, invoice_date: new Date().toISOString().slice(0, 10) })
+      .eq("id", invoiceId);
+    setConverting(false);
+    if (error) return toast.error(error.message);
+    toast.success(`Converted to invoice ${invoice_number}`);
+    await qc.invalidateQueries();
+  }
+
+  const canDelete = isAdmin && ["draft", "unpaid", "quote"].includes((inv.status ?? "").toLowerCase());
 
   // Disc % column only appears when at least one line has a discount.
   const snapshotItems: any[] = Array.isArray((inv.snapshot as any)?.line_items)
@@ -1306,12 +1330,19 @@ function InvoiceDetail() {
           <ArrowLeft className="h-4 w-4" />
         </button>
         <div className="min-w-0 flex-1">
-          <div className="text-xs uppercase tracking-[0.25em] text-muted-foreground">Invoice</div>
+          <div className="text-xs uppercase tracking-[0.25em] text-muted-foreground">
+            {isQuote ? "Quote" : "Invoice"}
+          </div>
           <h1 className="font-display text-xl sm:text-2xl font-bold truncate">
             {inv.invoice_number}
           </h1>
         </div>
         <div className="flex items-center gap-2 flex-wrap justify-end">
+          {isQuote && (
+            <Button onClick={convertQuote} disabled={converting} className="red-surface gap-2">
+              <Check className="h-4 w-4" /> {converting ? "Converting…" : "Convert to Invoice"}
+            </Button>
+          )}
           <Button
             onClick={emailInvoice}
             variant="outline"
@@ -1431,7 +1462,7 @@ function InvoiceDetail() {
             </div>
             <div className="text-right shrink-0">
               <div className="text-[0.7rem] uppercase tracking-[0.3em] text-muted-foreground">
-                Tax Invoice
+                {isQuote ? "Quote / Estimate" : "Tax Invoice"}
               </div>
               <div className="font-display text-3xl font-black leading-none mt-1">
                 {inv.invoice_number}

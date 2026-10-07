@@ -25,6 +25,9 @@ import logoAsset from "@/assets/motorcycle-doctors-logo.png.asset.json";
 import { refreshContacts } from "@/lib/contacts-cache";
 
 export const Route = createFileRoute("/_authenticated/invoices/new")({
+  validateSearch: (s: Record<string, unknown>): { type?: "quote" } =>
+    s.type === "quote" ? { type: "quote" } : {},
+  head: () => ({ meta: [{ title: "New invoice or quote — Motorcycle Doctors" }] }),
   component: NewInvoice,
 });
 
@@ -45,6 +48,9 @@ function emptyLine(): Line {
 
 function NewInvoice() {
   const nav = useNavigate();
+  const isQuote = Route.useSearch().type === "quote";
+  const docPrefix = isQuote ? "MCD-Q" : "MCD";
+  const docStatus = isQuote ? "quote" : "draft";
   const qc = useQueryClient();
   const today = new Date().toISOString().slice(0, 10);
 
@@ -115,7 +121,7 @@ function NewInvoice() {
         .limit(1)
         .maybeSingle();
       const lastSeq = last?.invoice_number ? Number(last.invoice_number.split("-").pop()) : 0;
-      const nextSeq = Math.max(lastSeq + 1, 1000);
+      const nextSeq = Math.max(lastSeq + 1, isQuote ? 1 : 1000);
       return `MCD-${year}-${String(nextSeq).padStart(5, "0")}`;
     },
   });
@@ -291,13 +297,13 @@ function NewInvoice() {
     const { data: last } = await supabase
       .from("invoices")
       .select("invoice_number")
-      .like("invoice_number", `MCD-${yr}-%`)
+      .like("invoice_number", `${docPrefix}-${yr}-%`)
       .order("invoice_number", { ascending: false })
       .limit(1)
       .maybeSingle();
     const lastSeq = last?.invoice_number ? Number(last.invoice_number.split("-").pop()) : 0;
-    const nextSeq = Math.max(lastSeq + 1, 1000);
-    const invoice_number = `MCD-${yr}-${String(nextSeq).padStart(5, "0")}`;
+    const nextSeq = Math.max(lastSeq + 1, isQuote ? 1 : 1000);
+    const invoice_number = `${docPrefix}-${yr}-${String(nextSeq).padStart(5, "0")}`;
 
     // Build legacy `description` for backwards-compatible rendering
     const snapshotLines = cleanLines.map((l) => ({
@@ -315,7 +321,7 @@ function NewInvoice() {
         parts_total: subInc,
         gst: gstAmt,
         total: totalAmt,
-        status: "draft",
+        status: docStatus,
         notes: notes.trim() || null,
         invoice_date: invoiceDate,
         snapshot: { line_items: snapshotLines },
@@ -328,7 +334,7 @@ function NewInvoice() {
       toast.error(error?.message ?? "Failed");
       return;
     }
-    toast.success(`Invoice ${data.invoice_number} created`);
+    toast.success(`${isQuote ? "Quote" : "Invoice"} ${data.invoice_number} created`);
     nav({
       to: "/invoices/$invoiceId",
       params: { invoiceId: data.id },
@@ -372,13 +378,13 @@ function NewInvoice() {
     const { data: last } = await supabase
       .from("invoices")
       .select("invoice_number")
-      .like("invoice_number", `MCD-${yr}-%`)
+      .like("invoice_number", `${docPrefix}-${yr}-%`)
       .order("invoice_number", { ascending: false })
       .limit(1)
       .maybeSingle();
     const lastSeq = last?.invoice_number ? Number(last.invoice_number.split("-").pop()) : 0;
-    const nextSeq = Math.max(lastSeq + 1, 1000);
-    const invoice_number = `MCD-${yr}-${String(nextSeq).padStart(5, "0")}`;
+    const nextSeq = Math.max(lastSeq + 1, isQuote ? 1 : 1000);
+    const invoice_number = `${docPrefix}-${yr}-${String(nextSeq).padStart(5, "0")}`;
 
     const snapshotLines = cleanLines.map((l) => ({
       ...l,
@@ -394,7 +400,7 @@ function NewInvoice() {
       parts_total: subInc,
       gst: gstAmt,
       total: totalAmt,
-      status: "draft",
+      status: docStatus,
       notes: s.notes.trim() || null,
       invoice_date: s.invoiceDate,
       snapshot: { line_items: snapshotLines },
@@ -883,7 +889,7 @@ function NewInvoice() {
           <Printer className="h-4 w-4" /> Create & print
         </Button>
         <Button onClick={() => saveExplicit("view")} disabled={saving} className="red-surface">
-          {saving ? "Creating…" : "Create invoice"}
+          {saving ? "Creating…" : isQuote ? "Create quote" : "Create invoice"}
         </Button>
       </div>
 

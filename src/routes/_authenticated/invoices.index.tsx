@@ -13,13 +13,14 @@ export const Route = createFileRoute("/_authenticated/invoices/")({
   component: InvoicesList,
 });
 
-type Filter = "all" | "unpaid" | "part_paid" | "paid";
+type Filter = "all" | "unpaid" | "part_paid" | "paid" | "quotes";
 
 const FILTERS: { value: Filter; label: string }[] = [
   { value: "all", label: "All" },
   { value: "unpaid", label: "Unpaid" },
   { value: "part_paid", label: "Part paid" },
   { value: "paid", label: "Paid" },
+  { value: "quotes", label: "Quotes" },
 ];
 
 function InvoicesList() {
@@ -91,6 +92,9 @@ function InvoicesList() {
       const paid = Number(inv.paid_amount ?? 0);
       const total = Number(inv.total ?? 0);
       const meta = invoiceStatusMeta(String(inv.status ?? ""), paid, total);
+      const isQ = inv.status === "quote";
+      if (filter === "quotes") { if (!isQ) return false; }
+      else if (filter !== "all" && isQ) return false;
       if (filter === "unpaid" && meta.label !== "Unpaid") return false;
       if (filter === "part_paid" && meta.label !== "Part paid") return false;
       if (filter === "paid" && meta.label !== "Paid") return false;
@@ -116,6 +120,7 @@ function InvoicesList() {
     let outstanding = 0;
     let unpaidCount = 0;
     for (const inv of invoices.data ?? []) {
+      if (inv.status === "quote") continue;
       const due = Number(inv.total ?? 0) - Number(inv.paid_amount ?? 0);
       if (due > 0.005) {
         outstanding += due;
