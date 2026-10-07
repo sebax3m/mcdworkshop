@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from "react";
-import { Printer, X } from "lucide-react";
+import { FileDown, Loader2, Printer, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { downloadDocumentPdf } from "@/lib/document-pdf";
+import { toast } from "sonner";
 
 /**
  * Pixel-faithful invoice preview.
@@ -16,13 +18,31 @@ export function InvoicePrintPreview({
   onOpenChange,
   title,
   getHtml,
+  pdfFilename,
+  downloadOnOpen = false,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   title: string;
   getHtml: () => string;
+  pdfFilename?: string;
+  downloadOnOpen?: boolean;
 }) {
   const frameRef = useRef<HTMLIFrameElement>(null);
+  const downloadedRef = useRef(false);
+  const [downloading, setDownloading] = useState(false);
+  const download = async () => {
+    const doc = frameRef.current?.contentDocument;
+    if (!doc || !pdfFilename || downloading) return;
+    setDownloading(true);
+    try {
+      await downloadDocumentPdf(doc, pdfFilename);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Could not download PDF");
+    } finally {
+      setDownloading(false);
+    }
+  };
   // Standard format for every invoice: A4 portrait, 10mm margins, 100% scale.
   const zoom = 100;
   const paper = "A4" as const;
@@ -38,6 +58,7 @@ export function InvoicePrintPreview({
   // Every time the preview opens, start from the standard format.
   useEffect(() => {
     if (open) {
+      downloadedRef.current = false;
       setPrintScale(100);
       setDensity(100);
     }
@@ -326,6 +347,10 @@ ${
       const w = frame.contentWindow as (Window & { __fitInvoice?: () => void; __invoicePages?: number }) | null;
       w?.__fitInvoice?.();
       if (w?.__invoicePages) setPages(w.__invoicePages);
+      if (downloadOnOpen && pdfFilename && !downloadedRef.current) {
+        downloadedRef.current = true;
+        void download();
+      }
     }, 300);
     return () => clearTimeout(t);
   }, [open, title, getHtml, paper, orientation, margin, printScale, density, showGuides, usablePx]);
@@ -424,6 +449,12 @@ ${
 
 
           <div className="mt-auto space-y-2">
+            {pdfFilename && (
+              <Button variant="outline" className="w-full gap-2" onClick={download} disabled={downloading}>
+                {downloading ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileDown className="h-4 w-4" />}
+                {downloading ? "Preparing PDF…" : "Download PDF"}
+              </Button>
+            )}
             <Button className="red-surface w-full gap-2" onClick={print}>
               <Printer className="h-4 w-4" /> Print / Save PDF
             </Button>
@@ -431,7 +462,7 @@ ${
               <X className="h-4 w-4" /> Close
             </Button>
             <p className="text-[0.65rem] leading-snug text-muted-foreground">
-              Edit any field on the invoice behind this window — close, adjust and re-open to see
+              Edit any field on the document behind this window — close, adjust and re-open to see
               changes.
             </p>
           </div>

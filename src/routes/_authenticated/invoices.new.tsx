@@ -27,7 +27,16 @@ import { refreshContacts } from "@/lib/contacts-cache";
 export const Route = createFileRoute("/_authenticated/invoices/new")({
   validateSearch: (s: Record<string, unknown>): { type?: "quote" } =>
     s.type === "quote" ? { type: "quote" } : {},
-  head: () => ({ meta: [{ title: "New invoice or quote — Motorcycle Doctors" }] }),
+  head: ({ match }) => {
+    const isQuote = match.search.type === "quote";
+    const title = `New ${isQuote ? "quote" : "invoice"} — Motorcycle Doctors`;
+    const description = `Create a customer ${isQuote ? "quote" : "invoice"} for motorcycle parts and workshop services.`;
+    return { meta: [
+      { title }, { name: "description", content: description },
+      { property: "og:title", content: title }, { property: "og:description", content: description },
+      { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" },
+    ] };
+  },
   component: NewInvoice,
 });
 
@@ -111,18 +120,18 @@ function NewInvoice() {
 
   const year = new Date().getFullYear();
   const nextInvoiceNumber = useQuery({
-    queryKey: ["next-invoice-number", year],
+    queryKey: ["next-invoice-number", year, docPrefix],
     queryFn: async () => {
       const { data: last } = await supabase
         .from("invoices")
         .select("invoice_number")
-        .like("invoice_number", `MCD-${year}-%`)
+        .like("invoice_number", `${docPrefix}-${year}-%`)
         .order("invoice_number", { ascending: false })
         .limit(1)
         .maybeSingle();
       const lastSeq = last?.invoice_number ? Number(last.invoice_number.split("-").pop()) : 0;
       const nextSeq = Math.max(lastSeq + 1, isQuote ? 1 : 1000);
-      return `MCD-${year}-${String(nextSeq).padStart(5, "0")}`;
+      return `${docPrefix}-${year}-${String(nextSeq).padStart(5, "0")}`;
     },
   });
 
@@ -443,18 +452,18 @@ function NewInvoice() {
             className="h-12 w-12 rounded-lg object-contain bg-background/40 border border-border p-1 shrink-0"
           />
           <div className="min-w-0">
-            <div className="text-xs uppercase tracking-[0.25em] text-muted-foreground">Billing</div>
-            <h1 className="font-display text-2xl sm:text-3xl font-bold truncate">New Invoice</h1>
+            <div className="text-xs uppercase tracking-[0.25em] text-muted-foreground">{isQuote ? "Quotes" : "Billing"}</div>
+            <h1 className="font-display text-2xl sm:text-3xl font-bold truncate">{isQuote ? "New Quote" : "New Invoice"}</h1>
           </div>
         </div>
         <div className="text-right shrink-0">
           <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">
-            Invoice #
+            {isQuote ? "Quote #" : "Invoice #"}
           </div>
           <div className="font-mono font-semibold text-sm">{nextInvoiceNumber.data ?? "…"}</div>
           <div className="mt-2">
             <Label className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">
-              Invoice date
+              {isQuote ? "Quote date" : "Invoice date"}
             </Label>
             <Input
               type="date"

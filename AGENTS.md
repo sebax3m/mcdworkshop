@@ -16,3 +16,4 @@
 - Remove staff accounts with irreversible Auth soft deletion, revoke their roles and hide deleted accounts from the user list; retain their Auth IDs and profiles so historical clock and job records are not cascade-deleted.
 - Store valve diagram layout alongside per-job valve metadata and apply it to both worksheet renderers, so screen and print keep cylinder identities and measurements aligned.
 - Time entries carry work_type ('service' | 'dyno'); Dyno analytics sum dyno entries and tuning invoice lines detected like the invoice's isDynoLine — keeps bench hours separate from service hours on mixed jobs.
+- Quotes share the invoice editor and use status to select document labels; PDF export captures the print-preview sheet in the browser, keeping customer documents aligned without a second template.
