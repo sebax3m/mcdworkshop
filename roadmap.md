@@ -1,4 +1,5 @@
 # Task roadmap
+- [ ] Make quote labels consistent, support downloadable quote PDF, and offer conversion at the bottom; verify the full flow.
 - [x] Add and verify V2 layout and inward intake orientation on screen and print.
 - [x] Add and verify inward-facing intake orientation for V4 diagrams, including print.
 - [x] Add and verify V4 valve diagram layout in job cards and printed worksheets.
