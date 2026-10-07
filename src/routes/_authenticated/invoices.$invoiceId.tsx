@@ -283,10 +283,10 @@ export const Route = createFileRoute("/_authenticated/invoices/$invoiceId")({
   validateSearch: (s: Record<string, unknown>): { action?: "print" | "email" } =>
     s.action === "print" || s.action === "email" ? { action: s.action } : {},
   head: () => ({ meta: [
-    { title: "Invoice | Motorcycle Doctors" },
-    { name: "description", content: "View and edit a Motorcycle Doctors workshop invoice." },
-    { property: "og:title", content: "Invoice | Motorcycle Doctors" },
-    { property: "og:description", content: "View and edit a Motorcycle Doctors workshop invoice." },
+    { title: "Customer document | Motorcycle Doctors" },
+    { name: "description", content: "View, download and manage your Motorcycle Doctors quote or workshop invoice." },
+    { property: "og:title", content: "Customer document | Motorcycle Doctors" },
+    { property: "og:description", content: "View, download and manage your Motorcycle Doctors quote or workshop invoice." },
     { property: "og:type", content: "website" },
     { name: "twitter:card", content: "summary" },
   ] }),
@@ -302,6 +302,7 @@ function InvoiceDetail() {
   const { technicians } = useTechnicians();
   const [addingConsumables, setAddingConsumables] = useState(false);
   const [converting, setConverting] = useState(false);
+  const [downloadOnOpen, setDownloadOnOpen] = useState(false);
   const consumablesPending = useRef(false);
 
   const invoice = useQuery({
@@ -581,10 +582,13 @@ function InvoiceDetail() {
   // Handle ?action=print|email passed in from "Create & print/email" on the new-invoice page.
   const actionFiredRef = useRef(false);
   useEffect(() => {
-    if (!action || actionFiredRef.current) return;
+    if (!action || !invoice.data || actionFiredRef.current) return;
     actionFiredRef.current = true;
     const t = setTimeout(() => {
-      if (action === "print") setPreviewOpen(true);
+      if (action === "print") {
+        setDownloadOnOpen(false);
+        setPreviewOpen(true);
+      }
       else if (action === "email") {
         const inv: any = invoice.data;
         const customer: any = inv?.customers;
@@ -592,7 +596,8 @@ function InvoiceDetail() {
         if (inv) {
           const to = customer?.email ?? "";
           const name = customer ? `${customer.first_name ?? ""}`.trim() : "there";
-          const subject = `Invoice ${inv.invoice_number} from Motorcycle Doctors`;
+          const isQuote = inv.status === "quote";
+          const subject = `${isQuote ? "Quote" : "Invoice"} ${inv.invoice_number} from Motorcycle Doctors`;
           const issuedAt = new Date(inv.created_at);
           const dueAt = new Date(issuedAt);
           dueAt.setDate(dueAt.getDate() + 5);
@@ -610,11 +615,11 @@ function InvoiceDetail() {
           const bodyLines: (string | null)[] = [
             `Hi ${name || "there"},`,
             ``,
-            `Please find your invoice ${inv.invoice_number} below.`,
+            `Please find your ${isQuote ? "quote" : "invoice"} ${inv.invoice_number} below.`,
             ``,
             `Bike: ${bike ? fullBike(bike) : "—"}`,
             `Issued: ${issuedAt.toLocaleDateString("en-GB")}`,
-            `Due: ${dueAt.toLocaleDateString("en-GB")}`,
+            isQuote ? null : `Due: ${dueAt.toLocaleDateString("en-GB")}`,
             ``,
             labourDiscPct > 0 ? `Labour (gross): $${labourGross}` : null,
             labourDiscPct > 0 ? `Labour discount: -$${labourDiscAmount}` : null,
@@ -637,7 +642,7 @@ function InvoiceDetail() {
     }, 350);
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [action]);
+  }, [action, invoice.data]);
 
   // ---- Drag & drop reordering of line items -------------------------------
   // NOTE: these must stay ABOVE the early returns below — declaring hooks after a
@@ -1089,6 +1094,7 @@ function InvoiceDetail() {
   const customer = inv.customers;
   const isInsurance = !!inv.is_insurance;
   const isQuote = String(inv.status ?? "").toLowerCase() === "quote";
+  const documentLabel = isQuote ? "Quote" : "Invoice";
   const insurerName = inv.insurer_name;
   const insurerRef = inv.insurer_claim_ref;
   const bike = inv.motorcycles;
@@ -1116,7 +1122,7 @@ function InvoiceDetail() {
       : customer
         ? `${customer.first_name ?? ""}`.trim()
         : "there";
-    const subject = `Invoice ${inv.invoice_number} from Motorcycle Doctors`;
+    const subject = `${documentLabel} ${inv.invoice_number} from Motorcycle Doctors`;
     const labourDiscPct = money.labourDiscPct;
     const labourGross = Number(inv.labour_total).toFixed(2);
     const labourDiscAmount = money2(
@@ -1125,12 +1131,12 @@ function InvoiceDetail() {
     const body = [
       `Hi ${name || "there"},`,
       ``,
-      `Please find your invoice ${inv.invoice_number} below.`,
+      `Please find your ${documentLabel.toLowerCase()} ${inv.invoice_number} below.`,
       ``,
       `Bike: ${bike ? fullBike(bike as any) : "—"}`,
       isInsurance && insurerRef ? `Claim ref: ${insurerRef}` : null,
       `Issued: ${issuedAt.toLocaleDateString("en-GB")}`,
-      `Due: ${dueAt.toLocaleDateString("en-GB")}`,
+      isQuote ? null : `Due: ${dueAt.toLocaleDateString("en-GB")}`,
       ``,
       labourDiscPct > 0 ? `Labour (gross): $${labourGross}` : null,
       labourDiscPct > 0 ? `Labour discount: -$${labourDiscAmount}` : null,
@@ -1338,11 +1344,6 @@ function InvoiceDetail() {
           </h1>
         </div>
         <div className="flex items-center gap-2 flex-wrap justify-end">
-          {isQuote && (
-            <Button onClick={convertQuote} disabled={converting} className="red-surface gap-2">
-              <Check className="h-4 w-4" /> {converting ? "Converting…" : "Convert to Invoice"}
-            </Button>
-          )}
           <Button
             onClick={emailInvoice}
             variant="outline"
@@ -1358,10 +1359,10 @@ function InvoiceDetail() {
           >
             <Mail className="h-4 w-4" /> Email
           </Button>
-          <Button onClick={() => setPreviewOpen(true)} variant="outline" className="gap-2">
-            <FileDown className="h-4 w-4" /> Save PDF
+          <Button onClick={() => { setDownloadOnOpen(isQuote); setPreviewOpen(true); }} variant="outline" className="gap-2">
+            <FileDown className="h-4 w-4" /> {isQuote ? "Download PDF" : "Save PDF"}
           </Button>
-          <Button onClick={() => setPreviewOpen(true)} className="red-surface gap-2">
+          <Button onClick={() => { setDownloadOnOpen(false); setPreviewOpen(true); }} className="red-surface gap-2">
             <Printer className="h-4 w-4" /> Preview & print
           </Button>
           {canDelete && (
@@ -1373,9 +1374,9 @@ function InvoiceDetail() {
               </AlertDialogTrigger>
               <AlertDialogContent>
                 <AlertDialogHeader>
-                  <AlertDialogTitle>Delete invoice {inv.invoice_number}?</AlertDialogTitle>
+                  <AlertDialogTitle>Delete {documentLabel.toLowerCase()} {inv.invoice_number}?</AlertDialogTitle>
                   <AlertDialogDescription>
-                    This permanently removes the invoice. This action cannot be undone.
+                    This removes the {documentLabel.toLowerCase()}.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
@@ -1388,12 +1389,12 @@ function InvoiceDetail() {
         </div>
       </header>
 
-      <PaymentsCard
+      {!isQuote && <PaymentsCard
         invoiceId={invoiceId}
         total={Number(inv.total ?? 0)}
         status={String(inv.status ?? "unpaid")}
         paidAmount={Number(inv.paid_amount ?? 0)}
-      />
+      />}
 
       <div className="flex items-center justify-end gap-2 print:hidden">
         <span className="text-xs text-muted-foreground tabular-nums">
@@ -1482,7 +1483,7 @@ function InvoiceDetail() {
           >
             <div className="min-w-0">
               <div className="text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-muted-foreground pb-1 mb-1.5 border-b border-border">
-                Bill to
+                {isQuote ? "Quote for" : "Bill to"}
               </div>
               {(() => {
                 const snap = (inv.snapshot as any) ?? {};
@@ -1502,7 +1503,7 @@ function InvoiceDetail() {
                       value={name}
                       onCommit={(v) => saveSnapshotMeta({ bill_to_name: v || defaultName })}
                       className="font-bold text-base leading-tight block"
-                      placeholder="Bill to name"
+                      placeholder={isQuote ? "Customer name" : "Bill to name"}
                     />
                     <EditableText
                       value={detail}
@@ -1549,10 +1550,10 @@ function InvoiceDetail() {
                 <span className="text-[0.62rem] uppercase tracking-[0.18em] text-muted-foreground">Issued</span>
                 <b className="text-foreground tabular-nums">{issuedAt.toLocaleDateString("en-GB")}</b>
               </span>
-              <span className="flex flex-col">
+              {!isQuote && <span className="flex flex-col">
                 <span className="text-[0.62rem] uppercase tracking-[0.18em] text-muted-foreground">Due</span>
                 <b className="text-foreground tabular-nums">{dueAt.toLocaleDateString("en-GB")}</b>
-              </span>
+              </span>}
               <span className={`flex flex-col${inv.jobs ? "" : " print-hide-empty"}`}>
                 <span className="text-[0.62rem] uppercase tracking-[0.18em] text-muted-foreground">Job</span>
                 <b className="text-foreground">{inv.jobs ? `#${inv.jobs.job_number}` : "—"}</b>
@@ -2218,7 +2219,7 @@ function InvoiceDetail() {
           <div data-invoice-totals className="pt-3 mt-3 border-t border-border text-xs">
             <div className="flex flex-col sm:flex-row justify-between gap-1 sm:gap-6">
               <div data-print-section="payment" className="flex-1 font-display text-[0.7rem] font-semibold uppercase tracking-wider text-muted-foreground">
-                Payment Details
+                {!isQuote && "Payment Details"}
               </div>
               <div className="w-full sm:w-[17rem] flex items-baseline justify-between gap-4">
                 <span className="text-muted-foreground">Labour (incl GST)</span>
@@ -2235,7 +2236,7 @@ function InvoiceDetail() {
 
             <div className="flex flex-col sm:flex-row justify-between gap-1 sm:gap-6">
               <div data-print-section="payment" className="flex-1">
-                <span className="text-muted-foreground">Account:</span> Motorcycle Doctors LTD
+                {!isQuote && <><span className="text-muted-foreground">Account:</span> Motorcycle Doctors LTD</>}
               </div>
               <div className="w-full sm:w-[17rem] flex items-baseline justify-between gap-4">
                 <span className="text-muted-foreground">Parts (incl GST)</span>
@@ -2259,7 +2260,7 @@ function InvoiceDetail() {
 
             <div className="flex flex-col sm:flex-row justify-between gap-1 sm:gap-6">
               <div data-print-section="payment" className="flex-1">
-                <span className="text-muted-foreground">Bank:</span> ASB Bank
+                {!isQuote && <><span className="text-muted-foreground">Bank:</span> ASB Bank</>}
               </div>
               <div className="w-full sm:w-[17rem] flex items-baseline justify-between gap-4">
                 <span className="text-muted-foreground">Subtotal (excl GST)</span>
@@ -2269,7 +2270,7 @@ function InvoiceDetail() {
 
             <div className="flex flex-col sm:flex-row justify-between gap-1 sm:gap-6">
               <div data-print-section="payment" className="flex-1">
-                <span className="text-muted-foreground">Account #:</span> 12-3072-0008398-00
+                {!isQuote && <><span className="text-muted-foreground">Account #:</span> 12-3072-0008398-00</>}
               </div>
               <div className="w-full sm:w-[17rem] flex items-baseline justify-between gap-4 pb-1 border-b border-border">
                 <span className="text-muted-foreground">GST 15% (incl.)</span>
@@ -2279,7 +2280,7 @@ function InvoiceDetail() {
 
             <div className="flex flex-col sm:flex-row justify-between gap-1 sm:gap-6">
               <div data-print-section="payment" className="flex-1">
-                <span className="text-muted-foreground">Reference:</span> {inv.invoice_number}
+                {!isQuote && <><span className="text-muted-foreground">Reference:</span> {inv.invoice_number}</>}
               </div>
               <div className="w-full sm:w-[17rem] flex items-baseline justify-between gap-4 pt-2 mt-1 border-t-2 border-foreground/80 font-display font-black leading-none">
                 <span className="text-base tracking-wide">TOTAL</span>
@@ -2334,6 +2335,7 @@ function InvoiceDetail() {
             </div>
 
             {(() => {
+              if (isQuote) return null;
               const pays = invPayments.data ?? [];
               const paid = pays.reduce((a: number, p: any) => a + Number(p.amount || 0), 0);
               if (paid <= 0) return null;
@@ -2394,10 +2396,20 @@ function InvoiceDetail() {
         </div>
       )}
 
+      {isQuote && isAdmin && (
+        <div className="flex justify-end border-t border-border pt-4 print:hidden">
+          <Button onClick={convertQuote} disabled={converting} className="red-surface gap-2">
+            <Check className="h-4 w-4" /> {converting ? "Creating invoice…" : "Create invoice"}
+          </Button>
+        </div>
+      )}
+
       <InvoicePrintPreview
         open={previewOpen}
         onOpenChange={setPreviewOpen}
-        title={`Invoice ${inv.invoice_number} — preview`}
+        title={`${documentLabel} ${inv.invoice_number} — preview`}
+        pdfFilename={isQuote ? `${inv.invoice_number}.pdf` : undefined}
+        downloadOnOpen={downloadOnOpen}
         getHtml={() => sheetRef.current?.outerHTML ?? ""}
       />
 
