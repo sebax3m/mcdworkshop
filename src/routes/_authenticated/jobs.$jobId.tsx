@@ -378,6 +378,10 @@ function JobDetail() {
   const canEditBike = canEdit || isTechnician;
   const kind = detectServiceKind(j.title);
   const kindMeta = KIND_META[kind];
+  const tuningText = `${j.title ?? ""} ${(j as any).description ?? ""} ${(j as any).complaint ?? ""}`.toLowerCase();
+  const isTuningJob = kind === "dyno" || /\bdyno\b|tuning|custom tune|\btune\b/.test(tuningText);
+  const isTuningOnly = kind === "dyno";
+  const activeWorkType = ((activeTimer as any)?.work_type ?? "service") as "service" | "dyno";
   const cylinders = Math.max(1, Math.min(6, (j.motorcycles as any)?.cylinders ?? 4));
 
   async function toggleTask(taskId: string, isDone: boolean) {
@@ -430,7 +434,7 @@ function JobDetail() {
     qc.invalidateQueries({ queryKey: ["dashboard-counts"] });
   }
 
-  async function startTimer() {
+  async function startTimer(workType: "service" | "dyno" = "service") {
     if (!user) return;
     const ended = new Date();
     const { data: openEntries } = await supabase
@@ -448,7 +452,7 @@ function JobDetail() {
     }
     const { error } = await supabase
       .from("time_entries")
-      .insert({ job_id: jobId, technician_id: user.id });
+      .insert({ job_id: jobId, technician_id: user.id, work_type: workType });
     if (error) return toast.error(error.message);
     // Also log a clock_in event so it appears on the Clock page and floating widget
     await supabase
@@ -746,11 +750,45 @@ function JobDetail() {
           {canEdit && (
             <div className="flex items-center gap-2 flex-wrap">
               {activeTimer ? (
-                <LiveTimerButton startedAt={activeTimer.started_at} onStop={stopTimer} />
+                <>
+                  {isTuningJob && (
+                    <span
+                      className={`rounded-md border px-2 py-1 text-xs font-bold ${activeWorkType === "dyno" ? "border-status-dyno/50 bg-status-dyno/15 text-status-dyno" : "border-border text-muted-foreground"}`}
+                    >
+                      {activeWorkType === "dyno" ? "⚡ DYNO" : "🔧 SERVICE"}
+                    </span>
+                  )}
+                  <LiveTimerButton startedAt={activeTimer.started_at} onStop={stopTimer} />
+                  {isTuningJob && (
+                    <Button
+                      variant="outline"
+                      onClick={() => startTimer(activeWorkType === "dyno" ? "service" : "dyno")}
+                      className="h-12 px-4 font-bold gap-2"
+                    >
+                      {activeWorkType === "dyno" ? (
+                        <><Wrench className="h-4 w-4" /> Switch to Service</>
+                      ) : (
+                        <><Zap className="h-4 w-4" /> Switch to Dyno</>
+                      )}
+                    </Button>
+                  )}
+                </>
               ) : (
-                <Button onClick={startTimer} className="gold-surface h-12 px-5 font-bold gap-2">
-                  <Play className="h-4 w-4" /> Clock In
-                </Button>
+                <>
+                  {!isTuningOnly && (
+                    <Button onClick={() => startTimer("service")} className="gold-surface h-12 px-5 font-bold gap-2">
+                      <Play className="h-4 w-4" /> {isTuningJob ? "Start Service" : "Clock In"}
+                    </Button>
+                  )}
+                  {isTuningJob && (
+                    <Button
+                      onClick={() => startTimer("dyno")}
+                      className="h-12 px-5 font-bold gap-2 bg-status-dyno text-background hover:bg-status-dyno/90"
+                    >
+                      <Zap className="h-4 w-4" /> Clock in Dyno
+                    </Button>
+                  )}
+                </>
               )}
               {j.status !== "completed" && j.status !== "ready_for_pickup" && (
                 <Button
