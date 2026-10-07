@@ -462,7 +462,7 @@ ${
               <X className="h-4 w-4" /> Close
             </Button>
             <p className="text-[0.65rem] leading-snug text-muted-foreground">
-              Edit any field on the invoice behind this window — close, adjust and re-open to see
+              Edit any field on the document behind this window — close, adjust and re-open to see
               changes.
             </p>
           </div>

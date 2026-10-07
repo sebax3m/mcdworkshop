@@ -1594,7 +1594,7 @@ function InvoiceDetail() {
                 </div>
                 {wp.length === 0 && (
                   <div className="text-xs text-muted-foreground italic no-print">
-                    All entries hidden on this invoice.
+                    All entries hidden on this {documentLabel.toLowerCase()}.
                   </div>
                 )}
                 <div className="space-y-2">
@@ -1613,7 +1613,7 @@ function InvoiceDetail() {
                           saveSnapshotMeta({ work_performed_hidden: [...hidden, w.id] })
                         }
                         className="no-print opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive p-0.5"
-                        title="Remove from this invoice"
+                        title={`Remove from this ${documentLabel.toLowerCase()}`}
                       >
                         <X className="h-3.5 w-3.5" />
                       </button>
