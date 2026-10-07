@@ -101,6 +101,16 @@ function useAutoSave<T>(
 }
 
 export const Route = createFileRoute("/_authenticated/jobs/$jobId")({
+  head: () => ({
+    meta: [
+      { title: "Job Card — Motorcycle Doctors" },
+      { name: "description", content: "Motorcycle Doctors job card with service records, valve clearances, parts and technician time." },
+      { property: "og:title", content: "Job Card — Motorcycle Doctors" },
+      { property: "og:description", content: "Workshop job details, service records and valve clearance measurements." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+    ],
+  }),
   component: JobDetail,
 });
 
