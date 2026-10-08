@@ -103,7 +103,15 @@ function SmartInvoiceDraft() {
   const time = useQuery({
     queryKey: ["draft-time", jobId],
     queryFn: async () =>
-      (await supabase.from("time_entries").select("*").eq("job_id", jobId)).data ?? [],
+      // Dyno clock time is tracking-only (tuning is charged as a flat price),
+      // so it never feeds invoice labour hours.
+      (
+        await supabase
+          .from("time_entries")
+          .select("*")
+          .eq("job_id", jobId)
+          .neq("work_type", "dyno")
+      ).data ?? [],
   });
   const notes = useQuery({
     queryKey: ["draft-notes", jobId],

@@ -360,8 +360,15 @@ function InvoiceDetail() {
     queryKey: ["invoice-time", invoiceId, invoice.data?.job_id],
     enabled: !!invoice.data?.job_id,
     queryFn: async () =>
-      (await supabase.from("time_entries").select("minutes").eq("job_id", invoice.data!.job_id!))
-        .data ?? [],
+      // Dyno hours are tracking-only: tuning is a flat price, so exclude them
+      // from the tracked labour hours shown/suggested on the invoice.
+      (
+        await supabase
+          .from("time_entries")
+          .select("minutes")
+          .eq("job_id", invoice.data!.job_id!)
+          .neq("work_type", "dyno")
+      ).data ?? [],
   });
 
   // Learned labour/flat rates per service label (e.g. "Dyno" → 950)
