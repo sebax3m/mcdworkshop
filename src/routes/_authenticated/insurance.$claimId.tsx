@@ -425,6 +425,8 @@ function ClaimDetail() {
 import { Plus, Trash, Hash } from "lucide-react";
 import { CRASH_PARTS, PART_CATEGORIES, LABOUR_PRESETS, type DamageLevel } from "@/lib/crash-parts";
 import { retryImport } from "@/lib/lazy-module";
+import { QuotePartSuggestInput } from "@/components/insurance/QuotePartSuggestInput";
+import type { CatalogSuggestion } from "@/lib/parts-orders";
 
 type QuoteItem = {
   id: string;
@@ -699,6 +701,16 @@ function QuoteBuilder({
 
 
 
+  function pickSuggestion(id: string, s: CatalogSuggestion) {
+    const cur = items.find((x) => x.id === id);
+    patch(id, {
+      item_code: s.part_number ?? cur?.item_code ?? "",
+      item_name: s.item || s.description,
+      description: s.item && s.description !== s.item ? s.description : cur?.description ?? "",
+      unit_price: s.last_sell != null && !(cur?.unit_price) ? Number(s.last_sell) : cur?.unit_price ?? 0,
+    });
+  }
+
   function patch(id: string, p: Partial<QuoteItem>) {
     setItems((arr) => arr.map((it) => (it.id === id ? { ...it, ...p } : it)));
     setDirty(true);
@@ -865,17 +877,25 @@ function QuoteBuilder({
                     </span>
                   </td>
                   <td className="py-1.5 pr-2">
-                    <Input
+                    <QuotePartSuggestInput
                       value={it.item_code ?? ""}
-                      onChange={(e) => patch(it.id, { item_code: e.target.value })}
+                      onChange={(v) => patch(it.id, { item_code: v })}
+                      onPick={(s) => pickSuggestion(it.id, s)}
+                      make={c.motorcycles?.make}
+                      model={c.motorcycles?.model}
+                      enabled={it.kind !== "labour"}
                       placeholder="OEM #"
                       className="h-8 text-sm font-mono print:border-0 print:bg-transparent print:px-0"
                     />
                   </td>
                   <td className="py-1.5 pr-2">
-                    <Input
+                    <QuotePartSuggestInput
                       value={it.item_name ?? ""}
-                      onChange={(e) => patch(it.id, { item_name: e.target.value })}
+                      onChange={(v) => patch(it.id, { item_name: v })}
+                      onPick={(s) => pickSuggestion(it.id, s)}
+                      make={c.motorcycles?.make}
+                      model={c.motorcycles?.model}
+                      enabled={it.kind !== "labour"}
                       placeholder={it.kind === "labour" ? "Labour task" : "Part name"}
                       className="h-8 text-sm print:border-0 print:bg-transparent print:px-0"
                     />
