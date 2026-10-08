@@ -3536,6 +3536,11 @@ function TimeEntriesEditor({
     () => [...entries].sort((a, b) => +new Date(b.started_at) - +new Date(a.started_at)),
     [entries],
   );
+  const [typeFilter, setTypeFilter] = useState<"all" | "service" | "dyno">("all");
+  const entryMins = (e: any) =>
+    e.minutes ?? Math.max(0, Math.round(((e.ended_at ? +new Date(e.ended_at) : Date.now()) - +new Date(e.started_at)) / 60000));
+  const filtered =
+    typeFilter === "all" ? sorted : sorted.filter((e) => (e.work_type ?? "service") === typeFilter);
 
   function canEditEntry(e: any) {
     // Note editing: admins and the entry owner. Time editing/deleting: admins only.
@@ -3596,6 +3601,26 @@ function TimeEntriesEditor({
           className={`h-3.5 w-3.5 transition-transform ${expanded ? "rotate-180" : ""}`}
         />
       </button>
+      {expanded && sorted.length > 0 && (
+        <div className="mt-2 flex flex-wrap gap-1.5">
+          {(["all", "service", "dyno"] as const).map((k) => {
+            const list = k === "all" ? sorted : sorted.filter((e) => (e.work_type ?? "service") === k);
+            const label = k === "all" ? "All" : k === "dyno" ? "⚡ Dyno" : "🔧 Workshop";
+            return (
+              <button
+                key={k}
+                type="button"
+                onClick={() => setTypeFilter(k)}
+                className={`rounded-md border px-2 py-1 text-[0.625rem] font-semibold ${
+                  typeFilter === k ? "border-primary bg-primary/15 text-foreground" : "border-border text-muted-foreground"
+                }`}
+              >
+                {label} ({list.length}) · {(list.reduce((s, e) => s + entryMins(e), 0) / 60).toFixed(1)} h
+              </button>
+            );
+          })}
+        </div>
+      )}
       {expanded && sorted.length === 0 && (
         <p className="mt-2 text-xs text-muted-foreground">
           No time entries yet. Clock in on this job from the Clock page to start tracking time.
@@ -3603,7 +3628,7 @@ function TimeEntriesEditor({
       )}
       {expanded && sorted.length > 0 && (
         <ul className="mt-2 space-y-1.5">
-          {sorted.map((e) => {
+          {filtered.map((e) => {
             const editable = canEditEntry(e);
             const isEditing = editing === e.id;
             const tech = techs.data?.get(e.technician_id) ?? "Staff";
@@ -3665,7 +3690,18 @@ function TimeEntriesEditor({
                 ) : (
                   <div className="flex items-center justify-between gap-2 flex-wrap">
                     <div className="min-w-0">
-                      <div className="font-semibold truncate">{tech}</div>
+                      <div className="font-semibold truncate flex items-center gap-1.5">
+                        {tech}
+                        {e.work_type === "dyno" ? (
+                          <span className="rounded px-1.5 py-0.5 text-[0.5625rem] font-bold bg-status-dyno/20 text-status-dyno border border-status-dyno/40">
+                            ⚡ DYNO
+                          </span>
+                        ) : (
+                          <span className="rounded px-1.5 py-0.5 text-[0.5625rem] font-bold bg-muted text-muted-foreground border border-border">
+                            🔧 WORKSHOP
+                          </span>
+                        )}
+                      </div>
                       <div className="text-[0.625rem] text-muted-foreground">
                         {new Date(e.started_at).toLocaleString("en-GB")} →{" "}
                         {e.ended_at ? (
