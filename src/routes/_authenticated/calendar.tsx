@@ -34,6 +34,7 @@ import {
 } from "lucide-react";
 
 import { BookingPartsSection } from "@/components/parts/BookingPartsSection";
+import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import {
   AlertDialog,
@@ -1914,7 +1915,7 @@ function CalendarPage() {
                         <label className="text-[0.625rem] uppercase tracking-wider text-muted-foreground flex items-center gap-1">
                           <StickyNote className="h-3 w-3" /> Instructions
                         </label>
-                        <textarea
+                        <Textarea autoSize
                           value={summaryNotes}
                           onChange={(e) => setSummaryNotes(e.target.value)}
                           onBlur={() => flushSummaryNotes()}
@@ -2334,7 +2335,7 @@ function CalendarPage() {
                         <div className="text-[0.625rem] uppercase tracking-[0.25em] text-muted-foreground mb-1">
                           Instructions
                         </div>
-                        <textarea
+                        <Textarea autoSize
                           key={`notes-${b.id}`}
                           value={editNotes}
                           rows={3}
@@ -2454,7 +2455,7 @@ function CalendarPage() {
                     <label className="text-[0.625rem] uppercase tracking-wider text-muted-foreground flex items-center gap-1">
                       <StickyNote className="h-3 w-3" /> Instructions
                     </label>
-                    <textarea
+                    <Textarea autoSize
                       value={justCreatedNotes}
                       onChange={(e) => setJustCreatedNotes(e.target.value)}
                       placeholder="Add instructions for this booking..."
@@ -2837,7 +2838,7 @@ function CalendarPage() {
                       <label className="text-[0.625rem] uppercase tracking-wider text-muted-foreground flex items-center gap-1">
                         <StickyNote className="h-3 w-3" /> Instructions
                       </label>
-                      <textarea
+                      <Textarea autoSize
                         value={qNotes}
                         onChange={(e) => setQNotes(e.target.value)}
                         placeholder="Add instructions"

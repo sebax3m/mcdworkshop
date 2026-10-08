@@ -46,6 +46,16 @@ const searchSchema = z.object({
 });
 
 export const Route = createFileRoute("/_authenticated/bookings/new")({
+  head: () => ({
+    meta: [
+      { title: "New Book-in — Motorcycle Doctors" },
+      { name: "description", content: "Create a motorcycle book-in with service details and technician instructions at Motorcycle Doctors." },
+      { property: "og:title", content: "New Book-in — Motorcycle Doctors" },
+      { property: "og:description", content: "Create a motorcycle book-in with service details and technician instructions at Motorcycle Doctors." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+    ],
+  }),
   validateSearch: (search) => searchSchema.parse(search),
   component: NewBooking,
 });
@@ -1121,6 +1131,7 @@ function NewBooking() {
               Instructions
             </Label>
             <Textarea
+              autoSize
               value={instructions}
               onChange={(e) => setInstructions(e.target.value)}
               placeholder="Step-by-step instructions for the technician — shown on the Job Card"
