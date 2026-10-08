@@ -17,3 +17,4 @@
 - Store valve diagram layout alongside per-job valve metadata and apply it to both worksheet renderers, so screen and print keep cylinder identities and measurements aligned.
 - Time entries carry work_type ('service' | 'dyno'); Dyno analytics sum dyno entries and tuning invoice lines detected like the invoice's isDynoLine — keeps bench hours separate from service hours on mixed jobs.
 - Quotes share the invoice editor and use status to select document labels; PDF export captures the print-preview sheet in the browser, keeping customer documents aligned without a second template.
+- Use the shared Textarea autoSize option for booking and job instructions so loaded text and edits remain visible without manual resizing.

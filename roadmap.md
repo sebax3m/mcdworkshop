@@ -1,4 +1,5 @@
 # Task roadmap
+- [x] Show full instructions automatically in booking windows and related instruction fields; verified saved instructions and 18-line input without clipping.
 - [x] Make quote labels consistent, support downloadable quote PDF, and offer conversion at the bottom; PDF download verified.
 - [ ] Verify saved quote and invoice conversion with an authorized session (blocked: no current session or matching account).
 - [x] Add and verify V2 layout and inward intake orientation on screen and print.

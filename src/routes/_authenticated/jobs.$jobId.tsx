@@ -3125,6 +3125,7 @@ function InstructionsSection({
       {editable ? (
         <div className="space-y-3 print:hidden">
           <Textarea
+            autoSize
             value={ins}
             onChange={(e) => {
               setIns(e.target.value);
@@ -3138,6 +3139,7 @@ function InstructionsSection({
               Internal notes
             </div>
             <Textarea
+              autoSize
               value={nts}
               onChange={(e) => {
                 setNts(e.target.value);
