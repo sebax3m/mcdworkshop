@@ -22,6 +22,29 @@ function isDynoLine(p: { name?: string | null; part_number?: string | null; supp
 
 const ymd = (d: Date) => format(d, "yyyy-MM-dd");
 
+// Tuning cost model (NZD). Tuner labour is charged per dyno hour; platform cost per bike.
+const TUNER_RATE = 60;
+const ALIENTECH_ANNUAL = 1800;
+type Platform = "powervision" | "woolich" | "alientech" | "tuneecu";
+const PLATFORMS: Record<Platform, { label: string; cost: number }> = {
+  powervision: { label: "Power Vision", cost: 490 },
+  woolich: { label: "Woolich Racing", cost: 190 },
+  alientech: { label: "Alientech (XDF)", cost: 180 },
+  tuneecu: { label: "TuneECU", cost: 0 },
+};
+
+function detectPlatform(text: string, bike: string, revenue: number, hd: boolean): Platform {
+  const t = text.toLowerCase();
+  const b = bike.toLowerCase();
+  if (t.includes("alientech") || t.includes("xdf") || t.includes("reprogram")) return "alientech";
+  if (t.includes("woolich")) return "woolich";
+  if (t.includes("tuneecu") || t.includes("tune ecu")) return "tuneecu";
+  if (t.includes("power vision") || t.includes("powervision") || hd || /harley|indian/.test(b)) return "powervision";
+  if (Math.abs(revenue - 850) < 1) return "tuneecu";
+  if (revenue >= 1150) return "alientech";
+  return "woolich";
+}
+
 export function DynoAnalytics({ from, to, label }: { from: Date | null; to: Date | null; label: string | null }) {
   const start = from ?? startOfWeek(subWeeks(new Date(), 11), { weekStartsOn: 1 });
   const end = to ?? new Date();
@@ -80,16 +103,32 @@ export function DynoAnalytics({ from, to, label }: { from: Date | null; to: Date
       byTech.set(e.technician_id, (byTech.get(e.technician_id) ?? 0) + m);
     }
     const revByJob = new Map<string, number>();
+    const textByJob = new Map<string, string>();
+    const hdByJob = new Set<string>();
     for (const p of d.parts) {
       if (p.on_invoice === false || !isDynoLine(p)) continue;
       const v = Number(p.retail || 0) * Number(p.quantity || 1) * (1 - Number(p.discount_pct || 0) / 100);
       revByJob.set(p.job_id, (revByJob.get(p.job_id) ?? 0) + v);
+      textByJob.set(p.job_id, `${textByJob.get(p.job_id) ?? ""} ${p.part_number ?? ""} ${p.name ?? ""} ${p.supplier ?? ""}`);
+      if ((p.part_number ?? "").toLowerCase().startsWith("dynohd")) hdByJob.add(p.job_id);
     }
     const rows = (d.invoices as any[])
       .filter((i) => i.job_id && revByJob.has(i.job_id))
-      .map((i) => ({ ...i, revenue: revByJob.get(i.job_id) ?? 0, minutes: minsByJob.get(i.job_id) ?? 0 }))
+      .map((i) => {
+        const revenue = revByJob.get(i.job_id) ?? 0;
+        const minutes = minsByJob.get(i.job_id) ?? 0;
+        const platform = detectPlatform(textByJob.get(i.job_id) ?? "", i.bike_snapshot ?? "", revenue, hdByJob.has(i.job_id));
+        const tunerCost = (minutes / 60) * TUNER_RATE;
+        const toolCost = PLATFORMS[platform].cost;
+        return { ...i, revenue, minutes, platform, tunerCost, toolCost, profit: revenue - tunerCost - toolCost };
+      })
       .sort((a, b) => (a.invoice_date < b.invoice_date ? 1 : -1));
     const revenue = rows.reduce((s, r) => s + r.revenue, 0);
+    const days = Math.max(1, Math.round((+endInclusive - +start) / 86400000));
+    const licenseShare = (ALIENTECH_ANNUAL * days) / 365;
+    const tunerCost = (totalMin / 60) * TUNER_RATE;
+    const toolCost = rows.reduce((s, r) => s + r.toolCost, 0) + licenseShare;
+    const profit = revenue - tunerCost - toolCost;
     // chronological weekly series
     const series: { week: string; hours: number }[] = [];
     const cur = startOfWeek(start, { weekStartsOn: 1 });
@@ -104,7 +143,11 @@ export function DynoAnalytics({ from, to, label }: { from: Date | null; to: Date
       .sort((a, b) => b.hours - a.hours);
     const hours = totalMin / 60;
     const weeksCount = Math.max(1, series.length);
-    return { hours, revenue, perHour: hours > 0 ? revenue / hours : 0, avgWeek: hours / weeksCount, series, rows, techs };
+    return {
+      hours, revenue, perHour: hours > 0 ? revenue / hours : 0, avgWeek: hours / weeksCount, series, rows, techs,
+      tunerCost, toolCost, licenseShare, profit, margin: revenue > 0 ? (profit / revenue) * 100 : 0,
+      profitPerHour: hours > 0 ? profit / hours : 0,
+    };
   }, [data.data, start, endInclusive]);
 
   return (
@@ -126,6 +169,12 @@ export function DynoAnalytics({ from, to, label }: { from: Date | null; to: Date
             <Stat label="Avg per week" value={`${view.avgWeek.toFixed(1)} h`} />
             <Stat label="Tuning invoiced" value={fmt(view.revenue)} sub={`${view.rows.length} invoice${view.rows.length === 1 ? "" : "s"}`} />
             <Stat label="$ per dyno hour" value={view.hours > 0 ? fmt(view.perHour) : "—"} />
+          </div>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            <Stat label="Tuner cost ($60/h)" value={fmt(view.tunerCost)} sub={`${view.hours.toFixed(1)} h × $${TUNER_RATE}`} />
+            <Stat label="Licences & tools" value={fmt(view.toolCost)} sub={`incl. Alientech yearly share ${fmt(view.licenseShare)}`} />
+            <Stat label="Net profit" value={fmt(view.profit)} sub={`${view.margin.toFixed(0)}% margin`} />
+            <Stat label="Profit per dyno hour" value={view.hours > 0 ? fmt(view.profitPerHour) : "—"} />
           </div>
           <div className="h-56">
             <ResponsiveContainer width="100%" height="100%">
@@ -156,7 +205,10 @@ export function DynoAnalytics({ from, to, label }: { from: Date | null; to: Date
                   <th className="py-2 pr-3">Customer</th>
                   <th className="py-2 pr-3">Bike</th>
                   <th className="py-2 pr-3 text-right">Dyno hours</th>
-                  <th className="py-2 text-right">Tuning</th>
+                  <th className="py-2 pr-3">Platform</th>
+                  <th className="py-2 pr-3 text-right">Tuning</th>
+                  <th className="py-2 pr-3 text-right">Costs</th>
+                  <th className="py-2 text-right">Profit</th>
                 </tr>
               </thead>
               <tbody>
@@ -167,12 +219,15 @@ export function DynoAnalytics({ from, to, label }: { from: Date | null; to: Date
                     <td className="py-2 pr-3">{r.customer_name_snapshot ?? "—"}</td>
                     <td className="py-2 pr-3">{r.bike_snapshot ?? "—"}</td>
                     <td className="py-2 pr-3 text-right">{r.minutes ? `${(r.minutes / 60).toFixed(1)} h` : "—"}</td>
-                    <td className="py-2 text-right font-bold">{fmt(r.revenue)}</td>
+                    <td className="py-2 pr-3">{PLATFORMS[r.platform as Platform].label} ({fmt(r.toolCost)})</td>
+                    <td className="py-2 pr-3 text-right font-bold">{fmt(r.revenue)}</td>
+                    <td className="py-2 pr-3 text-right text-muted-foreground">{fmt(r.toolCost + r.tunerCost)}</td>
+                    <td className="py-2 text-right font-bold">{fmt(r.profit)}</td>
                   </tr>
                 ))}
                 {view.rows.length === 0 && (
                   <tr>
-                    <td colSpan={6} className="py-4 text-muted-foreground">
+                    <td colSpan={9} className="py-4 text-muted-foreground">
                       No tuning invoices in this period.
                     </td>
                   </tr>
