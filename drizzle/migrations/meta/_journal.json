@@ -134,6 +134,13 @@
       "when": 1791407212720,
       "tag": "0018_time_entries_work_type",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1791498686196,
+      "tag": "0019_learn_parts_from_insurance_quotes",
+      "breakpoints": true
     }
   ]
 }
