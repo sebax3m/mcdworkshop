@@ -17,7 +17,6 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { TeamClockBoard } from "@/components/TeamClockBoard";
-import {
 
 export const Route = createFileRoute("/_authenticated/clock")({
   component: ClockPage,
@@ -30,7 +29,6 @@ function ClockPage() {
   const qc = useQueryClient();
   const [pickingJob, setPickingJob] = useState(false);
   const [jobQuery, setJobQuery] = useState("");
-  const [clockOutReminderJob, setClockOutReminderJob] = useState<ClockOutReminderJob | null>(null);
 
   const events = useQuery({
     queryKey: ["clock-events", user?.id],
