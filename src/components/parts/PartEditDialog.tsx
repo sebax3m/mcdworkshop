@@ -147,7 +147,7 @@ export function PartEditDialog({
       row.ordered_at &&
       row.qty_received === 0 &&
       !ORDERED_LIKE.includes(row.status) &&
-      !["cancelled", "needs_ordering", "quote_requested"].includes(row.status)
+      row.status !== "cancelled"
     )
       row.status = "ordered";
 
