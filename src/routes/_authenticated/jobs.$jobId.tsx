@@ -763,14 +763,21 @@ function JobDetail() {
                   {isTuningJob && (
                     <Button
                       variant="outline"
-                      onClick={() => startTimer(activeWorkType === "dyno" ? "service" : "dyno")}
-                      className="h-12 px-4 font-bold gap-2"
+                      disabled={activeWorkType === "service"}
+                      onClick={() => startTimer("service")}
+                      className="h-12 px-4 font-bold gap-2 gold-surface"
                     >
-                      {activeWorkType === "dyno" ? (
-                        <><Wrench className="h-4 w-4" /> Switch to Service</>
-                      ) : (
-                        <><Zap className="h-4 w-4" /> Switch to Dyno</>
-                      )}
+                      <Play className="h-4 w-4" /> Clock In Service
+                    </Button>
+                  )}
+                  {isTuningJob && (
+                    <Button
+                      variant="outline"
+                      disabled={activeWorkType === "dyno"}
+                      onClick={() => startTimer("dyno")}
+                      className="h-12 px-4 font-bold gap-2 bg-status-dyno text-background hover:bg-status-dyno/90"
+                    >
+                      <Zap className="h-4 w-4" /> Clock in Dyno
                     </Button>
                   )}
                 </>
@@ -778,7 +785,7 @@ function JobDetail() {
                 <>
                   {!isTuningOnly && (
                     <Button onClick={() => startTimer("service")} className="gold-surface h-12 px-5 font-bold gap-2">
-                      <Play className="h-4 w-4" /> {isTuningJob ? "Start Service" : "Clock In"}
+                      <Play className="h-4 w-4" /> {isTuningJob ? "Clock In Service" : "Clock In"}
                     </Button>
                   )}
                   {isTuningJob && (
