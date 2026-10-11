@@ -79,6 +79,7 @@ export function ApprovalDecisionDialog({
   }
 
   async function save() {
+    const isEdit = (request as any).status === "resolved";
     setSaving(true);
     try {
       const approved = findings.filter((f) => decisions[f.id] === "approved");
@@ -133,16 +134,23 @@ export function ApprovalDecisionDialog({
       qc.invalidateQueries({ queryKey: ["notification-reads"] });
 
       // Job returns to its operational state — never auto-completed.
-      const nextStatus = jobStartedAt ? "in_progress" : "assigned";
-      await supabase.from("jobs").update({ status: nextStatus }).eq("id", jobId);
+      // Editing an already-resolved decision must not reopen finished jobs.
+      if (!isEdit) {
+        const nextStatus = jobStartedAt ? "in_progress" : "assigned";
+        await supabase
+          .from("jobs")
+          .update({ status: nextStatus })
+          .eq("id", jobId)
+          .not("status", "in", "(completed,ready_for_pickup)");
 
-      await logJobEvent(
-        jobId,
-        "customer_contacted",
-        `Customer contacted by ${CONTACT_METHOD_LABEL[contact] ?? contact}`,
-        { approval_request_id: request.id },
-        userId,
-      );
+        await logJobEvent(
+          jobId,
+          "customer_contacted",
+          `Customer contacted by ${CONTACT_METHOD_LABEL[contact] ?? contact}`,
+          { approval_request_id: request.id },
+          userId,
+        );
+      }
       await logJobEvent(
         jobId,
         "approval_decision",

@@ -92,6 +92,7 @@ function AnalyticsPage() {
         .select(
           "id, invoice_number, invoice_date, customer_name_snapshot, bike_snapshot, status, subtotal_excl_gst, gst, total, paid_amount, paid_on, due_date, snapshot",
         )
+        .neq("status", "quote")
         .order("invoice_date", { ascending: false });
       if (error) throw error;
       return (data ?? []) as any;
