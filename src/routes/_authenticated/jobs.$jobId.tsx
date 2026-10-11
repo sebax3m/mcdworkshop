@@ -3,7 +3,6 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { PrintPreview } from "@/components/PrintPreview";
-import { ClockOutReminderDialog } from "@/components/ClockOutReminderDialog";
 import { supabase } from "@/integrations/supabase/client";
 import {
   INVENTORY_CATEGORIES,
@@ -485,9 +484,6 @@ function JobDetail() {
     qc.invalidateQueries({ queryKey: ["clock-floating-job"] });
     qc.invalidateQueries({ queryKey: ["clock-events"] });
     toast.success(`Logged ${formatMinutes(minutes)}`);
-    if (j.status !== "ready_for_pickup" && j.status !== "completed") {
-      setClockOutReminder(true);
-    }
   }
 
   const completion =
