@@ -18,9 +18,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { TeamClockBoard } from "@/components/TeamClockBoard";
 import {
-  ClockOutReminderDialog,
-  type ClockOutReminderJob,
-} from "@/components/ClockOutReminderDialog";
 
 export const Route = createFileRoute("/_authenticated/clock")({
   component: ClockPage,
