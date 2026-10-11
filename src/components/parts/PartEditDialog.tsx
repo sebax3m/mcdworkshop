@@ -143,7 +143,12 @@ export function PartEditDialog({
     if (row.status === "arrived" && !row.received_at) row.received_at = localToday();
     if (ORDERED_LIKE.includes(row.status) && !row.ordered_at) row.ordered_at = localToday();
     // Reverse sync: a date ordered with nothing received means the part is ordered.
-    if (row.ordered_at && row.qty_received === 0 && !ORDERED_LIKE.includes(row.status))
+    if (
+      row.ordered_at &&
+      row.qty_received === 0 &&
+      !ORDERED_LIKE.includes(row.status) &&
+      !["cancelled", "needs_ordering", "quote_requested"].includes(row.status)
+    )
       row.status = "ordered";
 
     const { error } = part?.id
