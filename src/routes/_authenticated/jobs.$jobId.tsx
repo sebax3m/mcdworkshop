@@ -778,7 +778,7 @@ function JobDetail() {
                 <>
                   {!isTuningOnly && (
                     <Button onClick={() => startTimer("service")} className="gold-surface h-12 px-5 font-bold gap-2">
-                      <Play className="h-4 w-4" /> {isTuningJob ? "Start Service" : "Clock In"}
+                      <Play className="h-4 w-4" /> {isTuningJob ? "Clock In Service" : "Clock In"}
                     </Button>
                   )}
                   {isTuningJob && (
