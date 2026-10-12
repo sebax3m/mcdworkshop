@@ -11,6 +11,14 @@ export type TuningPlatform = "powervision" | "woolich" | "alientech" | "tuneecu"
 export const PV_LICENSE_PRICE = 590;
 export const PV_LICENSE_PN = "PV-LICENSE";
 
+/** Customer tune price (GST incl.) per system. */
+export const PLATFORM_PRICE: Record<TuningPlatform, number> = {
+  powervision: 1200,
+  woolich: 950,
+  alientech: 1200,
+  tuneecu: 850,
+};
+
 const OPTIONS: { id: TuningPlatform; label: string; sub: string; cls: string }[] = [
   { id: "powervision", label: "Power Vision", sub: "Harley / Indian · licence on invoice", cls: "border-service-orange bg-service-orange/15 text-service-orange" },
   { id: "woolich", label: "Woolich Racing", sub: "Tracking only", cls: "border-service-light-blue bg-service-light-blue/15 text-service-light-blue" },
@@ -72,27 +80,24 @@ export function TuningPlatformPicker({
       const lic = all.find((p: any) => p.part_number === PV_LICENSE_PN);
       const dyno = all.find(isDynoPart);
 
+      // Tune price follows the chosen system (Power Vision splits off the licence).
+      const total = next ? PLATFORM_PRICE[next] : tunePriceForMake(make);
+      const dynoCharge = next === "powervision" ? Math.max(0, total - PV_LICENSE_PRICE) : total;
+      if (dyno) {
+        await supabase.from("parts").update({ retail: dynoCharge, cost: dynoCharge }).eq("id", dyno.id);
+      } else {
+        await supabase.from("parts").insert({
+          job_id: jobId, name: "Dyno", part_number: tunePartNumberForMake(make),
+          supplier: "Custom tune", quantity: 1, retail: dynoCharge, cost: dynoCharge, on_invoice: true,
+        });
+      }
       if (next === "powervision" && !lic) {
-        const total = dyno ? Number(dyno.retail ?? 0) : tunePriceForMake(make);
-        const dynoCharge = Math.max(0, total - PV_LICENSE_PRICE);
-        if (dyno) {
-          await supabase.from("parts").update({ retail: dynoCharge, cost: dynoCharge }).eq("id", dyno.id);
-        } else {
-          await supabase.from("parts").insert({
-            job_id: jobId, name: "Dyno", part_number: tunePartNumberForMake(make),
-            supplier: "Custom tune", quantity: 1, retail: dynoCharge, cost: dynoCharge, on_invoice: true,
-          });
-        }
         await supabase.from("parts").insert({
           job_id: jobId, name: "Power Vision", part_number: PV_LICENSE_PN,
           supplier: "Harley / Indian licence", quantity: 1, retail: PV_LICENSE_PRICE, cost: PV_LICENSE_PRICE, on_invoice: true,
         });
       } else if (next !== "powervision" && lic) {
         await supabase.from("parts").delete().eq("id", lic.id);
-        if (dyno) {
-          const restored = Number(dyno.retail ?? 0) + Number(lic.retail ?? PV_LICENSE_PRICE);
-          await supabase.from("parts").update({ retail: restored, cost: restored }).eq("id", dyno.id);
-        }
       }
       toast.success(next ? `Tuning system: ${OPTIONS.find((o) => o.id === next)!.label}` : "Tuning system cleared");
       onChanged();
