@@ -18,7 +18,7 @@ export function detectServiceKind(title?: string | null): ServiceKind {
 }
 
 /** Base dyno / custom tune price (GST inclusive) by motorcycle make. */
-export const TUNE_PRICE_JAPANESE = 900;
+export const TUNE_PRICE_JAPANESE = 950;
 export const TUNE_PRICE_HARLEY = 1200;
 
 export function isHarleyMake(make?: string | null): boolean {

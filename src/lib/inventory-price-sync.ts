@@ -2,82 +2,58 @@
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
+const ITEM_PREFIX =
+  /^(chain|oil filter|air filter|brake pads?|spark plugs?|engine oil|tyre|battery|front sprocket|rear sprocket)\s+/i;
+
+/** Normalised product key: drops the ITEM prefix, spaces and punctuation so
+ *  "Chain DID 525VX3 -120ZB" and "DID 525VX3-120ZB" match. */
+export function productKey(v: string | null | undefined) {
+  return (v ?? "").trim().replace(ITEM_PREFIX, "").toLowerCase().replace(/[^a-z0-9]/g, "");
+}
+
 /**
- * Learn from invoice edits: when a part/line price is changed on an invoice,
- * push that price back into the inventory library so future jobs quote the
- * up-to-date price.
- *
- * Matching is done on any of the identifiers we know for the line: the part
- * number / code (ITEM column), the plain name, and the description text.
- * Inventory rows are matched on their `sku` or `name`.
+ * Learn from invoice edits: when a line price changes on an invoice, push it
+ * back into the inventory library and the parts catalogue. DESCRIPTION
+ * (exact product) is matched loosely; the generic ITEM code only when unique.
  */
 export async function learnInventoryPrice(
   keysInput: string | null | undefined | (string | null | undefined)[],
   unitPrice: number | null | undefined,
   opts: { silent?: boolean } = {},
 ) {
-  const keys = (Array.isArray(keysInput) ? keysInput : [keysInput])
-    .map((k) => (k ?? "").trim())
-    .filter((k) => k.length >= 2);
+  const raw = (Array.isArray(keysInput) ? keysInput : [keysInput]).map((k) => (k ?? "").trim());
   const price = Number(unitPrice);
-  if (!keys.length || !Number.isFinite(price) || price <= 0) return;
+  if (!Number.isFinite(price) || price <= 0) return;
+  // Specific keys (≥5 normalised chars) identify a product; short/generic ones don't.
+  const keys = Array.from(new Set(raw.map(productKey).filter((k) => k.length >= 5)));
+  const exact = new Set(raw.filter((k) => k.length >= 2).map((k) => k.toLowerCase()));
+  if (!keys.length && !exact.size) return;
 
-  const uniqueKeys = Array.from(new Set(keys.map((k) => k.toLowerCase()))).map(
-    (lower) => keys.find((k) => k.toLowerCase() === lower)!,
-  );
-
-  const filters = uniqueKeys
-    .flatMap((k) => {
-      const safe = escapeFilter(k);
-      return safe ? [`name.ilike.${safe}`, `sku.ilike.${safe}`] : [];
-    })
-    .join(",");
-  if (!filters) return;
-
-  const { data, error } = await supabase
-    .from("inventory_items")
-    .select("id, name, sku, unit_price")
-    .or(filters)
-    .limit(20);
-
-  if (error || !data?.length) return;
-
-  const lowered = uniqueKeys.map((k) => k.toLowerCase());
-  const norm = (v: any) => (v ?? "").toString().trim().toLowerCase();
-
-  // The DESCRIPTION (inventory `name`) identifies the exact product, so it
-  // always wins. The ITEM code (`sku`) is a generic category like
-  // "Spark Plugs" shared by many products — only trust it when it maps to a
-  // single inventory row, otherwise we'd overwrite an unrelated product.
-  const nameMatches = data.filter((i: any) => lowered.includes(norm(i.name)));
-  const skuMatches = data.filter((i: any) => lowered.includes(norm(i.sku)));
-
-  const match =
-    (nameMatches.length === 1 ? nameMatches[0] : undefined) ??
-    (skuMatches.length === 1 ? skuMatches[0] : undefined);
-  if (!match) return;
-
-
-  const current = Number(match.unit_price ?? 0);
-  if (Math.abs(current - price) < 0.005) return;
-
-  const { error: upErr } = await supabase
-    .from("inventory_items")
-    .update({ unit_price: price })
-    .eq("id", match.id);
-  if (upErr) {
-    if (!opts.silent) toast.error(`Couldn't update inventory price: ${upErr.message}`);
-    return;
+  const { data } = await supabase.from("inventory_items").select("id, name, sku, unit_price").limit(5000);
+  const items = data ?? [];
+  let matches = items.filter((i: any) => keys.includes(productKey(i.name)));
+  if (!matches.length) {
+    const sku = items.filter((i: any) => exact.has((i.sku ?? "").toLowerCase()));
+    if (sku.length === 1) matches = sku;
   }
 
-  if (!opts.silent) {
-    toast.success(
-      `Inventory updated — ${match.name}: $${current.toFixed(2)} → $${price.toFixed(2)}`,
-    );
+  const changed = matches.filter((m: any) => Math.abs(Number(m.unit_price ?? 0) - price) >= 0.005);
+  for (const m of changed) {
+    const { error } = await supabase.from("inventory_items").update({ unit_price: price }).eq("id", m.id);
+    if (error && !opts.silent) toast.error(`Couldn't update library price: ${error.message}`);
   }
-}
 
-function escapeFilter(v: string) {
-  // commas, parens and wildcards break PostgREST `or` filters
-  return v.replace(/[(),*]/g, " ").replace(/\s{2,}/g, " ").trim();
+  // Parts catalogue (Settings → Parts & Suppliers): last_sell is ex-GST.
+  if (keys.length) {
+    const { data: cat } = await supabase.from("parts_catalog").select("id, description, last_sell").limit(5000);
+    const exGst = Math.round((price / 1.15) * 100) / 100;
+    for (const c of (cat ?? []).filter((c: any) => keys.includes(productKey(c.description)))) {
+      if (Math.abs(Number(c.last_sell ?? 0) - exGst) < 0.005) continue;
+      await supabase.from("parts_catalog").update({ last_sell: exGst } as never).eq("id", c.id);
+    }
+  }
+
+  if (!opts.silent && changed.length) {
+    toast.success(`Library updated — ${changed[0].name}: $${price.toFixed(2)}`);
+  }
 }
