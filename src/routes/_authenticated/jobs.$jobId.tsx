@@ -378,8 +378,12 @@ function JobDetail() {
   const kind = detectServiceKind(j.title);
   const kindMeta = KIND_META[kind];
   const tuningText = `${j.title ?? ""} ${(j as any).description ?? ""} ${(j as any).complaint ?? ""}`.toLowerCase();
-  const isTuningJob = kind === "dyno" || /\bdyno\b|tuning|custom tune|\btune\b/.test(tuningText);
-  const isTuningOnly = kind === "dyno";
+  const isTuningJob =
+    kind === "dyno" ||
+    /\bdyno\b|tuning|custom tune|\btune\b|power ?vision|alientech|woolich|tuneecu|remap|ecu flash|stage\s*[12]/.test(
+      tuningText,
+    );
+  const isTuningOnly = false;
   const activeWorkType = ((activeTimer as any)?.work_type ?? "service") as "service" | "dyno";
   const cylinders = Math.max(1, Math.min(6, (j.motorcycles as any)?.cylinders ?? 4));
 
