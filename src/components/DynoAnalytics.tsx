@@ -13,7 +13,7 @@ const fmt = (n: number) =>
 
 function isDynoLine(p: { name?: string | null; part_number?: string | null; supplier?: string | null }) {
   const pn = (p.part_number ?? "").toLowerCase();
-  if (pn.startsWith("dyno")) return true;
+  if (pn.startsWith("dyno") || pn === "pv-license") return true;
   const name = (p.name ?? "").toLowerCase();
   if (name.startsWith("dyno")) return true;
   const text = `${name} ${(p.supplier ?? "").toLowerCase()}`;
@@ -77,11 +77,19 @@ export function DynoAnalytics({ from, to, label }: { from: Date | null; to: Date
           .in("job_id", jobIds.slice(i, i + 150));
         parts = parts.concat(p ?? []);
       }
+      const jobsSd: any[] = [];
+      for (let i = 0; i < jobIds.length; i += 150) {
+        const { data: js } = await supabase.from("jobs").select("id, service_data").in("id", jobIds.slice(i, i + 150));
+        jobsSd.push(...(js ?? []));
+      }
+      const platformByJob = new Map<string, string>(
+        jobsSd.filter((x) => x.service_data?.tuning_platform).map((x) => [x.id, x.service_data.tuning_platform]),
+      );
       const techIds = Array.from(new Set((entries ?? []).map((e: any) => e.technician_id)));
       const { data: profiles } = techIds.length
         ? await supabase.from("profiles").select("id, full_name").in("id", techIds)
         : { data: [] as any[] };
-      return { entries: entries ?? [], invoices: invoices ?? [], parts, profiles: profiles ?? [] };
+      return { entries: entries ?? [], invoices: invoices ?? [], parts, profiles: profiles ?? [], platformByJob };
     },
   });
 
@@ -117,7 +125,7 @@ export function DynoAnalytics({ from, to, label }: { from: Date | null; to: Date
       .map((i) => {
         const revenue = revByJob.get(i.job_id) ?? 0;
         const minutes = minsByJob.get(i.job_id) ?? 0;
-        const platform = detectPlatform(textByJob.get(i.job_id) ?? "", i.bike_snapshot ?? "", revenue, hdByJob.has(i.job_id));
+        const platform = ((d as any).platformByJob.get(i.job_id) as Platform | undefined) ?? detectPlatform(textByJob.get(i.job_id) ?? "", i.bike_snapshot ?? "", revenue, hdByJob.has(i.job_id));
         const tunerCost = (minutes / 60) * TUNER_RATE;
         const toolCost = PLATFORMS[platform].cost;
         return { ...i, revenue, minutes, platform, tunerCost, toolCost, profit: revenue - tunerCost - toolCost };

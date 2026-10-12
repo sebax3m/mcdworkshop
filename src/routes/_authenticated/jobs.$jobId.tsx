@@ -22,6 +22,7 @@ import { JobTimeline } from "@/components/job/JobTimeline";
 import { ServiceTypeEditor } from "@/components/job/ServiceTypeEditor";
 import { AssignedTechnicianCard } from "@/components/job/AssignedTechnicianCard";
 import { JobTechnicalBrief } from "@/components/job/JobTechnicalBrief";
+import { TuningPlatformPicker } from "@/components/job/TuningPlatformPicker";
 
 
 import { displayCustomerName } from "@/lib/display";
@@ -1083,6 +1084,20 @@ function JobDetail() {
         canEdit={canEdit}
         onChanged={() => qc.invalidateQueries({ queryKey: ["job", jobId] })}
       />
+
+      {isTuningJob && (
+        <TuningPlatformPicker
+          jobId={jobId}
+          serviceData={(j.service_data as any) ?? {}}
+          make={(j.motorcycles as any)?.make}
+          canEdit={canEdit}
+          onChanged={() => {
+            qc.invalidateQueries({ queryKey: ["job", jobId] });
+            qc.invalidateQueries({ queryKey: ["job-parts", jobId] });
+          }}
+        />
+      )}
+
 
       {/* Parts used (service-kind aware) — kept above the invoice notes */}
       {(SERVICE_PARTS[kind].length > 0 || canEdit || (partsUsed.data ?? []).length > 0) && (
