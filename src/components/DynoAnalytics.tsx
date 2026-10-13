@@ -29,6 +29,7 @@ const ymd = (d: Date) => format(d, "yyyy-MM-dd");
 // Tuning cost model (NZD). Tuner labour is charged per dyno hour; platform cost per bike.
 const TUNER_RATE = 60;
 const ALIENTECH_ANNUAL = 1800;
+const RETUNE_THRESHOLD = 750;
 type Platform = "powervision" | "woolich" | "alientech" | "tuneecu";
 const PLATFORMS: Record<Platform, { label: string; cost: number }> = {
   powervision: { label: "Power Vision", cost: 490 },
@@ -155,8 +156,10 @@ export function DynoAnalytics() {
         const minutes = minsByJob.get(i.job_id) ?? 0;
         const platform = ((d as any).platformByJob.get(i.job_id) as Platform | undefined) ?? detectPlatform(textByJob.get(i.job_id) ?? "", i.bike_snapshot ?? "", revenue, hdByJob.has(i.job_id));
         const tunerCost = (minutes / 60) * TUNER_RATE;
-        const toolCost = PLATFORMS[platform].cost;
-        return { ...i, revenue, minutes, platform, tunerCost, toolCost, profit: revenue - tunerCost - toolCost };
+        // Retune: bike already licensed → no platform cost. Explicit "retune" text or tune charged under $750.
+        const retune = /re-?tune/i.test(textByJob.get(i.job_id) ?? "") || revenue < RETUNE_THRESHOLD;
+        const toolCost = retune ? 0 : PLATFORMS[platform].cost;
+        return { ...i, revenue, minutes, platform, retune, tunerCost, toolCost, profit: revenue - tunerCost - toolCost };
       })
       .sort((a, b) => (a.invoice_date < b.invoice_date ? 1 : -1));
     const revenue = rows.reduce((s, r) => s + r.revenue, 0);
@@ -376,7 +379,7 @@ export function DynoAnalytics() {
                 <div className="space-y-1 text-sm">
                   <Row label="Tuning invoiced" value={fmt(r.revenue)} bold />
                   <Row label={`Tuner cost (${hrs.toFixed(1)} h × $${TUNER_RATE})`} value={`− ${fmt(r.tunerCost)}`} />
-                  <Row label={`Platform cost (${PLATFORMS[r.platform as Platform].label})`} value={`− ${fmt(r.toolCost)}`} />
+                  <Row label={`Platform cost (${PLATFORMS[r.platform as Platform].label}${r.retune ? " · Retune, licence already paid" : ""})`} value={`− ${fmt(r.toolCost)}`} />
                   <div className="border-t border-border pt-1">
                     <Row label={`Net profit (${margin.toFixed(0)}% margin)`} value={fmt(r.profit)} bold />
                   </div>
