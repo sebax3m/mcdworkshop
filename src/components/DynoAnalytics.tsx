@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useQuery } from "@tanstack/react-query";
-import { useMemo } from "react";
-import { format, startOfWeek, subWeeks } from "date-fns";
+import { useMemo, useState } from "react";
+import { format, startOfMonth, subMonths } from "date-fns";
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { Zap } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -45,9 +45,12 @@ function detectPlatform(text: string, bike: string, revenue: number, hd: boolean
   return "woolich";
 }
 
-export function DynoAnalytics({ from, to, label }: { from: Date | null; to: Date | null; label: string | null }) {
-  const start = from ?? startOfWeek(subWeeks(new Date(), 11), { weekStartsOn: 1 });
-  const end = to ?? new Date();
+export function DynoAnalytics() {
+  const defStart = startOfMonth(subMonths(new Date(), 5));
+  const [fromStr, setFromStr] = useState(ymd(defStart));
+  const [toStr, setToStr] = useState(ymd(new Date()));
+  const start = fromStr ? new Date(`${fromStr}T00:00:00`) : defStart;
+  const end = toStr ? new Date(`${toStr}T00:00:00`) : new Date();
   const endInclusive = new Date(end.getFullYear(), end.getMonth(), end.getDate(), 23, 59, 59, 999);
   const key = [ymd(start), ymd(end)];
 
@@ -99,15 +102,15 @@ export function DynoAnalytics({ from, to, label }: { from: Date | null; to: Date
     const mins = (e: any) =>
       e.minutes ?? Math.max(0, Math.round(((e.ended_at ? +new Date(e.ended_at) : Date.now()) - +new Date(e.started_at)) / 60000));
     const minsByJob = new Map<string, number>();
-    const weeks = new Map<string, number>();
+    const months = new Map<string, number>();
     const byTech = new Map<string, number>();
     let totalMin = 0;
     for (const e of d.entries as any[]) {
       const m = mins(e);
       totalMin += m;
       minsByJob.set(e.job_id, (minsByJob.get(e.job_id) ?? 0) + m);
-      const wk = format(startOfWeek(new Date(e.started_at), { weekStartsOn: 1 }), "dd MMM");
-      weeks.set(wk, (weeks.get(wk) ?? 0) + m);
+      const mo = format(startOfMonth(new Date(e.started_at)), "MMM yyyy");
+      months.set(mo, (months.get(mo) ?? 0) + m);
       byTech.set(e.technician_id, (byTech.get(e.technician_id) ?? 0) + m);
     }
     const revByJob = new Map<string, number>();
@@ -137,22 +140,22 @@ export function DynoAnalytics({ from, to, label }: { from: Date | null; to: Date
     const tunerCost = (totalMin / 60) * TUNER_RATE;
     const toolCost = rows.reduce((s, r) => s + r.toolCost, 0) + licenseShare;
     const profit = revenue - tunerCost - toolCost;
-    // chronological weekly series
-    const series: { week: string; hours: number }[] = [];
-    const cur = startOfWeek(start, { weekStartsOn: 1 });
+    // chronological monthly series
+    const series: { month: string; hours: number }[] = [];
+    const cur = startOfMonth(start);
     while (cur <= endInclusive) {
-      const k = format(cur, "dd MMM");
-      series.push({ week: k, hours: Math.round(((weeks.get(k) ?? 0) / 60) * 10) / 10 });
-      cur.setDate(cur.getDate() + 7);
+      const k = format(cur, "MMM yyyy");
+      series.push({ month: k, hours: Math.round(((months.get(k) ?? 0) / 60) * 10) / 10 });
+      cur.setMonth(cur.getMonth() + 1);
     }
     const names = new Map((d.profiles as any[]).map((p) => [p.id, p.full_name]));
     const techs = Array.from(byTech.entries())
       .map(([id, m]) => ({ name: names.get(id) || "Unknown", hours: m / 60 }))
       .sort((a, b) => b.hours - a.hours);
     const hours = totalMin / 60;
-    const weeksCount = Math.max(1, series.length);
+    const monthsCount = Math.max(1, series.length);
     return {
-      hours, revenue, perHour: hours > 0 ? revenue / hours : 0, avgWeek: hours / weeksCount, series, rows, techs,
+      hours, revenue, perHour: hours > 0 ? revenue / hours : 0, avgMonth: hours / monthsCount, series, rows, techs,
       tunerCost, toolCost, licenseShare, profit, margin: revenue > 0 ? (profit / revenue) * 100 : 0,
       profitPerHour: hours > 0 ? profit / hours : 0,
     };
@@ -164,9 +167,25 @@ export function DynoAnalytics({ from, to, label }: { from: Date | null; to: Date
         <h2 className="font-display text-lg font-bold flex items-center gap-2">
           <Zap className="h-5 w-5 text-status-dyno" /> Dyno &amp; Tuning
         </h2>
-        <span className="text-xs text-muted-foreground">
-          {label ?? "Last 12 weeks"} · {format(start, "dd MMM yyyy")} – {format(end, "dd MMM yyyy")}
-        </span>
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <input
+            type="date"
+            value={fromStr}
+            max={toStr}
+            onChange={(e) => setFromStr(e.target.value)}
+            className="rounded-md border border-border bg-background px-2 py-1 text-xs text-foreground"
+            aria-label="From date"
+          />
+          <span>–</span>
+          <input
+            type="date"
+            value={toStr}
+            min={fromStr}
+            onChange={(e) => setToStr(e.target.value)}
+            className="rounded-md border border-border bg-background px-2 py-1 text-xs text-foreground"
+            aria-label="To date"
+          />
+        </div>
       </div>
       {!view ? (
         <p className="text-sm text-muted-foreground">Loading…</p>
@@ -174,7 +193,7 @@ export function DynoAnalytics({ from, to, label }: { from: Date | null; to: Date
         <>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
             <Stat label="Dyno hours" value={`${view.hours.toFixed(1)} h`} />
-            <Stat label="Avg per week" value={`${view.avgWeek.toFixed(1)} h`} />
+            <Stat label="Avg per month" value={`${view.avgMonth.toFixed(1)} h`} />
             <Stat label="Tuning invoiced" value={fmt(view.revenue)} sub={`${view.rows.length} invoice${view.rows.length === 1 ? "" : "s"}`} />
             <Stat label="$ per dyno hour" value={view.hours > 0 ? fmt(view.perHour) : "—"} />
           </div>
@@ -188,7 +207,7 @@ export function DynoAnalytics({ from, to, label }: { from: Date | null; to: Date
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={view.series}>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-                <XAxis dataKey="week" tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} />
+                <XAxis dataKey="month" tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} />
                 <YAxis tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} unit="h" />
                 <Tooltip formatter={(v: any) => [`${v} h`, "Dyno"]} />
                 <Bar dataKey="hours" fill="var(--status-dyno)" radius={[4, 4, 0, 0]} />
