@@ -394,7 +394,7 @@ export function DynoAnalytics() {
           </div>
         </>
       )}
-      <Dialog open={!!selected} onOpenChange={(o) => !o && setSelected(null)}>
+      <Dialog open={!!selected} onOpenChange={(o) => { if (!o) setSelected(null); setHoursDraft(""); }}>
         <DialogContent className="max-w-lg">
           {(() => {
             const r = (selected && view?.rows.find((x: any) => x.id === selected.id)) || selected;
@@ -417,6 +417,35 @@ export function DynoAnalytics() {
                     <Row label={`Net profit (${margin.toFixed(0)}% margin)`} value={fmt(r.profit)} bold />
                   </div>
                   <Row label="Profit per dyno hour" value={hrs > 0 ? fmt(r.profit / hrs) : "— (no dyno hours logged)"} />
+                </div>
+                <div>
+                  <div className="text-xs uppercase tracking-wider text-muted-foreground mb-2">
+                    Dyno hours · analytics only, not on invoice
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="number"
+                      min={0}
+                      step={0.25}
+                      key={`${r.id}-${r.minutes}`}
+                      defaultValue={(r.minutes / 60).toFixed(2)}
+                      onChange={(e) => setHoursDraft(e.target.value)}
+                      disabled={saving || !r.job_id}
+                      className="w-28 rounded-md border border-border bg-background px-3 py-1.5 text-sm"
+                    />
+                    <span className="text-sm text-muted-foreground">h</span>
+                    <Button size="sm" disabled={saving || !r.job_id || hoursDraft === ""} onClick={() => saveHours(r.job_id, hoursDraft)}>
+                      Save hours
+                    </Button>
+                    {r.manualHours && (
+                      <Button size="sm" variant="ghost" disabled={saving} onClick={() => saveHours(r.job_id, null)}>
+                        Use clocked ({(r.trackedMinutes / 60).toFixed(1)} h)
+                      </Button>
+                    )}
+                  </div>
+                  <div className="text-xs text-muted-foreground mt-1">
+                    {r.manualHours ? "Manual hours" : "From dyno clock-ins"}
+                  </div>
                 </div>
                 <div>
                   <div className="text-xs uppercase tracking-wider text-muted-foreground mb-2">Tuning system used</div>
