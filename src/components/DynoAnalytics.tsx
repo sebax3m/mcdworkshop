@@ -358,6 +358,64 @@ export function DynoAnalytics() {
           </div>
         </>
       )}
+      <Dialog open={!!selected} onOpenChange={(o) => !o && setSelected(null)}>
+        <DialogContent className="max-w-lg">
+          {(() => {
+            const r = (selected && view?.rows.find((x: any) => x.id === selected.id)) || selected;
+            if (!r) return null;
+            const hrs = r.minutes / 60;
+            const margin = r.revenue > 0 ? (r.profit / r.revenue) * 100 : 0;
+            return (
+              <>
+                <DialogHeader>
+                  <DialogTitle>Tuning analysis · {r.invoice_number}</DialogTitle>
+                </DialogHeader>
+                <div className="text-sm text-muted-foreground">
+                  {r.invoice_date} · {r.customer_name_snapshot ?? "—"} · {r.bike_snapshot ?? "—"}
+                </div>
+                <div className="space-y-1 text-sm">
+                  <Row label="Tuning invoiced" value={fmt(r.revenue)} bold />
+                  <Row label={`Tuner cost (${hrs.toFixed(1)} h × $${TUNER_RATE})`} value={`− ${fmt(r.tunerCost)}`} />
+                  <Row label={`Platform cost (${PLATFORMS[r.platform as Platform].label})`} value={`− ${fmt(r.toolCost)}`} />
+                  <div className="border-t border-border pt-1">
+                    <Row label={`Net profit (${margin.toFixed(0)}% margin)`} value={fmt(r.profit)} bold />
+                  </div>
+                  <Row label="Profit per dyno hour" value={hrs > 0 ? fmt(r.profit / hrs) : "— (no dyno hours logged)"} />
+                </div>
+                <div>
+                  <div className="text-xs uppercase tracking-wider text-muted-foreground mb-2">Tuning system used</div>
+                  <div className="grid grid-cols-2 gap-2">
+                    {(Object.keys(PLATFORMS) as Platform[]).map((p) => (
+                      <button
+                        key={p}
+                        type="button"
+                        disabled={saving || !r.job_id}
+                        onClick={() => changePlatform(r.job_id, p)}
+                        className={`rounded-lg border-2 p-2 text-left text-sm font-semibold transition-colors ${r.platform === p ? "border-status-dyno bg-status-dyno/15" : "border-border hover:border-status-dyno/50"}`}
+                      >
+                        {PLATFORMS[p].label}
+                        <div className="text-xs font-normal text-muted-foreground">Cost {fmt(PLATFORMS[p].cost)}</div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div className="flex justify-end gap-2">
+                  {r.job_id && (
+                    <Button variant="outline" asChild>
+                      <Link to="/jobs/$jobId" params={{ jobId: r.job_id }}>Open job card</Link>
+                    </Button>
+                  )}
+                  <Button asChild>
+                    <Link to="/invoices/$invoiceId" params={{ invoiceId: r.id }}>
+                      <Pencil className="h-4 w-4 mr-1" /> Edit invoice
+                    </Link>
+                  </Button>
+                </div>
+              </>
+            );
+          })()}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
