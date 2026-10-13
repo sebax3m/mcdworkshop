@@ -1,10 +1,14 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
+import { Link } from "@tanstack/react-router";
 import { format, startOfMonth, subMonths } from "date-fns";
-import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import { Zap } from "lucide-react";
+import { Bar, BarChart, CartesianGrid, ComposedChart, Legend, Line, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { Pencil, Search, Zap } from "lucide-react";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 const fmt = (n: number) =>
   new Intl.NumberFormat("en-NZ", { style: "currency", currency: "NZD", maximumFractionDigits: 2 }).format(
@@ -49,6 +53,27 @@ export function DynoAnalytics() {
   const defStart = startOfMonth(subMonths(new Date(), 5));
   const [fromStr, setFromStr] = useState(ymd(defStart));
   const [toStr, setToStr] = useState(ymd(new Date()));
+  const [chart, setChart] = useState<"money" | "hours">("money");
+  const [selected, setSelected] = useState<any | null>(null);
+  const [saving, setSaving] = useState(false);
+  const qc = useQueryClient();
+  const changePlatform = async (jobId: string, platform: Platform) => {
+    setSaving(true);
+    try {
+      const { data: job, error } = await supabase.from("jobs").select("service_data").eq("id", jobId).single();
+      if (error) throw error;
+      const sd = { ...((job?.service_data as any) ?? {}), tuning_platform: platform };
+      const { error: e2 } = await supabase.from("jobs").update({ service_data: sd }).eq("id", jobId);
+      if (e2) throw e2;
+      await qc.invalidateQueries({ queryKey: ["dyno-analytics"] });
+      setSelected((s: any) => (s ? { ...s, platform } : s));
+      toast.success("Platform updated");
+    } catch (e: any) {
+      toast.error(e?.message ?? "Could not update platform");
+    } finally {
+      setSaving(false);
+    }
+  };
   const start = fromStr ? new Date(`${fromStr}T00:00:00`) : defStart;
   const end = toStr ? new Date(`${toStr}T00:00:00`) : new Date();
   const endInclusive = new Date(end.getFullYear(), end.getMonth(), end.getDate(), 23, 59, 59, 999);
