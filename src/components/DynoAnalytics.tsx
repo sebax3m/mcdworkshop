@@ -1,10 +1,14 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
+import { Link } from "@tanstack/react-router";
 import { format, startOfMonth, subMonths } from "date-fns";
-import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import { Zap } from "lucide-react";
+import { Bar, BarChart, CartesianGrid, ComposedChart, Legend, Line, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { Pencil, Search, Zap } from "lucide-react";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 const fmt = (n: number) =>
   new Intl.NumberFormat("en-NZ", { style: "currency", currency: "NZD", maximumFractionDigits: 2 }).format(
@@ -49,6 +53,27 @@ export function DynoAnalytics() {
   const defStart = startOfMonth(subMonths(new Date(), 5));
   const [fromStr, setFromStr] = useState(ymd(defStart));
   const [toStr, setToStr] = useState(ymd(new Date()));
+  const [chart, setChart] = useState<"money" | "hours">("money");
+  const [selected, setSelected] = useState<any | null>(null);
+  const [saving, setSaving] = useState(false);
+  const qc = useQueryClient();
+  const changePlatform = async (jobId: string, platform: Platform) => {
+    setSaving(true);
+    try {
+      const { data: job, error } = await supabase.from("jobs").select("service_data").eq("id", jobId).single();
+      if (error) throw error;
+      const sd = { ...((job?.service_data as any) ?? {}), tuning_platform: platform };
+      const { error: e2 } = await supabase.from("jobs").update({ service_data: sd }).eq("id", jobId);
+      if (e2) throw e2;
+      await qc.invalidateQueries({ queryKey: ["dyno-analytics"] });
+      setSelected((s: any) => (s ? { ...s, platform } : s));
+      toast.success("Platform updated");
+    } catch (e: any) {
+      toast.error(e?.message ?? "Could not update platform");
+    } finally {
+      setSaving(false);
+    }
+  };
   const start = fromStr ? new Date(`${fromStr}T00:00:00`) : defStart;
   const end = toStr ? new Date(`${toStr}T00:00:00`) : new Date();
   const endInclusive = new Date(end.getFullYear(), end.getMonth(), end.getDate(), 23, 59, 59, 999);
@@ -141,13 +166,25 @@ export function DynoAnalytics() {
     const toolCost = rows.reduce((s, r) => s + r.toolCost, 0) + licenseShare;
     const profit = revenue - tunerCost - toolCost;
     // chronological monthly series
-    const series: { month: string; hours: number }[] = [];
+    const finByMonth = new Map<string, { revenue: number; costs: number; profit: number; jobs: number }>();
+    for (const r of rows) {
+      const k = format(startOfMonth(new Date(`${r.invoice_date}T00:00:00`)), "MMM yyyy");
+      const f = finByMonth.get(k) ?? { revenue: 0, costs: 0, profit: 0, jobs: 0 };
+      f.revenue += r.revenue; f.costs += r.tunerCost + r.toolCost; f.profit += r.profit; f.jobs += 1;
+      finByMonth.set(k, f);
+    }
+    const series: { month: string; hours: number; revenue: number; costs: number; profit: number; jobs: number }[] = [];
     const cur = startOfMonth(start);
     while (cur <= endInclusive) {
       const k = format(cur, "MMM yyyy");
-      series.push({ month: k, hours: Math.round(((months.get(k) ?? 0) / 60) * 10) / 10 });
+      const f = finByMonth.get(k) ?? { revenue: 0, costs: 0, profit: 0, jobs: 0 };
+      series.push({ month: format(cur, "MMM yy"), hours: Math.round(((months.get(k) ?? 0) / 60) * 10) / 10, ...f });
       cur.setMonth(cur.getMonth() + 1);
     }
+    const platformMix = (Object.keys(PLATFORMS) as Platform[]).map((p) => {
+      const rs = rows.filter((r) => r.platform === p);
+      return { key: p, label: PLATFORMS[p].label, count: rs.length, revenue: rs.reduce((s, r) => s + r.revenue, 0), profit: rs.reduce((s, r) => s + r.profit, 0) };
+    });
     const names = new Map((d.profiles as any[]).map((p) => [p.id, p.full_name]));
     const techs = Array.from(byTech.entries())
       .map(([id, m]) => ({ name: names.get(id) || "Unknown", hours: m / 60 }))
@@ -155,7 +192,7 @@ export function DynoAnalytics() {
     const hours = totalMin / 60;
     const monthsCount = Math.max(1, series.length);
     return {
-      hours, revenue, perHour: hours > 0 ? revenue / hours : 0, avgMonth: hours / monthsCount, series, rows, techs,
+      hours, revenue, perHour: hours > 0 ? revenue / hours : 0, avgMonth: hours / monthsCount, series, rows, techs, platformMix,
       tunerCost, toolCost, licenseShare, profit, margin: revenue > 0 ? (profit / revenue) * 100 : 0,
       profitPerHour: hours > 0 ? profit / hours : 0,
     };
@@ -203,16 +240,62 @@ export function DynoAnalytics() {
             <Stat label="Net profit" value={fmt(view.profit)} sub={`${view.margin.toFixed(0)}% margin`} />
             <Stat label="Profit per dyno hour" value={view.hours > 0 ? fmt(view.profitPerHour) : "—"} />
           </div>
-          <div className="h-56">
+          <div className="flex items-center gap-2">
+            {(["money", "hours"] as const).map((m) => (
+              <button
+                key={m}
+                type="button"
+                onClick={() => setChart(m)}
+                className={`rounded-full px-3 py-1 text-xs font-semibold ${chart === m ? "bg-status-dyno text-background" : "border border-border text-muted-foreground"}`}
+              >
+                {m === "money" ? "Revenue vs costs vs profit" : "Dyno hours"}
+              </button>
+            ))}
+          </div>
+          <div className="h-72">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={view.series}>
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-                <XAxis dataKey="month" tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} />
-                <YAxis tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} unit="h" />
-                <Tooltip formatter={(v: any) => [`${v} h`, "Dyno"]} />
-                <Bar dataKey="hours" fill="var(--status-dyno)" radius={[4, 4, 0, 0]} />
-              </BarChart>
+              {chart === "money" ? (
+                <ComposedChart data={view.series}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
+                  <XAxis dataKey="month" tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} />
+                  <YAxis tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} tickFormatter={(v) => `$${Math.round(v / 100) / 10}k`} />
+                  <Tooltip
+                    formatter={(v: any, n: any) => [fmt(Number(v)), n]}
+                    contentStyle={{ background: "var(--popover)", border: "1px solid var(--border)", borderRadius: 8 }}
+                  />
+                  <Legend wrapperStyle={{ fontSize: 12 }} />
+                  <Bar dataKey="revenue" name="Tuning revenue" fill="var(--status-dyno)" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="costs" name="Costs" fill="var(--muted-foreground)" radius={[4, 4, 0, 0]} />
+                  <Line dataKey="profit" name="Net profit" type="monotone" stroke="var(--primary)" strokeWidth={2.5} dot={{ r: 4 }} />
+                </ComposedChart>
+              ) : (
+                <BarChart data={view.series}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
+                  <XAxis dataKey="month" tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} />
+                  <YAxis tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} unit="h" />
+                  <Tooltip
+                    formatter={(v: any, n: any) => [n === "jobs" ? v : `${v} h`, n === "jobs" ? "Tuning jobs" : "Dyno hours"]}
+                    contentStyle={{ background: "var(--popover)", border: "1px solid var(--border)", borderRadius: 8 }}
+                  />
+                  <Bar dataKey="hours" name="hours" fill="var(--status-dyno)" radius={[4, 4, 0, 0]} label={{ position: "top", fontSize: 10, fill: "var(--muted-foreground)" }} />
+                </BarChart>
+              )}
             </ResponsiveContainer>
+          </div>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            {view.platformMix.map((p) => {
+              const max = Math.max(1, ...view.platformMix.map((x) => x.revenue));
+              return (
+                <div key={p.key} className="rounded-lg border border-border p-3">
+                  <div className="text-xs font-semibold">{p.label}</div>
+                  <div className="text-xs text-muted-foreground">{p.count} job{p.count === 1 ? "" : "s"} · {fmt(p.revenue)}</div>
+                  <div className="h-1.5 mt-2 rounded-full bg-muted overflow-hidden">
+                    <div className="h-full bg-status-dyno" style={{ width: `${(p.revenue / max) * 100}%` }} />
+                  </div>
+                  <div className="text-xs mt-1">Profit <b>{fmt(p.profit)}</b></div>
+                </div>
+              );
+            })}
           </div>
           {view.techs.length > 0 && (
             <div className="flex flex-wrap gap-2 text-xs">
@@ -235,12 +318,13 @@ export function DynoAnalytics() {
                   <th className="py-2 pr-3">Platform</th>
                   <th className="py-2 pr-3 text-right">Tuning</th>
                   <th className="py-2 pr-3 text-right">Costs</th>
-                  <th className="py-2 text-right">Profit</th>
+                  <th className="py-2 pr-3 text-right">Profit</th>
+                  <th className="py-2 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {view.rows.map((r) => (
-                  <tr key={r.id} className="border-t border-border/50">
+                  <tr key={r.id} className="border-t border-border/50 hover:bg-muted/30 cursor-pointer" onClick={() => setSelected(r)}>
                     <td className="py-2 pr-3 font-medium">{r.invoice_number}</td>
                     <td className="py-2 pr-3">{r.invoice_date}</td>
                     <td className="py-2 pr-3">{r.customer_name_snapshot ?? "—"}</td>
@@ -249,12 +333,22 @@ export function DynoAnalytics() {
                     <td className="py-2 pr-3">{PLATFORMS[r.platform as Platform].label} ({fmt(r.toolCost)})</td>
                     <td className="py-2 pr-3 text-right font-bold">{fmt(r.revenue)}</td>
                     <td className="py-2 pr-3 text-right text-muted-foreground">{fmt(r.toolCost + r.tunerCost)}</td>
-                    <td className="py-2 text-right font-bold">{fmt(r.profit)}</td>
+                    <td className={`py-2 pr-3 text-right font-bold ${r.profit < 0 ? "text-destructive" : ""}`}>{fmt(r.profit)}</td>
+                    <td className="py-2 text-right whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
+                      <Button size="sm" variant="ghost" onClick={() => setSelected(r)} title="Analyze">
+                        <Search className="h-4 w-4" />
+                      </Button>
+                      <Button size="sm" variant="ghost" asChild title="Edit invoice">
+                        <Link to="/invoices/$invoiceId" params={{ invoiceId: r.id }}>
+                          <Pencil className="h-4 w-4" />
+                        </Link>
+                      </Button>
+                    </td>
                   </tr>
                 ))}
                 {view.rows.length === 0 && (
                   <tr>
-                    <td colSpan={9} className="py-4 text-muted-foreground">
+                    <td colSpan={10} className="py-4 text-muted-foreground">
                       No tuning invoices in this period.
                     </td>
                   </tr>
@@ -264,6 +358,64 @@ export function DynoAnalytics() {
           </div>
         </>
       )}
+      <Dialog open={!!selected} onOpenChange={(o) => !o && setSelected(null)}>
+        <DialogContent className="max-w-lg">
+          {(() => {
+            const r = (selected && view?.rows.find((x: any) => x.id === selected.id)) || selected;
+            if (!r) return null;
+            const hrs = r.minutes / 60;
+            const margin = r.revenue > 0 ? (r.profit / r.revenue) * 100 : 0;
+            return (
+              <>
+                <DialogHeader>
+                  <DialogTitle>Tuning analysis · {r.invoice_number}</DialogTitle>
+                </DialogHeader>
+                <div className="text-sm text-muted-foreground">
+                  {r.invoice_date} · {r.customer_name_snapshot ?? "—"} · {r.bike_snapshot ?? "—"}
+                </div>
+                <div className="space-y-1 text-sm">
+                  <Row label="Tuning invoiced" value={fmt(r.revenue)} bold />
+                  <Row label={`Tuner cost (${hrs.toFixed(1)} h × $${TUNER_RATE})`} value={`− ${fmt(r.tunerCost)}`} />
+                  <Row label={`Platform cost (${PLATFORMS[r.platform as Platform].label})`} value={`− ${fmt(r.toolCost)}`} />
+                  <div className="border-t border-border pt-1">
+                    <Row label={`Net profit (${margin.toFixed(0)}% margin)`} value={fmt(r.profit)} bold />
+                  </div>
+                  <Row label="Profit per dyno hour" value={hrs > 0 ? fmt(r.profit / hrs) : "— (no dyno hours logged)"} />
+                </div>
+                <div>
+                  <div className="text-xs uppercase tracking-wider text-muted-foreground mb-2">Tuning system used</div>
+                  <div className="grid grid-cols-2 gap-2">
+                    {(Object.keys(PLATFORMS) as Platform[]).map((p) => (
+                      <button
+                        key={p}
+                        type="button"
+                        disabled={saving || !r.job_id}
+                        onClick={() => changePlatform(r.job_id, p)}
+                        className={`rounded-lg border-2 p-2 text-left text-sm font-semibold transition-colors ${r.platform === p ? "border-status-dyno bg-status-dyno/15" : "border-border hover:border-status-dyno/50"}`}
+                      >
+                        {PLATFORMS[p].label}
+                        <div className="text-xs font-normal text-muted-foreground">Cost {fmt(PLATFORMS[p].cost)}</div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div className="flex justify-end gap-2">
+                  {r.job_id && (
+                    <Button variant="outline" asChild>
+                      <Link to="/jobs/$jobId" params={{ jobId: r.job_id }}>Open job card</Link>
+                    </Button>
+                  )}
+                  <Button asChild>
+                    <Link to="/invoices/$invoiceId" params={{ invoiceId: r.id }}>
+                      <Pencil className="h-4 w-4 mr-1" /> Edit invoice
+                    </Link>
+                  </Button>
+                </div>
+              </>
+            );
+          })()}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
@@ -274,6 +426,15 @@ function Stat({ label, value, sub }: { label: string; value: string; sub?: strin
       <div className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">{label}</div>
       <div className="font-display text-xl font-bold mt-1">{value}</div>
       {sub && <div className="text-xs text-muted-foreground">{sub}</div>}
+    </div>
+  );
+}
+
+function Row({ label, value, bold }: { label: string; value: string; bold?: boolean }) {
+  return (
+    <div className="flex justify-between gap-3">
+      <span className="text-muted-foreground">{label}</span>
+      <span className={bold ? "font-bold" : ""}>{value}</span>
     </div>
   );
 }

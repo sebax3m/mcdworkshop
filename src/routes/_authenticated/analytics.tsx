@@ -613,56 +613,6 @@ function AnalyticsPage() {
 
       <DynoAnalytics />
 
-      {/* Top customers with mini bars */}
-      <div className="card-surface p-5">
-        <h2 className="font-display text-lg font-bold mb-4">Top customers</h2>
-        <div className="space-y-4">
-          {topCustomers.map((c, i) => {
-            const max = topCustomers[0]?.total || 1;
-            const pct = (c.total / max) * 100;
-            const hues = [
-              "oklch(0.58 0.22 25)", // red
-              "oklch(0.50 0.08 255)", // blue
-              "oklch(0.78 0.15 60)", // amber
-              "oklch(0.78 0.16 150)", // green
-              "oklch(0.62 0.2 320)", // purple
-              "oklch(0.55 0.10 200)", // teal
-              "oklch(0.65 0.12 40)", // orange
-              "oklch(0.55 0.08 280)", // indigo
-            ];
-            return (
-              <div key={c.name}>
-                <div className="flex items-center justify-between mb-1">
-                  <div className="flex items-center gap-2">
-                    <span
-                      className="inline-flex h-5 w-5 items-center justify-center rounded-full text-[0.625rem] font-bold text-white"
-                      style={{ background: hues[i % hues.length] }}
-                    >
-                      {i + 1}
-                    </span>
-                    <span className="font-medium text-sm">{c.name}</span>
-                  </div>
-                  <div className="text-right">
-                    <div className="font-display font-bold text-sm">{fmt(c.total)}</div>
-                    <div className="text-[0.625rem] text-muted-foreground">
-                      {c.count} invoice{c.count === 1 ? "" : "s"}
-                    </div>
-                  </div>
-                </div>
-                <div className="h-2 w-full rounded-full bg-muted overflow-hidden">
-                  <div
-                    className="h-full rounded-full transition-all duration-500"
-                    style={{ width: `${pct}%`, background: hues[i % hues.length] }}
-                  />
-                </div>
-              </div>
-            );
-          })}
-          {topCustomers.length === 0 && (
-            <p className="text-sm text-muted-foreground py-4">No invoices yet.</p>
-          )}
-        </div>
-      </div>
 
       <div className="card-surface p-5">
         <h2 className="font-display text-lg font-bold mb-2">About the Xero export</h2>
