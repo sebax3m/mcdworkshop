@@ -102,15 +102,15 @@ export function DynoAnalytics({ from, to, label }: { from: Date | null; to: Date
     const mins = (e: any) =>
       e.minutes ?? Math.max(0, Math.round(((e.ended_at ? +new Date(e.ended_at) : Date.now()) - +new Date(e.started_at)) / 60000));
     const minsByJob = new Map<string, number>();
-    const weeks = new Map<string, number>();
+    const months = new Map<string, number>();
     const byTech = new Map<string, number>();
     let totalMin = 0;
     for (const e of d.entries as any[]) {
       const m = mins(e);
       totalMin += m;
       minsByJob.set(e.job_id, (minsByJob.get(e.job_id) ?? 0) + m);
-      const wk = format(startOfWeek(new Date(e.started_at), { weekStartsOn: 1 }), "dd MMM");
-      weeks.set(wk, (weeks.get(wk) ?? 0) + m);
+      const mo = format(startOfMonth(new Date(e.started_at)), "MMM yyyy");
+      months.set(mo, (months.get(mo) ?? 0) + m);
       byTech.set(e.technician_id, (byTech.get(e.technician_id) ?? 0) + m);
     }
     const revByJob = new Map<string, number>();
