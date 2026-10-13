@@ -193,7 +193,7 @@ export function DynoAnalytics({ from, to, label }: { from: Date | null; to: Date
         <>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
             <Stat label="Dyno hours" value={`${view.hours.toFixed(1)} h`} />
-            <Stat label="Avg per week" value={`${view.avgWeek.toFixed(1)} h`} />
+            <Stat label="Avg per month" value={`${view.avgMonth.toFixed(1)} h`} />
             <Stat label="Tuning invoiced" value={fmt(view.revenue)} sub={`${view.rows.length} invoice${view.rows.length === 1 ? "" : "s"}`} />
             <Stat label="$ per dyno hour" value={view.hours > 0 ? fmt(view.perHour) : "—"} />
           </div>
@@ -207,7 +207,7 @@ export function DynoAnalytics({ from, to, label }: { from: Date | null; to: Date
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={view.series}>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-                <XAxis dataKey="week" tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} />
+                <XAxis dataKey="month" tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} />
                 <YAxis tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} unit="h" />
                 <Tooltip formatter={(v: any) => [`${v} h`, "Dyno"]} />
                 <Bar dataKey="hours" fill="var(--status-dyno)" radius={[4, 4, 0, 0]} />
