@@ -141,13 +141,25 @@ export function DynoAnalytics() {
     const toolCost = rows.reduce((s, r) => s + r.toolCost, 0) + licenseShare;
     const profit = revenue - tunerCost - toolCost;
     // chronological monthly series
-    const series: { month: string; hours: number }[] = [];
+    const finByMonth = new Map<string, { revenue: number; costs: number; profit: number; jobs: number }>();
+    for (const r of rows) {
+      const k = format(startOfMonth(new Date(`${r.invoice_date}T00:00:00`)), "MMM yyyy");
+      const f = finByMonth.get(k) ?? { revenue: 0, costs: 0, profit: 0, jobs: 0 };
+      f.revenue += r.revenue; f.costs += r.tunerCost + r.toolCost; f.profit += r.profit; f.jobs += 1;
+      finByMonth.set(k, f);
+    }
+    const series: { month: string; hours: number; revenue: number; costs: number; profit: number; jobs: number }[] = [];
     const cur = startOfMonth(start);
     while (cur <= endInclusive) {
       const k = format(cur, "MMM yyyy");
-      series.push({ month: k, hours: Math.round(((months.get(k) ?? 0) / 60) * 10) / 10 });
+      const f = finByMonth.get(k) ?? { revenue: 0, costs: 0, profit: 0, jobs: 0 };
+      series.push({ month: format(cur, "MMM yy"), hours: Math.round(((months.get(k) ?? 0) / 60) * 10) / 10, ...f });
       cur.setMonth(cur.getMonth() + 1);
     }
+    const platformMix = (Object.keys(PLATFORMS) as Platform[]).map((p) => {
+      const rs = rows.filter((r) => r.platform === p);
+      return { key: p, label: PLATFORMS[p].label, count: rs.length, revenue: rs.reduce((s, r) => s + r.revenue, 0), profit: rs.reduce((s, r) => s + r.profit, 0) };
+    });
     const names = new Map((d.profiles as any[]).map((p) => [p.id, p.full_name]));
     const techs = Array.from(byTech.entries())
       .map(([id, m]) => ({ name: names.get(id) || "Unknown", hours: m / 60 }))
@@ -155,7 +167,7 @@ export function DynoAnalytics() {
     const hours = totalMin / 60;
     const monthsCount = Math.max(1, series.length);
     return {
-      hours, revenue, perHour: hours > 0 ? revenue / hours : 0, avgMonth: hours / monthsCount, series, rows, techs,
+      hours, revenue, perHour: hours > 0 ? revenue / hours : 0, avgMonth: hours / monthsCount, series, rows, techs, platformMix,
       tunerCost, toolCost, licenseShare, profit, margin: revenue > 0 ? (profit / revenue) * 100 : 0,
       profitPerHour: hours > 0 ? profit / hours : 0,
     };
