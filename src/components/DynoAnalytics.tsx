@@ -46,8 +46,11 @@ function detectPlatform(text: string, bike: string, revenue: number, hd: boolean
 }
 
 export function DynoAnalytics({ from, to, label }: { from: Date | null; to: Date | null; label: string | null }) {
-  const start = from ?? startOfWeek(subWeeks(new Date(), 11), { weekStartsOn: 1 });
-  const end = to ?? new Date();
+  const defStart = startOfMonth(subMonths(new Date(), 5));
+  const [fromStr, setFromStr] = useState(ymd(defStart));
+  const [toStr, setToStr] = useState(ymd(new Date()));
+  const start = fromStr ? new Date(`${fromStr}T00:00:00`) : defStart;
+  const end = toStr ? new Date(`${toStr}T00:00:00`) : new Date();
   const endInclusive = new Date(end.getFullYear(), end.getMonth(), end.getDate(), 23, 59, 59, 999);
   const key = [ymd(start), ymd(end)];
 
