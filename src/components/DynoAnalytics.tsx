@@ -140,22 +140,22 @@ export function DynoAnalytics({ from, to, label }: { from: Date | null; to: Date
     const tunerCost = (totalMin / 60) * TUNER_RATE;
     const toolCost = rows.reduce((s, r) => s + r.toolCost, 0) + licenseShare;
     const profit = revenue - tunerCost - toolCost;
-    // chronological weekly series
-    const series: { week: string; hours: number }[] = [];
-    const cur = startOfWeek(start, { weekStartsOn: 1 });
+    // chronological monthly series
+    const series: { month: string; hours: number }[] = [];
+    const cur = startOfMonth(start);
     while (cur <= endInclusive) {
-      const k = format(cur, "dd MMM");
-      series.push({ week: k, hours: Math.round(((weeks.get(k) ?? 0) / 60) * 10) / 10 });
-      cur.setDate(cur.getDate() + 7);
+      const k = format(cur, "MMM yyyy");
+      series.push({ month: k, hours: Math.round(((months.get(k) ?? 0) / 60) * 10) / 10 });
+      cur.setMonth(cur.getMonth() + 1);
     }
     const names = new Map((d.profiles as any[]).map((p) => [p.id, p.full_name]));
     const techs = Array.from(byTech.entries())
       .map(([id, m]) => ({ name: names.get(id) || "Unknown", hours: m / 60 }))
       .sort((a, b) => b.hours - a.hours);
     const hours = totalMin / 60;
-    const weeksCount = Math.max(1, series.length);
+    const monthsCount = Math.max(1, series.length);
     return {
-      hours, revenue, perHour: hours > 0 ? revenue / hours : 0, avgWeek: hours / weeksCount, series, rows, techs,
+      hours, revenue, perHour: hours > 0 ? revenue / hours : 0, avgMonth: hours / monthsCount, series, rows, techs,
       tunerCost, toolCost, licenseShare, profit, margin: revenue > 0 ? (profit / revenue) * 100 : 0,
       profitPerHour: hours > 0 ? profit / hours : 0,
     };
