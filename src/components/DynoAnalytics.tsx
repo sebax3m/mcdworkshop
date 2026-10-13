@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useQuery } from "@tanstack/react-query";
-import { useMemo } from "react";
-import { format, startOfWeek, subWeeks } from "date-fns";
+import { useMemo, useState } from "react";
+import { format, startOfMonth, subMonths } from "date-fns";
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { Zap } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
