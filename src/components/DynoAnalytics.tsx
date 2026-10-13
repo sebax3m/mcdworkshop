@@ -167,9 +167,25 @@ export function DynoAnalytics({ from, to, label }: { from: Date | null; to: Date
         <h2 className="font-display text-lg font-bold flex items-center gap-2">
           <Zap className="h-5 w-5 text-status-dyno" /> Dyno &amp; Tuning
         </h2>
-        <span className="text-xs text-muted-foreground">
-          {label ?? "Last 12 weeks"} · {format(start, "dd MMM yyyy")} – {format(end, "dd MMM yyyy")}
-        </span>
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <input
+            type="date"
+            value={fromStr}
+            max={toStr}
+            onChange={(e) => setFromStr(e.target.value)}
+            className="rounded-md border border-border bg-background px-2 py-1 text-xs text-foreground"
+            aria-label="From date"
+          />
+          <span>–</span>
+          <input
+            type="date"
+            value={toStr}
+            min={fromStr}
+            onChange={(e) => setToStr(e.target.value)}
+            className="rounded-md border border-border bg-background px-2 py-1 text-xs text-foreground"
+            aria-label="To date"
+          />
+        </div>
       </div>
       {!view ? (
         <p className="text-sm text-muted-foreground">Loading…</p>
