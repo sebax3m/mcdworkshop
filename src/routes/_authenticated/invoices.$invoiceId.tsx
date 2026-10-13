@@ -2433,7 +2433,7 @@ function InvoiceDetail() {
               autoFocus
               value={librarySearch}
               onChange={(e) => setLibrarySearch(e.target.value)}
-              placeholder="Search by name, SKU, brand…"
+              placeholder="Search by ITEM, description, brand…"
               className="w-full pl-9 pr-3 py-2 rounded-lg border border-border bg-background text-sm outline-none focus:border-primary"
             />
           </div>
@@ -2462,13 +2462,20 @@ function InvoiceDetail() {
           <div className="overflow-y-auto flex-1 -mx-1 px-1">
             {(() => {
               const q = librarySearch.toLowerCase().trim();
-              const items = (library.data ?? []).filter(
-                (it: any) =>
-                  !q ||
-                  (it.name ?? "").toLowerCase().includes(q) ||
-                  (it.sku ?? "").toLowerCase().includes(q) ||
-                  (it.brand ?? "").toLowerCase().includes(q),
-              );
+              const items = (library.data ?? [])
+                .filter(
+                  (it: any) =>
+                    !q ||
+                    (it.name ?? "").toLowerCase().includes(q) ||
+                    (it.sku ?? "").toLowerCase().includes(q) ||
+                    (it.brand ?? "").toLowerCase().includes(q),
+                )
+                .slice()
+                .sort((a: any, b: any) => {
+                  const sa = (a.sku ?? "").toLowerCase().startsWith(q) ? 0 : 1;
+                  const sb = (b.sku ?? "").toLowerCase().startsWith(q) ? 0 : 1;
+                  return sa - sb || (a.sku ?? "").localeCompare(b.sku ?? "") || (a.name ?? "").localeCompare(b.name ?? "");
+                });
               if (items.length === 0) {
                 return (
                   <div className="py-8 text-center text-sm text-muted-foreground">
@@ -2484,7 +2491,7 @@ function InvoiceDetail() {
                         onClick={async () => {
                           const price = Number(it.unit_price ?? 0);
                           const name = [it.sku, it.name].filter(Boolean).join(" — ");
-                          const partNo = derivePartNumber(it);
+                          const partNo = (it.sku ?? "").trim() || derivePartNumber(it);
                           if (libraryTarget?.kind === "snapshot") {
                             await updateSnapshotLine(libraryTarget.idx, {
                               description: name,
@@ -2502,11 +2509,12 @@ function InvoiceDetail() {
                         }}
                         className="w-full text-left p-3 hover:bg-muted/40 rounded-md flex items-center gap-3"
                       >
+                        <div className="w-40 shrink-0 text-xs font-semibold uppercase tracking-wide text-muted-foreground truncate">
+                          {it.sku || "—"}
+                        </div>
                         <div className="flex-1 min-w-0">
                           <div className="font-medium text-sm truncate">{it.name}</div>
-                          <div className="text-xs text-muted-foreground truncate">
-                            {[it.sku, it.brand].filter(Boolean).join(" · ")}
-                          </div>
+                          {it.brand && <div className="text-xs text-muted-foreground truncate">{it.brand}</div>}
                         </div>
                         <div className="text-sm font-semibold tabular-nums">
                           ${Number(it.unit_price ?? 0).toFixed(2)}
