@@ -75,6 +75,29 @@ export function DynoAnalytics() {
       setSaving(false);
     }
   };
+  const [hoursDraft, setHoursDraft] = useState("");
+  const saveHours = async (jobId: string, value: string | null) => {
+    setSaving(true);
+    try {
+      const { data: job, error } = await supabase.from("jobs").select("service_data").eq("id", jobId).single();
+      if (error) throw error;
+      const sd: any = { ...((job?.service_data as any) ?? {}) };
+      if (value == null || value.trim() === "") delete sd.dyno_hours_override;
+      else {
+        const n = Number(value);
+        if (!Number.isFinite(n) || n < 0) throw new Error("Enter a valid number of hours");
+        sd.dyno_hours_override = n;
+      }
+      const { error: e2 } = await supabase.from("jobs").update({ service_data: sd }).eq("id", jobId);
+      if (e2) throw e2;
+      await qc.invalidateQueries({ queryKey: ["dyno-analytics"] });
+      toast.success(value == null ? "Using clocked dyno hours" : "Dyno hours updated");
+    } catch (e: any) {
+      toast.error(e?.message ?? "Could not update hours");
+    } finally {
+      setSaving(false);
+    }
+  };
   const start = fromStr ? new Date(`${fromStr}T00:00:00`) : defStart;
   const end = toStr ? new Date(`${toStr}T00:00:00`) : new Date();
   const endInclusive = new Date(end.getFullYear(), end.getMonth(), end.getDate(), 23, 59, 59, 999);
