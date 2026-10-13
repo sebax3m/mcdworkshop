@@ -159,13 +159,17 @@ export function DynoAnalytics() {
       .filter((i) => i.job_id && revByJob.has(i.job_id))
       .map((i) => {
         const revenue = revByJob.get(i.job_id) ?? 0;
-        const minutes = minsByJob.get(i.job_id) ?? 0;
+        const trackedMinutes = minsByJob.get(i.job_id) ?? 0;
+        const ov = (d as any).hoursOverrideByJob.get(i.job_id) as number | undefined;
+        const manualHours = ov != null && Number.isFinite(ov);
+        const minutes = manualHours ? Math.round(ov! * 60) : trackedMinutes;
+        if (manualHours) totalMin += minutes - trackedMinutes;
         const platform = ((d as any).platformByJob.get(i.job_id) as Platform | undefined) ?? detectPlatform(textByJob.get(i.job_id) ?? "", i.bike_snapshot ?? "", revenue, hdByJob.has(i.job_id));
         const tunerCost = (minutes / 60) * TUNER_RATE;
         // Retune: bike already licensed → no platform cost. Explicit "retune" text or tune charged under $750.
         const retune = /re-?tune/i.test(textByJob.get(i.job_id) ?? "") || revenue < RETUNE_THRESHOLD;
         const toolCost = retune ? 0 : PLATFORMS[platform].cost;
-        return { ...i, revenue, minutes, platform, retune, tunerCost, toolCost, profit: revenue - tunerCost - toolCost };
+        return { ...i, revenue, minutes, trackedMinutes, manualHours, platform, retune, tunerCost, toolCost, profit: revenue - tunerCost - toolCost };
       })
       .sort((a, b) => (a.invoice_date < b.invoice_date ? 1 : -1));
     const revenue = rows.reduce((s, r) => s + r.revenue, 0);
