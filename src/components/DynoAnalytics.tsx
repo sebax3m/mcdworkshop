@@ -75,6 +75,29 @@ export function DynoAnalytics() {
       setSaving(false);
     }
   };
+  const [hoursDraft, setHoursDraft] = useState("");
+  const saveHours = async (jobId: string, value: string | null) => {
+    setSaving(true);
+    try {
+      const { data: job, error } = await supabase.from("jobs").select("service_data").eq("id", jobId).single();
+      if (error) throw error;
+      const sd: any = { ...((job?.service_data as any) ?? {}) };
+      if (value == null || value.trim() === "") delete sd.dyno_hours_override;
+      else {
+        const n = Number(value);
+        if (!Number.isFinite(n) || n < 0) throw new Error("Enter a valid number of hours");
+        sd.dyno_hours_override = n;
+      }
+      const { error: e2 } = await supabase.from("jobs").update({ service_data: sd }).eq("id", jobId);
+      if (e2) throw e2;
+      await qc.invalidateQueries({ queryKey: ["dyno-analytics"] });
+      toast.success(value == null ? "Using clocked dyno hours" : "Dyno hours updated");
+    } catch (e: any) {
+      toast.error(e?.message ?? "Could not update hours");
+    } finally {
+      setSaving(false);
+    }
+  };
   const start = fromStr ? new Date(`${fromStr}T00:00:00`) : defStart;
   const end = toStr ? new Date(`${toStr}T00:00:00`) : new Date();
   const endInclusive = new Date(end.getFullYear(), end.getMonth(), end.getDate(), 23, 59, 59, 999);
@@ -114,11 +137,17 @@ export function DynoAnalytics() {
       const platformByJob = new Map<string, string>(
         jobsSd.filter((x) => x.service_data?.tuning_platform).map((x) => [x.id, x.service_data.tuning_platform]),
       );
+      // Manual dyno hours (analytics only — never billed).
+      const hoursOverrideByJob = new Map<string, number>(
+        jobsSd
+          .filter((x) => x.service_data?.dyno_hours_override != null && x.service_data.dyno_hours_override !== "")
+          .map((x) => [x.id, Number(x.service_data.dyno_hours_override)]),
+      );
       const techIds = Array.from(new Set((entries ?? []).map((e: any) => e.technician_id)));
       const { data: profiles } = techIds.length
         ? await supabase.from("profiles").select("id, full_name").in("id", techIds)
         : { data: [] as any[] };
-      return { entries: entries ?? [], invoices: invoices ?? [], parts, profiles: profiles ?? [], platformByJob };
+      return { entries: entries ?? [], invoices: invoices ?? [], parts, profiles: profiles ?? [], platformByJob, hoursOverrideByJob };
     },
   });
 
@@ -153,13 +182,17 @@ export function DynoAnalytics() {
       .filter((i) => i.job_id && revByJob.has(i.job_id))
       .map((i) => {
         const revenue = revByJob.get(i.job_id) ?? 0;
-        const minutes = minsByJob.get(i.job_id) ?? 0;
+        const trackedMinutes = minsByJob.get(i.job_id) ?? 0;
+        const ov = (d as any).hoursOverrideByJob.get(i.job_id) as number | undefined;
+        const manualHours = ov != null && Number.isFinite(ov);
+        const minutes = manualHours ? Math.round(ov! * 60) : trackedMinutes;
+        if (manualHours) totalMin += minutes - trackedMinutes;
         const platform = ((d as any).platformByJob.get(i.job_id) as Platform | undefined) ?? detectPlatform(textByJob.get(i.job_id) ?? "", i.bike_snapshot ?? "", revenue, hdByJob.has(i.job_id));
         const tunerCost = (minutes / 60) * TUNER_RATE;
         // Retune: bike already licensed → no platform cost. Explicit "retune" text or tune charged under $750.
         const retune = /re-?tune/i.test(textByJob.get(i.job_id) ?? "") || revenue < RETUNE_THRESHOLD;
         const toolCost = retune ? 0 : PLATFORMS[platform].cost;
-        return { ...i, revenue, minutes, platform, retune, tunerCost, toolCost, profit: revenue - tunerCost - toolCost };
+        return { ...i, revenue, minutes, trackedMinutes, manualHours, platform, retune, tunerCost, toolCost, profit: revenue - tunerCost - toolCost };
       })
       .sort((a, b) => (a.invoice_date < b.invoice_date ? 1 : -1));
     const revenue = rows.reduce((s, r) => s + r.revenue, 0);
@@ -361,7 +394,7 @@ export function DynoAnalytics() {
           </div>
         </>
       )}
-      <Dialog open={!!selected} onOpenChange={(o) => !o && setSelected(null)}>
+      <Dialog open={!!selected} onOpenChange={(o) => { if (!o) setSelected(null); setHoursDraft(""); }}>
         <DialogContent className="max-w-lg">
           {(() => {
             const r = (selected && view?.rows.find((x: any) => x.id === selected.id)) || selected;
@@ -384,6 +417,35 @@ export function DynoAnalytics() {
                     <Row label={`Net profit (${margin.toFixed(0)}% margin)`} value={fmt(r.profit)} bold />
                   </div>
                   <Row label="Profit per dyno hour" value={hrs > 0 ? fmt(r.profit / hrs) : "— (no dyno hours logged)"} />
+                </div>
+                <div>
+                  <div className="text-xs uppercase tracking-wider text-muted-foreground mb-2">
+                    Dyno hours · analytics only, not on invoice
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="number"
+                      min={0}
+                      step={0.25}
+                      key={`${r.id}-${r.minutes}`}
+                      defaultValue={(r.minutes / 60).toFixed(2)}
+                      onChange={(e) => setHoursDraft(e.target.value)}
+                      disabled={saving || !r.job_id}
+                      className="w-28 rounded-md border border-border bg-background px-3 py-1.5 text-sm"
+                    />
+                    <span className="text-sm text-muted-foreground">h</span>
+                    <Button size="sm" disabled={saving || !r.job_id || hoursDraft === ""} onClick={() => saveHours(r.job_id, hoursDraft)}>
+                      Save hours
+                    </Button>
+                    {r.manualHours && (
+                      <Button size="sm" variant="ghost" disabled={saving} onClick={() => saveHours(r.job_id, null)}>
+                        Use clocked ({(r.trackedMinutes / 60).toFixed(1)} h)
+                      </Button>
+                    )}
+                  </div>
+                  <div className="text-xs text-muted-foreground mt-1">
+                    {r.manualHours ? "Manual hours" : "From dyno clock-ins"}
+                  </div>
                 </div>
                 <div>
                   <div className="text-xs uppercase tracking-wider text-muted-foreground mb-2">Tuning system used</div>
