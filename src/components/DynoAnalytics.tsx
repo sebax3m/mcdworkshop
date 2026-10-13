@@ -75,6 +75,24 @@ export function DynoAnalytics() {
       setSaving(false);
     }
   };
+  const toggleToolCost = async (jobId: string, exclude: boolean) => {
+    setSaving(true);
+    try {
+      const { data: job, error } = await supabase.from("jobs").select("service_data").eq("id", jobId).single();
+      if (error) throw error;
+      const sd: any = { ...((job?.service_data as any) ?? {}) };
+      if (exclude) sd.platform_cost_excluded = true;
+      else delete sd.platform_cost_excluded;
+      const { error: e2 } = await supabase.from("jobs").update({ service_data: sd }).eq("id", jobId);
+      if (e2) throw e2;
+      await qc.invalidateQueries({ queryKey: ["dyno-analytics"] });
+      toast.success(exclude ? "Platform cost removed (analytics only)" : "Platform cost restored");
+    } catch (e: any) {
+      toast.error(e?.message ?? "Could not update platform cost");
+    } finally {
+      setSaving(false);
+    }
+  };
   const [hoursDraft, setHoursDraft] = useState("");
   const saveHours = async (jobId: string, value: string | null) => {
     setSaving(true);
@@ -143,11 +161,12 @@ export function DynoAnalytics() {
           .filter((x) => x.service_data?.dyno_hours_override != null && x.service_data.dyno_hours_override !== "")
           .map((x) => [x.id, Number(x.service_data.dyno_hours_override)]),
       );
+      const toolExcludedJobs = new Set<string>(jobsSd.filter((x) => x.service_data?.platform_cost_excluded).map((x) => x.id));
       const techIds = Array.from(new Set((entries ?? []).map((e: any) => e.technician_id)));
       const { data: profiles } = techIds.length
         ? await supabase.from("profiles").select("id, full_name").in("id", techIds)
         : { data: [] as any[] };
-      return { entries: entries ?? [], invoices: invoices ?? [], parts, profiles: profiles ?? [], platformByJob, hoursOverrideByJob };
+      return { entries: entries ?? [], invoices: invoices ?? [], parts, profiles: profiles ?? [], platformByJob, hoursOverrideByJob, toolExcludedJobs };
     },
   });
 
@@ -191,8 +210,9 @@ export function DynoAnalytics() {
         const tunerCost = (minutes / 60) * TUNER_RATE;
         // Retune: bike already licensed → no platform cost. Explicit "retune" text or tune charged under $750.
         const retune = /re-?tune/i.test(textByJob.get(i.job_id) ?? "") || revenue < RETUNE_THRESHOLD;
-        const toolCost = retune ? 0 : PLATFORMS[platform].cost;
-        return { ...i, revenue, minutes, trackedMinutes, manualHours, platform, retune, tunerCost, toolCost, profit: revenue - tunerCost - toolCost };
+        const toolExcluded = (d as any).toolExcludedJobs.has(i.job_id) as boolean;
+        const toolCost = retune || toolExcluded ? 0 : PLATFORMS[platform].cost;
+        return { ...i, toolExcluded, revenue, minutes, trackedMinutes, manualHours, platform, retune, tunerCost, toolCost, profit: revenue - tunerCost - toolCost };
       })
       .sort((a, b) => (a.invoice_date < b.invoice_date ? 1 : -1));
     const revenue = rows.reduce((s, r) => s + r.revenue, 0);
@@ -366,7 +386,17 @@ export function DynoAnalytics() {
                     <td className="py-2 pr-3">{r.customer_name_snapshot ?? "—"}</td>
                     <td className="py-2 pr-3">{r.bike_snapshot ?? "—"}</td>
                     <td className="py-2 pr-3 text-right">{r.minutes ? `${(r.minutes / 60).toFixed(1)} h` : "—"}</td>
-                    <td className="py-2 pr-3">{PLATFORMS[r.platform as Platform].label} ({fmt(r.toolCost)})</td>
+                    <td className="py-2 pr-3" onClick={(e) => e.stopPropagation()}>
+                      <button
+                        type="button"
+                        disabled={saving || !r.job_id || r.retune}
+                        onClick={() => toggleToolCost(r.job_id, !r.toolExcluded)}
+                        title={r.toolExcluded ? "Click to restore platform cost" : "Click to remove platform cost (analytics only)"}
+                        className={`rounded-md border px-2 py-0.5 text-left hover:border-status-dyno ${r.toolExcluded ? "border-dashed border-border text-muted-foreground line-through" : "border-border"}`}
+                      >
+                        {PLATFORMS[r.platform as Platform].label} ({fmt(r.toolExcluded ? PLATFORMS[r.platform as Platform].cost : r.toolCost)})
+                      </button>
+                    </td>
                     <td className="py-2 pr-3 text-right font-bold">{fmt(r.revenue)}</td>
                     <td className="py-2 pr-3 text-right text-muted-foreground">{fmt(r.toolCost + r.tunerCost)}</td>
                     <td className={`py-2 pr-3 text-right font-bold ${r.profit < 0 ? "text-destructive" : ""}`}>{fmt(r.profit)}</td>
@@ -412,7 +442,14 @@ export function DynoAnalytics() {
                 <div className="space-y-1 text-sm">
                   <Row label="Tuning invoiced" value={fmt(r.revenue)} bold />
                   <Row label={`Tuner cost (${hrs.toFixed(1)} h × $${TUNER_RATE})`} value={`− ${fmt(r.tunerCost)}`} />
-                  <Row label={`Platform cost (${PLATFORMS[r.platform as Platform].label}${r.retune ? " · Retune, licence already paid" : ""})`} value={`− ${fmt(r.toolCost)}`} />
+                  <Row label={`Platform cost (${PLATFORMS[r.platform as Platform].label}${r.retune ? " · Retune, licence already paid" : r.toolExcluded ? " · Removed" : ""})`} value={`− ${fmt(r.toolCost)}`} />
+                  {!r.retune && r.job_id && (
+                    <div className="flex justify-end">
+                      <Button size="sm" variant="outline" disabled={saving} onClick={() => toggleToolCost(r.job_id, !r.toolExcluded)}>
+                        {r.toolExcluded ? "Restore platform cost" : "Remove platform cost"}
+                      </Button>
+                    </div>
+                  )}
                   <div className="border-t border-border pt-1">
                     <Row label={`Net profit (${margin.toFixed(0)}% margin)`} value={fmt(r.profit)} bold />
                   </div>
