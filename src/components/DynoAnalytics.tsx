@@ -45,7 +45,7 @@ function detectPlatform(text: string, bike: string, revenue: number, hd: boolean
   return "woolich";
 }
 
-export function DynoAnalytics({ from, to, label }: { from: Date | null; to: Date | null; label: string | null }) {
+export function DynoAnalytics() {
   const defStart = startOfMonth(subMonths(new Date(), 5));
   const [fromStr, setFromStr] = useState(ymd(defStart));
   const [toStr, setToStr] = useState(ymd(new Date()));

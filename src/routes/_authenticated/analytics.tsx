@@ -611,7 +611,7 @@ function AnalyticsPage() {
         </div>
       </div>
 
-      <DynoAnalytics from={range.from} to={range.to} label={range.label} />
+      <DynoAnalytics />
 
       {/* Top customers with mini bars */}
       <div className="card-surface p-5">
