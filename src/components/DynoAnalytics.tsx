@@ -114,11 +114,17 @@ export function DynoAnalytics() {
       const platformByJob = new Map<string, string>(
         jobsSd.filter((x) => x.service_data?.tuning_platform).map((x) => [x.id, x.service_data.tuning_platform]),
       );
+      // Manual dyno hours (analytics only — never billed).
+      const hoursOverrideByJob = new Map<string, number>(
+        jobsSd
+          .filter((x) => x.service_data?.dyno_hours_override != null && x.service_data.dyno_hours_override !== "")
+          .map((x) => [x.id, Number(x.service_data.dyno_hours_override)]),
+      );
       const techIds = Array.from(new Set((entries ?? []).map((e: any) => e.technician_id)));
       const { data: profiles } = techIds.length
         ? await supabase.from("profiles").select("id, full_name").in("id", techIds)
         : { data: [] as any[] };
-      return { entries: entries ?? [], invoices: invoices ?? [], parts, profiles: profiles ?? [], platformByJob };
+      return { entries: entries ?? [], invoices: invoices ?? [], parts, profiles: profiles ?? [], platformByJob, hoursOverrideByJob };
     },
   });
 
