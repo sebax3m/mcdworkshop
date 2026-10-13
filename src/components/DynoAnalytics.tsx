@@ -215,16 +215,62 @@ export function DynoAnalytics() {
             <Stat label="Net profit" value={fmt(view.profit)} sub={`${view.margin.toFixed(0)}% margin`} />
             <Stat label="Profit per dyno hour" value={view.hours > 0 ? fmt(view.profitPerHour) : "—"} />
           </div>
-          <div className="h-56">
+          <div className="flex items-center gap-2">
+            {(["money", "hours"] as const).map((m) => (
+              <button
+                key={m}
+                type="button"
+                onClick={() => setChart(m)}
+                className={`rounded-full px-3 py-1 text-xs font-semibold ${chart === m ? "bg-status-dyno text-background" : "border border-border text-muted-foreground"}`}
+              >
+                {m === "money" ? "Revenue vs costs vs profit" : "Dyno hours"}
+              </button>
+            ))}
+          </div>
+          <div className="h-72">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={view.series}>
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-                <XAxis dataKey="month" tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} />
-                <YAxis tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} unit="h" />
-                <Tooltip formatter={(v: any) => [`${v} h`, "Dyno"]} />
-                <Bar dataKey="hours" fill="var(--status-dyno)" radius={[4, 4, 0, 0]} />
-              </BarChart>
+              {chart === "money" ? (
+                <ComposedChart data={view.series}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
+                  <XAxis dataKey="month" tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} />
+                  <YAxis tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} tickFormatter={(v) => `$${Math.round(v / 100) / 10}k`} />
+                  <Tooltip
+                    formatter={(v: any, n: any) => [fmt(Number(v)), n]}
+                    contentStyle={{ background: "var(--popover)", border: "1px solid var(--border)", borderRadius: 8 }}
+                  />
+                  <Legend wrapperStyle={{ fontSize: 12 }} />
+                  <Bar dataKey="revenue" name="Tuning revenue" fill="var(--status-dyno)" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="costs" name="Costs" fill="var(--muted-foreground)" radius={[4, 4, 0, 0]} />
+                  <Line dataKey="profit" name="Net profit" type="monotone" stroke="var(--primary)" strokeWidth={2.5} dot={{ r: 4 }} />
+                </ComposedChart>
+              ) : (
+                <BarChart data={view.series}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
+                  <XAxis dataKey="month" tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} />
+                  <YAxis tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} unit="h" />
+                  <Tooltip
+                    formatter={(v: any, n: any) => [n === "jobs" ? v : `${v} h`, n === "jobs" ? "Tuning jobs" : "Dyno hours"]}
+                    contentStyle={{ background: "var(--popover)", border: "1px solid var(--border)", borderRadius: 8 }}
+                  />
+                  <Bar dataKey="hours" name="hours" fill="var(--status-dyno)" radius={[4, 4, 0, 0]} label={{ position: "top", fontSize: 10, fill: "var(--muted-foreground)" }} />
+                </BarChart>
+              )}
             </ResponsiveContainer>
+          </div>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            {view.platformMix.map((p) => {
+              const max = Math.max(1, ...view.platformMix.map((x) => x.revenue));
+              return (
+                <div key={p.key} className="rounded-lg border border-border p-3">
+                  <div className="text-xs font-semibold">{p.label}</div>
+                  <div className="text-xs text-muted-foreground">{p.count} job{p.count === 1 ? "" : "s"} · {fmt(p.revenue)}</div>
+                  <div className="h-1.5 mt-2 rounded-full bg-muted overflow-hidden">
+                    <div className="h-full bg-status-dyno" style={{ width: `${(p.revenue / max) * 100}%` }} />
+                  </div>
+                  <div className="text-xs mt-1">Profit <b>{fmt(p.profit)}</b></div>
+                </div>
+              );
+            })}
           </div>
           {view.techs.length > 0 && (
             <div className="flex flex-wrap gap-2 text-xs">
@@ -247,12 +293,13 @@ export function DynoAnalytics() {
                   <th className="py-2 pr-3">Platform</th>
                   <th className="py-2 pr-3 text-right">Tuning</th>
                   <th className="py-2 pr-3 text-right">Costs</th>
-                  <th className="py-2 text-right">Profit</th>
+                  <th className="py-2 pr-3 text-right">Profit</th>
+                  <th className="py-2 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {view.rows.map((r) => (
-                  <tr key={r.id} className="border-t border-border/50">
+                  <tr key={r.id} className="border-t border-border/50 hover:bg-muted/30 cursor-pointer" onClick={() => setSelected(r)}>
                     <td className="py-2 pr-3 font-medium">{r.invoice_number}</td>
                     <td className="py-2 pr-3">{r.invoice_date}</td>
                     <td className="py-2 pr-3">{r.customer_name_snapshot ?? "—"}</td>
@@ -261,12 +308,22 @@ export function DynoAnalytics() {
                     <td className="py-2 pr-3">{PLATFORMS[r.platform as Platform].label} ({fmt(r.toolCost)})</td>
                     <td className="py-2 pr-3 text-right font-bold">{fmt(r.revenue)}</td>
                     <td className="py-2 pr-3 text-right text-muted-foreground">{fmt(r.toolCost + r.tunerCost)}</td>
-                    <td className="py-2 text-right font-bold">{fmt(r.profit)}</td>
+                    <td className={`py-2 pr-3 text-right font-bold ${r.profit < 0 ? "text-destructive" : ""}`}>{fmt(r.profit)}</td>
+                    <td className="py-2 text-right whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
+                      <Button size="sm" variant="ghost" onClick={() => setSelected(r)} title="Analyze">
+                        <Search className="h-4 w-4" />
+                      </Button>
+                      <Button size="sm" variant="ghost" asChild title="Edit invoice">
+                        <Link to="/invoices/$invoiceId" params={{ invoiceId: r.id }}>
+                          <Pencil className="h-4 w-4" />
+                        </Link>
+                      </Button>
+                    </td>
                   </tr>
                 ))}
                 {view.rows.length === 0 && (
                   <tr>
-                    <td colSpan={9} className="py-4 text-muted-foreground">
+                    <td colSpan={10} className="py-4 text-muted-foreground">
                       No tuning invoices in this period.
                     </td>
                   </tr>
