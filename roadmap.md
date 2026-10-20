@@ -1,5 +1,5 @@
 # Task roadmap
-- [ ] Verify and fix tuning platform selection overwriting manual invoice prices or charging retune licences.
+- [x] Fix tuning platform selection overwriting manual invoice prices or charging retune licences; 16 tests pass and signed-in switching/clearing/restoring on invoice 01149 preserves $550/$650 prices and costs.
 - [x] Apply invoice 01149 licence $550 and Dyno $650 to future Harley-Davidson/Indian tuning defaults and inventory; verified invoice/inventory in the signed-in UI and five pricing tests, leaving other invoices unchanged.
 - [x] Show full instructions automatically in booking windows and related instruction fields; verified saved instructions and 18-line input without clipping.
 - [x] Make quote labels consistent, support downloadable quote PDF, and offer conversion at the bottom; PDF download verified.
