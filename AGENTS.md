@@ -18,4 +18,4 @@
 - Time entries carry work_type ('service' | 'dyno'); Dyno analytics sum dyno entries and tuning invoice lines detected like the invoice's isDynoLine — keeps bench hours separate from service hours on mixed jobs.
 - Quotes share the invoice editor and use status to select document labels; PDF export captures the print-preview sheet in the browser, keeping customer documents aligned without a second template.
 - Use the shared Textarea autoSize option for booking and job instructions so loaded text and edits remain visible without manual resizing.
-- Keep Harley/Indian tuning package and licence defaults in service-kinds; the Power Vision picker derives the Dyno remainder from those values to keep the split consistent.
+- Keep Harley/Indian defaults in service-kinds; platform selection is tracking-only except a first-time Power Vision licence split preserving the existing package total. Never reprice existing licence lines, clear billing on deselection, or charge retunes again.
