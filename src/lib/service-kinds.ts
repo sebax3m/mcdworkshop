@@ -20,17 +20,23 @@ export function detectServiceKind(title?: string | null): ServiceKind {
 /** Base dyno / custom tune price (GST inclusive) by motorcycle make. */
 export const TUNE_PRICE_JAPANESE = 950;
 export const TUNE_PRICE_HARLEY = 1200;
+/** GST-inclusive Power Vision licence, as priced on invoice 01149. */
+export const HARLEY_INDIAN_LICENSE_PRICE = 550;
+
+export function powerVisionDynoCharge(total: number): number {
+  return Math.max(0, total - HARLEY_INDIAN_LICENSE_PRICE);
+}
 
 export function isHarleyMake(make?: string | null): boolean {
   const m = (make ?? "").toLowerCase();
-  return m.includes("harley") || m.includes("davidson") || m === "hd";
+  return m.includes("harley") || m.includes("davidson") || m === "hd" || m.includes("indian");
 }
 
 export function tunePriceForMake(make?: string | null): number {
   return isHarleyMake(make) ? TUNE_PRICE_HARLEY : TUNE_PRICE_JAPANESE;
 }
 
-/** Part number for the tuning line: Harley-Davidson → DYNOHD, otherwise DYNO. */
+/** Part number for the tuning line: Harley-Davidson / Indian → DYNOHD, otherwise DYNO. */
 export function tunePartNumberForMake(make?: string | null): string {
   return isHarleyMake(make) ? "DYNOHD" : "DYNO";
 }
