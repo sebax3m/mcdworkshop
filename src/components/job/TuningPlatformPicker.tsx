@@ -3,12 +3,12 @@ import { useEffect, useRef, useState } from "react";
 import { Check, Zap } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { tunePartNumberForMake, tunePriceForMake } from "@/lib/service-kinds";
+import { HARLEY_INDIAN_LICENSE_PRICE, powerVisionDynoCharge, tunePartNumberForMake, tunePriceForMake } from "@/lib/service-kinds";
 
 export type TuningPlatform = "powervision" | "woolich" | "alientech" | "tuneecu";
 
 /** Harley / Indian licence charged on the invoice (rest of the tune = Dyno charge). */
-export const PV_LICENSE_PRICE = 590;
+export const PV_LICENSE_PRICE = HARLEY_INDIAN_LICENSE_PRICE;
 export const PV_LICENSE_PN = "PV-LICENSE";
 
 /** Customer tune price (GST incl.) per system. */
@@ -82,7 +82,7 @@ export function TuningPlatformPicker({
 
       // Tune price follows the chosen system (Power Vision splits off the licence).
       const total = next ? PLATFORM_PRICE[next] : tunePriceForMake(make);
-      const dynoCharge = next === "powervision" ? Math.max(0, total - PV_LICENSE_PRICE) : total;
+      const dynoCharge = next === "powervision" ? powerVisionDynoCharge(total) : total;
       if (dyno) {
         await supabase.from("parts").update({ retail: dynoCharge, cost: dynoCharge }).eq("id", dyno.id);
       } else {
@@ -99,7 +99,7 @@ export function TuningPlatformPicker({
       } else if (next !== "powervision" && lic) {
         await supabase.from("parts").delete().eq("id", lic.id);
       }
-      toast.success(next ? `Tuning system: ${OPTIONS.find((o) => o.id === next)!.label}` : "Tuning system cleared");
+      toast.success(next ? `Tuning system: ${OPTIONS.find((o) => o.id === next)?.label ?? next}` : "Tuning system cleared");
       onChanged();
     } catch (e: any) {
       toast.error(e?.message ?? "Failed to save");
