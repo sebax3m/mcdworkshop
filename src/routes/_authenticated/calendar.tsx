@@ -31,10 +31,14 @@ import {
   Trash2,
   ShieldCheck,
   Sparkles,
+  Copy,
+  Plus,
 } from "lucide-react";
 
 import { BookingPartsSection } from "@/components/parts/BookingPartsSection";
 import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
+import { bookingCopySeed } from "@/lib/booking-copy";
 import { supabase } from "@/integrations/supabase/client";
 import {
   AlertDialog,
@@ -301,6 +305,7 @@ function CalendarPage() {
   const [now, setNow] = useState<Date>(() => new Date());
   const [quickSlot, setQuickSlot] = useState<{ date: Date; time: string } | null>(null);
   const [qSearch, setQSearch] = useState("");
+  const [quickPurpose, setQuickPurpose] = useState<"duplicate" | "another-bike" | null>(null);
   const [qCustomerId, setQCustomerId] = useState<string | null>(null);
   const [qBikeId, setQBikeId] = useState<string | null>(null);
   const [qFirst, setQFirst] = useState("");
@@ -649,6 +654,7 @@ function CalendarPage() {
   }
 
   function resetQuickForm() {
+    setQuickPurpose(null);
     setQSearch("");
     setQCustomerId(null);
     setQBikeId(null);
@@ -683,6 +689,40 @@ function CalendarPage() {
     setQGEmail("");
     setQGIncludeEnd(false);
 
+  }
+
+  function copyBookingToQuick(anotherBike: boolean) {
+    const b = selectedBooking;
+    if (!b?.customer_id) return;
+    const seed = bookingCopySeed({ ...b, notes: bookingView === "summary" ? summaryNotes : editNotes }, anotherBike);
+    void flushSummaryNotes();
+    resetQuickForm();
+    setJustCreated(null);
+    setQuickPurpose(anotherBike ? "another-bike" : "duplicate");
+    setQCustomerId(seed.customerId);
+    setQFirst(b.customers?.first_name ?? "");
+    setQLast(b.customers?.last_name ?? "");
+    setQPhone(b.customers?.phone ?? "");
+    setQSearch(displayCustomerName(b.customers));
+    setQService(seed.service);
+    setQServiceOther(seed.serviceOther);
+    setQEstHours(seed.estimatedHours);
+    setQNotes(seed.notes);
+    if (!anotherBike) {
+      setQBikeId(seed.bikeId);
+      setQBikeMake(b.motorcycles?.make ?? "");
+      setQBikeModel(b.motorcycles?.model ?? "");
+      setQBikeYear(b.motorcycles?.year ? String(b.motorcycles.year) : "");
+      setQBikeRego(b.motorcycles?.rego ?? b.rego ?? "");
+      setQVin(b.motorcycles?.vin ?? b.vin ?? "");
+      setQWofExpiry(b.motorcycles?.wof_expiry ?? b.wof_expiry ?? "");
+      setQRegoExpiry(b.motorcycles?.rego_expiry ?? "");
+      setQBikeColor(b.motorcycles?.color ?? "");
+    }
+    const date = b.scheduled_date ? new Date(`${b.scheduled_date}T00:00:00`) : new Date();
+    setQuickSlot({ date, time: String(b.drop_off_time ?? "08:00").slice(0, 5) });
+    setQEndTime("");
+    setSelectedBooking(null);
   }
 
   async function createQuickBooking() {
@@ -1644,6 +1684,15 @@ function CalendarPage() {
                 </div>
               </div>
 
+              <div className="flex flex-wrap gap-2 border-b border-border pb-3">
+                <Button variant="outline" size="sm" onClick={() => copyBookingToQuick(false)}>
+                  <Copy className="h-4 w-4" /> Duplicate book-in
+                </Button>
+                <Button variant="outline" size="sm" onClick={() => copyBookingToQuick(true)}>
+                  <Plus className="h-4 w-4" /> Add another motorcycle
+                </Button>
+              </div>
+
               {(() => {
                 const b = selectedBooking;
                 const c = serviceColor(b.service_type);
@@ -2530,7 +2579,7 @@ function CalendarPage() {
                   <div>
                     <div className="flex items-center justify-between gap-2">
                       <div className="text-[0.625rem] uppercase tracking-[0.25em] text-muted-foreground">
-                        Quick booking
+                        {quickPurpose === "duplicate" ? "Duplicate book-in" : quickPurpose === "another-bike" ? "Another motorcycle · same customer" : "Quick booking"}
                       </div>
                       <div className="flex items-center gap-2">
                         <button
