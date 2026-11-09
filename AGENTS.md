@@ -20,3 +20,4 @@
 - Use the shared Textarea autoSize option for booking and job instructions so loaded text and edits remain visible without manual resizing.
 - Keep Harley/Indian defaults in service-kinds; platform selection is tracking-only except a first-time Power Vision licence split preserving the existing package total. Never reprice existing licence lines, clear billing on deselection, or charge retunes again.
 - Calendar duplicate/another-motorcycle actions prefill the existing quick booking form, preserving customer IDs; copies create fresh bookings without copying job links, ordered parts, statuses, invitations or loan-bike allocations.
+- Calendar notes use their existing note_time for position among book-ins; note dragging updates only note date/time and never reschedules bookings.

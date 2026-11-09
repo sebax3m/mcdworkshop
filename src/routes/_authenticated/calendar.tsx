@@ -1390,7 +1390,7 @@ function CalendarPage() {
                       >
                         <StickyNote className="h-2.5 w-2.5 shrink-0" />
                         <span className="truncate">{n.title}</span>
-                      </button>
+                      </Button>
                     ))}
 
                     {dayBookings.length > 0 && (
@@ -1483,6 +1483,15 @@ function CalendarPage() {
                 ? allDayBookings.filter((b) => !isBookInCompleted(b))
                 : allDayBookings;
               const dayNotes = notesByDay.get(dayKey) ?? [];
+              const dayItems = [
+                ...dayBookings.map((booking: any) => ({ id: booking.id, booking, note: null, time: String(booking.drop_off_time ?? "23:59:59") })),
+                ...dayNotes.map((note: any) => ({ id: note.id, booking: null, note, time: String(note.note_time ?? "00:00:00") })),
+              ].sort((a, b) => a.time.localeCompare(b.time) || a.id.localeCompare(b.id));
+              const notePosition = (index: number, noteId: string) => {
+                const preceding = dayItems.slice(0, index).filter((item) => item.id !== noteId);
+                const following = dayItems.slice(index).filter((item) => item.id !== noteId);
+                return calendarNoteTime(preceding.at(-1)?.time, following[0]?.time);
+              };
               const today = isToday(day);
               const cap = capacityFor(day);
 
@@ -1495,15 +1504,15 @@ function CalendarPage() {
                     const id = e.dataTransfer.getData("text/booking-id");
                     const noteId = e.dataTransfer.getData("text/note-id");
                     if (noteId) {
-                      updateNote.mutate({ id: noteId, note_date: dayKey });
+                      void moveNote(noteId, dayKey);
                       return;
                     }
                     if (id) moveBookingToDate(id, day);
-                    setDraggingId(null);
+                    clearCalendarDrag();
                   }}
                   className={`rounded-[10px] border border-[color:var(--bookin-line)] bg-[color:var(--bookin-column)] p-2 flex flex-col gap-2 min-h-[220px] sm:min-h-[280px] ${
                     today ? "border-[#DC2626]" : ""
-                  } ${draggingId ? "border-dashed border-primary/40" : ""}`}
+                  } ${draggingId || draggingNoteId ? "border-dashed border-primary/40" : ""}`}
                 >
                   {/* Day header: weekday, date, capacity + capacity bar */}
                   <CalendarDayHeader
@@ -1520,46 +1529,24 @@ function CalendarPage() {
                   />
 
 
-                  {/* Day notes */}
-                  {dayNotes.map((n: any) => (
-                    <button
-                      key={n.id}
-                      type="button"
-                      draggable
-                      onDragStart={(e) => {
-                        e.dataTransfer.effectAllowed = "move";
-                        e.dataTransfer.setData("text/note-id", n.id);
-                      }}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setEditNote(n);
-                      }}
-                      className="w-full text-left rounded-[8px] border border-[#8A5A00] bg-[#F59E0B]/[0.08] px-2 py-1"
-                    >
-                      <div className="flex items-center gap-1 text-[0.5rem] font-bold uppercase tracking-[0.16em] text-[#FBBF24]">
-                        <StickyNote className="h-2.5 w-2.5" /> Note
-                      </div>
-                      <div className="text-[0.6875rem] font-semibold leading-tight truncate text-[#FBBF24]">{n.title}</div>
-                    </button>
-                  ))}
-
-                  {/* Book-in cards — drag freely up/down or onto another day */}
+                  {/* Notes and book-ins share the same drop positions. */}
                   <div
                     className="flex flex-col gap-1 sm:gap-1.5 flex-1"
                     onDragOver={(e) => {
                       e.preventDefault();
-                      setDropHint({ dayKey, index: dayBookings.length });
+                      setDropHint({ dayKey, index: dayItems.length });
                     }}
                     onDrop={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
                       const id = e.dataTransfer.getData("text/booking-id");
+                      const noteId = e.dataTransfer.getData("text/note-id");
+                      if (noteId) void moveNote(noteId, dayKey, notePosition(dayItems.length, noteId));
                       if (id) reorderBooking(id, day, dayBookings.length);
-                      setDraggingId(null);
-                      setDropHint(null);
+                      clearCalendarDrag();
                     }}
                   >
-                    {dayBookings.length === 0 ? (
+                    {dayItems.length === 0 ? (
                       <div
                         className={`flex-1 grid place-items-center rounded-lg text-[0.6875rem] text-center px-2 ${
                           dropHint?.dayKey === dayKey
@@ -1571,8 +1558,8 @@ function CalendarPage() {
                       </div>
                     ) : (
                       <>
-                        {dayBookings.map((b: any, i: number) => (
-                          <div key={b.id} className="contents">
+                        {dayItems.map((item, i: number) => (
+                          <div key={item.id} className="contents">
                             <DropLine
                               active={dropHint?.dayKey === dayKey && dropHint.index === i}
                             />
@@ -1588,41 +1575,64 @@ function CalendarPage() {
                                 e.preventDefault();
                                 e.stopPropagation();
                                 const id = e.dataTransfer.getData("text/booking-id");
+                                const noteId = e.dataTransfer.getData("text/note-id");
                                 const rect = e.currentTarget.getBoundingClientRect();
                                 const after = e.clientY > rect.top + rect.height / 2;
-                                if (id) reorderBooking(id, day, after ? i + 1 : i);
-                                setDraggingId(null);
-                                setDropHint(null);
+                                const index = after ? i + 1 : i;
+                                if (noteId) void moveNote(noteId, dayKey, notePosition(index, noteId));
+                                if (id) reorderBooking(id, day, dayItems.slice(0, index).filter((entry) => entry.booking).length);
+                                clearCalendarDrag();
                               }}
                             >
-                              <div id={`booking-${b.id}`} className="contents">
+                              {item.note ? (
+                                <Button
+                                  variant="outline"
+                                  draggable
+                                  aria-label={`Note: ${item.note.title}`}
+                                  data-note-id={item.id}
+                                  onDragStart={(e) => {
+                                    e.stopPropagation();
+                                    e.dataTransfer.effectAllowed = "move";
+                                    e.dataTransfer.setData("text/note-id", item.id);
+                                    setDraggingNoteId(item.id);
+                                  }}
+                                  onDragEnd={clearCalendarDrag}
+                                  onClick={() => setEditNote(item.note)}
+                                  className={cn("h-auto w-full flex-col items-start gap-1 whitespace-normal text-left rounded-lg border-service-banana/40 bg-service-banana/10 px-2 py-2 text-service-banana hover:bg-service-banana/20 cursor-grab active:cursor-grabbing", draggingNoteId === item.id && "opacity-40")}
+                                >
+                                  <span className="flex items-center gap-1 text-[0.5625rem] font-bold uppercase"><StickyNote className="h-3 w-3" /> Note</span>
+                                  <span className="text-xs font-semibold break-words w-full">{item.note.title}</span>
+                                </Button>
+                              ) : (
+                              <div id={`booking-${item.id}`} className="contents">
                                 <BookInCard
-                                  booking={b}
+                                  booking={item.booking}
                                   dense
                                   draggable
                                   onDragStart={(e) => {
                                     e.dataTransfer.effectAllowed = "move";
-                                    e.dataTransfer.setData("text/booking-id", b.id);
-                                    setDraggingId(b.id);
+                                    e.dataTransfer.setData("text/booking-id", item.id);
+                                    setDraggingId(item.id);
                                   }}
                                   onDragEnd={() => {
                                     setDraggingId(null);
                                     setDropHint(null);
                                   }}
-                                  onClick={() => setSelectedBooking(b)}
+                                  onClick={() => setSelectedBooking(item.booking)}
                                   className={cn(
-                                    draggingId === b.id ? "opacity-40" : "",
-                                    highlightId === b.id &&
+                                    draggingId === item.id ? "opacity-40" : "",
+                                    highlightId === item.id &&
                                       "ring-2 ring-amber-400 shadow-[0_0_14px_rgba(251,191,36,0.8)] animate-pulse",
                                   )}
                                 />
                               </div>
+                              )}
                             </div>
                           </div>
                         ))}
                         <DropLine
                           active={
-                            dropHint?.dayKey === dayKey && dropHint.index >= dayBookings.length
+                            dropHint?.dayKey === dayKey && dropHint.index >= dayItems.length
                           }
                         />
                       </>
