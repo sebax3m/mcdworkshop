@@ -1010,7 +1010,10 @@ function JobDetail() {
           instructions={booking.data?.instructions ?? ""}
           notes={booking.data?.notes ?? ""}
           canEdit={canEdit}
-          onSaved={() => qc.invalidateQueries({ queryKey: ["job-booking", jobId] })}
+          onSaved={() => {
+            qc.invalidateQueries({ queryKey: ["job-booking", jobId] });
+            qc.invalidateQueries({ queryKey: ["job", jobId] });
+          }}
         />
       )}
 
