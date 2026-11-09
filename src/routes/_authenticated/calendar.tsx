@@ -39,6 +39,7 @@ import { BookingPartsSection } from "@/components/parts/BookingPartsSection";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { bookingCopySeed } from "@/lib/booking-copy";
+import { calendarNoteTime } from "@/lib/calendar-note-position";
 import { supabase } from "@/integrations/supabase/client";
 import {
   AlertDialog,
@@ -214,6 +215,7 @@ function CalendarPage() {
     startOfWeek(new Date(), { weekStartsOn: 1 }),
   );
   const [draggingId, setDraggingId] = useState<string | null>(null);
+  const [draggingNoteId, setDraggingNoteId] = useState<string | null>(null);
   const [dropHint, setDropHint] = useState<{ dayKey: string; index: number } | null>(null);
   const [selectedBooking, setSelectedBooking] = useState<any | null>(null);
   const [hiddenCompleted, setHiddenCompleted] = useState<Record<string, boolean>>({});
@@ -971,6 +973,23 @@ function CalendarPage() {
     return map;
   }, [dailyNotesQ.data]);
 
+  function clearCalendarDrag() {
+    setDraggingId(null);
+    setDraggingNoteId(null);
+    setDropHint(null);
+  }
+
+  async function moveNote(noteId: string, dayKey: string, noteTime?: string) {
+    try {
+      await updateNote.mutateAsync({ id: noteId, note_date: dayKey, ...(noteTime !== undefined ? { note_time: noteTime } : {}) });
+      toast.success("Note moved");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Could not move note");
+    } finally {
+      clearCalendarDrag();
+    }
+  }
+
   // Duration in minutes from a booking row, falling back to 60 min.
   function bookingDurationMin(bk: any): number {
     if (bk?.scheduled_end_time && bk?.drop_off_time) {
@@ -1326,8 +1345,10 @@ function CalendarPage() {
                     onDrop={(e) => {
                       e.preventDefault();
                       const id = e.dataTransfer.getData("text/booking-id");
+                      const noteId = e.dataTransfer.getData("text/note-id");
+                      if (noteId) void moveNote(noteId, dayKey);
                       if (id) moveBookingToDate(id, day);
-                      setDraggingId(null);
+                      clearCalendarDrag();
                     }}
                     onClick={() => nav({ to: "/book-ins/$date", params: { date: dayKey } })}
                     className={`card-surface p-2 min-h-[160px] flex flex-col cursor-pointer transition-colors hover:ring-1 hover:ring-inset hover:ring-primary/30 ${
@@ -1349,14 +1370,22 @@ function CalendarPage() {
                       <CapacityBadge booked={dayBookings.length} capacity={cap} compact />
                     </div>
                     {(notesByDay.get(dayKey) ?? []).map((n: any) => (
-                      <button
+                      <Button
                         key={n.id}
-                        type="button"
+                        variant="ghost"
+                        draggable
+                        onDragStart={(e) => {
+                          e.stopPropagation();
+                          e.dataTransfer.effectAllowed = "move";
+                          e.dataTransfer.setData("text/note-id", n.id);
+                          setDraggingNoteId(n.id);
+                        }}
+                        onDragEnd={clearCalendarDrag}
                         onClick={(e) => {
                           e.stopPropagation();
                           setEditNote(n);
                         }}
-                        className="mt-1 inline-flex max-w-full items-center gap-1 rounded-md bg-amber-500/15 px-1.5 py-0.5 text-[0.5625rem] font-bold uppercase tracking-wider text-amber-500 hover:bg-amber-500/25 self-start"
+                        className="mt-1 h-auto inline-flex max-w-full items-center gap-1 rounded-md bg-service-banana/15 px-1.5 py-0.5 text-[0.5625rem] font-bold uppercase text-service-banana hover:bg-service-banana/25 self-start cursor-grab active:cursor-grabbing"
                         title={n.title}
                       >
                         <StickyNote className="h-2.5 w-2.5 shrink-0" />

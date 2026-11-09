@@ -26,6 +26,8 @@ import { TuningPlatformPicker } from "@/components/job/TuningPlatformPicker";
 
 
 import { displayCustomerName } from "@/lib/display";
+import { displayServiceType } from "@/lib/display";
+import { serviceColor } from "@/lib/service-colors";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -378,6 +380,10 @@ function JobDetail() {
   const canEditBike = canEdit || isTechnician;
   const kind = detectServiceKind(j.title);
   const kindMeta = KIND_META[kind];
+  const bookedService = booking.data?.service_type
+    ? displayServiceType(booking.data.service_type, booking.data.service_type_other)
+    : j.title || kindMeta.label;
+  const bookedServiceColor = serviceColor(bookedService);
   const tuningText = `${j.title ?? ""} ${(j as any).description ?? ""} ${(j as any).complaint ?? ""}`.toLowerCase();
   const isTuningJob =
     kind === "dyno" ||
@@ -986,6 +992,16 @@ function JobDetail() {
           onSaved={() => qc.invalidateQueries({ queryKey: ["job", jobId] })}
         />
       </div>
+
+      <section
+        aria-label="Booked service"
+        className={`flex items-center gap-3 border-l-4 border-y border-y-border px-4 py-3 ${bookedServiceColor.border} ${bookedServiceColor.label}`}
+      >
+        <Wrench className="h-5 w-5 shrink-0" aria-hidden="true" />
+        <h2 className="font-display text-base font-bold uppercase break-words min-w-0">
+          {bookedService}
+        </h2>
+      </section>
 
       {/* Book-in instructions — visible on screen AND on the printed job card */}
       {booking.data?.id && (
