@@ -4264,6 +4264,7 @@ export type Database = {
         Args: { p_motorcycle_id: string }
         Returns: Json
       }
+      detect_service_from_text: { Args: { p: string }; Returns: string }
       find_booking_conflicts: {
         Args: {
           p_date: string
