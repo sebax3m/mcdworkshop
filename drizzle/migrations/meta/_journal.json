@@ -148,6 +148,13 @@
       "when": 1794187868949,
       "tag": "0020_auto_detect_booked_service",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1794187894790,
+      "tag": "0021_refine_service_detection",
+      "breakpoints": true
     }
   ]
 }
