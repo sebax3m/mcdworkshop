@@ -1,6 +1,6 @@
 # Task roadmap
-- [ ] Highlight the booked service between bike details and instructions on job cards.
-- [ ] Enable calendar notes to move by dragging between positions and days; verify persistence.
+- [x] Highlight the booked service between bike details and instructions; verified on an existing job card at desktop and mobile sizes.
+- [x] Enable calendar notes to move between positions and days; verified drag, reload persistence, and restored the original test note; two positioning tests pass.
 - [x] Add calendar booking-window actions to duplicate a book-in and book another motorcycle for the same customer; verified both save flows with existing customer/bike IDs, removed temporary bookings, and passed copy tests.
 - [x] Fix tuning platform selection overwriting manual invoice prices or charging retune licences; 16 tests pass and signed-in switching/clearing/restoring on invoice 01149 preserves $550/$650 prices and costs.
 - [x] Apply invoice 01149 licence $550 and Dyno $650 to future Harley-Davidson/Indian tuning defaults and inventory; verified invoice/inventory in the signed-in UI and five pricing tests, leaving other invoices unchanged.
