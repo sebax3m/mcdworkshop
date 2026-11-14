@@ -40,6 +40,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { bookingCopySeed } from "@/lib/booking-copy";
 import { calendarNoteTime } from "@/lib/calendar-note-position";
+import { activeBookingDropIndex, compareCalendarBookings, compareCalendarDayItems, reorderActiveCalendarBookings } from "@/lib/calendar-booking-order";
 import { supabase } from "@/integrations/supabase/client";
 import {
   AlertDialog,
@@ -1043,6 +1044,7 @@ function CalendarPage() {
   async function moveBookingToDate(bookingId: string, newDate: Date) {
     const dateStr = format(newDate, "yyyy-MM-dd");
     const current = (bookings as any[]).find((b) => b.id === bookingId);
+    if (!current || isBookInCompleted(current)) return;
     if (current?.scheduled_date === dateStr) return;
     const count = (bookings as any[]).filter(
       (b) => b.scheduled_date === dateStr && b.id !== bookingId,
@@ -1076,15 +1078,7 @@ function CalendarPage() {
    * day), then by stored slot time, then creation.
    */
   function sortBookIns(list: any[]) {
-    return [...list].sort((a, b) => {
-      const ca = isBookInCompleted(a) ? 1 : 0;
-      const cb = isBookInCompleted(b) ? 1 : 0;
-      if (ca !== cb) return ca - cb;
-      const ta = String(a.drop_off_time ?? "99:99");
-      const tb = String(b.drop_off_time ?? "99:99");
-      if (ta !== tb) return ta < tb ? -1 : 1;
-      return String(a.created_at ?? "") < String(b.created_at ?? "") ? -1 : 1;
-    });
+    return [...list].sort(compareCalendarBookings);
   }
 
 
@@ -1097,6 +1091,8 @@ function CalendarPage() {
     const current = (bookings as any[]).find((b) => b.id === bookingId);
     if (!current) return;
     const changingDay = current.scheduled_date !== dateStr;
+    // Finished bookings are historical records, not reorder targets.
+    if (isBookInCompleted(current)) return;
 
     const others = sortBookIns(
       (bookings as any[]).filter((b) => b.scheduled_date === dateStr && b.id !== bookingId),
@@ -1117,8 +1113,7 @@ function CalendarPage() {
       }
     }
 
-    const idx = Math.max(0, Math.min(targetIndex, others.length));
-    const next = [...others.slice(0, idx), current, ...others.slice(idx)];
+    const next = reorderActiveCalendarBookings(others, current, targetIndex);
 
     const updates = next
       .map((b, i) => {
@@ -1322,7 +1317,7 @@ function CalendarPage() {
             >
               {monthDays.map((day, idx) => {
                 const dayKey = format(day, "yyyy-MM-dd");
-                const dayBookings = (bookings as any[]).filter((b) => b.scheduled_date === dayKey);
+                const dayBookings = sortBookIns((bookings as any[]).filter((b) => b.scheduled_date === dayKey));
                 const cap = capacityFor(day);
                 const loadPct =
                   cap > 0
@@ -1486,10 +1481,10 @@ function CalendarPage() {
               const dayItems = [
                 ...dayBookings.map((booking: any) => ({ id: booking.id, booking, note: null, time: String(booking.drop_off_time ?? "23:59:59") })),
                 ...dayNotes.map((note: any) => ({ id: note.id, booking: null, note, time: String(note.note_time ?? "00:00:00") })),
-              ].sort((a, b) => a.time.localeCompare(b.time) || a.id.localeCompare(b.id));
+              ].sort(compareCalendarDayItems);
               const notePosition = (index: number, noteId: string) => {
-                const preceding = dayItems.slice(0, index).filter((item) => item.id !== noteId);
-                const following = dayItems.slice(index).filter((item) => item.id !== noteId);
+                const preceding = dayItems.slice(0, index).filter((item) => item.id !== noteId && !isBookInCompleted(item.booking));
+                const following = dayItems.slice(index).filter((item) => item.id !== noteId && !isBookInCompleted(item.booking));
                 return calendarNoteTime(preceding.at(-1)?.time, following[0]?.time);
               };
               const today = isToday(day);
@@ -1542,7 +1537,7 @@ function CalendarPage() {
                       const id = e.dataTransfer.getData("text/booking-id");
                       const noteId = e.dataTransfer.getData("text/note-id");
                       if (noteId) void moveNote(noteId, dayKey, notePosition(dayItems.length, noteId));
-                      if (id) reorderBooking(id, day, dayBookings.length);
+                      if (id) reorderBooking(id, day, activeBookingDropIndex(dayItems, dayItems.length, id));
                       clearCalendarDrag();
                     }}
                   >
@@ -1580,7 +1575,7 @@ function CalendarPage() {
                                 const after = e.clientY > rect.top + rect.height / 2;
                                 const index = after ? i + 1 : i;
                                 if (noteId) void moveNote(noteId, dayKey, notePosition(index, noteId));
-                                if (id) reorderBooking(id, day, dayItems.slice(0, index).filter((entry) => entry.booking).length);
+                                if (id) reorderBooking(id, day, activeBookingDropIndex(dayItems, index, id));
                                 clearCalendarDrag();
                               }}
                             >
@@ -1608,7 +1603,7 @@ function CalendarPage() {
                                 <BookInCard
                                   booking={item.booking}
                                   dense
-                                  draggable
+                                  draggable={!isBookInCompleted(item.booking)}
                                   onDragStart={(e) => {
                                     e.dataTransfer.effectAllowed = "move";
                                     e.dataTransfer.setData("text/booking-id", item.id);

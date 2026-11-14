@@ -21,4 +21,5 @@
 - Keep Harley/Indian defaults in service-kinds; platform selection is tracking-only except a first-time Power Vision licence split preserving the existing package total. Never reprice existing licence lines, clear billing on deselection, or charge retunes again.
 - Calendar duplicate/another-motorcycle actions prefill the existing quick booking form, preserving customer IDs; copies create fresh bookings without copying job links, ordered parts, statuses, invitations or loan-bike allocations.
 - Calendar notes use their existing note_time for position among book-ins; note dragging updates only note date/time and never reschedules bookings.
+- Calendar, day view, dashboard and technician lists share calendar-booking-order helpers; only active bookings can be dragged or restamped, and stage-only boards never show positional insertion hints.
 - Diagnostic bookings are auto-promoted to the service named in their notes/instructions by a bookings DB trigger (detect_service_from_text), which also renames the linked job — one rule for calendar, book-in and job card.

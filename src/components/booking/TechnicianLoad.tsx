@@ -3,6 +3,8 @@ import { useState } from "react";
 import { User2, Users } from "lucide-react";
 import { useTechnicians } from "@/hooks/use-active-technician";
 import { fullBike } from "@/lib/format";
+import { compareCalendarBookings } from "@/lib/calendar-booking-order";
+import { isBookInCompleted } from "@/lib/book-in-status";
 
 type Props = {
   /** Bookings for the day being displayed. */
@@ -41,7 +43,7 @@ export function TechnicianLoad({
   const [dragId, setDragId] = useState<string | null>(null);
 
 
-  const forTech = (id: string) => bookings.filter((b) => b.assigned_tech_id === id);
+  const forTech = (id: string) => bookings.filter((b) => b.assigned_tech_id === id).sort(compareCalendarBookings);
   const unassigned = bookings.filter((b) => !b.assigned_tech_id);
 
   return (
@@ -118,7 +120,7 @@ export function TechnicianLoad({
                           key={b.id}
                           role="button"
                           tabIndex={0}
-                          draggable
+                          draggable={!isBookInCompleted(b)}
                           onDragStart={(e) => {
                             e.dataTransfer.setData("text/plain", b.id);
                             e.dataTransfer.effectAllowed = "move";
