@@ -1,4 +1,5 @@
 # Task roadmap
+- [ ] Sweep calendar, day view, dashboard, technician assignment, notes, Google Calendar and booking database functions for consistent drop behavior without changing settled records.
 - [x] Correct calendar drop order with completed bookings visible and preserve completed slot times; seven regression tests pass and build OK.
 - [ ] Verify corrected calendar drag and reload in an authorized session (blocked: session mint failed; user must sign in to preview).
 - [x] Highlight the booked service between bike details and instructions; verified on an existing job card at desktop and mobile sizes.

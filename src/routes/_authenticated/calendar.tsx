@@ -1044,6 +1044,7 @@ function CalendarPage() {
   async function moveBookingToDate(bookingId: string, newDate: Date) {
     const dateStr = format(newDate, "yyyy-MM-dd");
     const current = (bookings as any[]).find((b) => b.id === bookingId);
+    if (!current || isBookInCompleted(current)) return;
     if (current?.scheduled_date === dateStr) return;
     const count = (bookings as any[]).filter(
       (b) => b.scheduled_date === dateStr && b.id !== bookingId,
@@ -1090,11 +1091,8 @@ function CalendarPage() {
     const current = (bookings as any[]).find((b) => b.id === bookingId);
     if (!current) return;
     const changingDay = current.scheduled_date !== dateStr;
-    // Moving a finished booking changes its date only, not historical slot times.
-    if (isBookInCompleted(current)) {
-      if (changingDay) await moveBookingToDate(bookingId, day);
-      return;
-    }
+    // Finished bookings are historical records, not reorder targets.
+    if (isBookInCompleted(current)) return;
 
     const others = sortBookIns(
       (bookings as any[]).filter((b) => b.scheduled_date === dateStr && b.id !== bookingId),
@@ -1319,7 +1317,7 @@ function CalendarPage() {
             >
               {monthDays.map((day, idx) => {
                 const dayKey = format(day, "yyyy-MM-dd");
-                const dayBookings = (bookings as any[]).filter((b) => b.scheduled_date === dayKey);
+                const dayBookings = sortBookIns((bookings as any[]).filter((b) => b.scheduled_date === dayKey));
                 const cap = capacityFor(day);
                 const loadPct =
                   cap > 0
@@ -1584,7 +1582,7 @@ function CalendarPage() {
                               {item.note ? (
                                 <Button
                                   variant="outline"
-                                  draggable
+                                  draggable={!isBookInCompleted(item.booking)}
                                   aria-label={`Note: ${item.note.title}`}
                                   data-note-id={item.id}
                                   onDragStart={(e) => {

@@ -20,6 +20,8 @@ import { useCurrentUser } from "@/hooks/use-current-user";
 import { BookInCard, CapacityBadge } from "@/components/booking/BookInCard";
 import { useWorkshopCapacity } from "@/hooks/useWorkshopCapacity";
 import { TechnicianDashboard } from "./my-work";
+import { compareCalendarBookings } from "@/lib/calendar-booking-order";
+import { isBookInCompleted } from "@/lib/book-in-status";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
@@ -35,6 +37,8 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
         property: "og:description",
         content: "Today's book-ins, workshop load for the week ahead and active jobs.",
       },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: Dashboard,
@@ -239,7 +243,7 @@ function TodayBookIns() {
       const { data, error } = await supabase
         .from("bookings")
         .select(
-          "id, scheduled_date, service_type, service_type_other, status, confirmed, bike_arrived, pickup_required, delivery_required, transport_address, loan_bike, assigned_tech_id, job_id, rego, customers(first_name,last_name,phone), motorcycles(make,model,year,rego,photos), jobs(id,status)",
+          "id, scheduled_date, drop_off_time, service_type, service_type_other, status, confirmed, bike_arrived, pickup_required, delivery_required, transport_address, loan_bike, assigned_tech_id, job_id, rego, customers(first_name,last_name,phone), motorcycles(make,model,year,rego,photos), jobs(id,status)",
         )
         .gte("scheduled_date", from)
         .lte("scheduled_date", to)
@@ -251,10 +255,12 @@ function TodayBookIns() {
 
   const rows = (q.data ?? []) as any[];
   const todayKey = format(start, "yyyy-MM-dd");
-  const todays = rows.filter((b) => b.scheduled_date === todayKey);
+  const todays = rows.filter((b) => b.scheduled_date === todayKey).sort(compareCalendarBookings);
   const assignedToday = todays.filter((b: any) => b.assigned_tech_id);
 
   async function assignTech(bookingId: string, techId: string | null) {
+    const booking = rows.find((b) => b.id === bookingId);
+    if (!booking || isBookInCompleted(booking)) return;
     const { error } = await supabase
       .from("bookings")
       .update({ assigned_tech_id: techId })
@@ -264,7 +270,6 @@ function TodayBookIns() {
       return;
     }
     // Keep the linked job card's technician in sync with the book-in.
-    const booking = rows.find((b) => b.id === bookingId);
     if (booking?.job_id) {
       await supabase
         .from("jobs")
@@ -313,7 +318,7 @@ function TodayBookIns() {
             <BookInCard
               key={b.id}
               booking={b}
-              draggable
+              draggable={!isBookInCompleted(b)}
               onDragStart={(e) => {
                 e.dataTransfer.setData("text/plain", b.id);
                 e.dataTransfer.effectAllowed = "move";

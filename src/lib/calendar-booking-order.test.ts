@@ -32,4 +32,7 @@ describe("calendar booking drop order", () => {
     const note = { id: "note", time: "08:20:00", booking: null };
     assert.deepEqual([item(a), item(c), note, item(b)].sort(compareCalendarDayItems).map((i) => i.id), ["B", "note", "C", "A"]);
   });
+  test("a completed booking is never included in the slot update list", () => {
+    assert.deepEqual(reorderActiveCalendarBookings([a, b, c], a, 0).map((i) => i.id), ["B", "C"]);
+  });
 });

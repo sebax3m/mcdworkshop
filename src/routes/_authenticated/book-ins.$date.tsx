@@ -18,6 +18,8 @@ import { useDailyNotesForDate, type DailyNote } from "@/hooks/useDailyNotes";
 import { useWorkshopCapacity } from "@/hooks/useWorkshopCapacity";
 import { bookInStage } from "@/lib/workshop-status";
 import { TechnicianLoad } from "@/components/booking/TechnicianLoad";
+import { compareCalendarBookings } from "@/lib/calendar-booking-order";
+import { isBookInCompleted } from "@/lib/book-in-status";
 
 import { toast } from "sonner";
 
@@ -34,6 +36,8 @@ export const Route = createFileRoute("/_authenticated/book-ins/$date")({
         property: "og:description",
         content: "Every motorcycle booked into the workshop for the selected day.",
       },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: DayView,
@@ -52,19 +56,10 @@ export function useDayBookings(dateStr: string) {
         .eq("scheduled_date", dateStr)
         .order("drop_off_time", { ascending: true });
       if (error) throw error;
-      return data ?? [];
+      return [...(data ?? [])].sort(compareCalendarBookings);
     },
     enabled: !!dateStr,
   });
-}
-
-/** Insertion indicator shown while dragging a book-in. */
-function DropLine() {
-  return (
-    <div className="relative h-0.5 my-1 rounded-full bg-primary">
-      <span className="absolute -left-1 -top-[3px] h-2 w-2 rounded-full bg-primary" />
-    </div>
-  );
 }
 
 function DayView() {
@@ -84,7 +79,6 @@ function DayView() {
   const [editNote, setEditNote] = useState<DailyNote | null>(null);
   const [dragId, setDragId] = useState<string | null>(null);
   const [overCol, setOverCol] = useState<string | null>(null);
-  const [overIdx, setOverIdx] = useState<number | null>(null);
 
   const groups = {
     waiting_inspection: (bookings as any[]).filter((b) => bookInStage(b) === "waiting_inspection"),
@@ -104,6 +98,7 @@ function DayView() {
   }
 
   async function checkIn(b: any) {
+    if (isBookInCompleted(b)) return;
     const { error } = await supabase
       .from("bookings")
       .update({ bike_arrived: true, bike_arrived_at: new Date().toISOString() })
@@ -116,12 +111,13 @@ function DayView() {
   /** Assign (or unassign) a book-in to a technician via drag & drop.
    * Keeps the linked job card's technician in sync so both views agree. */
   async function assignTech(bookingId: string, techId: string | null) {
+    const booking = (bookings as any[]).find((b: any) => b.id === bookingId);
+    if (!booking || isBookInCompleted(booking)) return;
     const { error } = await supabase
       .from("bookings")
       .update({ assigned_tech_id: techId })
       .eq("id", bookingId);
     if (error) return toast.error(error.message);
-    const booking = (bookings as any[]).find((b: any) => b.id === bookingId) as any;
     if (booking?.job_id) {
       await supabase
         .from("jobs")
@@ -143,6 +139,7 @@ function DayView() {
     b: any,
     target: "booked" | "arrived" | "waiting_inspection" | "in_workshop",
   ) {
+    if (isBookInCompleted(b)) return;
     if (bookInStage(b) === target) return;
 
     if (target === "in_workshop") {
@@ -288,17 +285,14 @@ function DayView() {
                 e.preventDefault();
                 e.dataTransfer.dropEffect = "move";
                 setOverCol(key);
-                setOverIdx((i) => (i === null ? list.length : i));
               }}
               onDragLeave={(e) => {
                 if (e.currentTarget.contains(e.relatedTarget as Node)) return;
                 setOverCol((c) => (c === key ? null : c));
-                setOverIdx(null);
               }}
               onDrop={(e) => {
                 e.preventDefault();
                 setOverCol(null);
-                setOverIdx(null);
                 const id = e.dataTransfer.getData("text/plain") || dragId;
                 setDragId(null);
                 const b = (bookings as any[]).find((x) => x.id === id);
@@ -319,29 +313,21 @@ function DayView() {
               </div>
               {list.length === 0 ? (
                 <div className="text-xs text-muted-foreground py-4 text-center">
-                  {dragId && overCol === key ? (
-                    <DropLine />
-                  ) : dragId ? (
+                  {dragId ? (
                     "Drop here"
                   ) : (
                     "Nothing here yet"
                   )}
                 </div>
               ) : (
-                list.map((b: any, idx: number) => (
+                list.map((b: any) => (
                   <div
                     key={b.id}
                     className="space-y-1.5"
-                    onDragOver={(e) => {
-                      if (!dragId) return;
-                      const r = e.currentTarget.getBoundingClientRect();
-                      setOverIdx(e.clientY < r.top + r.height / 2 ? idx : idx + 1);
-                    }}
                   >
-                    {dragId && overCol === key && overIdx === idx && <DropLine />}
                     <BookInCard
                       booking={b}
-                      draggable
+                      draggable={!isBookInCompleted(b)}
                       onDragStart={(e) => {
                         e.dataTransfer.setData("text/plain", b.id);
                         e.dataTransfer.effectAllowed = "move";
@@ -350,20 +336,14 @@ function DayView() {
                       onDragEnd={() => {
                         setDragId(null);
                         setOverCol(null);
-                        setOverIdx(null);
                       }}
                       className={dragId === b.id ? "opacity-50" : ""}
                       onClick={() =>
                         nav({ to: "/bookings/$bookingId", params: { bookingId: b.id } })
                       }
                     />
-                    {dragId &&
-                      overCol === key &&
-                      overIdx === idx + 1 &&
-                      idx === list.length - 1 && <DropLine />}
-
                     <div className="flex gap-1.5">
-                      {showCheckIn && (
+                      {showCheckIn && !isBookInCompleted(b) && (
                         <button
                           onClick={() => checkIn(b)}
                           className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg border border-border px-2 h-8 text-[0.6875rem] font-bold uppercase tracking-wider hover:border-primary/50"
