@@ -1582,7 +1582,7 @@ function CalendarPage() {
                               {item.note ? (
                                 <Button
                                   variant="outline"
-                                  draggable={!isBookInCompleted(item.booking)}
+                                  draggable
                                   aria-label={`Note: ${item.note.title}`}
                                   data-note-id={item.id}
                                   onDragStart={(e) => {
@@ -1603,7 +1603,7 @@ function CalendarPage() {
                                 <BookInCard
                                   booking={item.booking}
                                   dense
-                                  draggable
+                                  draggable={!isBookInCompleted(item.booking)}
                                   onDragStart={(e) => {
                                     e.dataTransfer.effectAllowed = "move";
                                     e.dataTransfer.setData("text/booking-id", item.id);
