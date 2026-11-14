@@ -1,4 +1,5 @@
 # Task roadmap
+- [ ] Correct calendar drop order with completed bookings visible; preserve completed slot times and verify regression tests.
 - [x] Highlight the booked service between bike details and instructions; verified on an existing job card at desktop and mobile sizes.
 - [x] Enable calendar notes to move between positions and days; verified drag, reload persistence, and restored the original test note; two positioning tests pass.
 - [x] Add calendar booking-window actions to duplicate a book-in and book another motorcycle for the same customer; verified both save flows with existing customer/bike IDs, removed temporary bookings, and passed copy tests.
