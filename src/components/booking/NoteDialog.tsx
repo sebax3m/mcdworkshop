@@ -10,7 +10,12 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { Trash2, StickyNote } from "lucide-react";
+import { Trash2, StickyNote, CalendarRange } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { noteDateRange } from "@/lib/note-date-range";
+
+const PRESETS = ["Annual Leave", "Holidays", "Sick Day", "Doctor Appointment", "Training / Off-site"];
 import { toast } from "sonner";
 import {
   useCreateDailyNote,
@@ -36,16 +41,60 @@ export function NoteDialog({ open, onOpenChange, date, time, note }: Props) {
   const del = useDeleteDailyNote();
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
+  const [worker, setWorker] = useState("");
+  const [rangeOn, setRangeOn] = useState(false);
+  const [endDate, setEndDate] = useState(date);
+  const [weekdaysOnly, setWeekdaysOnly] = useState(true);
+  const [busy, setBusy] = useState(false);
+  const qc = useQueryClient();
 
   useEffect(() => {
     if (!open) return;
     setTitle(note?.title ?? "");
     setBody(note?.body ?? "");
-  }, [open, note]);
+    setWorker("");
+    setRangeOn(false);
+    setEndDate(note?.note_date ?? date);
+    setWeekdaysOnly(true);
+  }, [open, note, date]);
 
   const editing = !!note;
+  const startDate = note?.note_date ?? date;
+  const rangeDays = rangeOn ? noteDateRange(startDate, endDate, weekdaysOnly) : [];
+
+  function applyPreset(p: string) {
+    setTitle(worker.trim() ? `${worker.trim()} — ${p}` : p);
+  }
+
+  /** Insert one note per day of the range (skipping the note's own day when copying). */
+  async function saveRange() {
+    if (!title.trim()) return toast.error("Title is required");
+    const days = rangeDays.filter((d) => !(editing && d === note!.note_date));
+    if (!days.length) return toast.error("Choose an end date after the start date");
+    setBusy(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not signed in");
+      if (editing && note) {
+        await update.mutateAsync({ id: note.id, title: title.trim(), body: body.trim() || null });
+      }
+      const t = note?.note_time ?? (time ? `${time}:00`.slice(0, 8) : null);
+      const rows = days.map((d) => ({ note_date: d, note_time: t, title: title.trim(), body: body.trim() || null, created_by: user.id }));
+      const { error } = await supabase.from("daily_notes").insert(rows);
+      if (error) throw error;
+      qc.invalidateQueries({ queryKey: ["daily-notes"] });
+      qc.invalidateQueries({ queryKey: ["daily-notes-day"] });
+      toast.success(`Note added to ${days.length + (editing ? 1 : 0)} days`);
+      onOpenChange(false);
+    } catch (e) {
+      toast.error((e as Error).message ?? "Failed");
+    } finally {
+      setBusy(false);
+    }
+  }
 
   async function save() {
+    if (rangeOn) return saveRange();
     if (!title.trim()) {
       toast.error("Title is required");
       return;
@@ -93,6 +142,13 @@ export function NoteDialog({ open, onOpenChange, date, time, note }: Props) {
         </DialogHeader>
 
         <div className="space-y-2">
+          <Label className="text-xs uppercase tracking-wider text-muted-foreground">Staff away / event</Label>
+          <Input placeholder="Worker name (optional, e.g. Shaun)" value={worker} onChange={(e) => setWorker(e.target.value)} />
+          <div className="flex flex-wrap gap-1.5">
+            {PRESETS.map((p) => (
+              <Button key={p} type="button" size="sm" variant="outline" className="h-7 text-xs" onClick={() => applyPreset(p)}>{p}</Button>
+            ))}
+          </div>
           <Label className="text-xs uppercase tracking-wider text-muted-foreground">Title</Label>
           <Input
             autoFocus
@@ -109,6 +165,24 @@ export function NoteDialog({ open, onOpenChange, date, time, note }: Props) {
             onChange={(e) => setBody(e.target.value)}
             rows={3}
           />
+          <div className="rounded-md border border-border p-2 space-y-2">
+            <label className="flex items-center gap-2 text-sm font-medium">
+              <input type="checkbox" checked={rangeOn} onChange={(e) => setRangeOn(e.target.checked)} />
+              <CalendarRange className="h-4 w-4" /> {editing ? "Copy / extend to more days" : "Several days (date range)"}
+            </label>
+            {rangeOn && (
+              <div className="space-y-2">
+                <div className="grid grid-cols-2 gap-2">
+                  <div><Label className="text-xs text-muted-foreground">From</Label><Input type="date" value={startDate} disabled /></div>
+                  <div><Label className="text-xs text-muted-foreground">To</Label><Input type="date" value={endDate} min={startDate} onChange={(e) => setEndDate(e.target.value)} /></div>
+                </div>
+                <label className="flex items-center gap-2 text-xs">
+                  <input type="checkbox" checked={weekdaysOnly} onChange={(e) => setWeekdaysOnly(e.target.checked)} /> Monday to Friday only
+                </label>
+                <p className="text-xs text-muted-foreground">Will show on {rangeDays.length} day{rangeDays.length === 1 ? "" : "s"}.</p>
+              </div>
+            )}
+          </div>
         </div>
 
         <DialogFooter className="flex items-center justify-between gap-2 sm:justify-between">
@@ -128,9 +202,9 @@ export function NoteDialog({ open, onOpenChange, date, time, note }: Props) {
             </Button>
             <Button
               onClick={save}
-              disabled={!title.trim() || create.isPending || update.isPending}
+              disabled={!title.trim() || busy || create.isPending || update.isPending}
             >
-              {editing ? "Save" : "Add note"}
+              {rangeOn ? `Add to ${rangeDays.length} days` : editing ? "Save" : "Add note"}
             </Button>
           </div>
         </DialogFooter>
