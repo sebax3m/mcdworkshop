@@ -56,6 +56,7 @@ export function NoteDialog({ open, onOpenChange, date, time, note }: Props) {
     setRangeOn(false);
     setEndDate(note?.note_date ?? date);
     setWeekdaysOnly(true);
+    setRelated(null);
   }, [open, note, date]);
 
   const editing = !!note;
@@ -118,12 +119,40 @@ export function NoteDialog({ open, onOpenChange, date, time, note }: Props) {
     }
   }
 
+  const [related, setRelated] = useState<string[] | null>(null);
+
+  /** Find upcoming notes with the same title that continue this run of days (gaps up to 3 days, e.g. weekends). */
   async function remove() {
     if (!note) return;
-    if (!window.confirm("Delete this note?")) return;
+    const { data, error } = await supabase
+      .from("daily_notes")
+      .select("id, note_date")
+      .eq("title", note.title)
+      .gt("note_date", note.note_date)
+      .order("note_date", { ascending: true })
+      .limit(400);
+    if (error) return toast.error(error.message);
+    const ids: string[] = [];
+    let prev = new Date(`${note.note_date}T00:00:00Z`).getTime();
+    for (const r of data ?? []) {
+      const t = new Date(`${r.note_date}T00:00:00Z`).getTime();
+      if (t - prev > 3 * 86400000) break;
+      ids.push(r.id);
+      prev = t;
+    }
+    setRelated(ids);
+  }
+
+  async function confirmDelete(withRelated: boolean) {
+    if (!note) return;
     try {
-      await del.mutateAsync(note.id);
-      toast.success("Note deleted");
+      const ids = [note.id, ...(withRelated ? related ?? [] : [])];
+      const { error } = await supabase.from("daily_notes").delete().in("id", ids);
+      if (error) throw error;
+      qc.invalidateQueries({ queryKey: ["daily-notes"] });
+      qc.invalidateQueries({ queryKey: ["daily-notes-day"] });
+      setRelated(null);
+      toast.success(ids.length > 1 ? `${ids.length} notes deleted` : "Note deleted");
       onOpenChange(false);
     } catch (e) {
       toast.error((e as Error).message ?? "Failed");
@@ -184,6 +213,23 @@ export function NoteDialog({ open, onOpenChange, date, time, note }: Props) {
             )}
           </div>
         </div>
+
+        {related && (
+          <div className="rounded-md border border-destructive/40 bg-destructive/10 p-3 space-y-2">
+            <p className="text-sm font-medium">
+              {related.length
+                ? `There ${related.length === 1 ? "is 1 upcoming related note" : `are ${related.length} upcoming related notes`} ("${note?.title}"). What do you want to delete?`
+                : "Delete this note?"}
+            </p>
+            <div className="flex flex-wrap gap-2">
+              <Button size="sm" variant="destructive" onClick={() => confirmDelete(false)}>Only this day</Button>
+              {related.length > 0 && (
+                <Button size="sm" variant="destructive" onClick={() => confirmDelete(true)}>This + {related.length} upcoming</Button>
+              )}
+              <Button size="sm" variant="outline" onClick={() => setRelated(null)}>Cancel</Button>
+            </div>
+          </div>
+        )}
 
         <DialogFooter className="flex items-center justify-between gap-2 sm:justify-between">
           <div>
