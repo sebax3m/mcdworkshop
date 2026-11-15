@@ -14,6 +14,7 @@ import { Trash2, StickyNote, CalendarRange } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { noteDateRange } from "@/lib/note-date-range";
+import { joinNoteTitle, splitNoteTitle } from "@/lib/note-event-time";
 
 const PRESETS = ["Annual Leave", "Holidays", "Sick Day", "Doctor Appointment", "Training / Off-site"];
 import { toast } from "sonner";
@@ -42,6 +43,7 @@ export function NoteDialog({ open, onOpenChange, date, time, note }: Props) {
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
   const [worker, setWorker] = useState("");
+  const [eventTime, setEventTime] = useState("");
   const [rangeOn, setRangeOn] = useState(false);
   const [endDate, setEndDate] = useState(date);
   const [weekdaysOnly, setWeekdaysOnly] = useState(true);
@@ -50,7 +52,9 @@ export function NoteDialog({ open, onOpenChange, date, time, note }: Props) {
 
   useEffect(() => {
     if (!open) return;
-    setTitle(note?.title ?? "");
+    const parts = splitNoteTitle(note?.title ?? "");
+    setTitle(parts.label);
+    setEventTime(parts.eventTime ?? "");
     setBody(note?.body ?? "");
     setWorker("");
     setRangeOn(false);
@@ -77,10 +81,10 @@ export function NoteDialog({ open, onOpenChange, date, time, note }: Props) {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not signed in");
       if (editing && note) {
-        await update.mutateAsync({ id: note.id, title: title.trim(), body: body.trim() || null });
+        await update.mutateAsync({ id: note.id, title: joinNoteTitle(title, eventTime || null), body: body.trim() || null });
       }
       const t = note?.note_time ?? (time ? `${time}:00`.slice(0, 8) : null);
-      const rows = days.map((d) => ({ note_date: d, note_time: t, title: title.trim(), body: body.trim() || null, created_by: user.id }));
+      const rows = days.map((d) => ({ note_date: d, note_time: t, title: joinNoteTitle(title, eventTime || null), body: body.trim() || null, created_by: user.id }));
       const { error } = await supabase.from("daily_notes").insert(rows);
       if (error) throw error;
       qc.invalidateQueries({ queryKey: ["daily-notes"] });
@@ -102,13 +106,13 @@ export function NoteDialog({ open, onOpenChange, date, time, note }: Props) {
     }
     try {
       if (editing && note) {
-        await update.mutateAsync({ id: note.id, title: title.trim(), body: body.trim() || null });
+        await update.mutateAsync({ id: note.id, title: joinNoteTitle(title, eventTime || null), body: body.trim() || null });
         toast.success("Note updated");
       } else {
         await create.mutateAsync({
           note_date: date,
           note_time: time ? `${time}:00`.slice(0, 8) : null,
-          title: title.trim(),
+          title: joinNoteTitle(title, eventTime || null),
           body: body.trim() || null,
         });
         toast.success("Note added");
@@ -188,6 +192,11 @@ export function NoteDialog({ open, onOpenChange, date, time, note }: Props) {
               if (e.key === "Enter") save();
             }}
           />
+          <div className="flex items-center gap-2">
+            <Label className="text-xs uppercase tracking-wider text-muted-foreground shrink-0">Appointment time</Label>
+            <Input type="time" className="w-32" value={eventTime} onChange={(e) => setEventTime(e.target.value)} />
+            {eventTime && <Button type="button" size="sm" variant="ghost" onClick={() => setEventTime("")}>Clear</Button>}
+          </div>
           <Textarea
             placeholder="Optional longer note"
             value={body}

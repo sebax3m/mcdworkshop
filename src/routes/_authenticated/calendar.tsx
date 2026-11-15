@@ -40,6 +40,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { bookingCopySeed } from "@/lib/booking-copy";
 import { calendarNoteTime } from "@/lib/calendar-note-position";
+import { splitNoteTitle } from "@/lib/note-event-time";
 import { activeBookingDropIndex, compareCalendarBookings, compareCalendarDayItems, reorderActiveCalendarBookings } from "@/lib/calendar-booking-order";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -1384,7 +1385,8 @@ function CalendarPage() {
                         title={n.title}
                       >
                         <StickyNote className="h-2.5 w-2.5 shrink-0" />
-                        <span className="truncate">{n.title}</span>
+                        <span className="truncate">{splitNoteTitle(n.title).label}</span>
+                        {splitNoteTitle(n.title).eventTime && <span className="ml-auto shrink-0 tabular-nums">{splitNoteTitle(n.title).eventTime}</span>}
                       </Button>
                     ))}
 
@@ -1595,8 +1597,12 @@ function CalendarPage() {
                                   onClick={() => setEditNote(item.note)}
                                   className={cn("h-auto w-full flex-col items-start gap-1 whitespace-normal text-left rounded-lg border-service-banana/40 bg-service-banana/10 px-2 py-2 text-service-banana hover:bg-service-banana/20 cursor-grab active:cursor-grabbing", draggingNoteId === item.id && "opacity-40")}
                                 >
-                                  <span className="flex items-center gap-1 text-[0.5625rem] font-bold uppercase"><StickyNote className="h-3 w-3" /> Note</span>
-                                  <span className="text-xs font-semibold break-words w-full">{item.note.title}</span>
+                                  <span className="flex w-full items-center gap-1 text-[0.5625rem] font-bold uppercase"><StickyNote className="h-3 w-3" /> Note
+                                    {splitNoteTitle(item.note.title).eventTime && (
+                                      <span className="ml-auto rounded bg-service-banana/25 px-1.5 py-0.5 text-[0.625rem] font-bold tabular-nums">{splitNoteTitle(item.note.title).eventTime}</span>
+                                    )}
+                                  </span>
+                                  <span className="text-xs font-semibold break-words w-full">{splitNoteTitle(item.note.title).label}</span>
                                 </Button>
                               ) : (
                               <div id={`booking-${item.id}`} className="contents">
