@@ -4,6 +4,8 @@ import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { Coffee, CircleDot, Wrench } from "lucide-react";
+import { useForeground } from "@/hooks/use-foreground";
+import { CLOCK_POLL_MS } from "@/lib/polling-policy";
 
 type Status = "on" | "break" | "off";
 
@@ -27,6 +29,7 @@ function elapsed(since: string | null, now: number) {
 }
 
 export function TeamClockBoard() {
+  const foreground = useForeground();
   const [now, setNow] = useState(Date.now());
   useEffect(() => {
     const i = setInterval(() => setNow(Date.now()), 1000);
@@ -35,7 +38,9 @@ export function TeamClockBoard() {
 
   const board = useQuery({
     queryKey: ["team-clock-board"],
-    refetchInterval: 15000,
+    enabled: foreground,
+    refetchInterval: CLOCK_POLL_MS,
+    refetchIntervalInBackground: false,
     queryFn: async (): Promise<Row[]> => {
       const [{ data: roles }, { data: profiles }] = await Promise.all([
         supabase.from("user_roles").select("user_id, role"),
@@ -63,7 +68,7 @@ export function TeamClockBoard() {
         rolesByUser.set(r.user_id, cur);
       });
       const roleByUser = new Map<string, string>();
-      rolesByUser.forEach((rs, id) => roleByUser.set(id, rs.includes("admin") ? "admin" : rs[0]!));
+      rolesByUser.forEach((rs, id) => roleByUser.set(id, rs.includes("admin") ? "admin" : (rs[0] ?? "technician")));
 
       return (profiles ?? [])
         // technicians and admins both clock in

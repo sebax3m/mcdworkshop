@@ -12,6 +12,8 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { AlertTriangle } from "lucide-react";
+import { useForeground } from "@/hooks/use-foreground";
+import { AUTO_CLOCK_OUT_POLL_MS } from "@/lib/polling-policy";
 
 const CLOCK_OUT_HOUR = 17; // 5:30 PM local time
 const CLOCK_OUT_MINUTE = 30;
@@ -25,6 +27,7 @@ function cutoffFor(clockInAt: Date) {
 
 export function AutoClockOutGuard() {
   const { user, isAdmin } = useCurrentUser();
+  const foreground = useForeground();
   const qc = useQueryClient();
   const [warning, setWarning] = useState<string | null>(null);
   const processingRef = useRef(false);
@@ -33,20 +36,24 @@ export function AutoClockOutGuard() {
   const [tick, setTick] = useState(0);
 
   useEffect(() => {
-    const t = setInterval(() => setTick((n) => n + 1), 30000);
+    if (!foreground) return;
+    setTick((n) => n + 1);
+    const t = setInterval(() => setTick((n) => n + 1), AUTO_CLOCK_OUT_POLL_MS);
     return () => clearInterval(t);
-  }, []);
+  }, [foreground]);
 
   const lastEvent = useQuery({
     queryKey: ["auto-clockout-last-event", user?.id],
-    enabled: !!user,
-    refetchInterval: 60000,
+    enabled: !!user && foreground,
+    refetchInterval: AUTO_CLOCK_OUT_POLL_MS,
+    refetchIntervalInBackground: false,
     refetchOnWindowFocus: true,
     queryFn: async () => {
+      if (!user) return null;
       const { data } = await supabase
         .from("clock_events")
         .select("id, event_type, occurred_at")
-        .eq("user_id", user!.id)
+        .eq("user_id", user.id)
         .order("occurred_at", { ascending: false })
         .limit(1)
         .maybeSingle();
@@ -56,7 +63,7 @@ export function AutoClockOutGuard() {
 
   useEffect(() => {
     void tick;
-    if (!user || processingRef.current) return;
+    if (!user || !foreground || lastEvent.isFetching || processingRef.current) return;
     const ev = lastEvent.data;
 
     const shiftOpen =
@@ -141,7 +148,7 @@ export function AutoClockOutGuard() {
       processingRef.current = false;
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [lastEvent.data, user, isAdmin, qc, tick]);
+  }, [lastEvent.data, lastEvent.isFetching, user, isAdmin, qc, tick, foreground]);
 
 
   return (
