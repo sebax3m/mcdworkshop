@@ -3564,7 +3564,8 @@ function TimeEntriesEditor({
   );
   const [typeFilter, setTypeFilter] = useState<"all" | "service" | "dyno">("all");
   const entryMins = (e: any) =>
-    e.minutes ?? Math.max(0, Math.round(((e.ended_at ? +new Date(e.ended_at) : Date.now()) - +new Date(e.started_at)) / 60000));
+    e.minutes ??
+    (e.ended_at ? Math.max(0, Math.round((+new Date(e.ended_at) - +new Date(e.started_at)) / 60000)) : 0);
   const filtered =
     typeFilter === "all" ? sorted : sorted.filter((e) => (e.work_type ?? "service") === typeFilter);
 

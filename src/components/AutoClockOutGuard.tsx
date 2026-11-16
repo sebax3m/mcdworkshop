@@ -24,7 +24,7 @@ function cutoffFor(clockInAt: Date) {
 }
 
 export function AutoClockOutGuard() {
-  const { user } = useCurrentUser();
+  const { user, isAdmin } = useCurrentUser();
   const qc = useQueryClient();
   const [warning, setWarning] = useState<string | null>(null);
   const processingRef = useRef(false);
@@ -78,11 +78,10 @@ export function AutoClockOutGuard() {
       let didSomething = false;
 
       // 1) Close any job timer left running past its own 5:30 PM cut-off.
-      const { data: openEntries } = await supabase
-        .from("time_entries")
-        .select("id, started_at")
-        .eq("technician_id", user.id)
-        .is("ended_at", null);
+      // Admins also close timers other staff left running (e.g. device switched off).
+      let openQuery = supabase.from("time_entries").select("id, started_at").is("ended_at", null);
+      if (!isAdmin) openQuery = openQuery.eq("technician_id", user.id);
+      const { data: openEntries } = await openQuery;
       for (const entry of openEntries ?? []) {
         const startedAt = new Date(entry.started_at);
         const c = cutoffFor(startedAt);
@@ -142,7 +141,7 @@ export function AutoClockOutGuard() {
       processingRef.current = false;
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [lastEvent.data, user, qc, tick]);
+  }, [lastEvent.data, user, isAdmin, qc, tick]);
 
 
   return (
