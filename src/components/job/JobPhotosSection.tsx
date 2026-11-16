@@ -2,7 +2,7 @@
 import { useMemo, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { getSignedUrl, getSignedUrls, uploadPhoto } from "@/lib/photos";
+import { getSignedUrl, getSignedUrls, getPhotoDisplayUrls, removePhoto, uploadPhoto } from "@/lib/photos";
 import { Camera, Copy, ImageIcon, MessageSquare, Trash2, Upload, X } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -25,6 +25,7 @@ type Row = {
   caption: string | null;
   created_at: string;
   url: string;
+  thumbnailUrl: string;
   category: CategoryKey;
 };
 
@@ -74,10 +75,12 @@ export function JobPhotosSection({
         .order("created_at", { ascending: false });
       if (error) throw error;
       const rows = data ?? [];
-      const urls = await getSignedUrls(rows.map((r) => r.storage_path));
+      const paths = rows.map((r) => r.storage_path);
+      const [urls, thumbnails] = await Promise.all([getSignedUrls(paths), getPhotoDisplayUrls(paths)]);
       return rows.map((r, i) => ({
         ...(r as any),
         url: urls[i],
+        thumbnailUrl: thumbnails[i],
         category: parseCaption(r.caption).category,
       }));
     },
@@ -150,9 +153,7 @@ export function JobPhotosSection({
 
   async function remove(p: Row) {
     if (!confirm("Delete this photo?")) return;
-    await supabase.storage
-      .from("workshop-photos")
-      .remove([p.storage_path])
+    await removePhoto(p.storage_path)
       .catch(() => {});
     await supabase.from("job_photos").delete().eq("id", p.id);
     qc.invalidateQueries({ queryKey: ["job-photos", jobId] });
@@ -301,7 +302,7 @@ export function JobPhotosSection({
               <div className="relative group aspect-square">
                 <button onClick={() => setLightbox(p)} className="block h-full w-full">
                   <img
-                    src={p.url}
+                    src={p.thumbnailUrl}
                     alt={parseCaption(p.caption).name || "Job photo"}
                     className="h-full w-full object-cover"
                     loading="lazy"
