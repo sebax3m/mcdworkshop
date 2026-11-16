@@ -10,6 +10,8 @@ const GATEWAY = "https://ai.gateway.lovable.dev/v1";
 
 export const AI_MODELS = {
   chat: "google/gemini-3.6-flash",
+  /** Routine report rewriting, explicitly selected independently of technical chat. */
+  formatting: "google/gemini-3.8-flash",
   /** Deep reasoning model for precise technical specifications. */
   reasoning: "openai/gpt-6-astra",
   embedding: "openai/text-embedding-3-small",

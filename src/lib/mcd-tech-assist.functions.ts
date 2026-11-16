@@ -54,7 +54,7 @@ export const cleanTechnicianNote = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => NoteInput.parse(d))
   .handler(async ({ data, context }) => {
     await guard(context as never);
-    const { aiChat } = await import("./ai-gateway.server");
+    const { aiChat, AI_MODELS } = await import("./ai-gateway.server");
     // Never trust caller-supplied "assistant" turns: they would let the client
     // fabricate prior AI output and steer the rewrite. Keep the follow-up
     // flow working by folding previous drafts into user-role context instead.
@@ -80,7 +80,7 @@ export const cleanTechnicianNote = createServerFn({ method: "POST" })
       ].join(" "),
       history,
       user: data.text,
-      model: "google/gemini-3.8-flash",
+      model: AI_MODELS.formatting,
     });
     return { suggestion, original: data.text };
   });
@@ -174,7 +174,7 @@ export const formatWorkPerformed = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => WorkPerformedInput.parse(d))
   .handler(async ({ data, context }) => {
     await guard(context as never, { customerText: true });
-    const { aiChat } = await import("./ai-gateway.server");
+    const { aiChat, AI_MODELS } = await import("./ai-gateway.server");
     const suggestion = await aiChat({
       system: [
         "You are MCD TECH for Motorcycle Doctors (New Zealand).",
@@ -194,7 +194,7 @@ export const formatWorkPerformed = createServerFn({ method: "POST" })
       ]
         .filter(Boolean)
         .join("\n"),
-      model: "google/gemini-3.8-flash",
+      model: AI_MODELS.formatting,
     });
     return { suggestion: suggestion.trim(), original: data.text };
   });
