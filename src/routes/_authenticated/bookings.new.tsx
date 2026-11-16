@@ -1404,7 +1404,7 @@ function NewBooking() {
 function PhotoThumb({ path }: { path: string }) {
   const [url, setUrl] = useState("");
   useMemo(() => {
-    import("@/lib/photos").then(({ getSignedUrl }) => getSignedUrl(path).then(setUrl));
+    import("@/lib/photos").then(({ getPhotoDisplayUrl }) => getPhotoDisplayUrl(path).then(setUrl));
   }, [path]);
   if (!url) return <div className="h-full w-full animate-pulse bg-muted" />;
   return <img src={url} alt="" className="h-full w-full object-cover" />;
