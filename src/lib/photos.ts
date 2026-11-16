@@ -1,25 +1,22 @@
 import { supabase } from "@/integrations/supabase/client";
+import { PHOTO_MAX_DIMENSION, THUMB_MAX_DIMENSION, THUMB_MAX_BYTES, photoDimensions, photoThumbnailPath, photoStoragePaths } from "./photo-policy";
 
 const BUCKET = "workshop-photos";
 
 const MAX_BYTES = 2 * 1024 * 1024; // 2 MB hard cap per photo
-const MAX_DIMENSION = 2400;
 
 /**
  * Downscale/recompress an image in the browser so no upload exceeds 2 MB,
  * regardless of the phone/camera that produced it.
  */
-export async function compressImage(file: File, maxBytes = MAX_BYTES): Promise<File> {
+export async function compressImage(file: File, maxBytes = MAX_BYTES, maxDimension = PHOTO_MAX_DIMENSION, force = false): Promise<File> {
   if (typeof window === "undefined") return file;
   if (!file.type.startsWith("image/") || file.type === "image/gif") return file;
-  if (file.size <= maxBytes && file.type !== "image/heic") return file;
+  if (!force && file.size <= maxBytes && file.type !== "image/heic") return file;
 
   try {
     const bitmap = await createImageBitmap(file);
-    let { width, height } = bitmap;
-    const scale = Math.min(1, MAX_DIMENSION / Math.max(width, height));
-    width = Math.round(width * scale);
-    height = Math.round(height * scale);
+    let { width, height } = photoDimensions(bitmap.width, bitmap.height, maxDimension);
 
     const canvas = document.createElement("canvas");
     const ctx = canvas.getContext("2d");
@@ -55,14 +52,28 @@ export async function compressImage(file: File, maxBytes = MAX_BYTES): Promise<F
 }
 
 export async function uploadPhoto(file: File, prefix: string): Promise<string> {
-  const compressed = await compressImage(file);
+  const compressed = await compressImage(file, MAX_BYTES, PHOTO_MAX_DIMENSION, true);
+  const thumbnail = await compressImage(compressed, THUMB_MAX_BYTES, THUMB_MAX_DIMENSION, true);
+  const paired = thumbnail !== compressed && thumbnail.size <= THUMB_MAX_BYTES;
   const ext = (compressed.name.split(".").pop() || "jpg").toLowerCase();
-  const path = `${prefix}/${crypto.randomUUID()}.${ext}`;
+  const path = `${prefix}/${crypto.randomUUID()}${paired ? ".full" : ""}.${ext}`;
   const { error } = await supabase.storage.from(BUCKET).upload(path, compressed, {
     upsert: false,
     contentType: compressed.type || "image/jpeg",
+    cacheControl: "31536000",
   });
   if (error) throw error;
+  if (paired) {
+    const { error: thumbError } = await supabase.storage.from(BUCKET).upload(photoThumbnailPath(path), thumbnail, {
+      upsert: false,
+      contentType: "image/jpeg",
+      cacheControl: "31536000",
+    });
+    if (thumbError) {
+      await supabase.storage.from(BUCKET).remove([path]);
+      throw thumbError;
+    }
+  }
   return path;
 }
 
@@ -78,4 +89,16 @@ export async function getSignedUrls(paths: string[]): Promise<string[]> {
   if (!paths?.length) return [];
   const { data } = await supabase.storage.from(BUCKET).createSignedUrls(paths, 60 * 60 * 8);
   return (data ?? []).map((d) => d.signedUrl ?? "");
+}
+
+export async function getPhotoDisplayUrls(paths: string[]): Promise<string[]> {
+  return getSignedUrls(paths.map(photoThumbnailPath));
+}
+
+export async function getPhotoDisplayUrl(path: string): Promise<string> {
+  return getSignedUrl(photoThumbnailPath(path));
+}
+
+export async function removePhoto(path: string) {
+  return supabase.storage.from(BUCKET).remove(photoStoragePaths(path));
 }

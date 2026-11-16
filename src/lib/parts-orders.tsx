@@ -6,6 +6,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Package } from "lucide-react";
 import { useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
+import { useForeground } from "@/hooks/use-foreground";
 
 export const SUPPLIERS = ["Darbi", "R2", "F & Davies", "Nationwide", "Eurobike", "Whites", "Others"];
 /** Extra suppliers offered as suggestions (supplier is free text). */
@@ -114,9 +115,12 @@ export function useBookingPartsIndex() {
 
 /** Live sidebar count: parts still to order + book-ins flagged "parts required" with nothing listed yet. */
 export function useOpenPartsOrdersCount() {
+  const foreground = useForeground();
   return useQuery({
     queryKey: ["parts-orders", "pending-count"],
+    enabled: foreground,
     refetchInterval: 60_000,
+    refetchIntervalInBackground: false,
     queryFn: async () => {
       const { count, error } = await supabase
         .from("booking_parts")
@@ -219,10 +223,12 @@ export type NeedsOrderingRow = {
 
 /** Parts with status "needs_ordering", joined to their booking for the popup. */
 export function useNeedsOrderingParts(enabled: boolean) {
+  const foreground = useForeground();
   return useQuery({
     queryKey: ["parts-orders", "needs-ordering-list"],
-    enabled,
+    enabled: enabled && foreground,
     refetchInterval: 60_000,
+    refetchIntervalInBackground: false,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("booking_parts")

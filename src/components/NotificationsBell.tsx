@@ -8,6 +8,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
+import { useForeground } from "@/hooks/use-foreground";
+import { NOTIFICATION_POLL_MS } from "@/lib/polling-policy";
 
 type Notification = {
   id: string;
@@ -23,14 +25,16 @@ type Notification = {
 
 export function NotificationsBell() {
   const { user, isAdmin } = useCurrentUser();
+  const foreground = useForeground();
   const qc = useQueryClient();
   const nav = useNavigate();
   const [open, setOpen] = useState(false);
 
   const notifsQ = useQuery({
     queryKey: ["notifications", user?.id],
-    enabled: !!user,
-    refetchInterval: 30_000,
+    enabled: !!user && foreground,
+    refetchInterval: NOTIFICATION_POLL_MS,
+    refetchIntervalInBackground: false,
     queryFn: async () => {
       const { data } = await supabase
         .from("notifications")
@@ -45,13 +49,15 @@ export function NotificationsBell() {
 
   const readsQ = useQuery({
     queryKey: ["notification-reads", user?.id],
-    enabled: !!user,
-    refetchInterval: 30_000,
+    enabled: !!user && foreground,
+    refetchInterval: NOTIFICATION_POLL_MS,
+    refetchIntervalInBackground: false,
     queryFn: async () => {
+      if (!user) return new Set<string>();
       const { data } = await supabase
         .from("notification_reads")
         .select("notification_id")
-        .eq("user_id", user!.id);
+        .eq("user_id", user.id);
       return new Set((data ?? []).map((r: any) => r.notification_id as string));
     },
   });
@@ -83,7 +89,7 @@ export function NotificationsBell() {
   const badgeCount = unreadCount + actionRequired.length;
 
   useEffect(() => {
-    if (!user) return;
+    if (!user || !foreground) return;
     const ch = supabase
       .channel("notifications-bell")
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "notifications" }, () => {
@@ -96,7 +102,7 @@ export function NotificationsBell() {
     return () => {
       supabase.removeChannel(ch);
     };
-  }, [user, qc]);
+  }, [user, qc, foreground]);
 
   async function markRead(id: string) {
     if (!user || readSet.has(id)) return;

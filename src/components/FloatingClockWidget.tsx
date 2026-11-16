@@ -5,9 +5,12 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { Clock, Coffee, GripVertical, Wrench } from "lucide-react";
+import { useForeground } from "@/hooks/use-foreground";
+import { CLOCK_POLL_MS } from "@/lib/polling-policy";
 
 export function FloatingClockWidget() {
   const { user } = useCurrentUser();
+  const foreground = useForeground();
   const [now, setNow] = useState(Date.now());
   const [pos, setPos] = useState<{ x: number; y: number } | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -18,13 +21,15 @@ export function FloatingClockWidget() {
 
   const events = useQuery({
     queryKey: ["clock-events-floating", user?.id],
-    enabled: !!user,
-    refetchInterval: 15000,
+    enabled: !!user && foreground,
+    refetchInterval: CLOCK_POLL_MS,
+    refetchIntervalInBackground: false,
     queryFn: async () => {
+      if (!user) return [];
       const { data } = await supabase
         .from("clock_events")
         .select("id, event_type, occurred_at, job_id")
-        .eq("user_id", user!.id)
+        .eq("user_id", user.id)
         .order("occurred_at", { ascending: false })
         .limit(20);
       return data ?? [];
@@ -38,15 +43,17 @@ export function FloatingClockWidget() {
 
   const activeTimerJob = useQuery({
     queryKey: ["clock-floating-active-time-entry", user?.id],
-    enabled: !!user,
-    refetchInterval: 5000,
+    enabled: !!user && foreground,
+    refetchInterval: CLOCK_POLL_MS,
+    refetchIntervalInBackground: false,
     queryFn: async () => {
+      if (!user) return null;
       const { data } = await supabase
         .from("time_entries")
         .select(
           "job_id, started_at, jobs(id, job_number, complaint, motorcycles(make, model, rego))",
         )
-        .eq("technician_id", user!.id)
+        .eq("technician_id", user.id)
         .is("ended_at", null)
         .order("started_at", { ascending: false })
         .limit(1)
@@ -87,12 +94,13 @@ export function FloatingClockWidget() {
 
   const job = useQuery({
     queryKey: ["clock-floating-job", resolvedJobId],
-    enabled: !!resolvedJobId,
+    enabled: !!resolvedJobId && foreground,
     queryFn: async () => {
+      if (!resolvedJobId) return null;
       const { data } = await supabase
         .from("jobs")
         .select("id, job_number, complaint, motorcycles(make, model, rego)")
-        .eq("id", resolvedJobId!)
+        .eq("id", resolvedJobId)
         .maybeSingle();
       return data;
     },

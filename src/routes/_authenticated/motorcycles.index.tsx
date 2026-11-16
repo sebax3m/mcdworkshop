@@ -53,6 +53,14 @@ const BIKE_FILTERS: { key: BikeFilter; label: string }[] = [
 ];
 
 export const Route = createFileRoute("/_authenticated/motorcycles/")({
+  head: () => ({ meta: [
+    { title: "Motorcycles — Motorcycle Doctors" },
+    { name: "description", content: "Find workshop motorcycles, customer bike records and photos at Motorcycle Doctors." },
+    { property: "og:title", content: "Motorcycles — Motorcycle Doctors" },
+    { property: "og:description", content: "Find workshop motorcycles, customer bike records and photos at Motorcycle Doctors." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+  ] }),
   component: Bikes,
 });
 
@@ -746,7 +754,7 @@ function Bikes() {
 function BikePhotoThumb({ path }: { path: string }) {
   const [url, setUrl] = useState("");
   useEffect(() => {
-    import("@/lib/photos").then(({ getSignedUrl }) => getSignedUrl(path).then(setUrl));
+    import("@/lib/photos").then(({ getPhotoDisplayUrl }) => getPhotoDisplayUrl(path).then(setUrl));
   }, [path]);
   if (!url) return <div className="h-full w-full animate-pulse bg-muted" />;
   return <img src={url} alt="" className="h-full w-full object-cover" />;

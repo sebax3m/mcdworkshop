@@ -34,10 +34,18 @@ import { changeBookingMotorcycle, fetchCustomerBikes } from "@/lib/bike-assign";
 import { toast } from "sonner";
 import { displayCustomerName } from "@/lib/display";
 import { fullBike } from "@/lib/format";
-import { getSignedUrls } from "@/lib/photos";
+import { getSignedUrls, getPhotoDisplayUrls } from "@/lib/photos";
 import { format } from "date-fns";
 
 export const Route = createFileRoute("/_authenticated/bookings/$bookingId")({
+  head: () => ({ meta: [
+    { title: "Book-in Details — Motorcycle Doctors" },
+    { name: "description", content: "Review motorcycle book-in details, arrival photos and parts at Motorcycle Doctors." },
+    { property: "og:title", content: "Book-in Details — Motorcycle Doctors" },
+    { property: "og:description", content: "Review motorcycle book-in details, arrival photos and parts at Motorcycle Doctors." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+  ] }),
   component: BookingDetail,
 });
 
@@ -49,6 +57,7 @@ function BookingDetail() {
   const [completing, setCompleting] = useState(false);
   const [reversing, setReversing] = useState(false);
   const [photoUrls, setPhotoUrls] = useState<string[]>([]);
+  const [photoThumbnails, setPhotoThumbnails] = useState<string[]>([]);
   const [loanOpen, setLoanOpen] = useState(false);
   const [sendingInvite, setSendingInvite] = useState(false);
   const [cancellingInvite, setCancellingInvite] = useState(false);
@@ -152,8 +161,12 @@ function BookingDetail() {
 
   useEffect(() => {
     const photos = b?.arrival_photos as string[] | undefined;
-    if (photos?.length) getSignedUrls(photos).then(setPhotoUrls);
-    else setPhotoUrls([]);
+    let alive = true;
+    if (photos?.length) Promise.all([getSignedUrls(photos), getPhotoDisplayUrls(photos)]).then(([originals, thumbnails]) => {
+      if (alive) { setPhotoUrls(originals); setPhotoThumbnails(thumbnails); }
+    });
+    else { setPhotoUrls([]); setPhotoThumbnails([]); }
+    return () => { alive = false; };
   }, [b?.arrival_photos]);
 
   // Automatic CarJam lookup: when the booking is opened and the bike has a
@@ -528,8 +541,9 @@ function BookingDetail() {
                 className="block aspect-square rounded-lg overflow-hidden bg-muted"
               >
                 <img
-                  src={u}
+                  src={photoThumbnails[i]}
                   alt=""
+                  loading="lazy"
                   className="h-full w-full object-cover hover:scale-105 transition-transform"
                 />
               </a>

@@ -4,7 +4,7 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { logJobEvent } from "@/lib/job-events";
-import { getSignedUrl } from "@/lib/photos";
+import { getSignedUrl, getPhotoDisplayUrl } from "@/lib/photos";
 import { useTechnicianNames } from "@/hooks/use-technician-names";
 import {
   CATEGORY_LABEL,
@@ -477,10 +477,13 @@ function FindingRow({
 }) {
   const names = useTechnicianNames();
   const [photoUrl, setPhotoUrl] = useState("");
+  const [thumbnailUrl, setThumbnailUrl] = useState("");
   useEffect(() => {
     let alive = true;
-    if (f.photo_path) getSignedUrl(f.photo_path).then((u) => alive && setPhotoUrl(u));
-    else setPhotoUrl("");
+    if (f.photo_path) Promise.all([getSignedUrl(f.photo_path), getPhotoDisplayUrl(f.photo_path)]).then(([original, thumbnail]) => {
+      if (alive) { setPhotoUrl(original); setThumbnailUrl(thumbnail); }
+    });
+    else { setPhotoUrl(""); setThumbnailUrl(""); }
     return () => {
       alive = false;
     };
@@ -491,7 +494,7 @@ function FindingRow({
       <div className="flex items-start gap-2.5">
         {photoUrl && (
           <a href={photoUrl} target="_blank" rel="noreferrer" className="shrink-0">
-            <img src={photoUrl} alt="" className="h-12 w-12 rounded-md object-cover" />
+            <img src={thumbnailUrl} alt="" className="h-12 w-12 rounded-md object-cover" loading="lazy" />
           </a>
         )}
         <div className="min-w-0 flex-1">

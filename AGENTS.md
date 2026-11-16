@@ -23,3 +23,6 @@
 - Calendar notes use their existing note_time for position among book-ins; note dragging updates only note date/time and never reschedules bookings.
 - Calendar, day view, dashboard and technician lists share calendar-booking-order helpers; only active bookings can be dragged or restamped, and stage-only boards never show positional insertion hints.
 - Diagnostic bookings are auto-promoted to the service named in their notes/instructions by a bookings DB trigger (detect_service_from_text), which also renames the linked job — one rule for calendar, book-in and job card.
+- Client polling uses useForeground to disable hidden/unfocused queries and resumes on focus; automatic clock-out recovers missed cutoffs on return so idle tabs do not query continuously.
+- Workshop photo uploads store immutable paired .full and .thumb paths through photos.ts; grids use display URLs, zoom/PDF retain originals, deletion removes both, and legacy paths fall back without destructive migration.
+- Routine report rewriting uses AI_MODELS.formatting through aiChat, separate from technical reasoning, so changing formatting models cannot downgrade specifications or diagnostics.

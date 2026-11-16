@@ -2,7 +2,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { getSignedUrls, uploadPhoto } from "@/lib/photos";
+import { getSignedUrls, getPhotoDisplayUrls, removePhoto, uploadPhoto } from "@/lib/photos";
 import { AlertTriangle, Camera, Trash2, X, RotateCcw, Save } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -60,8 +60,9 @@ export function DamageSection({
         .order("created_at", { ascending: false });
       if (error) throw error;
       const rows = data ?? [];
-      const urls = await getSignedUrls(rows.map((r) => r.storage_path));
-      return rows.map((r, i) => ({ ...r, url: urls[i] }));
+      const paths = rows.map((r) => r.storage_path);
+      const [urls, thumbnails] = await Promise.all([getSignedUrls(paths), getPhotoDisplayUrls(paths)]);
+      return rows.map((r, i) => ({ ...r, url: urls[i], thumbnailUrl: thumbnails[i] }));
     },
   });
 
@@ -146,9 +147,7 @@ export function DamageSection({
 
   async function deletePhoto(id: string, path: string) {
     if (!confirm("Delete this photo?")) return;
-    await supabase.storage
-      .from("workshop-photos")
-      .remove([path])
+    await removePhoto(path)
       .catch(() => {});
     await supabase.from("job_photos").delete().eq("id", id);
     qc.invalidateQueries({ queryKey: ["job-damage-photos", jobId] });
@@ -361,12 +360,15 @@ export function DamageSection({
                 key={p.id}
                 className="relative group rounded-lg overflow-hidden border border-border bg-card aspect-square print:bg-white"
               >
-                <img
-                  src={p.url}
-                  alt={p.caption ?? ""}
-                  className="w-full h-full object-cover"
-                  loading="lazy"
-                />
+                <picture>
+                  <source media="print" srcSet={p.url} />
+                  <img
+                    src={p.thumbnailUrl}
+                    alt={p.caption ?? ""}
+                    className="w-full h-full object-cover"
+                    loading="lazy"
+                  />
+                </picture>
                 {canEdit && (
                   <button
                     onClick={() => deletePhoto(p.id, p.storage_path)}
