@@ -1,7 +1,7 @@
 # Task roadmap
-- [ ] Reduce focused-tab polling and pause background queries while preserving clock-out recovery.
-- [ ] Add small display photo variants while retaining original images for zoom and PDF.
-- [ ] Move routine note formatting to Gemini Flash and verify both formatting flows.
+- [x] Reduce clock polling to 30 seconds, notifications and recovery to 60 seconds; verified 0 database reads during 65 unfocused seconds and reads resume on focus.
+- [x] Add 800px/200KB display variants for new uploads and retain 2400px originals for zoom/PDF; uploaded/read/deleted both variants in an authorized session. Legacy photos retain originals; historical thumbnail backfill not performed.
+- [x] Move both routine note formatting flows to user-selected Gemini 3.8 Flash; real UI outputs preserve the tested facts, gateway confirms successful calls, and 16 regression tests pass. Monetary savings not yet measured.
 - [x] Sweep calendar, day view, dashboard, technician assignment, notes, Google Calendar and live booking database functions; share completed-last order, remove false day-view insertion hints, block completed booking drags, and leave saved historical records untouched. Eight tests pass; authenticated UI verification remains blocked below.
 - [x] Correct calendar drop order with completed bookings visible and preserve completed slot times; seven regression tests pass and build OK.
 - [ ] Verify corrected calendar drag and reload in an authorized session (blocked: session mint failed; user must sign in to preview).

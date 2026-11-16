@@ -53,6 +53,14 @@ const BIKE_FILTERS: { key: BikeFilter; label: string }[] = [
 ];
 
 export const Route = createFileRoute("/_authenticated/motorcycles/")({
+  head: () => ({ meta: [
+    { title: "Motorcycles — Motorcycle Doctors" },
+    { name: "description", content: "Find workshop motorcycles, customer bike records and photos at Motorcycle Doctors." },
+    { property: "og:title", content: "Motorcycles — Motorcycle Doctors" },
+    { property: "og:description", content: "Find workshop motorcycles, customer bike records and photos at Motorcycle Doctors." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+  ] }),
   component: Bikes,
 });
 
