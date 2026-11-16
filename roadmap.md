@@ -1,4 +1,7 @@
 # Task roadmap
+- [ ] Reduce focused-tab polling and pause background queries while preserving clock-out recovery.
+- [ ] Add small display photo variants while retaining original images for zoom and PDF.
+- [ ] Move routine note formatting to Gemini Flash and verify both formatting flows.
 - [x] Sweep calendar, day view, dashboard, technician assignment, notes, Google Calendar and live booking database functions; share completed-last order, remove false day-view insertion hints, block completed booking drags, and leave saved historical records untouched. Eight tests pass; authenticated UI verification remains blocked below.
 - [x] Correct calendar drop order with completed bookings visible and preserve completed slot times; seven regression tests pass and build OK.
 - [ ] Verify corrected calendar drag and reload in an authorized session (blocked: session mint failed; user must sign in to preview).
