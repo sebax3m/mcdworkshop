@@ -384,7 +384,7 @@ function CalendarPage() {
         if (local.year) setQBikeYear(String(local.year));
         if (local.wof_expiry) setQWofExpiry(local.wof_expiry);
         if (local.rego_expiry) setQRegoExpiry(local.rego_expiry);
-        if (local.vin) setQVin(local.vin);
+        if (local.vin) setQVin(String(local.vin));
         if (local.color) setQBikeColor(local.color);
         // Complete record with WOF/rego still valid — no Carjam lookup needed.
         if (missing.length === 0 && expiryIssues.length === 0) {
@@ -414,7 +414,7 @@ function CalendarPage() {
       if (r.year) setQBikeYear(String(r.year));
       if (r.wof_expiry) setQWofExpiry(r.wof_expiry);
       if (r.rego_expiry) setQRegoExpiry(r.rego_expiry);
-      if (r.vin) setQVin(r.vin);
+      if (r.vin) setQVin(String(r.vin));
       if (r.color) setQBikeColor(r.color);
       setQCarjamFetched(true);
       // Persist to the bike's record right away, even if the booking is never finished.
@@ -718,7 +718,7 @@ function CalendarPage() {
       setQBikeModel(b.motorcycles?.model ?? "");
       setQBikeYear(b.motorcycles?.year ? String(b.motorcycles.year) : "");
       setQBikeRego(b.motorcycles?.rego ?? b.rego ?? "");
-      setQVin(b.motorcycles?.vin ?? b.vin ?? "");
+      setQVin(String(b.motorcycles?.vin ?? b.vin ?? ""));
       setQWofExpiry(b.motorcycles?.wof_expiry ?? b.wof_expiry ?? "");
       setQRegoExpiry(b.motorcycles?.rego_expiry ?? "");
       setQBikeColor(b.motorcycles?.color ?? "");
@@ -769,8 +769,8 @@ function CalendarPage() {
             model: String(qBikeModel ?? "").trim(),
             year: qBikeYear ? Number(qBikeYear) : null,
             rego: qBikeRego.trim().toUpperCase() || null,
-            vin: qVin.trim().toUpperCase() || null,
-            color: qBikeColor.trim() || null,
+            vin: String(qVin ?? "").trim().toUpperCase() || null,
+            color: String(qBikeColor ?? "").trim() || null,
             wof_expiry: qWofExpiry || null,
             rego_expiry: qRegoExpiry || null,
           })
@@ -780,8 +780,8 @@ function CalendarPage() {
         bikeId = bike.id;
       } else if (qCarjamFetched) {
         const patch: Record<string, any> = {};
-        if (qVin.trim()) patch.vin = qVin.trim().toUpperCase();
-        if (qBikeColor.trim()) patch.color = qBikeColor.trim();
+        if (String(qVin ?? "").trim()) patch.vin = String(qVin ?? "").trim().toUpperCase();
+        if (String(qBikeColor ?? "").trim()) patch.color = String(qBikeColor ?? "").trim();
         if (qWofExpiry) patch.wof_expiry = qWofExpiry;
         if (qRegoExpiry) patch.rego_expiry = qRegoExpiry;
         if (Object.keys(patch).length) {
@@ -816,8 +816,8 @@ function CalendarPage() {
           transport_notes: qPickup || qDelivery ? qTransportNotes.trim() || null : null,
           status: "booked",
           wof_expiry: qWofExpiry || null,
-          vin: qVin.trim().toUpperCase() || null,
-          color: qBikeColor.trim() || null,
+          vin: String(qVin ?? "").trim().toUpperCase() || null,
+          color: String(qBikeColor ?? "").trim() || null,
           notes:
             [qNotes.trim(), qWofNeeded ? "WOF required" : ""].filter(Boolean).join("\n") || null,
         })

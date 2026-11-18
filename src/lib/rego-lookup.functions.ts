@@ -194,15 +194,16 @@ export const lookupRego = createServerFn({ method: "POST" })
     const ccRaw = get("cc_rating", "cc", "engineCc", "engine_capacity", "ccrating");
     const ccNum = ccRaw ? parseInt(String(ccRaw).replace(/\D/g, ""), 10) || undefined : undefined;
 
+    const str = (v: unknown) => (v == null || v === "" ? undefined : String(v).trim());
     const result: RegoLookupResult = {
       rego: plate,
-      vin: get("vin", "vin_number", "vinnumber", "chassis"),
-      make: get("make", "manufacturer"),
-      model: get("model", "modelname"),
+      vin: str(get("vin", "vin_number", "vinnumber", "chassis")),
+      make: str(get("make", "manufacturer")),
+      model: str(get("model", "modelname")),
       year: yearNum,
-      color: get("main_colour", "maincolour", "colour", "color"),
+      color: str(get("main_colour", "maincolour", "colour", "color")),
       cc: ccNum,
-      fuel: get("fuel_type", "fueltype", "fuel"),
+      fuel: str(get("fuel_type", "fueltype", "fuel")),
       wof_expiry: toISODate(
         get(
           "expiry_date_of_last_successful_wof",
