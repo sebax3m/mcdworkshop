@@ -119,24 +119,25 @@ export function ClaimDamageSection({ claimId, canEdit }: { claimId: string; canE
               onChange={handleUpload}
               className="hidden"
             />
-            <Button
-              onClick={() => cameraRef.current?.click()}
-              disabled={uploading}
-              size="sm"
-              variant="outline"
-              className="gap-2"
-            >
-              <Camera className="h-3.5 w-3.5" /> Camera
-            </Button>
-            <Button
-              onClick={() => fileRef.current?.click()}
-              disabled={uploading}
-              size="sm"
-              variant="outline"
-              className="gap-2"
-            >
-              <ImageIcon className="h-3.5 w-3.5" /> {uploading ? "Uploading…" : "Library"}
-            </Button>
+            <div className="flex items-center gap-1.5">
+              <Button
+                onClick={() => cameraRef.current?.click()}
+                disabled={uploading}
+                size="sm"
+                className="gap-1.5"
+              >
+                <Camera className="h-3.5 w-3.5" /> Camera
+              </Button>
+              <Button
+                onClick={() => fileRef.current?.click()}
+                disabled={uploading}
+                size="sm"
+                variant="secondary"
+                className="gap-1.5"
+              >
+                <ImageIcon className="h-3.5 w-3.5" /> {uploading ? "Uploading…" : "Library"}
+              </Button>
+            </div>
           </>
         )}
       </div>

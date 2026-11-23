@@ -1337,27 +1337,29 @@ function NewBooking() {
               <Label className="text-xs uppercase tracking-wider text-muted-foreground">
                 Arrival & damage photos
               </Label>
-              <label className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-2 text-xs font-semibold hover:border-primary/50 cursor-pointer">
-                <Camera className="h-3.5 w-3.5" /> Camera
-                <input
-                  type="file"
-                  accept="image/*"
-                  multiple
-                  capture="environment"
-                  className="hidden"
-                  onChange={(e) => handlePhotos(e.target.files)}
-                />
-              </label>
-              <label className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-2 text-xs font-semibold hover:border-primary/50 cursor-pointer">
-                <ImageIcon className="h-3.5 w-3.5" /> {uploading ? "Uploading…" : "Library"}
-                <input
-                  type="file"
-                  accept="image/*"
-                  multiple
-                  className="hidden"
-                  onChange={(e) => handlePhotos(e.target.files)}
-                />
-              </label>
+              <div className="flex items-center gap-1.5">
+                <label className="inline-flex items-center gap-1.5 rounded-lg border border-primary/40 bg-primary/10 text-primary px-3 py-2 text-xs font-semibold hover:bg-primary/20 cursor-pointer">
+                  <Camera className="h-3.5 w-3.5" /> Camera
+                  <input
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    capture="environment"
+                    className="hidden"
+                    onChange={(e) => handlePhotos(e.target.files)}
+                  />
+                </label>
+                <label className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-secondary text-secondary-foreground px-3 py-2 text-xs font-semibold hover:bg-secondary/80 cursor-pointer">
+                  <ImageIcon className="h-3.5 w-3.5" /> {uploading ? "Uploading…" : "Library"}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    className="hidden"
+                    onChange={(e) => handlePhotos(e.target.files)}
+                  />
+                </label>
+              </div>
             </div>
             {arrivalPhotos.length > 0 && (
               <div className="grid grid-cols-4 gap-2">

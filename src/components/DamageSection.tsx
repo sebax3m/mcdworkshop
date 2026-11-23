@@ -344,24 +344,25 @@ export function DamageSection({
                 onChange={handleUpload}
                 className="hidden"
               />
-              <Button
-                onClick={() => cameraRef.current?.click()}
-                disabled={uploading}
-                size="sm"
-                variant="outline"
-                className="gap-2 print:hidden"
-              >
-                <Camera className="h-3.5 w-3.5" /> Camera
-              </Button>
-              <Button
-                onClick={() => fileRef.current?.click()}
-                disabled={uploading}
-                size="sm"
-                variant="outline"
-                className="gap-2 print:hidden"
-              >
-                <ImageIcon className="h-3.5 w-3.5" /> {uploading ? "Uploading…" : "Library"}
-              </Button>
+              <div className="flex items-center gap-1.5">
+                <Button
+                  onClick={() => cameraRef.current?.click()}
+                  disabled={uploading}
+                  size="sm"
+                  className="gap-1.5 print:hidden"
+                >
+                  <Camera className="h-3.5 w-3.5" /> Camera
+                </Button>
+                <Button
+                  onClick={() => fileRef.current?.click()}
+                  disabled={uploading}
+                  size="sm"
+                  variant="secondary"
+                  className="gap-1.5 print:hidden"
+                >
+                  <ImageIcon className="h-3.5 w-3.5" /> {uploading ? "Uploading…" : "Library"}
+                </Button>
+              </div>
             </>
           )}
         </div>

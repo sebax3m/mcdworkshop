@@ -561,7 +561,7 @@ function Bikes() {
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <span className="text-xs uppercase tracking-wider text-muted-foreground">Photos</span>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5">
                 <button
                   type="button"
                   onClick={autoGenerateBikePhoto}
@@ -570,7 +570,7 @@ function Bikes() {
                 >
                   <Sparkles className="h-3.5 w-3.5" /> {generating ? "Generating…" : "AI generate"}
                 </button>
-                <label className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-xs font-semibold hover:border-primary/50 cursor-pointer">
+                <label className="inline-flex items-center gap-1.5 rounded-lg border border-primary/40 bg-primary/10 text-primary px-3 py-1.5 text-xs font-semibold hover:bg-primary/20 cursor-pointer">
                   <Camera className="h-3.5 w-3.5" /> Camera
                   <input
                     type="file"
@@ -581,7 +581,7 @@ function Bikes() {
                     onChange={(e) => handleBikePhotos(e.target.files)}
                   />
                 </label>
-                <label className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-xs font-semibold hover:border-primary/50 cursor-pointer">
+                <label className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-secondary text-secondary-foreground px-3 py-1.5 text-xs font-semibold hover:bg-secondary/80 cursor-pointer">
                   <ImageIcon className="h-3.5 w-3.5" /> {uploading ? "Uploading…" : "Library"}
                   <input
                     type="file"
