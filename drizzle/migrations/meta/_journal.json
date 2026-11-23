@@ -162,6 +162,13 @@
       "when": 1794187919016,
       "tag": "0022_backfill_detected_services",
       "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1795397306938,
+      "tag": "0023_restore_deleted_record_server_only",
+      "breakpoints": true
     }
   ]
 }

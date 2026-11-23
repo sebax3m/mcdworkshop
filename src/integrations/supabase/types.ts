@@ -4433,7 +4433,10 @@ export type Database = {
           supplier: string
         }[]
       }
-      restore_deleted_record: { Args: { p_log_id: string }; Returns: Json }
+      restore_deleted_record: {
+        Args: { p_actor: string; p_log_id: string }
+        Returns: Json
+      }
       set_clock_event_note: {
         Args: { p_event_id: string; p_note: string }
         Returns: undefined

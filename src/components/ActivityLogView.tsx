@@ -1,3 +1,4 @@
+import { restoreDeletedRecord } from "@/lib/activity-restore.functions";
 import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { format, subDays } from "date-fns";
@@ -113,9 +114,13 @@ export function ActivityLogView({
 
   async function restore(id: string) {
     setBusy(id);
-    const { error } = await supabase.rpc("restore_deleted_record" as any, { p_log_id: id });
+    try {
+      await restoreDeletedRecord({ data: { logId: id } });
+    } catch (e: any) {
+      setBusy(null);
+      return toast.error(`Could not restore: ${e?.message ?? e}`);
+    }
     setBusy(null);
-    if (error) return toast.error(`Could not restore: ${error.message}`);
     toast.success("Restored");
     qc.invalidateQueries();
     onRestored?.();
