@@ -17,8 +17,7 @@ import {
   X,
   Save,
   Calendar,
-  ShieldCheck,
-} from "lucide-react";
+  ShieldCheck, Image as ImageIcon } from "lucide-react";
 
 import { fullBike } from "@/lib/format";
 import { displayCustomerName } from "@/lib/display";
@@ -331,12 +330,22 @@ function BikeProfile() {
               <Sparkles className="h-3.5 w-3.5" /> {generating ? "Generating…" : "AI photo"}
             </button>
             <label className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-xs font-semibold hover:border-primary/50 cursor-pointer">
-              <Camera className="h-3.5 w-3.5" /> {uploading ? "Uploading…" : "Upload"}
+              <Camera className="h-3.5 w-3.5" /> Camera
               <input
                 type="file"
                 accept="image/*"
                 multiple
                 capture="environment"
+                className="hidden"
+                onChange={(e) => handlePhotos(e.target.files)}
+              />
+            </label>
+            <label className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-xs font-semibold hover:border-primary/50 cursor-pointer">
+              <ImageIcon className="h-3.5 w-3.5" /> {uploading ? "Uploading…" : "Library"}
+              <input
+                type="file"
+                accept="image/*"
+                multiple
                 className="hidden"
                 onChange={(e) => handlePhotos(e.target.files)}
               />

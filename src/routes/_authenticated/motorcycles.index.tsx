@@ -19,8 +19,7 @@ import {
   Trash2,
   Archive,
   ArchiveRestore,
-  AlertTriangle,
-} from "lucide-react";
+  AlertTriangle, Image as ImageIcon } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { fullBike } from "@/lib/format";
@@ -572,12 +571,22 @@ function Bikes() {
                   <Sparkles className="h-3.5 w-3.5" /> {generating ? "Generating…" : "AI generate"}
                 </button>
                 <label className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-xs font-semibold hover:border-primary/50 cursor-pointer">
-                  <Camera className="h-3.5 w-3.5" /> {uploading ? "Uploading…" : "Add photo"}
+                  <Camera className="h-3.5 w-3.5" /> Camera
                   <input
                     type="file"
                     accept="image/*"
                     multiple
                     capture="environment"
+                    className="hidden"
+                    onChange={(e) => handleBikePhotos(e.target.files)}
+                  />
+                </label>
+                <label className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-xs font-semibold hover:border-primary/50 cursor-pointer">
+                  <ImageIcon className="h-3.5 w-3.5" /> {uploading ? "Uploading…" : "Library"}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    multiple
                     className="hidden"
                     onChange={(e) => handleBikePhotos(e.target.files)}
                   />

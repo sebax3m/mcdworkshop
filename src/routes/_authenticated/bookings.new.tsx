@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Plus, Search, Bike as BikeIcon, Camera, X } from "lucide-react";
+import { ArrowLeft, Plus, Search, Bike as BikeIcon, Camera, X, Image as ImageIcon } from "lucide-react";
 import { toast } from "sonner";
 import { PartsReminderSection } from "@/components/booking/PartsReminderSection";
 import type { ReminderItem } from "@/lib/parts-reminder";
@@ -1338,12 +1338,22 @@ function NewBooking() {
                 Arrival & damage photos
               </Label>
               <label className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-2 text-xs font-semibold hover:border-primary/50 cursor-pointer">
-                <Camera className="h-3.5 w-3.5" /> {uploading ? "Uploading…" : "Add"}
+                <Camera className="h-3.5 w-3.5" /> Camera
                 <input
                   type="file"
                   accept="image/*"
                   multiple
                   capture="environment"
+                  className="hidden"
+                  onChange={(e) => handlePhotos(e.target.files)}
+                />
+              </label>
+              <label className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-2 text-xs font-semibold hover:border-primary/50 cursor-pointer">
+                <ImageIcon className="h-3.5 w-3.5" /> {uploading ? "Uploading…" : "Library"}
+                <input
+                  type="file"
+                  accept="image/*"
+                  multiple
                   className="hidden"
                   onChange={(e) => handlePhotos(e.target.files)}
                 />

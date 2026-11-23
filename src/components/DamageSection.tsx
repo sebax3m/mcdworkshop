@@ -3,7 +3,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { getSignedUrls, getPhotoDisplayUrls, removePhoto, uploadPhoto } from "@/lib/photos";
-import { AlertTriangle, Camera, Trash2, X, RotateCcw, Save } from "lucide-react";
+import { AlertTriangle, Camera, Trash2, X, RotateCcw, Save, Image as ImageIcon } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 
@@ -43,6 +43,7 @@ export function DamageSection({
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+  const cameraRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     setMarks(initialMarks ?? []);
@@ -331,10 +332,27 @@ export function DamageSection({
                 type="file"
                 multiple
                 accept="image/*"
+                onChange={handleUpload}
+                className="hidden"
+              />
+              <input
+                ref={cameraRef}
+                type="file"
+                multiple
+                accept="image/*"
                 capture="environment"
                 onChange={handleUpload}
                 className="hidden"
               />
+              <Button
+                onClick={() => cameraRef.current?.click()}
+                disabled={uploading}
+                size="sm"
+                variant="outline"
+                className="gap-2 print:hidden"
+              >
+                <Camera className="h-3.5 w-3.5" /> Camera
+              </Button>
               <Button
                 onClick={() => fileRef.current?.click()}
                 disabled={uploading}
@@ -342,7 +360,7 @@ export function DamageSection({
                 variant="outline"
                 className="gap-2 print:hidden"
               >
-                <Camera className="h-3.5 w-3.5" /> {uploading ? "Uploading…" : "Add photos"}
+                <ImageIcon className="h-3.5 w-3.5" /> {uploading ? "Uploading…" : "Library"}
               </Button>
             </>
           )}
