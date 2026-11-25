@@ -169,6 +169,13 @@
       "when": 1795397306938,
       "tag": "0023_restore_deleted_record_server_only",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1795641555707,
+      "tag": "0024_restrict_sync_booking_part_to_job",
+      "breakpoints": true
     }
   ]
 }
