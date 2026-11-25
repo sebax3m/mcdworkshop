@@ -1324,6 +1324,9 @@ function PrintQuoteHeader({ c, bikeText }: { c: any; bikeText: string }) {
         <div className="text-[0.625rem] uppercase tracking-[0.25em] text-gray-600">
           Motorcycle Doctors · Insurance Quote
         </div>
+        <div className="text-[0.625rem] text-gray-600">
+          0800 668 663 · collision@mcdr.co.nz · www.motorcycle-doctors.co.nz
+        </div>
         <div className="flex items-end justify-between gap-4">
           <h1 className="font-display text-2xl font-bold leading-tight">Claim {c.claim_number}</h1>
           <div className="text-right text-xs">

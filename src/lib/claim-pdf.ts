@@ -7,10 +7,10 @@ import { retryImport } from "@/lib/lazy-module";
 const COMPANY = {
   name: "Motorcycle Doctors",
   tagline: "Motorcycle Service · Repair · Insurance",
-  address: "Auckland, New Zealand",
-  phone: "+64 9 000 0000",
-  email: "info@motorcycle-doctors.co.nz",
-  web: "motorcycle-doctors.co.nz",
+  address: "94 Wairau Rd, Wairau Valley, Auckland",
+  phone: "0800 668 663",
+  email: "collision@mcdr.co.nz",
+  web: "www.motorcycle-doctors.co.nz",
   gst: "GST # —",
 };
 
