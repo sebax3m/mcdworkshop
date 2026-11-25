@@ -2,7 +2,14 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 export const createTechnician = createServerFn({ method: "POST" })
-  .inputValidator((input: { email: string; full_name: string; password: string }) => input)
+  .inputValidator((input: { email: string; full_name: string; password: string }) => {
+    const email = String(input?.email ?? "").trim().toLowerCase();
+    const full_name = String(input?.full_name ?? "").trim().slice(0, 200);
+    const password = String(input?.password ?? "");
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 255) throw new Error("Invalid email");
+    if (password.length < 8 || password.length > 128) throw new Error("Password must be 8-128 characters");
+    return { email, full_name, password };
+  })
   .middleware([requireSupabaseAuth])
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -14,7 +21,7 @@ export const createTechnician = createServerFn({ method: "POST" })
     const isAdmin = (callerRoles ?? []).some((r) => r.role === "admin");
     if (!isAdmin) throw new Error("Only admins can create technicians");
 
-    // If a user with that email exists, reuse it and ensure the tech role + password
+    // Refuse to touch existing accounts
     let userId: string | null = null;
     let page = 1;
     outer: while (true) {
@@ -35,10 +42,8 @@ export const createTechnician = createServerFn({ method: "POST" })
     }
 
     if (userId) {
-      const { error } = await supabaseAdmin.auth.admin.updateUserById(userId, {
-        password: data.password,
-      });
-      if (error) throw new Error(error.message);
+      // Never reset an existing account's password from technician setup.
+      throw new Error("An account with this email already exists");
     } else {
       const { data: created, error } = await supabaseAdmin.auth.admin.createUser({
         email: data.email,
